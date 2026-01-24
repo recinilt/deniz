@@ -307,7 +307,7 @@
         }
         
         .hist-bar {
-            width: 22px;
+            width: 18px;
             background: linear-gradient(to top, #64d8ff, #a855f7);
             border-radius: 3px 3px 0 0;
             transition: height 0.3s ease;
@@ -365,7 +365,7 @@
             }
             
             .hist-bar {
-                width: 18px;
+                width: 14px;
             }
             
             .hist-bar::after {
@@ -381,7 +381,7 @@
         
         @media (max-width: 360px) {
             .hist-bar {
-                width: 14px;
+                width: 11px;
             }
             
             .ui-panel {
@@ -441,7 +441,7 @@
         </div>
         <div class="stat-row">
             <span class="stat-label">FPS</span>
-            <span class="stat-value" id="fps">60</span>
+            <span class="stat-value" id="fps">25</span>
         </div>
         <button class="btn" id="drop-btn">▶️ Top Bırak</button>
         <button class="btn" id="burst-btn">🚀 10 Top Bırak</button>
@@ -574,37 +574,12 @@
                 } catch (e) {}
             }
             
-            // Top-top çarpışma sesi (daha kısa ve yumuşak)
-            playBallHit(speed) {
-                if (!this.enabled || !this.initialized || !this.context) return;
-                if (speed < 1.0) return;
-                try {
-                    const now = this.context.currentTime;
-                    const osc = this.context.createOscillator();
-                    osc.type = 'sine';
-                    osc.frequency.value = 600 + Math.random() * 300;
-                    
-                    const gain = this.context.createGain();
-                    const vol = Math.min(0.12, speed * 0.025);
-                    
-                    gain.gain.setValueAtTime(0.001, now);
-                    gain.gain.linearRampToValueAtTime(vol, now + 0.003);
-                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
-                    
-                    osc.connect(gain);
-                    gain.connect(this.masterGain);
-                    
-                    osc.start(now);
-                    osc.stop(now + 0.08);
-                } catch (e) {}
-            }
-            
             setEnabled(enabled) {
                 this.enabled = enabled;
             }
         }
         
-        // ============ SPATIAL GRID (Broad Phase Optimization) ============
+        // ============ SPATIAL GRID ============
         class SpatialGrid {
             constructor(cellSize, width, height, depth) {
                 this.cellSize = cellSize;
@@ -670,23 +645,26 @@
                 this.velocity = new Vec3();
                 this.mass = options.mass || 1;
                 this.radius = options.radius || 0.5;
-                this.restitution = options.restitution || 0.6;
-                this.friction = options.friction || 0.1;
+                this.restitution = options.restitution || 0.25;
+                this.friction = options.friction || 0.2;
                 this.isStatic = options.mass === 0;
-                this.damping = 0.015;
+                this.damping = 0.04;
             }
         }
         
         class PhysicsWorld {
             constructor() {
                 this.bodies = [];
-                this.gravity = new Vec3(0, -15, 0);
+                this.gravity = new Vec3(0, -8, 0);
                 this.pins = [];
+                this.binDividers = [];
                 this.onPinHit = null;
-                this.onBallHit = null;
-                
-                // Spatial grid: cell size = ~2x ball diameter for good neighbor detection
                 this.grid = new SpatialGrid(0.5, 12, 20, 2);
+                this.boardWidth = 10;
+                this.numBins = 13; // 12 satır + 1
+                this.binWidth = 0.75; // pin aralığı ile aynı
+                this.binAreaTop = -6.5;
+                this.boardBottom = -12;
             }
             
             addBody(body) {
@@ -703,12 +681,15 @@
                 this.pins.push({ x, y, z, radius, row, index });
             }
             
+            addBinDivider(x, yTop, yBottom) {
+                this.binDividers.push({ x, yTop, yBottom });
+            }
+            
             step(dt) {
-                const subSteps = 4;
+                const subSteps = 6;
                 const subDt = dt / subSteps;
                 
                 for (let s = 0; s < subSteps; s++) {
-                    // Update velocities and positions
                     for (const body of this.bodies) {
                         if (body.isStatic) continue;
                         
@@ -725,7 +706,6 @@
                         body.position.z += body.velocity.z * subDt;
                     }
                     
-                    // Pin collisions
                     for (const body of this.bodies) {
                         if (body.isStatic) continue;
                         for (const pin of this.pins) {
@@ -733,10 +713,13 @@
                         }
                     }
                     
-                    // Ball-Ball collisions with spatial grid optimization
                     this.handleBallCollisions();
                     
-                    // Wall collisions
+                    for (const body of this.bodies) {
+                        if (body.isStatic) continue;
+                        this.binDividerCollisions(body);
+                    }
+                    
                     for (const body of this.bodies) {
                         if (body.isStatic) continue;
                         this.wallCollisions(body);
@@ -748,13 +731,11 @@
                 const dynamicBodies = this.bodies.filter(b => !b.isStatic);
                 if (dynamicBodies.length < 2) return;
                 
-                // Rebuild spatial grid
                 this.grid.clear();
                 for (let i = 0; i < dynamicBodies.length; i++) {
                     this.grid.insert(dynamicBodies[i], i);
                 }
                 
-                // Check each ball against nearby neighbors
                 const checked = new Set();
                 
                 for (let i = 0; i < dynamicBodies.length; i++) {
@@ -786,12 +767,10 @@
                 if (distSq < minDistSq && distSq > 0.0001) {
                     const dist = Math.sqrt(distSq);
                     
-                    // Normal vector (from a to b)
                     const nx = dx / dist;
                     const ny = dy / dist;
                     const nz = dz / dist;
                     
-                    // Separate overlapping balls
                     const overlap = minDist - dist;
                     const separationX = nx * overlap * 0.5;
                     const separationY = ny * overlap * 0.5;
@@ -804,37 +783,46 @@
                     b.position.y += separationY;
                     b.position.z += separationZ;
                     
-                    // Relative velocity
                     const dvx = a.velocity.x - b.velocity.x;
                     const dvy = a.velocity.y - b.velocity.y;
                     const dvz = a.velocity.z - b.velocity.z;
                     
-                    // Velocity component along collision normal
                     const dvn = dvx * nx + dvy * ny + dvz * nz;
                     
-                    // Only resolve if balls are approaching
                     if (dvn > 0) return;
                     
-                    // Coefficient of restitution
                     const restitution = Math.min(a.restitution, b.restitution);
-                    
-                    // Impulse calculation for equal mass elastic collision
-                    // j = -(1 + e) * dvn / (1/m1 + 1/m2)
-                    // For equal mass: j = -(1 + e) * dvn / 2
                     const j = -(1 + restitution) * dvn * 0.5;
                     
-                    // Apply impulse
                     a.velocity.x += j * nx;
                     a.velocity.y += j * ny;
                     a.velocity.z += j * nz;
                     b.velocity.x -= j * nx;
                     b.velocity.y -= j * ny;
                     b.velocity.z -= j * nz;
+                }
+            }
+            
+            binDividerCollisions(body) {
+                if (body.position.y > this.binAreaTop) return;
+                
+                for (const div of this.binDividers) {
+                    if (body.position.y > div.yTop || body.position.y < div.yBottom) continue;
                     
-                    // Sound effect
-                    if (this.onBallHit) {
-                        const impactSpeed = Math.abs(dvn);
-                        this.onBallHit(impactSpeed);
+                    const dx = body.position.x - div.x;
+                    const dist = Math.abs(dx);
+                    const dividerHalfWidth = 0.04;
+                    const minDist = body.radius + dividerHalfWidth;
+                    
+                    if (dist < minDist) {
+                        const overlap = minDist - dist;
+                        const sign = dx > 0 ? 1 : -1;
+                        
+                        body.position.x += sign * overlap * 1.01;
+                        
+                        if ((dx > 0 && body.velocity.x < 0) || (dx < 0 && body.velocity.x > 0)) {
+                            body.velocity.x *= -0.1;
+                        }
                     }
                 }
             }
@@ -859,15 +847,23 @@
                     const vDotN = ball.velocity.x * nx + ball.velocity.y * ny;
                     if (vDotN < 0) {
                         const impactSpeed = Math.abs(vDotN);
-                        if (impactSpeed > 1.5 && this.onPinHit) {
+                        if (impactSpeed > 1.0 && this.onPinHit) {
                             this.onPinHit(pin.row, pin.index);
                         }
                         
-                        ball.velocity.x -= (1 + ball.restitution) * vDotN * nx;
-                        ball.velocity.y -= (1 + ball.restitution) * vDotN * ny;
+                        // Hız bazlı restitution: hızlı çarpışmalarda daha az zıplama
+                        const speedFactor = Math.min(1, 2 / (1 + impactSpeed));
+                        const effectiveRestitution = ball.restitution * speedFactor;
                         
-                        ball.velocity.x += (Math.random() - 0.5) * 0.4;
-                        ball.velocity.x *= (1 - ball.friction);
+                        ball.velocity.x -= (1 + effectiveRestitution) * vDotN * nx;
+                        ball.velocity.y -= (1 + effectiveRestitution) * vDotN * ny;
+                        
+                        // Daha fazla rastgelelik: 50/50 şans için kritik
+                        ball.velocity.x += (Math.random() - 0.5) * 0.8;
+                        
+                        // Enerji kaybı
+                        ball.velocity.x *= (1 - ball.friction * 1.5);
+                        ball.velocity.y *= 0.95;
                         ball.velocity.z *= (1 - ball.friction);
                     }
                 }
@@ -889,8 +885,8 @@
                 }
                 if (body.position.y - body.radius < boardBottom) {
                     body.position.y = boardBottom + body.radius;
-                    body.velocity.y *= -body.restitution * 0.5;
-                    body.velocity.x *= 0.85;
+                    body.velocity.y *= -body.restitution * 0.3;
+                    body.velocity.x *= 0.8;
                 }
                 if (body.position.z + body.radius > boardFront) {
                     body.position.z = boardFront - body.radius;
@@ -912,13 +908,13 @@
                 this.controls = null;
                 this.world = null;
                 this.balls = [];
-                this.binCounts = new Array(11).fill(0);
+                this.binCounts = new Array(13).fill(0);
                 this.totalBalls = 0;
                 this.autoMode = false;
                 this.autoInterval = null;
                 this.lastTime = performance.now();
                 this.frameCount = 0;
-                this.fps = 60;
+                this.fps = 25;
                 
                 this.audio = new AudioSystem();
                 this.panelVisible = true;
@@ -958,9 +954,6 @@
                 this.world = new PhysicsWorld();
                 this.world.onPinHit = (row, pinIndex) => {
                     this.audio.playPinHit(row, pinIndex);
-                };
-                this.world.onBallHit = (speed) => {
-                    this.audio.playBallHit(speed);
                 };
                 
                 this.setupLights();
@@ -1087,22 +1080,32 @@
                     }
                 }
                 
-                const numBins = 11, binWidth = boardWidth / numBins, dividerHeight = 5;
+                const numBins = 13; // 12 satır + 1
+                const binWidth = 0.75; // pinSpacing ile aynı
+                const totalBinWidth = numBins * binWidth; // 9.75
+                const binStartX = -totalBinWidth / 2; // -4.875
+                const dividerHeight = 5;
                 const dividerGeo = new THREE.BoxGeometry(0.08, dividerHeight, boardDepth - 0.2);
+                const dividerYTop = -6.5;
+                const dividerYBottom = -boardHeight + 3 + 0.2;
+                const dividerYCenter = dividerYBottom + dividerHeight / 2;
                 
                 for (let i = 0; i <= numBins; i++) {
-                    const divX = -boardWidth / 2 + i * binWidth;
+                    const divX = binStartX + i * binWidth;
+                    
                     const divider = new THREE.Mesh(dividerGeo, dividerMaterial);
-                    divider.position.set(divX, -boardHeight + 3 + dividerHeight / 2 + 0.2, 0);
+                    divider.position.set(divX, dividerYCenter, 0);
                     divider.castShadow = true;
                     this.scene.add(divider);
+                    
+                    this.world.addBinDivider(divX, dividerYTop, dividerYBottom);
                 }
                 
                 for (let i = 0; i < numBins; i++) {
-                    const binX = -boardWidth / 2 + binWidth / 2 + i * binWidth;
+                    const binX = binStartX + binWidth / 2 + i * binWidth;
                     const glowGeo = new THREE.PlaneGeometry(binWidth - 0.15, 0.3);
                     const glowMat = new THREE.MeshBasicMaterial({
-                        color: new THREE.Color().setHSL(0.55 + i * 0.03, 0.8, 0.5),
+                        color: new THREE.Color().setHSL(0.55 + i * 0.025, 0.8, 0.5),
                         transparent: true, opacity: 0.6,
                     });
                     const glow = new THREE.Mesh(glowGeo, glowMat);
@@ -1122,7 +1125,7 @@
             
             createHistogram() {
                 const container = document.getElementById('histogram');
-                for (let i = 0; i < 11; i++) {
+                for (let i = 0; i < 13; i++) {
                     const bar = document.createElement('div');
                     bar.className = 'hist-bar';
                     bar.style.height = '2px';
@@ -1166,7 +1169,7 @@
                 
                 const body = new PhysicsBody({
                     position: { x: startX, y: startY, z: startZ },
-                    mass: 1, radius: radius, restitution: 0.5, friction: 0.12,
+                    mass: 1, radius: radius, restitution: 0.25, friction: 0.2,
                 });
                 this.world.addBody(body);
                 this.balls.push({ body, mesh: ballMesh, settled: false, settleTime: 0 });
@@ -1220,7 +1223,7 @@
                     });
                     this.balls = [];
                     this.world.bodies = this.world.bodies.filter(b => b.isStatic);
-                    this.binCounts = new Array(11).fill(0);
+                    this.binCounts = new Array(13).fill(0);
                     this.totalBalls = 0;
                     document.getElementById('total-balls').textContent = '0';
                     this.updateHistogram();
@@ -1242,19 +1245,24 @@
                 requestAnimationFrame(() => this.animate());
                 
                 const now = performance.now();
-                const dt = Math.min((now - this.lastTime) / 1000, 0.05);
+                const elapsed = now - this.lastTime;
+                
+                // FPS limiti: maksimum 25 FPS (40ms per frame)
+                if (elapsed < 40) return;
+                
+                const dt = Math.min(elapsed / 1000, 0.05);
                 this.lastTime = now;
                 
                 this.frameCount++;
-                if (this.frameCount % 30 === 0) {
-                    this.fps = Math.round(1 / dt);
-                    document.getElementById('fps').textContent = this.fps;
+                if (this.frameCount % 15 === 0) {
+                    this.fps = Math.round(1000 / elapsed);
+                    document.getElementById('fps').textContent = Math.min(this.fps, 25);
                 }
                 
                 this.world.step(dt);
                 
                 let activeBalls = 0;
-                const boardWidth = 10, numBins = 11, binWidth = boardWidth / numBins, settleY = -11.5;
+                const numBins = 13, binWidth = 0.75, binStartX = -4.875, settleY = -11.5;
                 
                 for (let i = this.balls.length - 1; i >= 0; i--) {
                     const ball = this.balls[i];
@@ -1266,11 +1274,11 @@
                             ball.body.velocity.x ** 2 + ball.body.velocity.y ** 2 + ball.body.velocity.z ** 2
                         );
                         
-                        if (speed < 0.5) {
+                        if (speed < 0.3) {
                             ball.settleTime += dt;
-                            if (ball.settleTime > 0.5) {
+                            if (ball.settleTime > 0.3) {
                                 ball.settled = true;
-                                const binIndex = Math.floor((ball.body.position.x + boardWidth / 2) / binWidth);
+                                const binIndex = Math.floor((ball.body.position.x - binStartX) / binWidth);
                                 const clampedBin = Math.max(0, Math.min(numBins - 1, binIndex));
                                 this.binCounts[clampedBin]++;
                                 this.updateHistogram();
