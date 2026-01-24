@@ -1,11 +1,1301 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>3D Galton Board - Fizik Simülasyonu</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #0f0f1a 100%);
+            overflow: hidden;
+            height: 100vh;
+            height: 100dvh;
+            touch-action: none;
+        }
+        
+        #canvas-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        
+        canvas {
+            display: block;
+            touch-action: none;
+        }
+        
+        .toggle-btn {
+            position: absolute;
+            width: 44px;
+            height: 44px;
+            background: rgba(10, 10, 20, 0.9);
+            border: 1px solid rgba(100, 200, 255, 0.3);
+            border-radius: 10px;
+            cursor: pointer;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .toggle-btn:hover {
+            background: rgba(20, 30, 50, 0.95);
+            border-color: #64d8ff;
+            box-shadow: 0 0 15px rgba(100, 216, 255, 0.3);
+        }
+        
+        .toggle-btn:active {
+            transform: scale(0.95);
+        }
+        
+        #toggle-controls {
+            top: 15px;
+            left: 15px;
+        }
+        
+        #toggle-histogram {
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .hamburger {
+            width: 22px;
+            height: 16px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        
+        .hamburger span {
+            display: block;
+            height: 2px;
+            width: 100%;
+            background: #64d8ff;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+        
+        .hamburger.active span:nth-child(1) {
+            transform: rotate(45deg) translate(5px, 5px);
+        }
+        
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+        }
+        
+        .hamburger.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(5px, -5px);
+        }
+        
+        .chart-icon {
+            display: flex;
+            align-items: flex-end;
+            gap: 2px;
+            height: 18px;
+        }
+        
+        .chart-icon span {
+            width: 4px;
+            background: #64d8ff;
+            border-radius: 1px;
+            transition: all 0.3s ease;
+        }
+        
+        .chart-icon span:nth-child(1) { height: 6px; }
+        .chart-icon span:nth-child(2) { height: 12px; }
+        .chart-icon span:nth-child(3) { height: 18px; }
+        .chart-icon span:nth-child(4) { height: 12px; }
+        .chart-icon span:nth-child(5) { height: 6px; }
+        
+        #toggle-histogram.active .chart-icon span {
+            background: #a855f7;
+        }
+        
+        .ui-panel {
+            position: absolute;
+            top: 70px;
+            left: 15px;
+            background: rgba(10, 10, 20, 0.92);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(100, 200, 255, 0.2);
+            border-radius: 14px;
+            padding: 18px;
+            color: #e0e0e0;
+            min-width: 200px;
+            max-width: calc(100vw - 30px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: top left;
+            z-index: 100;
+        }
+        
+        .ui-panel.hidden {
+            opacity: 0;
+            transform: scale(0.9) translateY(-10px);
+            pointer-events: none;
+        }
+        
+        .ui-panel h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            color: #64d8ff;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 6px 0;
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(100, 200, 255, 0.1);
+        }
+        
+        .stat-label {
+            color: #888;
+            font-weight: 300;
+            font-size: 0.9rem;
+        }
+        
+        .stat-value {
+            color: #64d8ff;
+            font-weight: 700;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9rem;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 11px;
+            margin-top: 8px;
+            background: linear-gradient(135deg, #1a3a4a 0%, #0d1f2a 100%);
+            border: 1px solid #64d8ff;
+            border-radius: 8px;
+            color: #64d8ff;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .btn:hover {
+            background: linear-gradient(135deg, #2a5a6a 0%, #1a3a4a 100%);
+            box-shadow: 0 0 20px rgba(100, 216, 255, 0.3);
+        }
+        
+        .btn:active {
+            transform: scale(0.98);
+        }
+        
+        .sound-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(100, 200, 255, 0.15);
+        }
+        
+        .sound-toggle label {
+            color: #888;
+            font-size: 0.85rem;
+        }
+        
+        .switch {
+            position: relative;
+            width: 46px;
+            height: 24px;
+        }
+        
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #1a1a2a;
+            border: 1px solid #333;
+            transition: 0.3s;
+            border-radius: 24px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 2px;
+            bottom: 2px;
+            background: #666;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background: linear-gradient(135deg, #1a4a5a, #0d2f3a);
+            border-color: #64d8ff;
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(22px);
+            background: #64d8ff;
+        }
+        
+        .histogram-panel {
+            position: absolute;
+            bottom: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(10, 10, 20, 0.92);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(100, 200, 255, 0.2);
+            border-radius: 14px;
+            padding: 14px 18px;
+            color: #e0e0e0;
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: bottom center;
+            z-index: 100;
+        }
+        
+        .histogram-panel.hidden {
+            opacity: 0;
+            transform: translateX(-50%) scale(0.9) translateY(10px);
+            pointer-events: none;
+        }
+        
+        .histogram-panel h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            color: #64d8ff;
+            margin-bottom: 10px;
+            text-align: center;
+            letter-spacing: 1px;
+        }
+        
+        #histogram {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            height: 70px;
+            gap: 3px;
+        }
+        
+        .hist-bar {
+            width: 22px;
+            background: linear-gradient(to top, #64d8ff, #a855f7);
+            border-radius: 3px 3px 0 0;
+            transition: height 0.3s ease;
+            position: relative;
+        }
+        
+        .hist-bar::after {
+            content: attr(data-count);
+            position: absolute;
+            bottom: -16px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.6rem;
+            color: #666;
+            font-family: 'Orbitron', sans-serif;
+        }
+        
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #64d8ff;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.1rem;
+            letter-spacing: 3px;
+        }
+        
+        @media (max-width: 480px) {
+            .ui-panel {
+                top: 65px;
+                left: 10px;
+                padding: 14px;
+                min-width: 180px;
+            }
+            
+            .ui-panel h1 {
+                font-size: 1rem;
+            }
+            
+            .btn {
+                padding: 10px;
+                font-size: 0.7rem;
+            }
+            
+            .histogram-panel {
+                bottom: 65px;
+                padding: 12px 14px;
+                max-width: calc(100vw - 20px);
+            }
+            
+            #histogram {
+                height: 60px;
+                gap: 2px;
+            }
+            
+            .hist-bar {
+                width: 18px;
+            }
+            
+            .hist-bar::after {
+                font-size: 0.5rem;
+                bottom: -14px;
+            }
+            
+            .toggle-btn {
+                width: 40px;
+                height: 40px;
+            }
+        }
+        
+        @media (max-width: 360px) {
+            .hist-bar {
+                width: 14px;
+            }
+            
+            .ui-panel {
+                min-width: 160px;
+            }
+        }
+        
+        @media (max-height: 500px) and (orientation: landscape) {
+            .ui-panel {
+                top: 10px;
+                max-height: calc(100vh - 20px);
+                overflow-y: auto;
+            }
+            
+            .histogram-panel {
+                bottom: 10px;
+            }
+            
+            #histogram {
+                height: 50px;
+            }
+        }
+    </style>
 </head>
 <body>
-    <p>Hello world</p>
+    <div id="canvas-container">
+        <div class="loading" id="loading">YÜKLENİYOR...</div>
+    </div>
+    
+    <button class="toggle-btn" id="toggle-controls" aria-label="Kontrolleri Aç/Kapat">
+        <div class="hamburger" id="hamburger-icon">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </button>
+    
+    <button class="toggle-btn" id="toggle-histogram" aria-label="Histogramı Aç/Kapat">
+        <div class="chart-icon">
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </button>
+    
+    <div class="ui-panel" id="ui-panel">
+        <h1>🎱 Galton Board</h1>
+        <div class="stat-row">
+            <span class="stat-label">Toplam Top</span>
+            <span class="stat-value" id="total-balls">0</span>
+        </div>
+        <div class="stat-row">
+            <span class="stat-label">Aktif Top</span>
+            <span class="stat-value" id="active-balls">0</span>
+        </div>
+        <div class="stat-row">
+            <span class="stat-label">FPS</span>
+            <span class="stat-value" id="fps">60</span>
+        </div>
+        <button class="btn" id="drop-btn">▶️ Top Bırak</button>
+        <button class="btn" id="burst-btn">🚀 10 Top Bırak</button>
+        <button class="btn" id="auto-btn">⏸️ Otomatik: Kapalı</button>
+        <button class="btn" id="reset-btn">🔄 Sıfırla</button>
+        
+        <div class="sound-toggle">
+            <label>🔊 Ses Efekti</label>
+            <label class="switch">
+                <input type="checkbox" id="sound-toggle" checked>
+                <span class="slider"></span>
+            </label>
+        </div>
+    </div>
+    
+    <div class="histogram-panel" id="histogram-panel">
+        <h3>📊 Çan Eğrisi Dağılımı</h3>
+        <div id="histogram"></div>
+    </div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+    
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        
+        // ============ AUDIO SYSTEM ============
+        class AudioSystem {
+            constructor() {
+                this.context = null;
+                this.masterGain = null;
+                this.enabled = true;
+                this.initialized = false;
+                
+                this.noteFrequencies = {
+                    high: [523.25, 587.33, 659.25, 783.99, 880.00],
+                    midHigh: [392.00, 440.00, 493.88, 523.25, 587.33],
+                    mid: [261.63, 293.66, 329.63, 392.00, 440.00],
+                    low: [196.00, 220.00, 246.94, 261.63, 293.66]
+                };
+            }
+            
+            async init() {
+                if (this.initialized) return;
+                try {
+                    this.context = new (window.AudioContext || window.webkitAudioContext)();
+                    this.masterGain = this.context.createGain();
+                    this.masterGain.gain.value = 0.25;
+                    this.masterGain.connect(this.context.destination);
+                    
+                    this.delayNode = this.context.createDelay(0.5);
+                    this.delayNode.delayTime.value = 0.06;
+                    this.delayGain = this.context.createGain();
+                    this.delayGain.gain.value = 0.15;
+                    this.delayNode.connect(this.delayGain);
+                    this.delayGain.connect(this.masterGain);
+                    
+                    this.initialized = true;
+                } catch (e) {}
+            }
+            
+            async resume() {
+                if (this.context && this.context.state === 'suspended') {
+                    await this.context.resume();
+                }
+            }
+            
+            playPinHit(row, pinIndex) {
+                if (!this.enabled || !this.initialized || !this.context) return;
+                try {
+                    const now = this.context.currentTime;
+                    let noteSet;
+                    if (row <= 2) noteSet = this.noteFrequencies.high;
+                    else if (row <= 5) noteSet = this.noteFrequencies.midHigh;
+                    else if (row <= 8) noteSet = this.noteFrequencies.mid;
+                    else noteSet = this.noteFrequencies.low;
+                    
+                    const noteIndex = pinIndex % noteSet.length;
+                    const baseFreq = noteSet[noteIndex];
+                    const detune = (Math.random() - 0.5) * 20;
+                    
+                    const osc1 = this.context.createOscillator();
+                    osc1.type = 'sine';
+                    osc1.frequency.value = baseFreq;
+                    osc1.detune.value = detune;
+                    
+                    const osc2 = this.context.createOscillator();
+                    osc2.type = 'triangle';
+                    osc2.frequency.value = baseFreq * 2;
+                    osc2.detune.value = detune;
+                    
+                    const gain1 = this.context.createGain();
+                    const gain2 = this.context.createGain();
+                    
+                    const attackTime = 0.005;
+                    const decayTime = 0.12;
+                    const releaseTime = 0.3;
+                    
+                    const rowVolume = 0.4 + (0.4 * (1 - row / 12));
+                    const velocity = 0.25 + Math.random() * 0.15;
+                    const maxGain = rowVolume * velocity;
+                    
+                    gain1.gain.setValueAtTime(0.001, now);
+                    gain1.gain.linearRampToValueAtTime(maxGain, now + attackTime);
+                    gain1.gain.exponentialRampToValueAtTime(maxGain * 0.1, now + attackTime + decayTime);
+                    gain1.gain.exponentialRampToValueAtTime(0.001, now + attackTime + decayTime + releaseTime);
+                    
+                    gain2.gain.setValueAtTime(0.001, now);
+                    gain2.gain.linearRampToValueAtTime(maxGain * 0.25, now + attackTime);
+                    gain2.gain.exponentialRampToValueAtTime(0.001, now + attackTime + decayTime * 0.5);
+                    
+                    osc1.connect(gain1);
+                    osc2.connect(gain2);
+                    gain1.connect(this.masterGain);
+                    gain1.connect(this.delayNode);
+                    gain2.connect(this.masterGain);
+                    
+                    const duration = attackTime + decayTime + releaseTime + 0.05;
+                    osc1.start(now);
+                    osc2.start(now);
+                    osc1.stop(now + duration);
+                    osc2.stop(now + duration);
+                } catch (e) {}
+            }
+            
+            // Top-top çarpışma sesi (daha kısa ve yumuşak)
+            playBallHit(speed) {
+                if (!this.enabled || !this.initialized || !this.context) return;
+                if (speed < 1.0) return;
+                try {
+                    const now = this.context.currentTime;
+                    const osc = this.context.createOscillator();
+                    osc.type = 'sine';
+                    osc.frequency.value = 600 + Math.random() * 300;
+                    
+                    const gain = this.context.createGain();
+                    const vol = Math.min(0.12, speed * 0.025);
+                    
+                    gain.gain.setValueAtTime(0.001, now);
+                    gain.gain.linearRampToValueAtTime(vol, now + 0.003);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+                    
+                    osc.connect(gain);
+                    gain.connect(this.masterGain);
+                    
+                    osc.start(now);
+                    osc.stop(now + 0.08);
+                } catch (e) {}
+            }
+            
+            setEnabled(enabled) {
+                this.enabled = enabled;
+            }
+        }
+        
+        // ============ SPATIAL GRID (Broad Phase Optimization) ============
+        class SpatialGrid {
+            constructor(cellSize, width, height, depth) {
+                this.cellSize = cellSize;
+                this.offsetX = width / 2;
+                this.offsetY = 5;
+                this.offsetZ = depth / 2;
+                this.cells = new Map();
+            }
+            
+            clear() {
+                this.cells.clear();
+            }
+            
+            getKey(x, y, z) {
+                const cx = Math.floor((x + this.offsetX) / this.cellSize);
+                const cy = Math.floor((y + this.offsetY) / this.cellSize);
+                const cz = Math.floor((z + this.offsetZ) / this.cellSize);
+                return `${cx},${cy},${cz}`;
+            }
+            
+            insert(body, index) {
+                const key = this.getKey(body.position.x, body.position.y, body.position.z);
+                if (!this.cells.has(key)) {
+                    this.cells.set(key, []);
+                }
+                this.cells.get(key).push(index);
+            }
+            
+            getNearby(body) {
+                const nearby = [];
+                const cx = Math.floor((body.position.x + this.offsetX) / this.cellSize);
+                const cy = Math.floor((body.position.y + this.offsetY) / this.cellSize);
+                const cz = Math.floor((body.position.z + this.offsetZ) / this.cellSize);
+                
+                for (let dx = -1; dx <= 1; dx++) {
+                    for (let dy = -1; dy <= 1; dy++) {
+                        for (let dz = -1; dz <= 1; dz++) {
+                            const key = `${cx + dx},${cy + dy},${cz + dz}`;
+                            if (this.cells.has(key)) {
+                                nearby.push(...this.cells.get(key));
+                            }
+                        }
+                    }
+                }
+                return nearby;
+            }
+        }
+        
+        // ============ PHYSICS ENGINE ============
+        class Vec3 {
+            constructor(x = 0, y = 0, z = 0) {
+                this.x = x; this.y = y; this.z = z;
+            }
+            set(x, y, z) { this.x = x; this.y = y; this.z = z; return this; }
+            copy(v) { this.x = v.x; this.y = v.y; this.z = v.z; return this; }
+            length() { return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z); }
+            lengthSq() { return this.x * this.x + this.y * this.y + this.z * this.z; }
+        }
+        
+        class PhysicsBody {
+            constructor(options = {}) {
+                this.position = options.position ? new Vec3(options.position.x, options.position.y, options.position.z) : new Vec3();
+                this.velocity = new Vec3();
+                this.mass = options.mass || 1;
+                this.radius = options.radius || 0.5;
+                this.restitution = options.restitution || 0.6;
+                this.friction = options.friction || 0.1;
+                this.isStatic = options.mass === 0;
+                this.damping = 0.015;
+            }
+        }
+        
+        class PhysicsWorld {
+            constructor() {
+                this.bodies = [];
+                this.gravity = new Vec3(0, -15, 0);
+                this.pins = [];
+                this.onPinHit = null;
+                this.onBallHit = null;
+                
+                // Spatial grid: cell size = ~2x ball diameter for good neighbor detection
+                this.grid = new SpatialGrid(0.5, 12, 20, 2);
+            }
+            
+            addBody(body) {
+                this.bodies.push(body);
+                return body;
+            }
+            
+            removeBody(body) {
+                const idx = this.bodies.indexOf(body);
+                if (idx > -1) this.bodies.splice(idx, 1);
+            }
+            
+            addPin(x, y, z, radius, row, index) {
+                this.pins.push({ x, y, z, radius, row, index });
+            }
+            
+            step(dt) {
+                const subSteps = 4;
+                const subDt = dt / subSteps;
+                
+                for (let s = 0; s < subSteps; s++) {
+                    // Update velocities and positions
+                    for (const body of this.bodies) {
+                        if (body.isStatic) continue;
+                        
+                        body.velocity.x += this.gravity.x * subDt;
+                        body.velocity.y += this.gravity.y * subDt;
+                        body.velocity.z += this.gravity.z * subDt;
+                        
+                        body.velocity.x *= (1 - body.damping);
+                        body.velocity.y *= (1 - body.damping);
+                        body.velocity.z *= (1 - body.damping);
+                        
+                        body.position.x += body.velocity.x * subDt;
+                        body.position.y += body.velocity.y * subDt;
+                        body.position.z += body.velocity.z * subDt;
+                    }
+                    
+                    // Pin collisions
+                    for (const body of this.bodies) {
+                        if (body.isStatic) continue;
+                        for (const pin of this.pins) {
+                            this.sphereCylinderCollision(body, pin);
+                        }
+                    }
+                    
+                    // Ball-Ball collisions with spatial grid optimization
+                    this.handleBallCollisions();
+                    
+                    // Wall collisions
+                    for (const body of this.bodies) {
+                        if (body.isStatic) continue;
+                        this.wallCollisions(body);
+                    }
+                }
+            }
+            
+            handleBallCollisions() {
+                const dynamicBodies = this.bodies.filter(b => !b.isStatic);
+                if (dynamicBodies.length < 2) return;
+                
+                // Rebuild spatial grid
+                this.grid.clear();
+                for (let i = 0; i < dynamicBodies.length; i++) {
+                    this.grid.insert(dynamicBodies[i], i);
+                }
+                
+                // Check each ball against nearby neighbors
+                const checked = new Set();
+                
+                for (let i = 0; i < dynamicBodies.length; i++) {
+                    const bodyA = dynamicBodies[i];
+                    const nearby = this.grid.getNearby(bodyA);
+                    
+                    for (const j of nearby) {
+                        if (i >= j) continue;
+                        
+                        const pairKey = `${i}-${j}`;
+                        if (checked.has(pairKey)) continue;
+                        checked.add(pairKey);
+                        
+                        const bodyB = dynamicBodies[j];
+                        this.sphereSphereCollision(bodyA, bodyB);
+                    }
+                }
+            }
+            
+            sphereSphereCollision(a, b) {
+                const dx = b.position.x - a.position.x;
+                const dy = b.position.y - a.position.y;
+                const dz = b.position.z - a.position.z;
+                
+                const distSq = dx * dx + dy * dy + dz * dz;
+                const minDist = a.radius + b.radius;
+                const minDistSq = minDist * minDist;
+                
+                if (distSq < minDistSq && distSq > 0.0001) {
+                    const dist = Math.sqrt(distSq);
+                    
+                    // Normal vector (from a to b)
+                    const nx = dx / dist;
+                    const ny = dy / dist;
+                    const nz = dz / dist;
+                    
+                    // Separate overlapping balls
+                    const overlap = minDist - dist;
+                    const separationX = nx * overlap * 0.5;
+                    const separationY = ny * overlap * 0.5;
+                    const separationZ = nz * overlap * 0.5;
+                    
+                    a.position.x -= separationX;
+                    a.position.y -= separationY;
+                    a.position.z -= separationZ;
+                    b.position.x += separationX;
+                    b.position.y += separationY;
+                    b.position.z += separationZ;
+                    
+                    // Relative velocity
+                    const dvx = a.velocity.x - b.velocity.x;
+                    const dvy = a.velocity.y - b.velocity.y;
+                    const dvz = a.velocity.z - b.velocity.z;
+                    
+                    // Velocity component along collision normal
+                    const dvn = dvx * nx + dvy * ny + dvz * nz;
+                    
+                    // Only resolve if balls are approaching
+                    if (dvn > 0) return;
+                    
+                    // Coefficient of restitution
+                    const restitution = Math.min(a.restitution, b.restitution);
+                    
+                    // Impulse calculation for equal mass elastic collision
+                    // j = -(1 + e) * dvn / (1/m1 + 1/m2)
+                    // For equal mass: j = -(1 + e) * dvn / 2
+                    const j = -(1 + restitution) * dvn * 0.5;
+                    
+                    // Apply impulse
+                    a.velocity.x += j * nx;
+                    a.velocity.y += j * ny;
+                    a.velocity.z += j * nz;
+                    b.velocity.x -= j * nx;
+                    b.velocity.y -= j * ny;
+                    b.velocity.z -= j * nz;
+                    
+                    // Sound effect
+                    if (this.onBallHit) {
+                        const impactSpeed = Math.abs(dvn);
+                        this.onBallHit(impactSpeed);
+                    }
+                }
+            }
+            
+            sphereCylinderCollision(ball, pin) {
+                const dx = ball.position.x - pin.x;
+                const dy = ball.position.y - pin.y;
+                const dist2D = Math.sqrt(dx * dx + dy * dy);
+                const minDist = ball.radius + pin.radius;
+                
+                const dz = Math.abs(ball.position.z - pin.z);
+                if (dz > ball.radius + 0.3) return;
+                
+                if (dist2D < minDist && dist2D > 0.001) {
+                    const overlap = minDist - dist2D;
+                    const nx = dx / dist2D;
+                    const ny = dy / dist2D;
+                    
+                    ball.position.x += nx * overlap * 1.01;
+                    ball.position.y += ny * overlap * 1.01;
+                    
+                    const vDotN = ball.velocity.x * nx + ball.velocity.y * ny;
+                    if (vDotN < 0) {
+                        const impactSpeed = Math.abs(vDotN);
+                        if (impactSpeed > 1.5 && this.onPinHit) {
+                            this.onPinHit(pin.row, pin.index);
+                        }
+                        
+                        ball.velocity.x -= (1 + ball.restitution) * vDotN * nx;
+                        ball.velocity.y -= (1 + ball.restitution) * vDotN * ny;
+                        
+                        ball.velocity.x += (Math.random() - 0.5) * 0.4;
+                        ball.velocity.x *= (1 - ball.friction);
+                        ball.velocity.z *= (1 - ball.friction);
+                    }
+                }
+            }
+            
+            wallCollisions(body) {
+                const boardHalfWidth = 5;
+                const boardBottom = -12;
+                const boardFront = 0.55;
+                const boardBack = -0.55;
+                
+                if (body.position.x - body.radius < -boardHalfWidth) {
+                    body.position.x = -boardHalfWidth + body.radius;
+                    body.velocity.x *= -body.restitution;
+                }
+                if (body.position.x + body.radius > boardHalfWidth) {
+                    body.position.x = boardHalfWidth - body.radius;
+                    body.velocity.x *= -body.restitution;
+                }
+                if (body.position.y - body.radius < boardBottom) {
+                    body.position.y = boardBottom + body.radius;
+                    body.velocity.y *= -body.restitution * 0.5;
+                    body.velocity.x *= 0.85;
+                }
+                if (body.position.z + body.radius > boardFront) {
+                    body.position.z = boardFront - body.radius;
+                    body.velocity.z *= -body.restitution;
+                }
+                if (body.position.z - body.radius < boardBack) {
+                    body.position.z = boardBack + body.radius;
+                    body.velocity.z *= -body.restitution;
+                }
+            }
+        }
+        
+        // ============ MAIN APPLICATION ============
+        class GaltonBoard {
+            constructor() {
+                this.scene = null;
+                this.camera = null;
+                this.renderer = null;
+                this.controls = null;
+                this.world = null;
+                this.balls = [];
+                this.binCounts = new Array(11).fill(0);
+                this.totalBalls = 0;
+                this.autoMode = false;
+                this.autoInterval = null;
+                this.lastTime = performance.now();
+                this.frameCount = 0;
+                this.fps = 60;
+                
+                this.audio = new AudioSystem();
+                this.panelVisible = true;
+                this.histogramVisible = true;
+                
+                this.init();
+            }
+            
+            async init() {
+                this.scene = new THREE.Scene();
+                this.scene.background = new THREE.Color(0x0a0a14);
+                this.scene.fog = new THREE.Fog(0x0a0a14, 15, 40);
+                
+                this.camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
+                this.camera.position.set(0, -2, 18);
+                
+                this.renderer = new THREE.WebGLRenderer({ antialias: true });
+                this.renderer.setSize(window.innerWidth, window.innerHeight);
+                this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                this.renderer.shadowMap.enabled = true;
+                this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+                this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+                this.renderer.toneMappingExposure = 1.2;
+                document.getElementById('canvas-container').appendChild(this.renderer.domElement);
+                
+                this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+                this.controls.enableDamping = true;
+                this.controls.dampingFactor = 0.05;
+                this.controls.minDistance = 8;
+                this.controls.maxDistance = 35;
+                this.controls.target.set(0, -4, 0);
+                this.controls.touches = {
+                    ONE: THREE.TOUCH.ROTATE,
+                    TWO: THREE.TOUCH.DOLLY_PAN
+                };
+                
+                this.world = new PhysicsWorld();
+                this.world.onPinHit = (row, pinIndex) => {
+                    this.audio.playPinHit(row, pinIndex);
+                };
+                this.world.onBallHit = (speed) => {
+                    this.audio.playBallHit(speed);
+                };
+                
+                this.setupLights();
+                this.createBoard();
+                this.createHistogram();
+                this.setupEvents();
+                
+                document.getElementById('loading').style.display = 'none';
+                this.animate();
+            }
+            
+            setupLights() {
+                const ambient = new THREE.AmbientLight(0x404060, 0.5);
+                this.scene.add(ambient);
+                
+                const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
+                dirLight.position.set(5, 10, 10);
+                dirLight.castShadow = true;
+                dirLight.shadow.mapSize.width = 2048;
+                dirLight.shadow.mapSize.height = 2048;
+                dirLight.shadow.camera.near = 1;
+                dirLight.shadow.camera.far = 50;
+                dirLight.shadow.camera.left = -15;
+                dirLight.shadow.camera.right = 15;
+                dirLight.shadow.camera.top = 15;
+                dirLight.shadow.camera.bottom = -15;
+                dirLight.shadow.bias = -0.0001;
+                this.scene.add(dirLight);
+                
+                const fillLight = new THREE.DirectionalLight(0x6080ff, 0.4);
+                fillLight.position.set(-5, 5, -5);
+                this.scene.add(fillLight);
+                
+                const rimLight = new THREE.DirectionalLight(0xff8060, 0.3);
+                rimLight.position.set(0, -5, -10);
+                this.scene.add(rimLight);
+                
+                const pointLight1 = new THREE.PointLight(0x64d8ff, 0.8, 20);
+                pointLight1.position.set(-6, 5, 5);
+                this.scene.add(pointLight1);
+                
+                const pointLight2 = new THREE.PointLight(0xa855f7, 0.6, 20);
+                pointLight2.position.set(6, -8, 5);
+                this.scene.add(pointLight2);
+            }
+            
+            createBoard() {
+                const frameMaterial = new THREE.MeshStandardMaterial({
+                    color: 0x2a2a3a, metalness: 0.8, roughness: 0.2,
+                });
+                
+                const glassMaterial = new THREE.MeshPhysicalMaterial({
+                    color: 0xffffff, metalness: 0, roughness: 0.05,
+                    transmission: 0.92, thickness: 0.5, transparent: true, opacity: 0.3,
+                });
+                
+                const pinMaterial = new THREE.MeshStandardMaterial({
+                    color: 0xc0c0c0, metalness: 0.95, roughness: 0.15,
+                });
+                
+                const dividerMaterial = new THREE.MeshStandardMaterial({
+                    color: 0x1a1a2a, metalness: 0.7, roughness: 0.3,
+                });
+                
+                const boardWidth = 10, boardHeight = 18, boardDepth = 1.2;
+                const pinRows = 12, pinRadius = 0.15, pinHeight = 0.8, pinSpacing = 0.75;
+                const frameThickness = 0.3;
+                
+                const leftFrame = new THREE.Mesh(
+                    new THREE.BoxGeometry(frameThickness, boardHeight, boardDepth), frameMaterial
+                );
+                leftFrame.position.set(-boardWidth / 2 - frameThickness / 2, -boardHeight / 2 + 3, 0);
+                leftFrame.castShadow = true; leftFrame.receiveShadow = true;
+                this.scene.add(leftFrame);
+                
+                const rightFrame = leftFrame.clone();
+                rightFrame.position.x = boardWidth / 2 + frameThickness / 2;
+                this.scene.add(rightFrame);
+                
+                const topFrame = new THREE.Mesh(
+                    new THREE.BoxGeometry(boardWidth + frameThickness * 2, frameThickness, boardDepth), frameMaterial
+                );
+                topFrame.position.set(0, 3 + frameThickness / 2, 0);
+                topFrame.castShadow = true;
+                this.scene.add(topFrame);
+                
+                const bottomFrame = topFrame.clone();
+                bottomFrame.position.y = -boardHeight + 3 - frameThickness / 2;
+                this.scene.add(bottomFrame);
+                
+                const funnelGeo = new THREE.CylinderGeometry(0.6, 0.25, 1, 16, 1, true);
+                const funnelMesh = new THREE.Mesh(funnelGeo, frameMaterial);
+                funnelMesh.position.set(0, 4, 0);
+                funnelMesh.castShadow = true;
+                this.scene.add(funnelMesh);
+                
+                const glassGeo = new THREE.PlaneGeometry(boardWidth, boardHeight);
+                const frontGlass = new THREE.Mesh(glassGeo, glassMaterial);
+                frontGlass.position.set(0, -boardHeight / 2 + 3, boardDepth / 2 - 0.05);
+                this.scene.add(frontGlass);
+                
+                const backGlass = new THREE.Mesh(glassGeo, glassMaterial);
+                backGlass.position.set(0, -boardHeight / 2 + 3, -boardDepth / 2 + 0.05);
+                backGlass.rotation.y = Math.PI;
+                this.scene.add(backGlass);
+                
+                const pinGeo = new THREE.CylinderGeometry(pinRadius, pinRadius, pinHeight, 12);
+                
+                for (let row = 0; row < pinRows; row++) {
+                    const pinsInRow = row + 1;
+                    const rowY = 2 - row * pinSpacing;
+                    const startX = -(pinsInRow - 1) * pinSpacing / 2;
+                    
+                    for (let col = 0; col < pinsInRow; col++) {
+                        const pinX = startX + col * pinSpacing;
+                        
+                        const pin = new THREE.Mesh(pinGeo, pinMaterial);
+                        pin.position.set(pinX, rowY, 0);
+                        pin.rotation.x = Math.PI / 2;
+                        pin.castShadow = true; pin.receiveShadow = true;
+                        this.scene.add(pin);
+                        
+                        this.world.addPin(pinX, rowY, 0, pinRadius, row, col);
+                    }
+                }
+                
+                const numBins = 11, binWidth = boardWidth / numBins, dividerHeight = 5;
+                const dividerGeo = new THREE.BoxGeometry(0.08, dividerHeight, boardDepth - 0.2);
+                
+                for (let i = 0; i <= numBins; i++) {
+                    const divX = -boardWidth / 2 + i * binWidth;
+                    const divider = new THREE.Mesh(dividerGeo, dividerMaterial);
+                    divider.position.set(divX, -boardHeight + 3 + dividerHeight / 2 + 0.2, 0);
+                    divider.castShadow = true;
+                    this.scene.add(divider);
+                }
+                
+                for (let i = 0; i < numBins; i++) {
+                    const binX = -boardWidth / 2 + binWidth / 2 + i * binWidth;
+                    const glowGeo = new THREE.PlaneGeometry(binWidth - 0.15, 0.3);
+                    const glowMat = new THREE.MeshBasicMaterial({
+                        color: new THREE.Color().setHSL(0.55 + i * 0.03, 0.8, 0.5),
+                        transparent: true, opacity: 0.6,
+                    });
+                    const glow = new THREE.Mesh(glowGeo, glowMat);
+                    glow.position.set(binX, -boardHeight + 3 + 0.25, boardDepth / 2 - 0.04);
+                    this.scene.add(glow);
+                }
+                
+                const bgGeo = new THREE.PlaneGeometry(boardWidth, boardHeight);
+                const bgMat = new THREE.MeshStandardMaterial({
+                    color: 0x0a0a14, metalness: 0.3, roughness: 0.8,
+                });
+                const bg = new THREE.Mesh(bgGeo, bgMat);
+                bg.position.set(0, -boardHeight / 2 + 3, -boardDepth / 2 + 0.01);
+                bg.receiveShadow = true;
+                this.scene.add(bg);
+            }
+            
+            createHistogram() {
+                const container = document.getElementById('histogram');
+                for (let i = 0; i < 11; i++) {
+                    const bar = document.createElement('div');
+                    bar.className = 'hist-bar';
+                    bar.style.height = '2px';
+                    bar.setAttribute('data-count', '0');
+                    container.appendChild(bar);
+                }
+            }
+            
+            updateHistogram() {
+                const bars = document.querySelectorAll('.hist-bar');
+                const maxCount = Math.max(...this.binCounts, 1);
+                
+                bars.forEach((bar, i) => {
+                    const height = Math.max(2, (this.binCounts[i] / maxCount) * 65);
+                    bar.style.height = height + 'px';
+                    bar.setAttribute('data-count', this.binCounts[i]);
+                });
+            }
+            
+            async dropBall() {
+                await this.audio.init();
+                await this.audio.resume();
+                
+                const hue = 0.55 + Math.random() * 0.15;
+                const ballMaterial = new THREE.MeshPhysicalMaterial({
+                    color: new THREE.Color().setHSL(hue, 0.7, 0.6),
+                    metalness: 0.1, roughness: 0.2, transmission: 0.6, thickness: 0.5, transparent: true,
+                });
+                
+                const radius = 0.16;
+                const ballGeo = new THREE.SphereGeometry(radius, 16, 16);
+                const ballMesh = new THREE.Mesh(ballGeo, ballMaterial);
+                
+                const startX = (Math.random() - 0.5) * 0.3;
+                const startY = 3.5;
+                const startZ = (Math.random() - 0.5) * 0.15;
+                
+                ballMesh.position.set(startX, startY, startZ);
+                ballMesh.castShadow = true;
+                this.scene.add(ballMesh);
+                
+                const body = new PhysicsBody({
+                    position: { x: startX, y: startY, z: startZ },
+                    mass: 1, radius: radius, restitution: 0.5, friction: 0.12,
+                });
+                this.world.addBody(body);
+                this.balls.push({ body, mesh: ballMesh, settled: false, settleTime: 0 });
+                
+                this.totalBalls++;
+                document.getElementById('total-balls').textContent = this.totalBalls;
+            }
+            
+            setupEvents() {
+                document.getElementById('toggle-controls').addEventListener('click', () => {
+                    this.panelVisible = !this.panelVisible;
+                    document.getElementById('ui-panel').classList.toggle('hidden', !this.panelVisible);
+                    document.getElementById('hamburger-icon').classList.toggle('active', !this.panelVisible);
+                });
+                
+                document.getElementById('toggle-histogram').addEventListener('click', () => {
+                    this.histogramVisible = !this.histogramVisible;
+                    document.getElementById('histogram-panel').classList.toggle('hidden', !this.histogramVisible);
+                    document.getElementById('toggle-histogram').classList.toggle('active', !this.histogramVisible);
+                });
+                
+                document.getElementById('sound-toggle').addEventListener('change', (e) => {
+                    this.audio.setEnabled(e.target.checked);
+                });
+                
+                document.getElementById('drop-btn').addEventListener('click', () => this.dropBall());
+                
+                document.getElementById('burst-btn').addEventListener('click', () => {
+                    for (let i = 0; i < 10; i++) {
+                        setTimeout(() => this.dropBall(), i * 80);
+                    }
+                });
+                
+                document.getElementById('auto-btn').addEventListener('click', () => {
+                    this.autoMode = !this.autoMode;
+                    const btn = document.getElementById('auto-btn');
+                    if (this.autoMode) {
+                        btn.textContent = '⏸️ Otomatik: Açık';
+                        this.autoInterval = setInterval(() => this.dropBall(), 200);
+                    } else {
+                        btn.textContent = '▶️ Otomatik: Kapalı';
+                        clearInterval(this.autoInterval);
+                    }
+                });
+                
+                document.getElementById('reset-btn').addEventListener('click', () => {
+                    this.balls.forEach(ball => {
+                        this.scene.remove(ball.mesh);
+                        ball.mesh.geometry.dispose();
+                        ball.mesh.material.dispose();
+                    });
+                    this.balls = [];
+                    this.world.bodies = this.world.bodies.filter(b => b.isStatic);
+                    this.binCounts = new Array(11).fill(0);
+                    this.totalBalls = 0;
+                    document.getElementById('total-balls').textContent = '0';
+                    this.updateHistogram();
+                });
+                
+                window.addEventListener('resize', () => {
+                    this.camera.aspect = window.innerWidth / window.innerHeight;
+                    this.camera.updateProjectionMatrix();
+                    this.renderer.setSize(window.innerWidth, window.innerHeight);
+                });
+                
+                document.addEventListener('touchstart', async () => {
+                    await this.audio.init();
+                    await this.audio.resume();
+                }, { once: true });
+            }
+            
+            animate() {
+                requestAnimationFrame(() => this.animate());
+                
+                const now = performance.now();
+                const dt = Math.min((now - this.lastTime) / 1000, 0.05);
+                this.lastTime = now;
+                
+                this.frameCount++;
+                if (this.frameCount % 30 === 0) {
+                    this.fps = Math.round(1 / dt);
+                    document.getElementById('fps').textContent = this.fps;
+                }
+                
+                this.world.step(dt);
+                
+                let activeBalls = 0;
+                const boardWidth = 10, numBins = 11, binWidth = boardWidth / numBins, settleY = -11.5;
+                
+                for (let i = this.balls.length - 1; i >= 0; i--) {
+                    const ball = this.balls[i];
+                    
+                    ball.mesh.position.set(ball.body.position.x, ball.body.position.y, ball.body.position.z);
+                    
+                    if (!ball.settled && ball.body.position.y < settleY) {
+                        const speed = Math.sqrt(
+                            ball.body.velocity.x ** 2 + ball.body.velocity.y ** 2 + ball.body.velocity.z ** 2
+                        );
+                        
+                        if (speed < 0.5) {
+                            ball.settleTime += dt;
+                            if (ball.settleTime > 0.5) {
+                                ball.settled = true;
+                                const binIndex = Math.floor((ball.body.position.x + boardWidth / 2) / binWidth);
+                                const clampedBin = Math.max(0, Math.min(numBins - 1, binIndex));
+                                this.binCounts[clampedBin]++;
+                                this.updateHistogram();
+                            }
+                        }
+                    }
+                    
+                    if (!ball.settled) activeBalls++;
+                    
+                    if (ball.body.position.y < -20) {
+                        this.scene.remove(ball.mesh);
+                        ball.mesh.geometry.dispose();
+                        ball.mesh.material.dispose();
+                        this.world.removeBody(ball.body);
+                        this.balls.splice(i, 1);
+                    }
+                }
+                
+                document.getElementById('active-balls').textContent = activeBalls;
+                this.controls.update();
+                this.renderer.render(this.scene, this.camera);
+            }
+        }
+        
+        new GaltonBoard();
+    </script>
 </body>
 </html>
