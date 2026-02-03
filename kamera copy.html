@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>📷 Manuel Odak Kamera</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a2e;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+        }
+        h1 {
+            font-size: 1.2rem;
+            margin: 10px 0;
+            text-align: center;
+        }
+        .video-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        video {
+            width: 100%;
+            display: block;
+        }
+        .overlay {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.6);
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+        }
+        .controls {
+            width: 100%;
+            max-width: 500px;
+            margin-top: 15px;
+        }
+        .control-section {
+            background: #16213e;
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+        .control-section h3 {
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+            color: #e94560;
+        }
+        .btn-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        button {
+            flex: 1;
+            min-width: 80px;
+            padding: 12px 8px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        button:active {
+            transform: scale(0.95);
+        }
+        .btn-primary {
+            background: #e94560;
+            color: #fff;
+        }
+        .btn-secondary {
+            background: #0f3460;
+            color: #fff;
+        }
+        .btn-success {
+            background: #00b894;
+            color: #fff;
+        }
+        .btn-warning {
+            background: #fdcb6e;
+            color: #000;
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .focus-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .slider-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        input[type="range"] {
+            flex: 1;
+            height: 8px;
+            -webkit-appearance: none;
+            background: #0f3460;
+            border-radius: 4px;
+            outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            background: #e94560;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        .focus-value {
+            min-width: 50px;
+            text-align: center;
+            font-size: 0.8rem;
+            color: #a0a0a0;
+        }
+        .step-buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+        }
+        .step-buttons button {
+            padding: 10px 5px;
+            font-size: 0.75rem;
+        }
+        .alert {
+            background: #ff6b6b;
+            color: #fff;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-size: 0.8rem;
+            text-align: center;
+        }
+        .alert.warning {
+            background: #feca57;
+            color: #000;
+        }
+        .alert.info {
+            background: #54a0ff;
+        }
+        .photo-preview {
+            width: 100%;
+            max-width: 500px;
+            margin-top: 10px;
+            display: none;
+        }
+        .photo-preview img {
+            width: 100%;
+            border-radius: 10px;
+        }
+        .mode-indicator {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            margin-left: 8px;
+        }
+        .mode-auto {
+            background: #00b894;
+        }
+        .mode-manual {
+            background: #e94560;
+        }
+        #startBtn {
+            width: 100%;
+            max-width: 500px;
+            padding: 15px;
+            font-size: 1rem;
+            margin-bottom: 15px;
+        }
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <h1>📷 Manuel Odak Kamera</h1>
+    
+    <button id="startBtn" class="btn-primary">🎬 Kamerayı Başlat</button>
+    
+    <div id="alerts"></div>
+    
+    <div class="video-container hidden" id="videoContainer">
+        <video id="video" autoplay playsinline></video>
+        <div class="overlay">
+            <span id="cameraLabel">Kamera: -</span>
+            <span id="focusModeLabel" class="mode-indicator mode-auto">OTOMATİK</span>
+        </div>
+    </div>
+    
+    <div class="controls hidden" id="controls">
+        <!-- Kamera Değiştir -->
+        <div class="control-section">
+            <h3>📹 Kamera Seçimi</h3>
+            <div class="btn-row">
+                <button id="btnFront" class="btn-secondary">🤳 Ön Kamera</button>
+                <button id="btnBack" class="btn-primary">🌄 Arka Kamera</button>
+            </div>
+        </div>
+        
+        <!-- Odak Kontrolü -->
+        <div class="control-section" id="focusSection">
+            <h3>🎯 Odak Kontrolü</h3>
+            <div class="focus-controls">
+                <div class="btn-row">
+                    <button id="btnAutoFocus" class="btn-success">🔄 Otomatik Odak</button>
+                    <button id="btnManualFocus" class="btn-warning">✋ Manuel Odak</button>
+                </div>
+                
+                <div id="manualFocusControls" class="hidden">
+                    <div class="slider-row">
+                        <span>Yakın</span>
+                        <input type="range" id="focusSlider" min="0" max="1" step="0.01" value="0.5">
+                        <span>Uzak</span>
+                        <span class="focus-value" id="focusValue">0.50</span>
+                    </div>
+                    
+                    <p style="font-size:0.75rem; color:#a0a0a0; margin: 8px 0;">Hassas Ayar:</p>
+                    <div class="step-buttons">
+                        <button id="btnFineDown" class="btn-secondary">◀◀ -0.01</button>
+                        <button id="btnNormalDown" class="btn-secondary">◀ -0.05</button>
+                        <button id="btnNormalUp" class="btn-secondary">▶ +0.05</button>
+                        <button id="btnFineUp" class="btn-secondary">▶▶ +0.01</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Fotoğraf Çekme -->
+        <div class="control-section">
+            <h3>📸 Fotoğraf</h3>
+            <div class="btn-row">
+                <button id="btnCapture" class="btn-primary">📸 Fotoğraf Çek</button>
+                <button id="btnDownload" class="btn-success hidden">💾 İndir</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="photo-preview" id="photoPreview">
+        <img id="capturedImage" alt="Çekilen fotoğraf">
+    </div>
+
+    <script>
+        // Değişkenler
+        let videoElement = document.getElementById('video');
+        let currentStream = null;
+        let currentTrack = null;
+        let imageCapture = null;
+        let currentFacing = 'environment';
+        let focusCapabilities = null;
+        let lastBlob = null;
+        
+        // DOM Elemanları
+        const startBtn = document.getElementById('startBtn');
+        const videoContainer = document.getElementById('videoContainer');
+        const controls = document.getElementById('controls');
+        const alertsDiv = document.getElementById('alerts');
+        const focusSection = document.getElementById('focusSection');
+        const manualFocusControls = document.getElementById('manualFocusControls');
+        const focusSlider = document.getElementById('focusSlider');
+        const focusValue = document.getElementById('focusValue');
+        const cameraLabel = document.getElementById('cameraLabel');
+        const focusModeLabel = document.getElementById('focusModeLabel');
+        const photoPreview = document.getElementById('photoPreview');
+        const capturedImage = document.getElementById('capturedImage');
+        const btnDownload = document.getElementById('btnDownload');
+        
+        // Uyarı göster
+        function showAlert(message, type = 'error') {
+            const alert = document.createElement('div');
+            alert.className = `alert ${type}`;
+            alert.textContent = message;
+            alertsDiv.appendChild(alert);
+            setTimeout(() => alert.remove(), 5000);
+        }
+        
+        // Stream'i durdur
+        function stopCurrentStream() {
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+                currentStream = null;
+                currentTrack = null;
+                imageCapture = null;
+            }
+        }
+        
+        // Kamerayı başlat
+        async function startCamera(facingMode) {
+            stopCurrentStream();
+            
+            try {
+                const constraints = {
+                    video: {
+                        facingMode: facingMode,
+                        width: { ideal: 1920 },
+                        height: { ideal: 1080 }
+                    },
+                    audio: false
+                };
+                
+                currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+                videoElement.srcObject = currentStream;
+                currentTrack = currentStream.getVideoTracks()[0];
+                currentFacing = facingMode;
+                
+                // Kamera etiketini güncelle
+                const label = currentTrack.label || (facingMode === 'user' ? 'Ön Kamera' : 'Arka Kamera');
+                cameraLabel.textContent = 'Kamera: ' + label.substring(0, 20);
+                
+                // ImageCapture oluştur
+                if ('ImageCapture' in window) {
+                    imageCapture = new ImageCapture(currentTrack);
+                }
+                
+                // Kamera hazır olana kadar bekle
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                // Odak yeteneklerini kontrol et
+                checkFocusCapabilities();
+                
+                // Buton stillerini güncelle
+                document.getElementById('btnFront').className = facingMode === 'user' ? 'btn-primary' : 'btn-secondary';
+                document.getElementById('btnBack').className = facingMode === 'environment' ? 'btn-primary' : 'btn-secondary';
+                
+                videoContainer.classList.remove('hidden');
+                controls.classList.remove('hidden');
+                startBtn.classList.add('hidden');
+                
+            } catch (err) {
+                console.error('Kamera hatası:', err);
+                showAlert('Kamera erişimi başarısız: ' + err.message);
+            }
+        }
+        
+        // Odak yeteneklerini kontrol et
+        function checkFocusCapabilities() {
+            if (!currentTrack) return;
+            
+            try {
+                const capabilities = currentTrack.getCapabilities();
+                console.log('Kamera yetenekleri:', capabilities);
+                
+                if (!capabilities.focusMode || !capabilities.focusMode.includes('manual')) {
+                    focusSection.innerHTML = `
+                        <h3>🎯 Odak Kontrolü</h3>
+                        <div class="alert warning">⚠️ Bu kamera manuel odak desteklemiyor. Otomatik odak kullanılıyor.</div>
+                    `;
+                    focusCapabilities = null;
+                    return;
+                }
+                
+                if (!capabilities.focusDistance) {
+                    focusSection.innerHTML = `
+                        <h3>🎯 Odak Kontrolü</h3>
+                        <div class="alert warning">⚠️ Bu kamera odak mesafesi ayarı desteklemiyor.</div>
+                    `;
+                    focusCapabilities = null;
+                    return;
+                }
+                
+                // Odak mesafesi destekleniyor
+                focusCapabilities = {
+                    min: capabilities.focusDistance.min,
+                    max: capabilities.focusDistance.max,
+                    step: capabilities.focusDistance.step || 0.01
+                };
+                
+                // Slider'ı ayarla
+                focusSlider.min = focusCapabilities.min;
+                focusSlider.max = focusCapabilities.max;
+                focusSlider.step = focusCapabilities.step;
+                
+                // Mevcut odak değerini al
+                const settings = currentTrack.getSettings();
+                if (settings.focusDistance !== undefined) {
+                    focusSlider.value = settings.focusDistance;
+                    focusValue.textContent = settings.focusDistance.toFixed(2);
+                }
+                
+                console.log('Odak yetenekleri:', focusCapabilities);
+                showAlert(`Odak aralığı: ${focusCapabilities.min.toFixed(2)} - ${focusCapabilities.max.toFixed(2)}`, 'info');
+                
+            } catch (err) {
+                console.error('Yetenek kontrolü hatası:', err);
+                focusCapabilities = null;
+            }
+        }
+        
+        // Odak modunu değiştir
+        async function setFocusMode(mode) {
+            if (!currentTrack) return;
+            
+            try {
+                const constraints = {
+                    advanced: [{ focusMode: mode }]
+                };
+                
+                await currentTrack.applyConstraints(constraints);
+                
+                if (mode === 'manual') {
+                    focusModeLabel.textContent = 'MANUEL';
+                    focusModeLabel.className = 'mode-indicator mode-manual';
+                    manualFocusControls.classList.remove('hidden');
+                    document.getElementById('btnManualFocus').className = 'btn-primary';
+                    document.getElementById('btnAutoFocus').className = 'btn-secondary';
+                } else {
+                    focusModeLabel.textContent = 'OTOMATİK';
+                    focusModeLabel.className = 'mode-indicator mode-auto';
+                    manualFocusControls.classList.add('hidden');
+                    document.getElementById('btnAutoFocus').className = 'btn-primary';
+                    document.getElementById('btnManualFocus').className = 'btn-secondary';
+                }
+                
+            } catch (err) {
+                console.error('Odak modu hatası:', err);
+                showAlert('Odak modu değiştirilemedi: ' + err.message);
+            }
+        }
+        
+        // Odak mesafesini ayarla
+        async function setFocusDistance(distance) {
+            if (!currentTrack || !focusCapabilities) return;
+            
+            // Sınırları kontrol et
+            distance = Math.max(focusCapabilities.min, Math.min(focusCapabilities.max, distance));
+            
+            try {
+                const constraints = {
+                    advanced: [{
+                        focusMode: 'manual',
+                        focusDistance: distance
+                    }]
+                };
+                
+                await currentTrack.applyConstraints(constraints);
+                focusSlider.value = distance;
+                focusValue.textContent = distance.toFixed(2);
+                
+            } catch (err) {
+                console.error('Odak mesafesi hatası:', err);
+            }
+        }
+        
+        // Fotoğraf çek
+        async function capturePhoto() {
+            if (!imageCapture) {
+                // Fallback: Canvas kullan
+                const canvas = document.createElement('canvas');
+                canvas.width = videoElement.videoWidth;
+                canvas.height = videoElement.videoHeight;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(videoElement, 0, 0);
+                
+                canvas.toBlob(blob => {
+                    lastBlob = blob;
+                    showCapturedPhoto(blob);
+                }, 'image/jpeg', 0.95);
+                return;
+            }
+            
+            try {
+                const blob = await imageCapture.takePhoto();
+                lastBlob = blob;
+                showCapturedPhoto(blob);
+            } catch (err) {
+                console.error('Fotoğraf çekme hatası:', err);
+                showAlert('Fotoğraf çekilemedi: ' + err.message);
+            }
+        }
+        
+        // Çekilen fotoğrafı göster
+        function showCapturedPhoto(blob) {
+            const url = URL.createObjectURL(blob);
+            capturedImage.src = url;
+            photoPreview.style.display = 'block';
+            btnDownload.classList.remove('hidden');
+            showAlert('📸 Fotoğraf çekildi!', 'info');
+        }
+        
+        // Fotoğrafı indir
+        function downloadPhoto() {
+            if (!lastBlob) return;
+            
+            const url = URL.createObjectURL(lastBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `foto_${new Date().toISOString().slice(0,19).replace(/[:-]/g,'')}.jpg`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            setTimeout(() => URL.revokeObjectURL(url), 100);
+            showAlert('💾 Fotoğraf indirildi!', 'info');
+        }
+        
+        // Event Listeners
+        startBtn.addEventListener('click', () => startCamera('environment'));
+        
+        document.getElementById('btnFront').addEventListener('click', () => startCamera('user'));
+        document.getElementById('btnBack').addEventListener('click', () => startCamera('environment'));
+        
+        document.getElementById('btnAutoFocus').addEventListener('click', () => setFocusMode('continuous'));
+        document.getElementById('btnManualFocus').addEventListener('click', () => {
+            if (!focusCapabilities) {
+                showAlert('Bu kamera manuel odak desteklemiyor!', 'warning');
+                return;
+            }
+            setFocusMode('manual');
+        });
+        
+        focusSlider.addEventListener('input', (e) => {
+            setFocusDistance(parseFloat(e.target.value));
+        });
+        
+        // Hassas ve normal adım butonları
+        document.getElementById('btnFineDown').addEventListener('click', () => {
+            const current = parseFloat(focusSlider.value);
+            setFocusDistance(current - 0.01);
+        });
+        
+        document.getElementById('btnFineUp').addEventListener('click', () => {
+            const current = parseFloat(focusSlider.value);
+            setFocusDistance(current + 0.01);
+        });
+        
+        document.getElementById('btnNormalDown').addEventListener('click', () => {
+            const current = parseFloat(focusSlider.value);
+            setFocusDistance(current - 0.05);
+        });
+        
+        document.getElementById('btnNormalUp').addEventListener('click', () => {
+            const current = parseFloat(focusSlider.value);
+            setFocusDistance(current + 0.05);
+        });
+        
+        document.getElementById('btnCapture').addEventListener('click', capturePhoto);
+        btnDownload.addEventListener('click', downloadPhoto);
+        
+        // Tarayıcı desteğini kontrol et
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            showAlert('Bu tarayıcı kamera erişimini desteklemiyor!');
+            startBtn.disabled = true;
+        }
+        
+        // HTTPS kontrolü
+        if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+            showAlert('⚠️ Kamera erişimi için HTTPS gerekli!', 'warning');
+        }
+    </script>
+</body>
+</html>

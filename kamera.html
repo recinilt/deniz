@@ -3,12 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>📷 Manuel Odak Kamera</title>
+    <title>📷 Pro Kamera - Odak & Zoom</title>
     <style>
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            -webkit-user-select: none;
+            user-select: none;
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -19,19 +21,26 @@
             flex-direction: column;
             align-items: center;
             padding: 10px;
+            touch-action: manipulation;
         }
         h1 {
-            font-size: 1.2rem;
-            margin: 10px 0;
+            font-size: 1.1rem;
+            margin: 8px 0;
             text-align: center;
         }
-        .video-container {
+        .video-wrapper {
             position: relative;
             width: 100%;
             max-width: 500px;
-            background: #000;
-            border-radius: 12px;
             overflow: hidden;
+            border-radius: 12px;
+            background: #000;
+            touch-action: none;
+        }
+        .video-container {
+            width: 100%;
+            transform-origin: center center;
+            transition: transform 0.1s ease-out;
         }
         video {
             width: 100%;
@@ -41,123 +50,138 @@
             position: absolute;
             top: 10px;
             left: 10px;
-            background: rgba(0,0,0,0.6);
-            padding: 5px 10px;
+            background: rgba(0,0,0,0.7);
+            padding: 6px 10px;
             border-radius: 6px;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
+            z-index: 10;
+            pointer-events: none;
+        }
+        .overlay-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 3px;
+        }
+        .overlay-row:last-child {
+            margin-bottom: 0;
+        }
+        .zoom-badge {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(233, 69, 96, 0.9);
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            z-index: 10;
+            pointer-events: none;
         }
         .controls {
             width: 100%;
             max-width: 500px;
-            margin-top: 15px;
+            margin-top: 12px;
         }
         .control-section {
             background: #16213e;
             border-radius: 10px;
-            padding: 12px;
-            margin-bottom: 10px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
         }
         .control-section h3 {
-            font-size: 0.85rem;
-            margin-bottom: 10px;
+            font-size: 0.8rem;
+            margin-bottom: 8px;
             color: #e94560;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
         .btn-row {
             display: flex;
-            gap: 8px;
+            gap: 6px;
             flex-wrap: wrap;
         }
         button {
             flex: 1;
-            min-width: 80px;
-            padding: 12px 8px;
+            min-width: 70px;
+            padding: 10px 6px;
             border: none;
             border-radius: 8px;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.15s;
         }
         button:active {
             transform: scale(0.95);
         }
-        .btn-primary {
-            background: #e94560;
-            color: #fff;
-        }
-        .btn-secondary {
-            background: #0f3460;
-            color: #fff;
-        }
-        .btn-success {
-            background: #00b894;
-            color: #fff;
-        }
-        .btn-warning {
-            background: #fdcb6e;
-            color: #000;
-        }
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        .focus-controls {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+        .btn-primary { background: #e94560; color: #fff; }
+        .btn-secondary { background: #0f3460; color: #fff; }
+        .btn-success { background: #00b894; color: #fff; }
+        .btn-warning { background: #fdcb6e; color: #000; }
+        .btn-danger { background: #d63031; color: #fff; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        .slider-container {
+            margin: 8px 0;
         }
         .slider-row {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
+        }
+        .slider-label {
+            font-size: 0.7rem;
+            color: #a0a0a0;
+            min-width: 35px;
         }
         input[type="range"] {
             flex: 1;
-            height: 8px;
+            height: 6px;
             -webkit-appearance: none;
             background: #0f3460;
-            border-radius: 4px;
+            border-radius: 3px;
             outline: none;
         }
         input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
-            width: 24px;
-            height: 24px;
+            width: 22px;
+            height: 22px;
             background: #e94560;
             border-radius: 50%;
             cursor: pointer;
         }
-        .focus-value {
-            min-width: 50px;
+        .slider-value {
+            min-width: 45px;
             text-align: center;
-            font-size: 0.8rem;
-            color: #a0a0a0;
+            font-size: 0.75rem;
+            color: #fff;
+            background: #0f3460;
+            padding: 4px 6px;
+            border-radius: 4px;
         }
         .step-buttons {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 6px;
+            gap: 5px;
+            margin-top: 8px;
         }
         .step-buttons button {
-            padding: 10px 5px;
-            font-size: 0.75rem;
+            padding: 8px 4px;
+            font-size: 0.7rem;
         }
         .alert {
             background: #ff6b6b;
             color: #fff;
-            padding: 10px;
+            padding: 8px 10px;
             border-radius: 8px;
-            margin-bottom: 10px;
-            font-size: 0.8rem;
+            margin-bottom: 8px;
+            font-size: 0.75rem;
             text-align: center;
         }
-        .alert.warning {
-            background: #feca57;
-            color: #000;
-        }
-        .alert.info {
-            background: #54a0ff;
-        }
+        .alert.warning { background: #feca57; color: #000; }
+        .alert.info { background: #54a0ff; }
         .photo-preview {
             width: 100%;
             max-width: 500px;
@@ -170,78 +194,125 @@
         }
         .mode-indicator {
             display: inline-block;
-            padding: 3px 8px;
+            padding: 2px 6px;
             border-radius: 4px;
-            font-size: 0.7rem;
-            margin-left: 8px;
+            font-size: 0.65rem;
         }
-        .mode-auto {
-            background: #00b894;
-        }
-        .mode-manual {
-            background: #e94560;
-        }
+        .mode-auto { background: #00b894; }
+        .mode-manual { background: #e94560; }
         #startBtn {
             width: 100%;
             max-width: 500px;
-            padding: 15px;
+            padding: 14px;
             font-size: 1rem;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
-        .hidden {
-            display: none !important;
+        .hidden { display: none !important; }
+        .torch-btn.active { background: #fdcb6e; color: #000; }
+        .zoom-info {
+            font-size: 0.65rem;
+            color: #a0a0a0;
+            margin-top: 5px;
+            text-align: center;
         }
+        .pinch-hint {
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.7);
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 0.7rem;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            z-index: 10;
+        }
+        .pinch-hint.show { opacity: 1; }
     </style>
 </head>
 <body>
-    <h1>📷 Manuel Odak Kamera</h1>
+    <h1>📷 Pro Kamera - Odak & Zoom</h1>
     
     <button id="startBtn" class="btn-primary">🎬 Kamerayı Başlat</button>
     
     <div id="alerts"></div>
     
-    <div class="video-container hidden" id="videoContainer">
-        <video id="video" autoplay playsinline></video>
-        <div class="overlay">
-            <span id="cameraLabel">Kamera: -</span>
-            <span id="focusModeLabel" class="mode-indicator mode-auto">OTOMATİK</span>
+    <div class="video-wrapper hidden" id="videoWrapper">
+        <div class="video-container" id="videoContainer">
+            <video id="video" autoplay playsinline></video>
         </div>
+        <div class="overlay">
+            <div class="overlay-row">
+                <span id="cameraLabel">📹 -</span>
+                <span id="focusModeLabel" class="mode-indicator mode-auto">AF</span>
+            </div>
+            <div class="overlay-row">
+                <span id="zoomTypeLabel">🔍 -</span>
+            </div>
+        </div>
+        <div class="zoom-badge" id="zoomBadge">1.0x</div>
+        <div class="pinch-hint" id="pinchHint">🤏 Pinch to Zoom</div>
     </div>
     
     <div class="controls hidden" id="controls">
-        <!-- Kamera Değiştir -->
+        <!-- Kamera & Torch -->
         <div class="control-section">
-            <h3>📹 Kamera Seçimi</h3>
+            <h3>📹 Kamera</h3>
             <div class="btn-row">
-                <button id="btnFront" class="btn-secondary">🤳 Ön Kamera</button>
-                <button id="btnBack" class="btn-primary">🌄 Arka Kamera</button>
+                <button id="btnFront" class="btn-secondary">🤳 Ön</button>
+                <button id="btnBack" class="btn-primary">🌄 Arka</button>
+                <button id="btnTorch" class="btn-secondary torch-btn">🔦 Fener</button>
+            </div>
+        </div>
+        
+        <!-- Zoom Kontrolü -->
+        <div class="control-section" id="zoomSection">
+            <h3>🔍 Zoom Kontrolü</h3>
+            <div class="slider-container">
+                <div class="slider-row">
+                    <span class="slider-label">1x</span>
+                    <input type="range" id="zoomSlider" min="1" max="20" step="0.1" value="1">
+                    <span class="slider-value" id="zoomValue">1.0x</span>
+                </div>
+                <div class="zoom-info" id="zoomInfo">Donanım: 1x | Yazılım: 1x</div>
+            </div>
+            <div class="step-buttons">
+                <button id="btnZoomFineDown" class="btn-secondary">◀◀ -0.1</button>
+                <button id="btnZoomNormalDown" class="btn-secondary">◀ -0.5</button>
+                <button id="btnZoomNormalUp" class="btn-secondary">▶ +0.5</button>
+                <button id="btnZoomFineUp" class="btn-secondary">▶▶ +0.1</button>
+            </div>
+            <div class="btn-row" style="margin-top:8px;">
+                <button id="btnZoom1x" class="btn-secondary">1x</button>
+                <button id="btnZoom2x" class="btn-secondary">2x</button>
+                <button id="btnZoom5x" class="btn-secondary">5x</button>
+                <button id="btnZoom10x" class="btn-secondary">10x</button>
+                <button id="btnZoomMax" class="btn-warning">MAX</button>
             </div>
         </div>
         
         <!-- Odak Kontrolü -->
         <div class="control-section" id="focusSection">
             <h3>🎯 Odak Kontrolü</h3>
-            <div class="focus-controls">
-                <div class="btn-row">
-                    <button id="btnAutoFocus" class="btn-success">🔄 Otomatik Odak</button>
-                    <button id="btnManualFocus" class="btn-warning">✋ Manuel Odak</button>
-                </div>
-                
-                <div id="manualFocusControls" class="hidden">
+            <div class="btn-row">
+                <button id="btnAutoFocus" class="btn-success">🔄 Otomatik</button>
+                <button id="btnManualFocus" class="btn-secondary">✋ Manuel</button>
+            </div>
+            <div id="manualFocusControls" class="hidden">
+                <div class="slider-container">
                     <div class="slider-row">
-                        <span>Yakın</span>
+                        <span class="slider-label">Yakın</span>
                         <input type="range" id="focusSlider" min="0" max="1" step="0.01" value="0.5">
-                        <span>Uzak</span>
-                        <span class="focus-value" id="focusValue">0.50</span>
+                        <span class="slider-value" id="focusValue">0.50</span>
                     </div>
-                    
-                    <p style="font-size:0.75rem; color:#a0a0a0; margin: 8px 0;">Hassas Ayar:</p>
-                    <div class="step-buttons">
-                        <button id="btnFineDown" class="btn-secondary">◀◀ -0.01</button>
-                        <button id="btnNormalDown" class="btn-secondary">◀ -0.05</button>
-                        <button id="btnNormalUp" class="btn-secondary">▶ +0.05</button>
-                        <button id="btnFineUp" class="btn-secondary">▶▶ +0.01</button>
-                    </div>
+                </div>
+                <div class="step-buttons">
+                    <button id="btnFocusFineDown" class="btn-secondary">◀◀ -0.01</button>
+                    <button id="btnFocusNormalDown" class="btn-secondary">◀ -0.05</button>
+                    <button id="btnFocusNormalUp" class="btn-secondary">▶ +0.05</button>
+                    <button id="btnFocusFineUp" class="btn-secondary">▶▶ +0.01</button>
                 </div>
             </div>
         </div>
@@ -250,7 +321,7 @@
         <div class="control-section">
             <h3>📸 Fotoğraf</h3>
             <div class="btn-row">
-                <button id="btnCapture" class="btn-primary">📸 Fotoğraf Çek</button>
+                <button id="btnCapture" class="btn-primary">📸 Çek</button>
                 <button id="btnDownload" class="btn-success hidden">💾 İndir</button>
             </div>
         </div>
@@ -261,20 +332,45 @@
     </div>
 
     <script>
-        // Değişkenler
+        // ==================== DEĞİŞKENLER ====================
         let videoElement = document.getElementById('video');
+        let videoContainer = document.getElementById('videoContainer');
         let currentStream = null;
         let currentTrack = null;
         let imageCapture = null;
         let currentFacing = 'environment';
-        let focusCapabilities = null;
         let lastBlob = null;
         
-        // DOM Elemanları
+        // Zoom değişkenleri
+        let hardwareZoomCapabilities = null;
+        let currentHardwareZoom = 1;
+        let currentSoftwareZoom = 1;
+        let maxHardwareZoom = 1;
+        let maxSoftwareZoom = 10; // CSS ile 10x'e kadar
+        let totalMaxZoom = 20; // Toplam max
+        
+        // Odak değişkenleri
+        let focusCapabilities = null;
+        
+        // Torch
+        let torchSupported = false;
+        let torchOn = false;
+        
+        // Pinch zoom değişkenleri
+        let initialPinchDistance = 0;
+        let initialZoom = 1;
+        let isPinching = false;
+        
+        // ==================== DOM ELEMANLARI ====================
         const startBtn = document.getElementById('startBtn');
-        const videoContainer = document.getElementById('videoContainer');
+        const videoWrapper = document.getElementById('videoWrapper');
         const controls = document.getElementById('controls');
         const alertsDiv = document.getElementById('alerts');
+        const zoomSlider = document.getElementById('zoomSlider');
+        const zoomValue = document.getElementById('zoomValue');
+        const zoomBadge = document.getElementById('zoomBadge');
+        const zoomInfo = document.getElementById('zoomInfo');
+        const zoomTypeLabel = document.getElementById('zoomTypeLabel');
         const focusSection = document.getElementById('focusSection');
         const manualFocusControls = document.getElementById('manualFocusControls');
         const focusSlider = document.getElementById('focusSlider');
@@ -284,17 +380,18 @@
         const photoPreview = document.getElementById('photoPreview');
         const capturedImage = document.getElementById('capturedImage');
         const btnDownload = document.getElementById('btnDownload');
+        const btnTorch = document.getElementById('btnTorch');
+        const pinchHint = document.getElementById('pinchHint');
         
-        // Uyarı göster
+        // ==================== YARDIMCI FONKSİYONLAR ====================
         function showAlert(message, type = 'error') {
             const alert = document.createElement('div');
             alert.className = `alert ${type}`;
             alert.textContent = message;
             alertsDiv.appendChild(alert);
-            setTimeout(() => alert.remove(), 5000);
+            setTimeout(() => alert.remove(), 4000);
         }
         
-        // Stream'i durdur
         function stopCurrentStream() {
             if (currentStream) {
                 currentStream.getTracks().forEach(track => track.stop());
@@ -302,9 +399,15 @@
                 currentTrack = null;
                 imageCapture = null;
             }
+            // Reset zoom
+            currentHardwareZoom = 1;
+            currentSoftwareZoom = 1;
+            videoContainer.style.transform = 'scale(1)';
+            torchOn = false;
+            btnTorch.classList.remove('active');
         }
         
-        // Kamerayı başlat
+        // ==================== KAMERA BAŞLATMA ====================
         async function startCamera(facingMode) {
             stopCurrentStream();
             
@@ -323,11 +426,11 @@
                 currentTrack = currentStream.getVideoTracks()[0];
                 currentFacing = facingMode;
                 
-                // Kamera etiketini güncelle
+                // Kamera etiketi
                 const label = currentTrack.label || (facingMode === 'user' ? 'Ön Kamera' : 'Arka Kamera');
-                cameraLabel.textContent = 'Kamera: ' + label.substring(0, 20);
+                cameraLabel.textContent = '📹 ' + label.substring(0, 18);
                 
-                // ImageCapture oluştur
+                // ImageCapture
                 if ('ImageCapture' in window) {
                     imageCapture = new ImageCapture(currentTrack);
                 }
@@ -335,16 +438,22 @@
                 // Kamera hazır olana kadar bekle
                 await new Promise(resolve => setTimeout(resolve, 500));
                 
-                // Odak yeteneklerini kontrol et
+                // Yetenekleri kontrol et
+                checkZoomCapabilities();
                 checkFocusCapabilities();
+                checkTorchCapability();
                 
-                // Buton stillerini güncelle
+                // Buton stilleri
                 document.getElementById('btnFront').className = facingMode === 'user' ? 'btn-primary' : 'btn-secondary';
                 document.getElementById('btnBack').className = facingMode === 'environment' ? 'btn-primary' : 'btn-secondary';
                 
-                videoContainer.classList.remove('hidden');
+                // UI göster
+                videoWrapper.classList.remove('hidden');
                 controls.classList.remove('hidden');
                 startBtn.classList.add('hidden');
+                
+                // Pinch hint göster
+                showPinchHint();
                 
             } catch (err) {
                 console.error('Kamera hatası:', err);
@@ -352,143 +461,298 @@
             }
         }
         
-        // Odak yeteneklerini kontrol et
-        function checkFocusCapabilities() {
+        // ==================== ZOOM FONKSİYONLARI ====================
+        function checkZoomCapabilities() {
             if (!currentTrack) return;
             
             try {
                 const capabilities = currentTrack.getCapabilities();
                 console.log('Kamera yetenekleri:', capabilities);
                 
-                if (!capabilities.focusMode || !capabilities.focusMode.includes('manual')) {
-                    focusSection.innerHTML = `
-                        <h3>🎯 Odak Kontrolü</h3>
-                        <div class="alert warning">⚠️ Bu kamera manuel odak desteklemiyor. Otomatik odak kullanılıyor.</div>
-                    `;
-                    focusCapabilities = null;
-                    return;
+                if (capabilities.zoom) {
+                    hardwareZoomCapabilities = {
+                        min: capabilities.zoom.min || 1,
+                        max: capabilities.zoom.max || 1,
+                        step: capabilities.zoom.step || 0.1
+                    };
+                    maxHardwareZoom = hardwareZoomCapabilities.max;
+                    
+                    // Toplam max zoom hesapla
+                    totalMaxZoom = maxHardwareZoom * maxSoftwareZoom;
+                    zoomSlider.max = Math.min(totalMaxZoom, 20); // Max 20x limit
+                    
+                    zoomTypeLabel.textContent = `🔍 HW: ${maxHardwareZoom.toFixed(1)}x | SW: ${maxSoftwareZoom}x`;
+                    showAlert(`Donanım zoom: ${maxHardwareZoom.toFixed(1)}x | Toplam: ${Math.min(totalMaxZoom, 20).toFixed(1)}x`, 'info');
+                } else {
+                    hardwareZoomCapabilities = null;
+                    maxHardwareZoom = 1;
+                    totalMaxZoom = maxSoftwareZoom;
+                    zoomSlider.max = maxSoftwareZoom;
+                    zoomTypeLabel.textContent = '🔍 Sadece yazılımsal zoom';
+                    showAlert('Donanım zoom desteklenmiyor, yazılımsal zoom aktif', 'warning');
                 }
-                
-                if (!capabilities.focusDistance) {
-                    focusSection.innerHTML = `
-                        <h3>🎯 Odak Kontrolü</h3>
-                        <div class="alert warning">⚠️ Bu kamera odak mesafesi ayarı desteklemiyor.</div>
-                    `;
-                    focusCapabilities = null;
-                    return;
-                }
-                
-                // Odak mesafesi destekleniyor
-                focusCapabilities = {
-                    min: capabilities.focusDistance.min,
-                    max: capabilities.focusDistance.max,
-                    step: capabilities.focusDistance.step || 0.01
-                };
-                
-                // Slider'ı ayarla
-                focusSlider.min = focusCapabilities.min;
-                focusSlider.max = focusCapabilities.max;
-                focusSlider.step = focusCapabilities.step;
-                
-                // Mevcut odak değerini al
-                const settings = currentTrack.getSettings();
-                if (settings.focusDistance !== undefined) {
-                    focusSlider.value = settings.focusDistance;
-                    focusValue.textContent = settings.focusDistance.toFixed(2);
-                }
-                
-                console.log('Odak yetenekleri:', focusCapabilities);
-                showAlert(`Odak aralığı: ${focusCapabilities.min.toFixed(2)} - ${focusCapabilities.max.toFixed(2)}`, 'info');
                 
             } catch (err) {
-                console.error('Yetenek kontrolü hatası:', err);
+                console.error('Zoom yetenek hatası:', err);
+                hardwareZoomCapabilities = null;
+            }
+        }
+        
+        async function setZoom(targetZoom) {
+            targetZoom = Math.max(1, Math.min(parseFloat(zoomSlider.max), targetZoom));
+            
+            let hwZoom = 1;
+            let swZoom = 1;
+            
+            if (hardwareZoomCapabilities && maxHardwareZoom > 1) {
+                // Önce donanım zoom kullan
+                if (targetZoom <= maxHardwareZoom) {
+                    hwZoom = targetZoom;
+                    swZoom = 1;
+                } else {
+                    // Donanım max, geri kalan yazılımsal
+                    hwZoom = maxHardwareZoom;
+                    swZoom = targetZoom / maxHardwareZoom;
+                }
+                
+                // Donanım zoom uygula
+                try {
+                    await currentTrack.applyConstraints({
+                        advanced: [{ zoom: hwZoom }]
+                    });
+                    currentHardwareZoom = hwZoom;
+                } catch (err) {
+                    console.error('Donanım zoom hatası:', err);
+                }
+            } else {
+                // Sadece yazılımsal
+                swZoom = targetZoom;
+            }
+            
+            // Yazılımsal zoom uygula (CSS)
+            currentSoftwareZoom = swZoom;
+            videoContainer.style.transform = `scale(${swZoom})`;
+            
+            // UI güncelle
+            const totalZoom = hwZoom * swZoom;
+            zoomSlider.value = totalZoom;
+            zoomValue.textContent = totalZoom.toFixed(1) + 'x';
+            zoomBadge.textContent = totalZoom.toFixed(1) + 'x';
+            zoomInfo.textContent = `Donanım: ${hwZoom.toFixed(1)}x | Yazılım: ${swZoom.toFixed(1)}x`;
+            
+            // Zoom seviyesine göre badge rengi
+            if (totalZoom > 10) {
+                zoomBadge.style.background = 'rgba(214, 48, 49, 0.9)';
+            } else if (totalZoom > 5) {
+                zoomBadge.style.background = 'rgba(253, 203, 110, 0.9)';
+                zoomBadge.style.color = '#000';
+            } else {
+                zoomBadge.style.background = 'rgba(233, 69, 96, 0.9)';
+                zoomBadge.style.color = '#fff';
+            }
+        }
+        
+        function getCurrentZoom() {
+            return currentHardwareZoom * currentSoftwareZoom;
+        }
+        
+        // ==================== PINCH ZOOM ====================
+        function getDistance(touch1, touch2) {
+            const dx = touch1.clientX - touch2.clientX;
+            const dy = touch1.clientY - touch2.clientY;
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+        
+        function handleTouchStart(e) {
+            if (e.touches.length === 2) {
+                isPinching = true;
+                initialPinchDistance = getDistance(e.touches[0], e.touches[1]);
+                initialZoom = getCurrentZoom();
+                e.preventDefault();
+            }
+        }
+        
+        function handleTouchMove(e) {
+            if (isPinching && e.touches.length === 2) {
+                const currentDistance = getDistance(e.touches[0], e.touches[1]);
+                const scale = currentDistance / initialPinchDistance;
+                const newZoom = initialZoom * scale;
+                setZoom(newZoom);
+                e.preventDefault();
+            }
+        }
+        
+        function handleTouchEnd(e) {
+            if (e.touches.length < 2) {
+                isPinching = false;
+            }
+        }
+        
+        function showPinchHint() {
+            pinchHint.classList.add('show');
+            setTimeout(() => pinchHint.classList.remove('show'), 2500);
+        }
+        
+        // ==================== TORCH (FENER) ====================
+        function checkTorchCapability() {
+            if (!currentTrack) return;
+            
+            try {
+                const capabilities = currentTrack.getCapabilities();
+                torchSupported = capabilities.torch === true;
+                
+                if (torchSupported && currentFacing === 'environment') {
+                    btnTorch.disabled = false;
+                    btnTorch.title = 'Feneri aç/kapat';
+                } else {
+                    btnTorch.disabled = true;
+                    btnTorch.title = currentFacing === 'user' ? 'Ön kamerada fener yok' : 'Fener desteklenmiyor';
+                }
+            } catch (err) {
+                torchSupported = false;
+                btnTorch.disabled = true;
+            }
+        }
+        
+        async function toggleTorch() {
+            if (!torchSupported || !currentTrack) return;
+            
+            try {
+                torchOn = !torchOn;
+                await currentTrack.applyConstraints({
+                    advanced: [{ torch: torchOn }]
+                });
+                
+                btnTorch.classList.toggle('active', torchOn);
+                btnTorch.textContent = torchOn ? '🔦 AÇIK' : '🔦 Fener';
+                
+            } catch (err) {
+                console.error('Torch hatası:', err);
+                showAlert('Fener açılamadı: ' + err.message);
+                torchOn = false;
+                btnTorch.classList.remove('active');
+            }
+        }
+        
+        // ==================== ODAK FONKSİYONLARI ====================
+        function checkFocusCapabilities() {
+            if (!currentTrack) return;
+            
+            try {
+                const capabilities = currentTrack.getCapabilities();
+                
+                if (!capabilities.focusMode || !capabilities.focusMode.includes('manual')) {
+                    document.getElementById('btnManualFocus').disabled = true;
+                    focusCapabilities = null;
+                    return;
+                }
+                
+                document.getElementById('btnManualFocus').disabled = false;
+                
+                if (capabilities.focusDistance) {
+                    focusCapabilities = {
+                        min: capabilities.focusDistance.min,
+                        max: capabilities.focusDistance.max,
+                        step: capabilities.focusDistance.step || 0.01
+                    };
+                    
+                    focusSlider.min = focusCapabilities.min;
+                    focusSlider.max = focusCapabilities.max;
+                    focusSlider.step = focusCapabilities.step;
+                    
+                    const settings = currentTrack.getSettings();
+                    if (settings.focusDistance !== undefined) {
+                        focusSlider.value = settings.focusDistance;
+                        focusValue.textContent = settings.focusDistance.toFixed(2);
+                    }
+                } else {
+                    focusCapabilities = null;
+                }
+                
+            } catch (err) {
+                console.error('Odak yetenek hatası:', err);
                 focusCapabilities = null;
             }
         }
         
-        // Odak modunu değiştir
         async function setFocusMode(mode) {
             if (!currentTrack) return;
             
             try {
-                const constraints = {
+                await currentTrack.applyConstraints({
                     advanced: [{ focusMode: mode }]
-                };
-                
-                await currentTrack.applyConstraints(constraints);
+                });
                 
                 if (mode === 'manual') {
-                    focusModeLabel.textContent = 'MANUEL';
+                    focusModeLabel.textContent = 'MF';
                     focusModeLabel.className = 'mode-indicator mode-manual';
                     manualFocusControls.classList.remove('hidden');
                     document.getElementById('btnManualFocus').className = 'btn-primary';
                     document.getElementById('btnAutoFocus').className = 'btn-secondary';
                 } else {
-                    focusModeLabel.textContent = 'OTOMATİK';
+                    focusModeLabel.textContent = 'AF';
                     focusModeLabel.className = 'mode-indicator mode-auto';
                     manualFocusControls.classList.add('hidden');
-                    document.getElementById('btnAutoFocus').className = 'btn-primary';
+                    document.getElementById('btnAutoFocus').className = 'btn-success';
                     document.getElementById('btnManualFocus').className = 'btn-secondary';
                 }
                 
             } catch (err) {
                 console.error('Odak modu hatası:', err);
-                showAlert('Odak modu değiştirilemedi: ' + err.message);
+                showAlert('Odak modu değiştirilemedi');
             }
         }
         
-        // Odak mesafesini ayarla
         async function setFocusDistance(distance) {
             if (!currentTrack || !focusCapabilities) return;
             
-            // Sınırları kontrol et
             distance = Math.max(focusCapabilities.min, Math.min(focusCapabilities.max, distance));
             
             try {
-                const constraints = {
+                await currentTrack.applyConstraints({
                     advanced: [{
                         focusMode: 'manual',
                         focusDistance: distance
                     }]
-                };
-                
-                await currentTrack.applyConstraints(constraints);
+                });
                 focusSlider.value = distance;
                 focusValue.textContent = distance.toFixed(2);
-                
             } catch (err) {
                 console.error('Odak mesafesi hatası:', err);
             }
         }
         
-        // Fotoğraf çek
+        // ==================== FOTOĞRAF ÇEKİMİ ====================
         async function capturePhoto() {
-            if (!imageCapture) {
-                // Fallback: Canvas kullan
-                const canvas = document.createElement('canvas');
-                canvas.width = videoElement.videoWidth;
-                canvas.height = videoElement.videoHeight;
+            // Canvas kullanarak yakala (zoom dahil)
+            const canvas = document.createElement('canvas');
+            const videoWidth = videoElement.videoWidth;
+            const videoHeight = videoElement.videoHeight;
+            
+            // Yazılımsal zoom varsa crop yap
+            if (currentSoftwareZoom > 1) {
+                const cropWidth = videoWidth / currentSoftwareZoom;
+                const cropHeight = videoHeight / currentSoftwareZoom;
+                const cropX = (videoWidth - cropWidth) / 2;
+                const cropY = (videoHeight - cropHeight) / 2;
+                
+                canvas.width = cropWidth;
+                canvas.height = cropHeight;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(videoElement, cropX, cropY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
+            } else {
+                canvas.width = videoWidth;
+                canvas.height = videoHeight;
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(videoElement, 0, 0);
-                
-                canvas.toBlob(blob => {
-                    lastBlob = blob;
-                    showCapturedPhoto(blob);
-                }, 'image/jpeg', 0.95);
-                return;
             }
             
-            try {
-                const blob = await imageCapture.takePhoto();
+            canvas.toBlob(blob => {
                 lastBlob = blob;
                 showCapturedPhoto(blob);
-            } catch (err) {
-                console.error('Fotoğraf çekme hatası:', err);
-                showAlert('Fotoğraf çekilemedi: ' + err.message);
-            }
+            }, 'image/jpeg', 0.95);
         }
         
-        // Çekilen fotoğrafı göster
         function showCapturedPhoto(blob) {
             const url = URL.createObjectURL(blob);
             capturedImage.src = url;
@@ -497,72 +761,92 @@
             showAlert('📸 Fotoğraf çekildi!', 'info');
         }
         
-        // Fotoğrafı indir
         function downloadPhoto() {
             if (!lastBlob) return;
             
             const url = URL.createObjectURL(lastBlob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `foto_${new Date().toISOString().slice(0,19).replace(/[:-]/g,'')}.jpg`;
+            a.download = `foto_${Date.now()}.jpg`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
-            
             setTimeout(() => URL.revokeObjectURL(url), 100);
             showAlert('💾 Fotoğraf indirildi!', 'info');
         }
         
-        // Event Listeners
+        // ==================== EVENT LISTENERS ====================
         startBtn.addEventListener('click', () => startCamera('environment'));
         
+        // Kamera değiştirme
         document.getElementById('btnFront').addEventListener('click', () => startCamera('user'));
         document.getElementById('btnBack').addEventListener('click', () => startCamera('environment'));
         
+        // Torch
+        btnTorch.addEventListener('click', toggleTorch);
+        
+        // Zoom slider
+        zoomSlider.addEventListener('input', (e) => setZoom(parseFloat(e.target.value)));
+        
+        // Zoom butonları
+        document.getElementById('btnZoomFineDown').addEventListener('click', () => setZoom(getCurrentZoom() - 0.1));
+        document.getElementById('btnZoomFineUp').addEventListener('click', () => setZoom(getCurrentZoom() + 0.1));
+        document.getElementById('btnZoomNormalDown').addEventListener('click', () => setZoom(getCurrentZoom() - 0.5));
+        document.getElementById('btnZoomNormalUp').addEventListener('click', () => setZoom(getCurrentZoom() + 0.5));
+        document.getElementById('btnZoom1x').addEventListener('click', () => setZoom(1));
+        document.getElementById('btnZoom2x').addEventListener('click', () => setZoom(2));
+        document.getElementById('btnZoom5x').addEventListener('click', () => setZoom(5));
+        document.getElementById('btnZoom10x').addEventListener('click', () => setZoom(10));
+        document.getElementById('btnZoomMax').addEventListener('click', () => setZoom(parseFloat(zoomSlider.max)));
+        
+        // Odak
         document.getElementById('btnAutoFocus').addEventListener('click', () => setFocusMode('continuous'));
         document.getElementById('btnManualFocus').addEventListener('click', () => {
             if (!focusCapabilities) {
-                showAlert('Bu kamera manuel odak desteklemiyor!', 'warning');
+                showAlert('Manuel odak desteklenmiyor', 'warning');
                 return;
             }
             setFocusMode('manual');
         });
         
-        focusSlider.addEventListener('input', (e) => {
-            setFocusDistance(parseFloat(e.target.value));
+        focusSlider.addEventListener('input', (e) => setFocusDistance(parseFloat(e.target.value)));
+        
+        document.getElementById('btnFocusFineDown').addEventListener('click', () => {
+            setFocusDistance(parseFloat(focusSlider.value) - 0.01);
+        });
+        document.getElementById('btnFocusFineUp').addEventListener('click', () => {
+            setFocusDistance(parseFloat(focusSlider.value) + 0.01);
+        });
+        document.getElementById('btnFocusNormalDown').addEventListener('click', () => {
+            setFocusDistance(parseFloat(focusSlider.value) - 0.05);
+        });
+        document.getElementById('btnFocusNormalUp').addEventListener('click', () => {
+            setFocusDistance(parseFloat(focusSlider.value) + 0.05);
         });
         
-        // Hassas ve normal adım butonları
-        document.getElementById('btnFineDown').addEventListener('click', () => {
-            const current = parseFloat(focusSlider.value);
-            setFocusDistance(current - 0.01);
-        });
-        
-        document.getElementById('btnFineUp').addEventListener('click', () => {
-            const current = parseFloat(focusSlider.value);
-            setFocusDistance(current + 0.01);
-        });
-        
-        document.getElementById('btnNormalDown').addEventListener('click', () => {
-            const current = parseFloat(focusSlider.value);
-            setFocusDistance(current - 0.05);
-        });
-        
-        document.getElementById('btnNormalUp').addEventListener('click', () => {
-            const current = parseFloat(focusSlider.value);
-            setFocusDistance(current + 0.05);
-        });
-        
+        // Fotoğraf
         document.getElementById('btnCapture').addEventListener('click', capturePhoto);
         btnDownload.addEventListener('click', downloadPhoto);
         
-        // Tarayıcı desteğini kontrol et
+        // Pinch zoom events
+        videoWrapper.addEventListener('touchstart', handleTouchStart, { passive: false });
+        videoWrapper.addEventListener('touchmove', handleTouchMove, { passive: false });
+        videoWrapper.addEventListener('touchend', handleTouchEnd);
+        videoWrapper.addEventListener('touchcancel', handleTouchEnd);
+        
+        // Mouse wheel zoom (desktop)
+        videoWrapper.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? -0.2 : 0.2;
+            setZoom(getCurrentZoom() + delta);
+        }, { passive: false });
+        
+        // ==================== BAŞLANGIÇ KONTROLLERİ ====================
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
             showAlert('Bu tarayıcı kamera erişimini desteklemiyor!');
             startBtn.disabled = true;
         }
         
-        // HTTPS kontrolü
         if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
             showAlert('⚠️ Kamera erişimi için HTTPS gerekli!', 'warning');
         }
