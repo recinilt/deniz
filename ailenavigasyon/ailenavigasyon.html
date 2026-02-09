@@ -1043,22 +1043,35 @@ function openLivePanel(){
 
 function showLiveOnMap(name){
   closeMo('liveMo');
+  let _llat=null,_llng=null,_lhd=null;
   document.getElementById('contentArea').innerHTML=`
     <div class="map-wrap"><div id="mainMap"></div>
       <div class="map-chips" id="liveChips"><div class="chip"><div class="cd" style="background:var(--ok)"></div>${name} - Canlı</div></div>
     </div>
     <div class="panel" id="panel">
       <div class="panel-drag" onclick="document.getElementById('panel').classList.toggle('exp')"><span></span></div>
-      <div class="panel-head"><div class="row"><button class="btn btn-out btn-sm" onclick="stopLiveView();renderHome()">← Geri</button><span style="flex:1;font-weight:700;font-size:13px">📡 ${name}</span></div></div>
+      <div class="panel-head">
+        <div class="row"><button class="btn btn-out btn-sm" onclick="stopLiveView();renderHome()">← Geri</button><span style="flex:1;font-weight:700;font-size:13px">📡 ${name}</span></div>
+        <div class="row" style="margin-top:4px">
+          <button class="btn btn-ac btn-sm" onclick="window._focusLivePerson&&window._focusLivePerson()">📍 Kişiye Odaklan</button>
+          <button class="btn btn-out btn-sm" onclick="window._focusLiveTarget&&window._focusLiveTarget()">🎯 Hedefe Odaklan</button>
+        </div>
+      </div>
       <div class="panel-body" id="liveMapInfo" style="padding:12px"><p style="font-size:12px;color:var(--tx2)">Konum dinleniyor...</p></div>
     </div>`;
+
+  window._focusLivePerson=()=>{if(_llat!==null&&mainMap)mainMap.setView([_llat,_llng],15);};
+  window._focusLiveTarget=()=>{if(_lhd&&mainMap)mainMap.setView([_lhd.lat,_lhd.lng],15);else toast('Hedef bilgisi yok','wn');};
 
   initMap(()=>{
     const icon=L.divIcon({className:'',html:`<div style="width:24px;height:24px;border-radius:50%;background:#6366f1;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;box-shadow:0 2px 10px rgba(99,102,241,.5);border:3px solid #fff">${name.charAt(0)}</div>`,iconSize:[24,24],iconAnchor:[12,12]});
 
-    let liveRouteLastUpdate=0;
+    let liveRouteLastUpdate=0,firstUpdate=true;
     fbListenUser(S.aile,name,(d)=>{
       if(!mainMap)return;
+      _llat=d.lat;_llng=d.lng;
+      if(d.hedef)_lhd=d.hedef;
+
       if(liveMarkers[name])mainMap.removeLayer(liveMarkers[name]);
       liveMarkers[name]=L.marker([d.lat,d.lng],{icon}).addTo(mainMap);
 
@@ -1070,10 +1083,10 @@ function showLiveOnMap(name){
         }
         const now=Date.now();
         if(now-liveRouteLastUpdate>=20000){liveRouteLastUpdate=now;drawLiveRoute(name,d.lat,d.lng,d.hedef.lat,d.hedef.lng);}
-        mainMap.fitBounds([[d.lat,d.lng],[d.hedef.lat,d.hedef.lng]],{padding:[50,50],maxZoom:15});
-      }else{
-        mainMap.setView([d.lat,d.lng],15);
       }
+
+      // Sadece ilk güncellemede kişiye odaklan, sonra haritayı rahat bırak
+      if(firstUpdate){firstUpdate=false;mainMap.setView([d.lat,d.lng],14);}
 
       const ago=Math.round((Date.now()-d.ts)/1000);
       const info=document.getElementById('liveMapInfo');
@@ -1082,7 +1095,6 @@ function showLiveOnMap(name){
         if(d.hedef){
           html+=`<div style="margin-top:6px;font-size:10px;color:var(--tx3)">🎯 ${d.hedef.ad} — güzergah bilgisi güncelleniyor...</div>`;
         }
-        // live-osrm div'i drawLiveRoute tarafından güncellenecek, silme
         const existingOsrm=info.querySelector('.live-osrm');
         const osrmHtml=existingOsrm?existingOsrm.outerHTML:'';
         info.innerHTML=html+osrmHtml;
