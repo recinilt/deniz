@@ -160,8 +160,7 @@
     <div class="at"><button class="atb active" onclick="swTab('giris',this)">Giriş Yap</button><button class="atb" onclick="swTab('kayit',this)">Yeni Kayıt</button></div>
     <div id="girisForm">
       <div class="fg"><label>Aile Soyadı / Grup Adı</label>
-        <select id="inGirisSoyad" onchange="if(this.value==='__yeni__'){this.style.display='none';document.getElementById('inGirisSoyadYeni').style.display='block';document.getElementById('inGirisSoyadYeni').focus();}"><option value="">Yükleniyor...</option></select>
-        <input id="inGirisSoyadYeni" style="display:none;margin-top:6px" placeholder="Grup adı girin..." onblur="if(!this.value.trim()){this.style.display='none';document.getElementById('inGirisSoyad').style.display='block';}">
+        <input id="inGirisSoyad" placeholder="Aile/grup adınızı girin...">
       </div>
       <div class="fg"><label>Şifre</label><input id="inGirisSifre" type="text" placeholder="Şifreniz"></div>
       <div class="fg"><div class="err" id="girisErr"></div></div>
@@ -453,13 +452,10 @@ function swTab(t,el){document.querySelectorAll('.atb').forEach(b=>b.classList.re
 
 async function loadAileSelect(){
   await loadDB();
-  const sel=document.getElementById('inGirisSoyad');
-  sel.innerHTML='<option value="">Aile/Grup seçin...</option>'+Object.keys(DB.aileler||{}).map(s=>`<option value="${s}">${s}</option>`).join('');
 }
 
 async function doLogin(){
-  const sel=document.getElementById('inGirisSoyad');const yeni=document.getElementById('inGirisSoyadYeni');
-  const soyad=(yeni.style.display!=='none'&&yeni.value.trim())?yeni.value.trim():sel.value;
+  const soyad=document.getElementById('inGirisSoyad').value.trim();
   const sif=document.getElementById('inGirisSifre').value.trim(),err=document.getElementById('girisErr');
   err.classList.remove('show');
   if(!soyad||!sif){err.textContent='Tüm alanları doldurun';err.classList.add('show');return;}
