@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+<title>🚐 ServisApp</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg0:#0a0c10;--bg1:#0f1117;--bg2:#1a1d27;--bg3:#242836;--bg4:#2e3347;--tx1:#e8eaed;--tx2:#9aa0b0;--tx3:#6b7280;--ac:#6c5ce7;--ac2:#7c6ff7;--acg:rgba(108,92,231,.25);--ok:#00b894;--okb:rgba(0,184,148,.12);--wn:#fdcb6e;--er:#e17055;--erb:rgba(225,112,85,.12);--in:#74b9ff;--inb:rgba(116,185,255,.12);--bd:#2d3244;--r:12px;--rs:8px;--f:'Plus Jakarta Sans',-apple-system,sans-serif;--fm:'JetBrains Mono',monospace;--tr:.2s cubic-bezier(.4,0,.2,1)}
+*{margin:0;padding:0;box-sizing:border-box}html,body{height:100%;overflow:hidden;font-family:var(--f);background:var(--bg0);color:var(--tx1)}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--bd);border-radius:3px}
+.leaflet-top.leaflet-left{top:50px!important}
+.login-screen{position:fixed;inset:0;z-index:9999;background:var(--bg0);display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto}
+.login-screen.hidden{display:none}
+.login-box{width:100%;max-width:420px;animation:fadeUp .5s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.login-logo{text-align:center;margin-bottom:28px}
+.login-logo .icon{font-size:48px;margin-bottom:8px}
+.login-logo h1{font-size:26px;font-weight:800;background:linear-gradient(135deg,var(--ac),#a29bfe);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.login-logo p{color:var(--tx3);font-size:13px;margin-top:4px}
+.lc{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:22px;margin-bottom:12px}
+.lc h2{font-size:15px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.role-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.role-btn{padding:18px 10px;border-radius:var(--rs);border:2px solid var(--bd);background:var(--bg3);cursor:pointer;text-align:center;transition:all var(--tr)}
+.role-btn:hover{border-color:var(--ac);background:var(--bg4)}
+.role-btn.sel{border-color:var(--ac);background:var(--acg)}
+.role-btn .em{font-size:26px;display:block;margin-bottom:4px}
+.role-btn .lb{font-weight:700;font-size:13px}
+.role-btn .ds{font-size:10px;color:var(--tx3);margin-top:3px}
+.as{display:none;margin-top:14px;animation:fadeUp .3s ease}.as.show{display:block}
+.at{display:flex;gap:4px;background:var(--bg1);padding:3px;border-radius:var(--rs);margin-bottom:14px}
+.atb{flex:1;padding:7px;border:none;border-radius:6px;font-family:var(--f);font-size:12px;font-weight:600;cursor:pointer;background:transparent;color:var(--tx3);transition:all var(--tr)}
+.atb.active{background:var(--ac);color:#fff}
+.fg{margin-bottom:12px}
+.fg label{display:block;font-size:11px;font-weight:600;color:var(--tx2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.3px}
+.fg input,.fg select{width:100%;padding:9px 11px;border-radius:6px;border:1px solid var(--bd);background:var(--bg3);color:var(--tx1);font-family:var(--f);font-size:13px;transition:border var(--tr)}
+.fg input:focus,.fg select:focus{outline:none;border-color:var(--ac)}
+.fg .err{color:var(--er);font-size:11px;margin-top:3px;display:none}.fg .err.show{display:block}
+.btn{padding:9px 16px;border-radius:6px;border:none;font-family:var(--f);font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;transition:all var(--tr);width:100%}
+.btn-ac{background:var(--ac);color:#fff}.btn-ac:hover{background:var(--ac2);box-shadow:0 0 20px var(--acg)}
+.btn-ok{background:var(--ok);color:#fff}.btn-er{background:var(--er);color:#fff}
+.btn-out{background:transparent;border:1px solid var(--bd);color:var(--tx2)}.btn-out:hover{border-color:var(--ac);color:var(--ac)}
+.btn-sm{padding:6px 10px;font-size:11px;width:auto}
+.btn-link{background:none;border:none;color:var(--ac);cursor:pointer;font-family:var(--f);font-size:12px;padding:3px 0;text-decoration:underline}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.app{display:none;height:100vh;flex-direction:column;position:relative}.app.show{display:flex}
+.topbar{height:44px;background:rgba(15,17,23,.85);backdrop-filter:blur(8px);border-bottom:1px solid var(--bd);display:flex;align-items:center;padding:0 10px;gap:6px;z-index:600;position:absolute;top:0;left:0;right:0}
+.topbar .logo{font-weight:800;font-size:14px;color:var(--ac);display:flex;align-items:center;gap:5px;white-space:nowrap}
+.topbar .sp{flex:1}
+.topbar-inf{font-size:10px;color:var(--tx3);display:flex;align-items:center;gap:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px}
+.dot-live{width:7px;height:7px;border-radius:50%;background:var(--ok);animation:pulse 2s infinite;flex-shrink:0}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.ibtn{width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:6px;border:1px solid var(--bd);background:rgba(36,40,54,.8);color:var(--tx2);cursor:pointer;transition:all var(--tr);font-size:14px;flex-shrink:0}
+.ibtn:hover{background:var(--bg4);color:var(--tx1)}
+.content{position:absolute;inset:0;display:flex;flex-direction:column;overflow:hidden}
+.map-wrap{position:absolute;inset:0;z-index:1}
+#mainMap,.leaflet-container{width:100%;height:100%;background:var(--bg0)!important;z-index:1}
+.map-chips{position:absolute;top:52px;left:8px;z-index:500;display:flex;gap:5px;flex-wrap:wrap}
+.chip{background:var(--bg2);border:1px solid var(--bd);padding:4px 9px;border-radius:14px;font-size:10px;font-weight:600;display:flex;align-items:center;gap:4px;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.chip .cd{width:6px;height:6px;border-radius:50%}
+.map-srch{position:absolute;top:52px;right:8px;z-index:500;display:flex;gap:4px}
+.map-srch input{width:180px;padding:7px 9px;border-radius:6px;border:1px solid var(--bd);background:var(--bg2);color:var(--tx1);font-family:var(--f);font-size:11px;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.map-srch input::placeholder{color:var(--tx3)}.map-srch input:focus{outline:none;border-color:var(--ac)}
+.map-srch button{padding:7px 10px;border-radius:6px;border:none;background:var(--ac);color:#fff;font-weight:600;font-size:11px;cursor:pointer}
+.panel{position:absolute;bottom:0;left:0;right:0;z-index:500;max-height:40vh;background:rgba(26,29,39,.92);backdrop-filter:blur(10px);border-top:1px solid var(--bd);display:flex;flex-direction:column;overflow:hidden;transition:max-height .3s ease;border-radius:14px 14px 0 0}
+.panel.exp{max-height:80vh}
+.panel-drag{width:100%;padding:6px 0;display:flex;justify-content:center;cursor:ns-resize}
+.panel-drag span{width:36px;height:4px;border-radius:2px;background:var(--bd)}
+.panel-head{padding:6px 12px;display:flex;flex-direction:column;gap:6px;border-bottom:1px solid var(--bd);background:rgba(26,29,39,.95)}
+.panel-head .row{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
+.panel-body{flex:1;overflow-y:auto;padding:6px}
+.panel-foot{padding:8px 12px;border-top:1px solid var(--bd);background:rgba(36,40,54,.9)}
+.sumgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;text-align:center}
+.sumgrid .v{font-size:15px;font-weight:800;font-family:var(--fm);color:var(--ac)}
+.sumgrid .l{font-size:8px;color:var(--tx3);text-transform:uppercase;letter-spacing:.3px}
+.si{background:var(--bg3);border:1px solid var(--bd);border-radius:var(--rs);padding:9px;margin-bottom:4px;transition:all var(--tr)}
+.si:hover{border-color:var(--bg4)}.si.dragging{opacity:.4;border-color:var(--ac)}.si.drag-over{border-top:2px solid var(--ac)}
+.si-top{display:flex;align-items:center;gap:7px}
+.si-num{width:24px;height:24px;border-radius:50%;background:var(--ac);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
+.si-num.s{background:var(--ok)}.si-num.e{background:var(--er)}
+.si-info{flex:1;min-width:0}
+.si-name{font-weight:600;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.si-addr{font-size:9px;color:var(--tx3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.si-acts{display:flex;gap:2px}
+.si-btn{width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:4px;border:none;background:transparent;color:var(--tx3);cursor:pointer;font-size:11px;transition:all var(--tr)}
+.si-btn:hover{background:var(--bg4);color:var(--tx1)}
+.si-meta{display:flex;gap:8px;margin-top:5px;font-size:9px;color:var(--tx2)}
+.si-tags{display:flex;flex-wrap:wrap;gap:2px;margin-top:4px}
+.si-tag{font-size:8px;padding:1px 5px;border-radius:6px;background:var(--inb);color:var(--in);font-weight:500}
+.si-passed{opacity:.5;border-left:3px solid var(--ok)}.si-current{border-left:3px solid var(--ac);background:var(--acg)}
+.route-card{background:var(--bg3);border:1px solid var(--bd);border-radius:var(--r);padding:14px;margin-bottom:8px;cursor:pointer;transition:all var(--tr)}
+.route-card:hover{border-color:var(--ac);transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,0,0,.2)}
+.route-card h3{font-size:14px;font-weight:700;display:flex;align-items:center;gap:7px}
+.route-card .meta{font-size:10px;color:var(--tx3);margin-top:5px;display:flex;gap:10px;flex-wrap:wrap}
+.route-card .acts{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap}
+.rc{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+.trip-bar{background:linear-gradient(135deg,var(--ac),#8b7cf7);padding:12px 14px;color:#fff;display:flex;align-items:center;gap:10px}
+.trip-bar .info{flex:1}.trip-bar .lbl{font-size:9px;opacity:.7;text-transform:uppercase;letter-spacing:1px}.trip-bar .val{font-size:16px;font-weight:800;margin-top:2px}
+.p-hero{background:linear-gradient(135deg,var(--ac),#a29bfe);padding:16px;color:#fff}
+.p-hero h2{font-size:17px;font-weight:800}.p-hero p{font-size:11px;opacity:.8;margin-top:3px}
+.p-stop{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--bd)}
+.p-dot{width:10px;height:10px;border-radius:50%;border:3px solid var(--tx3);flex-shrink:0}
+.p-dot.done{border-color:var(--ok);background:var(--ok)}.p-dot.cur{border-color:var(--ac);background:var(--ac);box-shadow:0 0 8px var(--acg)}
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);z-index:2000;display:flex;align-items:center;justify-content:center;padding:14px;opacity:0;pointer-events:none;transition:opacity .25s}
+.mo.show{opacity:1;pointer-events:all}
+.mo-box{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);width:100%;max-width:420px;box-shadow:0 8px 40px rgba(0,0,0,.5);transform:translateY(20px) scale(.97);transition:transform .25s;max-height:85vh;overflow-y:auto}
+.mo.show .mo-box{transform:translateY(0) scale(1)}
+.mo-head{padding:14px 16px;border-bottom:1px solid var(--bd);display:flex;justify-content:space-between;align-items:center}
+.mo-head h3{font-weight:700;font-size:14px}
+.mo-close{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:6px;border:none;background:transparent;color:var(--tx3);cursor:pointer;font-size:15px}
+.mo-close:hover{background:var(--bg4);color:var(--tx1)}
+.mo-body{padding:16px}.mo-foot{padding:10px 16px;border-top:1px solid var(--bd);display:flex;gap:6px;justify-content:flex-end}
+.toast-wrap{position:fixed;bottom:14px;right:14px;z-index:3000;display:flex;flex-direction:column;gap:5px}
+.toast{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--rs);padding:9px 12px;box-shadow:0 4px 20px rgba(0,0,0,.4);font-size:11px;font-weight:500;display:flex;align-items:center;gap:6px;animation:tIn .3s ease;min-width:200px}
+.toast.ok{border-left:3px solid var(--ok)}.toast.er{border-left:3px solid var(--er)}.toast.inf{border-left:3px solid var(--in)}
+@keyframes tIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+.qr-wrap{display:flex;justify-content:center;padding:14px;background:#fff;border-radius:var(--rs);margin-top:10px}
+@media(min-width:768px){.panel{left:auto;width:360px;max-height:100%;bottom:0;top:0;right:0;border-radius:0;border-top:none;border-left:1px solid var(--bd)}.panel.exp{max-height:100%}.panel-drag{display:none}.map-srch input{width:220px}}
+@media(max-width:480px){.map-srch input{width:130px}.role-grid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+
+<!-- ===== LOGIN ===== -->
+<div class="login-screen" id="loginScreen">
+<div class="login-box">
+  <div class="login-logo"><div class="icon">🚐</div><h1>ServisApp</h1><p>Servis Takip ve Yönetim Sistemi</p></div>
+  <div class="lc" id="roleCard">
+    <h2>👋 Hoş Geldiniz</h2>
+    <p style="font-size:12px;color:var(--tx3);margin-bottom:12px">Devam etmek için rolünüzü seçin</p>
+    <div class="role-grid">
+      <div class="role-btn" onclick="selectRole('sirket',this)"><span class="em">🏢</span><span class="lb">Servis Şirketi</span><span class="ds">Sürücü / Yönetici</span></div>
+      <div class="role-btn" onclick="selectRole('yolcu',this)"><span class="em">👤</span><span class="lb">Servis Yolcusu</span><span class="ds">Güzergah Takip</span></div>
+    </div>
+  </div>
+  <!-- COMPANY -->
+  <div class="as" id="sirketAuth">
+    <div class="lc">
+      <h2>🏢 Servis Şirketi Girişi</h2>
+      <div class="fg"><label>Şirket Adı</label>
+        <select id="inSirket" onchange="if(this.value==='__yeni__'){this.style.display='none';document.getElementById('inSirketYeni').style.display='block';document.getElementById('inSirketYeni').focus();}"><option value="">Yükleniyor...</option></select>
+        <input id="inSirketYeni" style="display:none;margin-top:6px" placeholder="Yeni şirket adı girin..." onblur="if(!this.value.trim()){this.style.display='none';document.getElementById('inSirket').style.display='block';}">
+      </div>
+      <div class="at"><button class="atb active" onclick="swTab('giris',this)">Giriş Yap</button><button class="atb" onclick="swTab('kayit',this)">İlk Kayıt</button></div>
+      <div id="girisForm">
+        <div class="fg"><label>İsim Soyisim</label><input id="inGirisIsim" placeholder="Adınız Soyadınız"></div>
+        <div class="fg"><label>Şifre</label><input id="inGirisSifre" type="text" placeholder="Şifreniz"></div>
+        <div class="fg"><div class="err" id="girisErr"></div></div>
+        <button class="btn btn-ac" onclick="doLogin()">🔑 Giriş Yap</button>
+        <div style="text-align:center;margin-top:8px"><button class="btn-link" onclick="openMo('forgotMo')">Şifremi Unuttum</button></div>
+      </div>
+      <div id="kayitForm" style="display:none">
+        <div class="fg"><label>İsim Soyisim</label><input id="inKayitIsim" placeholder="Adınız Soyadınız"></div>
+        <div class="fg"><label>Şifre</label><input id="inKayitSifre1" type="text" placeholder="Şifrenizi girin"></div>
+        <div class="fg"><label>Şifre (Tekrar)</label><input id="inKayitSifre2" type="text" placeholder="Şifrenizi tekrar girin"></div>
+        <div class="fg"><div class="err" id="kayitErr"></div></div>
+        <button class="btn btn-ac" onclick="doRegister()">📝 Kayıt Ol</button>
+      </div>
+      <div style="margin-top:10px"><button class="btn btn-out" onclick="backToRoles()">← Geri</button></div>
+    </div>
+  </div>
+  <!-- PASSENGER -->
+  <div class="as" id="yolcuAuth">
+    <div class="lc">
+      <h2>👤 Servis Yolcusu</h2>
+      <div class="fg"><label>Servis Şirketi</label><select id="yolcuSirket" onchange="loadYolcuGuzergahlar()"><option value="">Yükleniyor...</option></select></div>
+      <div class="fg"><label>Güzergah / Sürücü</label><select id="yolcuGuzergah"><option value="">Önce şirket seçin</option></select></div>
+      <div class="fg"><div class="err" id="yolcuErr"></div></div>
+      <button class="btn btn-ac" onclick="doYolcuGiris()">👁 Görüntüle</button>
+      <div style="margin-top:10px"><button class="btn btn-out" onclick="backToRoles()">← Geri</button></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ===== APP ===== -->
+<div class="app" id="app">
+  <div class="topbar">
+    <div class="logo">🚐 ServisApp</div>
+    <div class="topbar-inf" id="topInfo"></div>
+    <div class="sp"></div>
+    <div id="syncSt" style="font-size:10px;color:var(--tx3);display:flex;align-items:center;gap:4px"></div>
+    <button class="ibtn" onclick="doLogout()" title="Çıkış">🚪</button>
+  </div>
+  <div class="content" id="contentArea"></div>
+</div>
+
+<!-- ===== MODALS ===== -->
+<div class="mo" id="stopMo"><div class="mo-box">
+  <div class="mo-head"><h3 id="stMoT">Durak</h3><button class="mo-close" onclick="closeMo('stopMo')">✕</button></div>
+  <div class="mo-body">
+    <div class="fg"><label>Durak Adı</label><input id="stName" placeholder="ör: Kadıköy"></div>
+    <div class="fg"><label>Adres</label><input id="stAddr" readonly></div>
+    <div class="fg"><label>Koordinat</label><input id="stCoord" readonly></div>
+    <div class="fg"><label>Yolcular (virgülle)</label><input id="stPass" placeholder="Ali, Ayşe, Mehmet"></div>
+    <div class="fg"><label>Bekleme (dk)</label><input id="stWait" type="number" value="2" min="0"></div>
+    <div class="fg"><label>Not</label><input id="stNote" placeholder="Opsiyonel"></div>
+  </div>
+  <div class="mo-foot"><button class="btn btn-out btn-sm" onclick="closeMo('stopMo')">İptal</button><button class="btn btn-ac btn-sm" id="stSaveBtn" onclick="saveStop()">Kaydet</button></div>
+</div></div>
+
+<div class="mo" id="routeMo"><div class="mo-box">
+  <div class="mo-head"><h3 id="rtMoT">Güzergah</h3><button class="mo-close" onclick="closeMo('routeMo')">✕</button></div>
+  <div class="mo-body">
+    <div class="fg"><label>Güzergah Adı</label><input id="rtName" placeholder="ör: Kadıköy-Levent"></div>
+    <div class="fg"><label>Plaka</label><input id="rtPlate" placeholder="34 ABC 123"></div>
+    <div class="fg"><label>Kalkış Saati</label><input id="rtTime" type="time" value="07:30"></div>
+    <div class="fg"><label>Renk</label><div id="colorPick" style="display:flex;gap:6px;flex-wrap:wrap"></div></div>
+  </div>
+  <div class="mo-foot"><button class="btn btn-out btn-sm" onclick="closeMo('routeMo')">İptal</button><button class="btn btn-ac btn-sm" id="rtSaveBtn" onclick="saveRoute()">Kaydet</button></div>
+</div></div>
+
+<div class="mo" id="shareMo"><div class="mo-box">
+  <div class="mo-head"><h3>📤 Güzergah Paylaş</h3><button class="mo-close" onclick="closeMo('shareMo')">✕</button></div>
+  <div class="mo-body" id="shareBody"></div>
+</div></div>
+
+<div class="mo" id="sendMo"><div class="mo-box">
+  <div class="mo-head"><h3>📨 Sürücüye Gönder</h3><button class="mo-close" onclick="closeMo('sendMo')">✕</button></div>
+  <div class="mo-body">
+    <div class="fg"><label>Hedef Şirket</label><select id="sendSirket" onchange="loadSendSuruculer()"><option value="">Seçin...</option></select></div>
+    <div class="fg"><label>Hedef Sürücü</label><select id="sendSurucu"><option value="">Önce şirket seçin</option></select></div>
+  </div>
+  <div class="mo-foot"><button class="btn btn-out btn-sm" onclick="closeMo('sendMo')">İptal</button><button class="btn btn-ac btn-sm" onclick="sendToDriver()">Gönder</button></div>
+</div></div>
+
+<div class="mo" id="forgotMo"><div class="mo-box">
+  <div class="mo-head"><h3>🔑 Şifremi Unuttum</h3><button class="mo-close" onclick="closeMo('forgotMo')">✕</button></div>
+  <div class="mo-body" style="text-align:center;padding:28px">
+    <div style="font-size:36px;margin-bottom:10px">📞</div>
+    <p style="font-size:14px;font-weight:600;margin-bottom:6px">Lütfen aşağıdaki numarayı arayınız</p>
+    <a href="tel:05056279048" style="font-size:22px;font-weight:800;color:var(--ac);font-family:var(--fm);text-decoration:none">0505 627 90 48</a>
+  </div>
+</div></div>
+
+<div class="mo" id="notifMo"><div class="mo-box">
+  <div class="mo-head"><h3>🔔 Bildirimler</h3><button class="mo-close" onclick="closeMo('notifMo')">✕</button></div>
+  <div class="mo-body" id="notifBody"></div>
+</div></div>
+
+<div class="mo" id="importMo"><div class="mo-box">
+  <div class="mo-head"><h3>📥 Güzergah İçe Aktar</h3><button class="mo-close" onclick="closeMo('importMo')">✕</button></div>
+  <div class="mo-body">
+    <input type="file" id="importFile" accept=".json" style="margin-bottom:10px;color:var(--tx1)">
+    <button class="btn btn-ac" onclick="doImport()">İçe Aktar</button>
+  </div>
+</div></div>
+
+<div class="toast-wrap" id="toastW"></div>
+
+<script src="servisgh.js"></script>
+<script>
+// ============ CONFIG ============
+
+// ⚠️ FIREBASE: Kendi bilgilerinizi yapıştırın
+const FB_CFG={
+  apiKey:"AIzaSyCaCdA--trqfnevMof6qhsUkZOYIaXZCvc",
+  authDomain:"servis-takip-5f095.firebaseapp.com",
+  databaseURL:"https://servis-takip-5f095-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:"servis-takip-5f095",
+  storageBucket:"servis-takip-5f095.firebasestorage.app",
+  messagingSenderId:"6474078582",
+  appId:"1:6474078582:web:a1f863fcceaea18f8d8257"
+};
+
+const COLORS=['#6c5ce7','#00b894','#e17055','#74b9ff','#fdcb6e','#fd79a8','#55efc4','#a29bfe','#fab1a0','#00cec9'];
+const PROX=50;
+
+// ============ STATE ============
+let DB={sirketler:{}};
+let S={rol:null,sirket:null,isim:null,activeRouteId:null,editRouteId:null,editStopId:null,pendingLL:null,tripActive:false,tripRouteId:null,tripStop:0,pSirket:null,pSurucu:null,pGuz:null,_shareRid:null};
+let mainMap=null,markers={},routeLine=null,driverLiveMk=null,watchId=null,wakeLock=null,autoSaveT=null,fbOk=false,myLoc=null;
+
+// ============ INIT ============
+window.onload=async function(){
+  initFB();
+  const a=localStorage.getItem('sa_auth');
+  if(a){try{
+    const d=JSON.parse(a);Object.assign(S,d);
+    await loadDB();
+    if(S.rol==='surucu'){
+      if(!DB.sirketler?.[S.sirket]?.suruculer?.[S.isim]){localStorage.removeItem('sa_auth');location.reload();return;}
+    }
+    enterApp();
+  }catch(e){localStorage.removeItem('sa_auth');}}
+};
+
+// ============ FIREBASE ============
+function initFB(){try{firebase.initializeApp(FB_CFG);fbOk=true;}catch(e){console.warn('Firebase init hatası:',e);}}
+function fbWrite(lat,lng){if(!fbOk||!S.sirket||!S.isim)return;try{firebase.database().ref('konum/'+S.sirket+'/'+S.isim).set({lat,lng,ts:Date.now(),aktif:S.tripActive,guz:S.tripRouteId||''});}catch(e){}}
+function fbListen(sirket,surucu,cb){if(!fbOk)return;firebase.database().ref('konum/'+sirket+'/'+surucu).on('value',snap=>{const d=snap.val();if(d)cb(d);});}
+function fbClear(){if(!fbOk||!S.sirket||!S.isim)return;try{firebase.database().ref('konum/'+S.sirket+'/'+S.isim).remove();}catch(e){}}
+
+// ============ GITHUB ============
+async function loadDB(){
+  try{
+    const r=await fetch(`https://api.github.com/repos/${GH.user}/${GH.repo}/contents/${GH.file}`,{headers:{'Authorization':`token ${GH.token}`,'Accept':'application/vnd.github.v3+json'}});
+    if(r.ok){const d=await r.json();DB=JSON.parse(decodeURIComponent(escape(atob(d.content))));}
+    else DB={sirketler:{}};
+    localStorage.setItem('sa_dbcache',JSON.stringify(DB));
+  }catch(e){
+    const c=localStorage.getItem('sa_dbcache');
+    if(c){DB=JSON.parse(c);toast('⚡ Çevrimdışı mod','inf');}else DB={sirketler:{}};
+  }
+}
+async function saveDB(){
+  localStorage.setItem('sa_dbcache',JSON.stringify(DB));
+  try{
+    let sha=null;
+    const r1=await fetch(`https://api.github.com/repos/${GH.user}/${GH.repo}/contents/${GH.file}`,{headers:{'Authorization':`token ${GH.token}`,'Accept':'application/vnd.github.v3+json'}});
+    if(r1.ok)sha=(await r1.json()).sha;
+    const enc=btoa(unescape(encodeURIComponent(JSON.stringify(DB,null,2))));
+    const r2=await fetch(`https://api.github.com/repos/${GH.user}/${GH.repo}/contents/${GH.file}`,{method:'PUT',headers:{'Authorization':`token ${GH.token}`,'Accept':'application/vnd.github.v3+json'},body:JSON.stringify({message:'ServisApp güncelleme',content:enc,sha})});
+    if(r2.ok)setSyncSt(true);else throw 0;
+  }catch(e){setSyncSt(false);toast('⚠️ Çevrimdışı kaydedildi','er');}
+}
+function setSyncSt(ok){const e=document.getElementById('syncSt');if(!e)return;e.innerHTML=ok?'<div class="dot-live"></div> Senkron':'<div class="dot-live" style="background:var(--er);animation:none"></div> Çevrimdışı';}
+
+// ============ AUTH ============
+function selectRole(r,el){document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('sel'));el.classList.add('sel');document.getElementById('sirketAuth').classList.toggle('show',r==='sirket');document.getElementById('yolcuAuth').classList.toggle('show',r==='yolcu');if(r==='yolcu')loadYolcuSirketler();if(r==='sirket')loadSirketSelect();}
+function backToRoles(){document.querySelectorAll('.as').forEach(e=>e.classList.remove('show'));document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('sel'));}
+function swTab(t,el){document.querySelectorAll('.atb').forEach(b=>b.classList.remove('active'));el.classList.add('active');document.getElementById('girisForm').style.display=t==='giris'?'block':'none';document.getElementById('kayitForm').style.display=t==='kayit'?'block':'none';}
+
+async function loadSirketSelect(){await loadDB();const sel=document.getElementById('inSirket');sel.innerHTML='<option value="">Şirket seçin...</option>'+Object.keys(DB.sirketler||{}).map(s=>`<option value="${s}">${s}</option>`).join('')+'<option value="__yeni__">➕ Yeni Şirket Ekle...</option>';}
+function getSirketVal(){const sel=document.getElementById('inSirket');const yeni=document.getElementById('inSirketYeni');if(yeni.style.display!=='none'&&yeni.value.trim())return yeni.value.trim();return sel.value;}
+
+async function doLogin(){
+  const sir=getSirketVal(),isim=document.getElementById('inGirisIsim').value.trim(),sif=document.getElementById('inGirisSifre').value.trim(),err=document.getElementById('girisErr');
+  err.classList.remove('show');
+  if(!sir||!isim||!sif){err.textContent='Tüm alanları doldurun';err.classList.add('show');return;}
+  await loadDB();
+  // Türkçe büyük/küçük harf duyarsız şirket bul
+  const sirKey=Object.keys(DB?.sirketler||{}).find(k=>trEq(k,sir));
+  if(!sirKey){err.textContent='Şirket bulunamadı';err.classList.add('show');return;}
+  // Türkçe büyük/küçük harf duyarsız sürücü bul
+  const surKey=Object.keys(DB.sirketler[sirKey]?.suruculer||{}).find(k=>trEq(k,isim));
+  if(!surKey){err.textContent='Kullanıcı bulunamadı';err.classList.add('show');return;}
+  const drv=DB.sirketler[sirKey].suruculer[surKey];
+  if(drv.sifre!==sif){err.textContent='Şifre yanlış';err.classList.add('show');return;}
+  S.rol='surucu';S.sirket=sirKey;S.isim=surKey;
+  localStorage.setItem('sa_auth',JSON.stringify({rol:'surucu',sirket:sirKey,isim:surKey}));
+  enterApp();checkNotif();
+}
+
+async function doRegister(){
+  const sir=getSirketVal(),isim=document.getElementById('inKayitIsim').value.trim(),s1=document.getElementById('inKayitSifre1').value.trim(),s2=document.getElementById('inKayitSifre2').value.trim(),err=document.getElementById('kayitErr');
+  err.classList.remove('show');
+  if(!sir||!isim||!s1){err.textContent='Tüm alanları doldurun';err.classList.add('show');return;}
+  if(s1!==s2){err.textContent='Şifreler eşleşmiyor';err.classList.add('show');return;}
+  await loadDB();
+  if(!DB.sirketler)DB.sirketler={};
+  // Türkçe duyarsız şirket bul veya oluştur
+  let sirKey=Object.keys(DB.sirketler).find(k=>trEq(k,sir));
+  if(!sirKey){sirKey=sir;DB.sirketler[sirKey]={suruculer:{}};}
+  if(!DB.sirketler[sirKey].suruculer)DB.sirketler[sirKey].suruculer={};
+  // Türkçe duyarsız isim kontrolü
+  const existKey=Object.keys(DB.sirketler[sirKey].suruculer).find(k=>trEq(k,isim));
+  if(existKey){err.textContent='Bu isimde kullanıcı var, lütfen başka isim girin';err.classList.add('show');return;}
+  DB.sirketler[sirKey].suruculer[isim]={sifre:s1,guzergahlar:[],bildirimler:[]};
+  await saveDB();
+  S.rol='surucu';S.sirket=sirKey;S.isim=isim;
+  localStorage.setItem('sa_auth',JSON.stringify({rol:'surucu',sirket:sirKey,isim}));
+  toast('🎉 Kayıt başarılı!','ok');enterApp();
+}
+
+async function loadYolcuSirketler(){await loadDB();const sel=document.getElementById('yolcuSirket');sel.innerHTML='<option value="">Şirket seçin...</option>'+Object.keys(DB.sirketler||{}).map(s=>`<option value="${s}">${s}</option>`).join('');}
+function loadYolcuGuzergahlar(){
+  const sir=document.getElementById('yolcuSirket').value,sel=document.getElementById('yolcuGuzergah');
+  sel.innerHTML='<option value="">Güzergah seçin...</option>';if(!sir)return;
+  const surs=DB.sirketler[sir]?.suruculer||{};
+  Object.entries(surs).forEach(([drv,data])=>{(data.guzergahlar||[]).forEach(g=>{sel.innerHTML+=`<option value='${JSON.stringify({s:drv,g:g.id})}'>${g.ad} — ${drv} (${g.plaka||'-'})</option>`;});});
+}
+function doYolcuGiris(){
+  const sir=document.getElementById('yolcuSirket').value,gv=document.getElementById('yolcuGuzergah').value,err=document.getElementById('yolcuErr');
+  err.classList.remove('show');if(!sir||!gv){err.textContent='Tüm alanları seçin';err.classList.add('show');return;}
+  const{s:surucu,g:guzId}=JSON.parse(gv);
+  S.rol='yolcu';S.pSirket=sir;S.pSurucu=surucu;S.pGuz=guzId;
+  localStorage.setItem('sa_auth',JSON.stringify({rol:'yolcu',pSirket:sir,pSurucu:surucu,pGuz:guzId}));
+  enterApp();
+}
+function doLogout(){
+  if(watchId)navigator.geolocation.clearWatch(watchId);
+  if(wakeLock){wakeLock.release();wakeLock=null;}
+  if(autoSaveT)clearInterval(autoSaveT);
+  fbClear();
+  localStorage.removeItem('sa_auth');
+  location.reload();
+}
+
+// ============ ENTER APP ============
+function enterApp(){
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('app').classList.add('show');
+  if(S.rol==='surucu'){
+    document.getElementById('topInfo').innerHTML=`<div class="dot-live"></div> ${S.isim} · ${S.sirket}`;
+    renderHome();startAutoSave();
+  }else{
+    document.getElementById('topInfo').innerHTML=`👤 Yolcu · ${S.pSirket}`;
+    renderPassenger();
+  }
+  getMyLoc();
+}
+function getMyLoc(){if(!navigator.geolocation)return;navigator.geolocation.getCurrentPosition(p=>{myLoc={lat:p.coords.latitude,lng:p.coords.longitude};if(mainMap)mainMap.setView([myLoc.lat,myLoc.lng],14);},()=>{},{enableHighAccuracy:true});}
+function startAutoSave(){if(autoSaveT)clearInterval(autoSaveT);autoSaveT=setInterval(()=>{if(S.rol==='surucu')saveDB();},60000);}
+
+// ============ DRIVER HOME ============
+function renderHome(){
+  S.activeRouteId=null;S.tripActive=false;
+  const drv=DB.sirketler?.[S.sirket]?.suruculer?.[S.isim];const routes=drv?.guzergahlar||[];
+  document.getElementById('contentArea').innerHTML=`
+    <div style="position:absolute;inset:0;overflow-y:auto;padding:58px 14px 14px;z-index:400;background:var(--bg0)">
+      <div style="max-width:600px;margin:0 auto;width:100%">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <h2 style="font-size:18px;font-weight:800">📋 Güzergahlarım</h2>
+        <div style="display:flex;gap:5px">
+          <button class="btn btn-out btn-sm" onclick="openMo('importMo')">📥</button>
+          <button class="btn btn-ac btn-sm" onclick="openNewRoute()">+ Yeni</button>
+        </div>
+      </div>
+      ${!routes.length?'<div style="text-align:center;padding:50px;color:var(--tx3)"><div style="font-size:40px;margin-bottom:10px">🗺️</div><p style="font-size:13px">Henüz güzergah yok</p></div>':
+      routes.map(r=>`
+        <div class="route-card" onclick="openEditor('${r.id}')">
+          <h3><div class="rc" style="background:${r.renk||COLORS[0]}"></div>${r.ad}</h3>
+          <div class="meta"><span>🚐 ${r.plaka||'-'}</span><span>⏰ ${r.kalkis||'07:30'}</span><span>📍 ${(r.duraklar||[]).length} durak</span><span>👥 ${(r.duraklar||[]).reduce((s,d)=>(d.yolcular||[]).length+s,0)}</span></div>
+          <div class="acts">
+            <button class="btn btn-ok btn-sm" onclick="event.stopPropagation();startTrip('${r.id}')">▶ Başlat</button>
+            <button class="btn btn-out btn-sm" onclick="event.stopPropagation();shareRoute('${r.id}')">📤</button>
+            <button class="btn btn-er btn-sm" onclick="event.stopPropagation();deleteRoute('${r.id}')">🗑</button>
+          </div>
+        </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+// ============ ROUTE EDITOR ============
+function openEditor(rid){
+  S.activeRouteId=rid;
+  document.getElementById('contentArea').innerHTML=`
+    <div class="map-wrap"><div id="mainMap"></div>
+      <div class="map-chips" id="mapChips"></div>
+      <div class="map-srch"><input id="srchIn" placeholder="Adres ara..." onkeydown="if(event.key==='Enter')searchAddr()"><button onclick="searchAddr()">Ara</button></div>
+    </div>
+    <div class="panel" id="panel">
+      <div class="panel-drag" onclick="document.getElementById('panel').classList.toggle('exp')"><span></span></div>
+      <div class="panel-head">
+        <div class="row"><button class="btn btn-out btn-sm" onclick="renderHome()">←</button><span style="flex:1;font-weight:700;font-size:13px" id="rtTitle"></span><button class="btn btn-out btn-sm" onclick="editRouteInfo()">✏️</button></div>
+        <div class="row">
+          <button class="btn btn-ok btn-sm" onclick="optimizeRoute()">🔄 Optimize</button>
+          <button class="btn btn-out btn-sm" onclick="reverseStops()">↕</button>
+          <button class="btn btn-out btn-sm" onclick="clearStops()">🧹</button>
+          <button class="btn btn-ac btn-sm" onclick="manualSave()">💾 Kaydet</button>
+        </div>
+      </div>
+      <div class="panel-body" id="stopList"></div>
+      <div class="panel-foot"><div class="sumgrid">
+        <div><div class="v" id="smS">0</div><div class="l">Durak</div></div>
+        <div><div class="v" id="smD">0</div><div class="l">KM</div></div>
+        <div><div class="v" id="smT">0</div><div class="l">DK</div></div>
+        <div><div class="v" id="smP">0</div><div class="l">Yolcu</div></div>
+      </div></div>
+    </div>`;
+  initMap(()=>{mainMap.on('click',onMapClick);renderRt();});
+}
+
+function initMap(onReady){if(mainMap){mainMap.remove();mainMap=null;}markers={};routeLine=null;driverLiveMk=null;const c=myLoc?[myLoc.lat,myLoc.lng]:[41.0082,28.9784];
+setTimeout(()=>{mainMap=L.map('mainMap',{zoomControl:true,attributionControl:false}).setView(c,13);L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(mainMap);setTimeout(()=>{mainMap.invalidateSize();if(onReady)onReady();},200);},50);}
+
+function onMapClick(e){S.pendingLL=e.latlng;S.editStopId=null;document.getElementById('stMoT').textContent='Yeni Durak';document.getElementById('stSaveBtn').textContent='Ekle';document.getElementById('stName').value='';document.getElementById('stAddr').value='Yükleniyor...';document.getElementById('stCoord').value=`${e.latlng.lat.toFixed(6)}, ${e.latlng.lng.toFixed(6)}`;document.getElementById('stPass').value='';document.getElementById('stWait').value='2';document.getElementById('stNote').value='';openMo('stopMo');revGeo(e.latlng.lat,e.latlng.lng);}
+
+async function revGeo(lat,lng){try{const r=await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1&accept-language=tr`);const d=await r.json();document.getElementById('stAddr').value=d.display_name||'';if(!document.getElementById('stName').value){const a=d.address||{};document.getElementById('stName').value=a.road||a.neighbourhood||a.suburb||'Durak';}}catch(e){document.getElementById('stAddr').value='';}}
+
+async function searchAddr(){const q=document.getElementById('srchIn').value.trim();if(!q)return;try{const r=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1&accept-language=tr`);const d=await r.json();if(d.length)mainMap.setView([+d[0].lat,+d[0].lon],15);else toast('Bulunamadı','er');}catch(e){toast('Hata','er');}}
+
+function gR(){const d=DB.sirketler?.[S.sirket]?.suruculer?.[S.isim];return d?.guzergahlar?.find(g=>g.id===S.activeRouteId);}
+
+function saveStop(){const rt=gR();if(!rt)return;const nm=document.getElementById('stName').value.trim()||'Durak',ad=document.getElementById('stAddr').value,ps=document.getElementById('stPass').value.split(',').map(s=>s.trim()).filter(Boolean),wt=parseInt(document.getElementById('stWait').value)||2,nt=document.getElementById('stNote').value.trim();
+if(S.editStopId){const st=rt.duraklar.find(d=>d.id===S.editStopId);if(st)Object.assign(st,{ad:nm,adres:ad,yolcular:ps,bekleme:wt,not:nt});toast('Güncellendi','ok');}
+else{const[lat,lng]=document.getElementById('stCoord').value.split(',').map(Number);rt.duraklar.push({id:'d_'+Date.now(),ad:nm,adres:ad,lat,lng,yolcular:ps,bekleme:wt,not:nt});toast('Eklendi','ok');}
+closeMo('stopMo');renderRt();}
+
+function editStop(id){const rt=gR();const st=rt?.duraklar?.find(d=>d.id===id);if(!st)return;S.editStopId=id;document.getElementById('stMoT').textContent='Düzenle';document.getElementById('stSaveBtn').textContent='Güncelle';document.getElementById('stName').value=st.ad;document.getElementById('stAddr').value=st.adres;document.getElementById('stCoord').value=`${st.lat.toFixed(6)}, ${st.lng.toFixed(6)}`;document.getElementById('stPass').value=(st.yolcular||[]).join(', ');document.getElementById('stWait').value=st.bekleme;document.getElementById('stNote').value=st.not||'';openMo('stopMo');}
+
+function deleteStop(id){const rt=gR();if(!rt)return;rt.duraklar=rt.duraklar.filter(d=>d.id!==id);renderRt();toast('Silindi','inf');}
+function moveStop(id,dir){const rt=gR();if(!rt)return;const i=rt.duraklar.findIndex(d=>d.id===id);const ni=i+dir;if(ni<0||ni>=rt.duraklar.length)return;[rt.duraklar[i],rt.duraklar[ni]]=[rt.duraklar[ni],rt.duraklar[i]];renderRt();}
+function reverseStops(){const rt=gR();if(!rt)return;rt.duraklar.reverse();renderRt();}
+function clearStops(){if(!confirm('Tüm durakları sil?'))return;const rt=gR();if(!rt)return;rt.duraklar=[];renderRt();}
+
+async function optimizeRoute(){const rt=gR();if(!rt||rt.duraklar.length<3){toast('En az 3 durak gerekli','er');return;}toast('Optimize ediliyor...','inf');
+try{const cs=rt.duraklar.map(d=>`${d.lng},${d.lat}`).join(';');const r=await fetch(`https://router.project-osrm.org/trip/v1/driving/${cs}?source=first&roundtrip=false&destination=last`);const data=await r.json();
+if(data.code==='Ok'&&data.waypoints){rt.duraklar=data.waypoints.map(w=>w.waypoint_index).map(i=>rt.duraklar[i]);renderRt();toast('Optimize edildi! ✨','ok');}}catch(e){toast('Hata','er');}}
+
+async function manualSave(){toast('Kaydediliyor...','inf');await saveDB();toast('Kaydedildi! ✅','ok');}
+
+function renderRt(){const rt=gR();if(!rt||!mainMap)return;document.getElementById('rtTitle').textContent=rt.ad;
+Object.values(markers).forEach(m=>mainMap.removeLayer(m));markers={};if(routeLine){mainMap.removeLayer(routeLine);routeLine=null;}
+rt.duraklar.forEach((d,i)=>{const c=rt.renk||COLORS[0];const icon=L.divIcon({className:'',html:`<div style="width:26px;height:26px;border-radius:50%;background:${c};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:10px;font-family:sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.4);border:2px solid rgba(255,255,255,.3)">${i+1}</div>`,iconSize:[26,26],iconAnchor:[13,13]});markers[d.id]=L.marker([d.lat,d.lng],{icon}).addTo(mainMap).bindPopup(`<b>${d.ad}</b><br>👥 ${(d.yolcular||[]).length}`);});
+if(rt.duraklar.length>=2)drawOSRM(rt);
+if(rt.duraklar.length)mainMap.fitBounds(rt.duraklar.map(d=>[d.lat,d.lng]),{padding:[40,40]});
+renderStopList(rt);updateSum(rt);}
+
+async function drawOSRM(rt){try{const cs=rt.duraklar.map(d=>`${d.lng},${d.lat}`).join(';');const r=await fetch(`https://router.project-osrm.org/route/v1/driving/${cs}?overview=full&geometries=geojson`);const data=await r.json();if(data.code==='Ok'){routeLine=L.geoJSON(data.routes[0].geometry,{style:{color:rt.renk||COLORS[0],weight:4,opacity:.8}}).addTo(mainMap);document.getElementById('smD').textContent=(data.routes[0].distance/1000).toFixed(1);document.getElementById('smT').textContent=Math.round(data.routes[0].duration/60);}}catch(e){routeLine=L.polyline(rt.duraklar.map(d=>[d.lat,d.lng]),{color:rt.renk,weight:3,opacity:.6}).addTo(mainMap);}}
+
+function renderStopList(rt){const el=document.getElementById('stopList');if(!rt.duraklar.length){el.innerHTML='<div style="text-align:center;padding:30px;color:var(--tx3)"><div style="font-size:24px;margin-bottom:6px">📍</div><div style="font-size:11px">Haritaya tıklayarak durak ekleyin</div></div>';return;}
+el.innerHTML=rt.duraklar.map((d,i)=>`<div class="si" draggable="true" data-id="${d.id}" ondragstart="dS(event,'${d.id}')" ondragover="event.preventDefault()" ondragenter="dE(event)" ondragleave="dL(event)" ondrop="dD(event,'${d.id}')" ondragend="dN(event)">
+<div class="si-top"><div class="si-num ${i===0?'s':i===rt.duraklar.length-1?'e':''}">${i+1}</div>
+<div class="si-info"><div class="si-name">${d.ad}</div><div class="si-addr">${d.adres||''}</div></div>
+<div class="si-acts"><button class="si-btn" onclick="moveStop('${d.id}',-1)" ${i===0?'disabled':''}>▲</button><button class="si-btn" onclick="moveStop('${d.id}',1)" ${i===rt.duraklar.length-1?'disabled':''}>▼</button><button class="si-btn" onclick="editStop('${d.id}')">✏️</button><button class="si-btn" onclick="deleteStop('${d.id}')">🗑</button></div></div>
+<div class="si-meta"><span>👥 ${(d.yolcular||[]).length}</span><span>⏱ ${d.bekleme||2}dk</span>${d.not?`<span>📝 ${d.not}</span>`:''}</div>
+${(d.yolcular||[]).length?`<div class="si-tags">${d.yolcular.map(y=>`<span class="si-tag">${y}</span>`).join('')}</div>`:''}</div>`).join('');}
+
+function updateSum(rt){document.getElementById('smS').textContent=rt.duraklar.length;document.getElementById('smP').textContent=rt.duraklar.reduce((s,d)=>(d.yolcular||[]).length+s,0);document.getElementById('mapChips').innerHTML=`<div class="chip"><div class="cd" style="background:var(--ok)"></div>${rt.duraklar.length} Durak</div>`;}
+
+let dragId=null;
+function dS(e,id){dragId=id;e.target.classList.add('dragging');}
+function dE(e){e.preventDefault();e.target.closest('.si')?.classList.add('drag-over');}
+function dL(e){e.target.closest('.si')?.classList.remove('drag-over');}
+function dD(e,tid){e.preventDefault();e.target.closest('.si')?.classList.remove('drag-over');if(!dragId||dragId===tid)return;const rt=gR();if(!rt)return;const fi=rt.duraklar.findIndex(d=>d.id===dragId);const ti=rt.duraklar.findIndex(d=>d.id===tid);const[m]=rt.duraklar.splice(fi,1);rt.duraklar.splice(ti,0,m);renderRt();}
+function dN(e){e.target.classList.remove('dragging');dragId=null;document.querySelectorAll('.drag-over').forEach(el=>el.classList.remove('drag-over'));}
+
+// ============ ROUTE CRUD ============
+function openNewRoute(){S.editRouteId=null;document.getElementById('rtMoT').textContent='Yeni Güzergah';document.getElementById('rtSaveBtn').textContent='Oluştur';document.getElementById('rtName').value='';document.getElementById('rtPlate').value='';document.getElementById('rtTime').value='07:30';renderCP();openMo('routeMo');}
+function editRouteInfo(){const rt=gR();if(!rt)return;S.editRouteId=rt.id;document.getElementById('rtMoT').textContent='Düzenle';document.getElementById('rtSaveBtn').textContent='Güncelle';document.getElementById('rtName').value=rt.ad;document.getElementById('rtPlate').value=rt.plaka||'';document.getElementById('rtTime').value=rt.kalkis||'07:30';renderCP(rt.renk);openMo('routeMo');}
+function renderCP(sel){document.getElementById('colorPick').innerHTML=COLORS.map(c=>`<div style="width:26px;height:26px;border-radius:50%;background:${c};cursor:pointer;border:2px solid ${c===sel?'#fff':'transparent'};transition:all .2s" onclick="this.parentNode.querySelectorAll('div').forEach(d=>d.style.borderColor='transparent');this.style.borderColor='#fff'" data-c="${c}"></div>`).join('');}
+
+function saveRoute(){const nm=document.getElementById('rtName').value.trim();if(!nm){toast('Ad gerekli','er');return;}const pl=document.getElementById('rtPlate').value.trim(),tm=document.getElementById('rtTime').value;const ce=document.querySelector('#colorPick div[style*="border-color: rgb(255, 255, 255)"],#colorPick div[style*="border-color: white"]');const cl=ce?.dataset?.c||COLORS[0];
+const drv=DB.sirketler[S.sirket].suruculer[S.isim];
+if(S.editRouteId){const r=drv.guzergahlar.find(g=>g.id===S.editRouteId);if(r)Object.assign(r,{ad:nm,plaka:pl,kalkis:tm,renk:cl});toast('Güncellendi','ok');}
+else{drv.guzergahlar.push({id:'g_'+Date.now(),ad:nm,plaka:pl,kalkis:tm,renk:cl,duraklar:[]});toast('Oluşturuldu','ok');}
+closeMo('routeMo');if(S.activeRouteId)renderRt();else renderHome();saveDB();}
+
+function deleteRoute(id){if(!confirm('Güzergahı sil?'))return;const drv=DB.sirketler[S.sirket].suruculer[S.isim];drv.guzergahlar=drv.guzergahlar.filter(g=>g.id!==id);renderHome();saveDB();toast('Silindi','inf');}
+
+// ============ TRIP MODE ============
+function startTrip(rid){const drv=DB.sirketler?.[S.sirket]?.suruculer?.[S.isim];const rt=drv?.guzergahlar?.find(g=>g.id===rid);if(!rt||!rt.duraklar.length){toast('Durak yok','er');return;}S.tripActive=true;S.tripRouteId=rid;S.tripStop=0;renderTrip();startWatch();reqWake();}
+
+function renderTrip(){const drv=DB.sirketler?.[S.sirket]?.suruculer?.[S.isim];const rt=drv?.guzergahlar?.find(g=>g.id===S.tripRouteId);if(!rt)return;const cur=rt.duraklar[S.tripStop];
+document.getElementById('contentArea').innerHTML=`
+<div class="map-wrap"><div id="mainMap"></div></div>
+<div class="panel" id="panel">
+  <div class="panel-drag" onclick="document.getElementById('panel').classList.toggle('exp')"><span></span></div>
+  <div class="trip-bar"><div class="info"><div class="lbl">${S.tripStop<rt.duraklar.length?'📍 Sıradaki':'🎉 Tamamlandı!'}</div><div class="val">${cur?cur.ad:'Bitti!'}</div>${cur?`<div style="font-size:11px;opacity:.8;margin-top:3px">👥 ${(cur.yolcular||[]).length} · ⏱ ${cur.bekleme||2}dk</div>`:''}</div><div style="text-align:right"><div style="font-size:20px;font-weight:800;font-family:var(--fm)">${S.tripStop}/${rt.duraklar.length}</div></div></div>
+  <div class="panel-body" style="padding:6px">${rt.duraklar.map((d,i)=>{const p=i<S.tripStop,c=i===S.tripStop;return`<div class="si ${p?'si-passed':''} ${c?'si-current':''}"><div class="si-top"><div class="si-num" style="background:${p?'var(--ok)':c?'var(--ac)':'var(--tx3)'}">${p?'✓':i+1}</div><div class="si-info"><div class="si-name">${d.ad}</div><div style="font-size:9px;color:var(--tx3)">👥 ${(d.yolcular||[]).join(', ')||'-'}</div></div>${c?`<button class="btn btn-ok btn-sm" onclick="manualComplete()">✓</button>`:''}</div></div>`;}).join('')}</div>
+  <div style="padding:8px 12px;border-top:1px solid var(--bd)"><button class="btn btn-er" onclick="endTrip()">⏹ Bitir</button></div>
+</div>`;
+initMap(()=>{
+rt.duraklar.forEach((d,i)=>{const p=i<S.tripStop,c=i===S.tripStop;const color=p?'#00b894':c?'#6c5ce7':'#6b7280';const sz=c?30:24;const icon=L.divIcon({className:'',html:`<div style="width:${sz}px;height:${sz}px;border-radius:50%;background:${color};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:${c?12:10}px;font-family:sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.4);border:${c?'3px solid #fff':'2px solid rgba(255,255,255,.2)'}">${p?'✓':i+1}</div>`,iconSize:[sz,sz],iconAnchor:[sz/2,sz/2]});L.marker([d.lat,d.lng],{icon}).addTo(mainMap);});
+if(rt.duraklar.length>=2){const cs=rt.duraklar.map(d=>`${d.lng},${d.lat}`).join(';');fetch(`https://router.project-osrm.org/route/v1/driving/${cs}?overview=full&geometries=geojson`).then(r=>r.json()).then(data=>{if(data.code==='Ok')L.geoJSON(data.routes[0].geometry,{style:{color:rt.renk||COLORS[0],weight:5,opacity:.8}}).addTo(mainMap);else L.polyline(rt.duraklar.map(d=>[d.lat,d.lng]),{color:rt.renk||COLORS[0],weight:4,opacity:.6}).addTo(mainMap);}).catch(()=>{L.polyline(rt.duraklar.map(d=>[d.lat,d.lng]),{color:rt.renk||COLORS[0],weight:4,opacity:.6}).addTo(mainMap);});}
+mainMap.fitBounds(rt.duraklar.map(d=>[d.lat,d.lng]),{padding:[40,40]});});}
+
+function startWatch(){if(watchId)navigator.geolocation.clearWatch(watchId);watchId=navigator.geolocation.watchPosition(p=>{const{latitude:lat,longitude:lng}=p.coords;myLoc={lat,lng};fbWrite(lat,lng);checkProx(lat,lng);if(mainMap){if(driverLiveMk)mainMap.removeLayer(driverLiveMk);driverLiveMk=L.marker([lat,lng],{icon:L.divIcon({className:'',html:'<div style="width:18px;height:18px;border-radius:50%;background:#fff;border:3px solid #6c5ce7;box-shadow:0 0 10px rgba(108,92,231,.5)"></div>',iconSize:[18,18],iconAnchor:[9,9]})}).addTo(mainMap);}},e=>console.warn('GPS:',e),{enableHighAccuracy:true,maximumAge:3000,timeout:10000});}
+
+function checkProx(lat,lng){if(!S.tripActive)return;const drv=DB.sirketler?.[S.sirket]?.suruculer?.[S.isim];const rt=drv?.guzergahlar?.find(g=>g.id===S.tripRouteId);if(!rt||S.tripStop>=rt.duraklar.length)return;const st=rt.duraklar[S.tripStop];if(getDist(lat,lng,st.lat,st.lng)<=PROX){S.tripStop++;playDing();toast(`✅ ${st.ad} geçildi!`,'ok');if(S.tripStop>=rt.duraklar.length){toast('🎉 Sefer tamamlandı! Otomatik bitirildi.','ok');setTimeout(()=>endTrip(),2500);}else{renderTrip();}}}
+
+function manualComplete(){const drv=DB.sirketler?.[S.sirket]?.suruculer?.[S.isim];const rt=drv?.guzergahlar?.find(g=>g.id===S.tripRouteId);if(!rt)return;const st=rt.duraklar[S.tripStop];S.tripStop++;playDing();toast(`✅ ${st.ad} geçildi!`,'ok');if(S.tripStop>=rt.duraklar.length){toast('🎉 Sefer tamamlandı! Otomatik bitirildi.','ok');setTimeout(()=>endTrip(),2500);}else{renderTrip();}}
+
+function endTrip(){S.tripActive=false;if(watchId){navigator.geolocation.clearWatch(watchId);watchId=null;}if(wakeLock){wakeLock.release();wakeLock=null;}fbClear();toast('Sefer bitti','inf');renderHome();}
+
+// ============ PASSENGER ============
+function renderPassenger(){const drv=DB.sirketler?.[S.pSirket]?.suruculer?.[S.pSurucu];const rt=drv?.guzergahlar?.find(g=>g.id===S.pGuz);
+if(!rt){document.getElementById('contentArea').innerHTML='<div style="text-align:center;padding:50px;color:var(--tx3)"><div style="font-size:40px">🚌</div><p>Güzergah bulunamadı</p></div>';return;}
+document.getElementById('contentArea').innerHTML=`
+<div class="map-wrap"><div id="mainMap"></div></div>
+<div class="panel" id="panel">
+  <div class="panel-drag" onclick="document.getElementById('panel').classList.toggle('exp')"><span></span></div>
+  <div class="p-hero"><h2>🚐 ${rt.ad}</h2><p>${rt.plaka||'-'} · ${S.pSurucu} · ⏰ ${rt.kalkis||'07:30'}</p></div>
+  <div class="panel-body" id="pStops" style="padding:0 12px 12px"></div>
+</div>`;
+initMap(()=>{
+rt.duraklar.forEach((d,i)=>{const icon=L.divIcon({className:'',html:`<div style="width:24px;height:24px;border-radius:50%;background:${rt.renk||COLORS[0]};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:10px;font-family:sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.4)">${i+1}</div>`,iconSize:[24,24],iconAnchor:[12,12]});L.marker([d.lat,d.lng],{icon}).addTo(mainMap).bindPopup(`<b>${d.ad}</b>`);});
+if(rt.duraklar.length>=2){mainMap.fitBounds(rt.duraklar.map(d=>[d.lat,d.lng]),{padding:[40,40]});const cs=rt.duraklar.map(d=>`${d.lng},${d.lat}`).join(';');fetch(`https://router.project-osrm.org/route/v1/driving/${cs}?overview=full&geometries=geojson`).then(r=>r.json()).then(data=>{if(data.code==='Ok')L.geoJSON(data.routes[0].geometry,{style:{color:rt.renk||COLORS[0],weight:5,opacity:.8}}).addTo(mainMap);else L.polyline(rt.duraklar.map(d=>[d.lat,d.lng]),{color:rt.renk||COLORS[0],weight:4,opacity:.6}).addTo(mainMap);}).catch(()=>{L.polyline(rt.duraklar.map(d=>[d.lat,d.lng]),{color:rt.renk||COLORS[0],weight:4,opacity:.6}).addTo(mainMap);});}
+document.getElementById('pStops').innerHTML=rt.duraklar.map((d,i)=>`<div class="p-stop"><div class="p-dot" id="pd${i}"></div><div style="flex:1"><div style="font-weight:600;font-size:12px">${d.ad}</div><div style="font-size:9px;color:var(--tx3)">👥 ${(d.yolcular||[]).join(', ')||'-'}</div></div></div>`).join('');
+fbListen(S.pSirket,S.pSurucu,data=>{if(!mainMap)return;if(driverLiveMk)mainMap.removeLayer(driverLiveMk);driverLiveMk=L.marker([data.lat,data.lng],{icon:L.divIcon({className:'',html:'<div style="width:22px;height:22px;border-radius:50%;background:#fff;border:4px solid #6c5ce7;box-shadow:0 0 14px rgba(108,92,231,.6);animation:pulse 2s infinite"></div>',iconSize:[22,22],iconAnchor:[11,11]})}).addTo(mainMap).bindPopup('🚐 Sürücü');
+rt.duraklar.forEach((d,i)=>{const dist=getDist(data.lat,data.lng,d.lat,d.lng);const dot=document.getElementById('pd'+i);if(dot){if(dist<=PROX)dot.className='p-dot cur';}});});});}
+
+// ============ SHARE ============
+function shareRoute(rid){S._shareRid=rid;const drv=DB.sirketler?.[S.sirket]?.suruculer?.[S.isim];const rt=drv?.guzergahlar?.find(g=>g.id===rid);if(!rt)return;
+document.getElementById('shareBody').innerHTML=`
+<div style="display:flex;flex-direction:column;gap:8px">
+  <button class="btn btn-ac" onclick="exportJSON()">📥 JSON İndir</button>
+  <button class="btn btn-ok" onclick="shareWA()">💬 WhatsApp</button>
+  <button class="btn btn-out" onclick="closeMo('shareMo');openSendMo()">📨 Sürücüye Gönder</button>
+  <div style="border-top:1px solid var(--bd);padding-top:10px;margin-top:4px">
+    <p style="font-size:11px;color:var(--tx2);margin-bottom:6px;text-align:center">📱 QR Kod</p>
+    <div class="qr-wrap"><div id="qrCode"></div></div>
+  </div>
+</div>`;
+openMo('shareMo');
+setTimeout(()=>{const qe=document.getElementById('qrCode');qe.innerHTML='';try{new QRCode(qe,{text:JSON.stringify({t:'servis',s:S.sirket,d:S.isim,r:rid}),width:160,height:160,colorDark:'#1a1d27',colorLight:'#ffffff'});}catch(e){}},150);}
+
+function exportJSON(){const drv=DB.sirketler?.[S.sirket]?.suruculer?.[S.isim];const rt=drv?.guzergahlar?.find(g=>g.id===S._shareRid);if(!rt)return;const b=new Blob([JSON.stringify(rt,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`guzergah-${rt.ad.replace(/\s/g,'_')}.json`;a.click();toast('İndirildi','ok');}
+
+function shareWA(){const drv=DB.sirketler?.[S.sirket]?.suruculer?.[S.isim];const rt=drv?.guzergahlar?.find(g=>g.id===S._shareRid);if(!rt)return;const txt=`🚐 *${rt.ad}*\n🚗 ${rt.plaka}\n⏰ ${rt.kalkis}\n📍 ${rt.duraklar.length} durak\n\n${rt.duraklar.map((d,i)=>`${i+1}. ${d.ad} (${(d.yolcular||[]).length}👥)`).join('\n')}`;window.open(`https://wa.me/?text=${encodeURIComponent(txt)}`,'_blank');}
+
+function openSendMo(){const sel=document.getElementById('sendSirket');sel.innerHTML='<option value="">Seçin...</option>'+Object.keys(DB.sirketler||{}).map(s=>`<option value="${s}">${s}</option>`).join('');openMo('sendMo');}
+function loadSendSuruculer(){const sir=document.getElementById('sendSirket').value;const sel=document.getElementById('sendSurucu');sel.innerHTML='<option value="">Seçin...</option>';if(!sir)return;Object.keys(DB.sirketler[sir]?.suruculer||{}).forEach(s=>{if(!(s===S.isim&&sir===S.sirket))sel.innerHTML+=`<option value="${s}">${s}</option>`;});}
+
+async function sendToDriver(){const sir=document.getElementById('sendSirket').value,sur=document.getElementById('sendSurucu').value;if(!sir||!sur){toast('Seçim yapın','er');return;}const drv=DB.sirketler?.[S.sirket]?.suruculer?.[S.isim];const rt=drv?.guzergahlar?.find(g=>g.id===S._shareRid);if(!rt)return;
+const tgt=DB.sirketler[sir].suruculer[sur];const nr=JSON.parse(JSON.stringify(rt));nr.id='g_'+Date.now();tgt.guzergahlar.push(nr);
+if(!tgt.bildirimler)tgt.bildirimler=[];tgt.bildirimler.push({tip:'guzergah',kimden:S.isim,sirket:S.sirket,guzergah:rt.ad,tarih:new Date().toISOString()});
+await saveDB();closeMo('sendMo');toast(`✅ ${sur} sürücüsüne gönderildi!`,'ok');}
+
+function doImport(){const f=document.getElementById('importFile').files[0];if(!f)return;const r=new FileReader();r.onload=e=>{try{const rt=JSON.parse(e.target.result);if(!rt.ad||!rt.duraklar)throw 0;rt.id='g_'+Date.now();DB.sirketler[S.sirket].suruculer[S.isim].guzergahlar.push(rt);saveDB();renderHome();closeMo('importMo');toast('İçe aktarıldı! ✅','ok');}catch(e){toast('Geçersiz dosya','er');}};r.readAsText(f);}
+
+// ============ NOTIFICATIONS ============
+function checkNotif(){const drv=DB.sirketler?.[S.sirket]?.suruculer?.[S.isim];if(!drv?.bildirimler?.length)return;
+document.getElementById('notifBody').innerHTML=drv.bildirimler.map(n=>`<div style="padding:8px;background:var(--bg3);border-radius:var(--rs);margin-bottom:5px;border-left:3px solid var(--ac)"><div style="font-weight:600;font-size:12px">📨 Yeni Güzergah!</div><div style="font-size:11px;color:var(--tx2);margin-top:3px">${n.kimden} (${n.sirket}) — "${n.guzergah}"</div><div style="font-size:9px;color:var(--tx3);margin-top:3px">${new Date(n.tarih).toLocaleString('tr')}</div></div>`).join('');
+openMo('notifMo');drv.bildirimler=[];saveDB();}
+
+// ============ WAKE LOCK ============
+async function reqWake(){try{if('wakeLock' in navigator){wakeLock=await navigator.wakeLock.request('screen');toast('🔒 Ekran kilidi aktif','ok');}else toast('⚠️ Wake Lock yok — ekranı açık tutun','inf');}catch(e){}
+document.addEventListener('visibilitychange',async()=>{if(document.visibilityState==='visible'&&S.tripActive&&!wakeLock){try{wakeLock=await navigator.wakeLock.request('screen');}catch(e){}}});}
+
+// ============ AUDIO ============
+function playDing(){try{const c=new(window.AudioContext||window.webkitAudioContext)();const o=c.createOscillator();const g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.setValueAtTime(880,c.currentTime);o.frequency.setValueAtTime(1100,c.currentTime+.1);g.gain.setValueAtTime(.3,c.currentTime);g.gain.exponentialRampToValueAtTime(.01,c.currentTime+.5);o.start(c.currentTime);o.stop(c.currentTime+.5);}catch(e){}}
+
+// ============ UTILS ============
+function trLow(s){return s.replace(/İ/g,'i').replace(/I/g,'ı').replace(/Ş/g,'ş').replace(/Ğ/g,'ğ').replace(/Ü/g,'ü').replace(/Ö/g,'ö').replace(/Ç/g,'ç').toLowerCase();}
+function trEq(a,b){return trLow(a)===trLow(b);}
+function getDist(a,b,c,d){const R=6371000,dLat=(c-a)*Math.PI/180,dLon=(d-b)*Math.PI/180,x=Math.sin(dLat/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(dLon/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));}
+function openMo(id){document.getElementById(id).classList.add('show');}
+function closeMo(id){document.getElementById(id).classList.remove('show');}
+function toast(m,t='inf'){const w=document.getElementById('toastW');const e=document.createElement('div');e.className=`toast ${t}`;e.innerHTML=`<span>${{ok:'✅',er:'❌',inf:'ℹ️'}[t]||'ℹ️'}</span><span>${m}</span>`;w.appendChild(e);setTimeout(()=>{e.style.opacity='0';e.style.transform='translateX(100%)';e.style.transition='all .3s';setTimeout(()=>e.remove(),300);},3500);}
+document.querySelectorAll('.mo').forEach(m=>{m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show');});});
+</script>
+</body>
+</html>
