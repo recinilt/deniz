@@ -196,7 +196,7 @@
     <div class="topbar-inf" id="topInfo"></div>
     <div class="sp"></div>
     <div id="syncSt" style="font-size:9px;color:var(--tx3);display:flex;align-items:center;gap:3px"></div>
-    <button class="ibtn" id="liveLocBtn" onclick="openLiveShareMo()" title="Canlı Konum Paylaş">📡</button>
+    <button class="ibtn" id="liveLocBtn" onclick="openLiveShareMo()" title="Konumumu Paylaş">📡</button>
     <button class="ibtn" onclick="toggleTheme()" id="themeBtn" title="Tema">☀️</button>
     <button class="ibtn" onclick="backToMembers()" title="Üye Değiştir">👥</button>
     <button class="ibtn" onclick="doLogout()" title="Çıkış">🚪</button>
@@ -233,12 +233,12 @@
 </div></div>
 
 <div class="mo" id="liveShareMo"><div class="mo-box">
-  <div class="mo-head"><h3>📡 Canlı Konum Paylaş</h3><button class="mo-close" onclick="closeMo('liveShareMo')">✕</button></div>
+  <div class="mo-head"><h3>📡 Konumumu Paylaş</h3><button class="mo-close" onclick="closeMo('liveShareMo')">✕</button></div>
   <div class="mo-body" id="liveShareBody"></div>
 </div></div>
 
 <div class="mo" id="liveMo"><div class="mo-box">
-  <div class="mo-head"><h3>📡 Canlı Konumlar</h3><button class="mo-close" onclick="closeMo('liveMo')">✕</button></div>
+  <div class="mo-head"><h3>👀 Canlı İzle</h3><button class="mo-close" onclick="closeMo('liveMo')">✕</button></div>
   <div class="mo-body" id="liveBody"></div>
 </div></div>
 
@@ -246,12 +246,12 @@
 <button class="pwa-install" id="pwaInstall" onclick="installPWA()">📲 Ana Ekrana Ekle</button>
 
 <div class="toast-wrap" id="toastW"></div>
-
 <script src="ailenavigasyongh.js"></script>
 <script>
 // ============ CONFIG ============
 //GİTHUB BİLGİLERİ, ailenavigasyongh.js dosyasından alınıyor:
 //const GH={user:"...",repo:"...",token:"...",file:"ailenavigasyon.json"};
+
 
 const FB_CFG={
   apiKey:"AIzaSyAvpmbTGf0PLg3y9M4KiiERId5jLjoCE_k",
@@ -616,7 +616,7 @@ function renderHome(){
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:8px">
         <h2 style="font-size:17px;font-weight:900;white-space:nowrap">📍 Hedeflerim</h2>
         <div style="display:flex;gap:4px;flex-shrink:0">
-          <button class="btn btn-out btn-sm" onclick="openLivePanel()">📡 Canlı</button>
+          <button class="btn btn-out btn-sm" onclick="openLivePanel()">👀 Canlı İzle</button>
           <button class="btn btn-ac btn-sm" onclick="openMapForTarget()">+ Hedef</button>
         </div>
       </div>
@@ -959,39 +959,21 @@ async function sendTarget(toUye){
 // ============ LIVE LOCATION ============
 function openLiveShareMo(){
   if(!fbOk){toast('⚠️ Firebase ayarlanmamış','er');return;}
-  const uyeler=DB.aileler?.[S.aile]?.uyeler||{};
-  const others=Object.keys(uyeler).filter(u=>u!==S.uye);
-
-  let html=`<p style="font-size:12px;color:var(--tx2);margin-bottom:10px">${S.liveLocActive?'📡 Canlı konum <b style="color:var(--ok)">aktif</b>. Kişileri değiştir veya durdur:':'Konumunuzu kimlerle paylaşmak istiyorsunuz?'}</p>`;
-
-  if(!others.length){
-    html+='<p style="text-align:center;color:var(--tx3);padding:20px">Paylaşılacak başka üye yok</p>';
-  }else{
-    html+=others.map(u=>{
-      const checked=(S.liveTargets||[]).includes(u)?'checked':'';
-      return `<label class="cb-item"><input type="checkbox" value="${u}" ${checked} class="live-cb"><span class="cb-name">${u}</span></label>`;
-    }).join('');
+  if(S.liveLocActive){
+    // Zaten aktifse durdur
+    stopLiveLoc();
+    return;
   }
-
-  html+=`<div style="display:flex;gap:6px;margin-top:14px">`;
-  html+=`<button class="btn btn-ac" onclick="startLiveLoc()">📡 ${S.liveLocActive?'Güncelle':'Paylaşmaya Başla'}</button>`;
-  if(S.liveLocActive)html+=`<button class="btn btn-er" style="width:auto;padding:10px 16px" onclick="stopLiveLoc();closeMo('liveShareMo')">⏹</button>`;
-  html+=`</div>`;
-
-  document.getElementById('liveShareBody').innerHTML=html;
-  openMo('liveShareMo');
+  startLiveLoc();
 }
 
 function startLiveLoc(){
-  const cbs=document.querySelectorAll('.live-cb:checked');
-  if(!cbs.length){toast('En az 1 kişi seçin','wn');return;}
-  S.liveTargets=Array.from(cbs).map(c=>c.value);
+  S.liveTargets=[];
   S.liveLocActive=true;
   updateLiveBtn();
   if(!watchId)startWatch();
   if(myLoc)fbWrite(myLoc.lat,myLoc.lng);
-  closeMo('liveShareMo');
-  toast(`📡 ${S.liveTargets.join(', ')} ile paylaşılıyor!`,'ok');
+  toast('📡 Konumunuz aile üyelerine paylaşılıyor!','ok');
 }
 
 function stopLiveLoc(){
@@ -1018,13 +1000,9 @@ function openLivePanel(){
   openMo('liveMo');
 
   fbListenAll(S.aile,(data)=>{
-    const entries=Object.entries(data).filter(([k,v])=>{
-      if(k===S.uye)return false;
-      if(v.targets&&v.targets.length)return v.targets.includes(S.uye);
-      return true;
-    });
+    const entries=Object.entries(data).filter(([k,v])=>k!==S.uye);
     if(!entries.length){
-      el.innerHTML='<p style="text-align:center;color:var(--tx3);padding:20px">Şu an size konum paylaşan kimse yok</p>';
+      el.innerHTML='<p style="text-align:center;color:var(--tx3);padding:20px">Şu an konum paylaşan kimse yok</p>';
       return;
     }
     el.innerHTML=entries.map(([name,loc])=>{
