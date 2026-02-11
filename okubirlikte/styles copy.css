@@ -1,3 +1,4 @@
+
 /* ══════════════════════════════════════════════
    OkuBirlikte — CSS
    Tema: Sıcak, kütüphane hissi — koyu kahve tonları
@@ -159,7 +160,6 @@ textarea.input { resize: vertical; min-height: 80px; border-radius: var(--radius
 .badge-green { background: rgba(107,203,119,0.15); color: var(--green); }
 .badge-red { background: rgba(239,107,107,0.15); color: var(--red); }
 .badge-blue { background: rgba(91,164,232,0.15); color: var(--blue); }
-.badge-arsiv { background: rgba(94,82,68,0.25); color: var(--text-dim); }
 
 /* ── KART ── */
 .kart {
@@ -230,13 +230,6 @@ textarea.input { resize: vertical; min-height: 80px; border-radius: var(--radius
     display: flex; align-items: center; gap: 8px;
 }
 
-/* ── ARŞİV BÖLÜM BAŞLIĞI ── */
-.arsiv-bolum-baslik {
-    color: var(--text-dim);
-    padding-top: 16px;
-    border-top: 1px solid var(--border);
-}
-
 /* ── ODA KARTI ── */
 .oda-kart {
     display: flex; gap: 14px;
@@ -249,12 +242,6 @@ textarea.input { resize: vertical; min-height: 80px; border-radius: var(--radius
     flex-shrink: 0;
 }
 .oda-bilgi { flex: 1; min-width: 0; }
-.oda-ismi-goster {
-    font-weight: 700; font-size: 0.9rem;
-    color: var(--amber);
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    margin-bottom: 2px;
-}
 .oda-kitap-adi {
     font-weight: 600; font-size: 0.95rem;
     color: var(--text-primary);
@@ -269,15 +256,6 @@ textarea.input { resize: vertical; min-height: 80px; border-radius: var(--radius
     font-size: 0.78rem; color: var(--text-dim);
 }
 .oda-meta span { display: flex; align-items: center; gap: 3px; }
-
-/* ── ARŞİV KART STİLİ ── */
-.arsiv-kart {
-    opacity: 0.7;
-    border-left: 3px solid var(--text-muted);
-}
-.arsiv-kart:hover {
-    opacity: 0.9;
-}
 
 /* ── KİTAP ARAMA ── */
 .kitap-sonuc {
@@ -541,16 +519,6 @@ textarea.input { resize: vertical; min-height: 80px; border-radius: var(--radius
     text-align: center;
     font-size: 0.85rem; color: var(--red);
 }
-
-/* ── ARŞİV BANNER ── */
-.arsiv-banner {
-    padding: 10px 16px;
-    background: rgba(94,82,68,0.2);
-    border-bottom: 1px solid rgba(94,82,68,0.3);
-    text-align: center;
-    font-size: 0.85rem; color: var(--text-dim);
-}
-
 .baslamamis-banner {
     padding: 12px 16px;
     background: rgba(91,164,232,0.1);
@@ -563,7 +531,6 @@ textarea.input { resize: vertical; min-height: 80px; border-radius: var(--radius
 
 /* ── BAŞLANGIÇ TARİHİ SEÇİM ── */
 .baslangic-secim { display: flex; gap: 8px; }
-.sifre-toggle-alan { display: flex; gap: 8px; }
 .radyo-kart {
     flex: 1; display: flex; align-items: center;
     padding: 12px 14px;
@@ -639,7 +606,6 @@ textarea.input { resize: vertical; min-height: 80px; border-radius: var(--radius
     .kategori-bar { gap: 6px; }
     .kat-chip { padding: 7px 12px; font-size: 0.8rem; }
     .baslangic-secim { flex-direction: column; gap: 6px; }
-    .sifre-toggle-alan { flex-direction: column; gap: 6px; }
 }
 @media (max-width: 360px) {
     .giris-baslik { font-size: 1.7rem; }
@@ -661,3 +627,4 @@ textarea.input { resize: vertical; min-height: 80px; border-radius: var(--radius
 @supports (-webkit-touch-callout: none) {
     .oda-ekran-flex { height: -webkit-fill-available; }
 }
+    

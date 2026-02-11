@@ -1,3 +1,4 @@
+
 // ══════════════════════════════════════════════════════════
 // FIREBASE CONFIG
 // ══════════════════════════════════════════════════════════
@@ -32,7 +33,6 @@ var aktifEkranId = 'ekran-giris';
 var aktifKategori = 'hepsi';
 var kitapAraTimeout = null;
 var geciciFotoData = null;
-var arsivModuAktif = false;      // Arşiv modunda mı
 
 // ══════════════════════════════════════════════════════════
 // UI FONKSİYONLARI
@@ -107,20 +107,6 @@ function getMaxMembers() {
     return document.getElementById('oda-sinirsiz').checked ? 0 : parseInt(document.getElementById('oda-max-uye').value);
 }
 
-// ══════════════════════════════════════════════════════════
-// ŞİFRE SEÇİMİ
-// ══════════════════════════════════════════════════════════
-function sifreSecimDegisti() {
-    var secim = document.querySelector('input[name="sifreSecim"]:checked').value;
-    var alan = document.getElementById('sifre-input-alan');
-    if (secim === 'var') {
-        alan.classList.remove('gizli');
-    } else {
-        alan.classList.add('gizli');
-        document.getElementById('oda-sifre').value = '';
-    }
-}
-
 function baslangicDegisti() {
     var secim = document.querySelector('input[name="baslangic"]:checked').value;
     var alan = document.getElementById('ileri-tarih-alan');
@@ -193,17 +179,6 @@ function formatSaat(ts) {
     if (!ts) return '';
     var d = new Date(ts);
     return d.toLocaleTimeString('tr-TR', { hour:'2-digit', minute:'2-digit' });
-}
-
-// Basit şifre hash fonksiyonu (client-side güvenlik için yeterli)
-function basitHash(str) {
-    var hash = 0;
-    for (var i = 0; i < str.length; i++) {
-        var char = str.charCodeAt(i);
-        hash = ((hash << 5) - hash) + char;
-        hash = hash & hash; // 32bit int
-    }
-    return 'h_' + Math.abs(hash).toString(36);
 }
 
 // ══════════════════════════════════════════════════════════
@@ -506,8 +481,6 @@ function manuelKitapKaydet() {
 async function odaOlustur() {
     if (!mevcutKullanici || !kullaniciBilgileri) return;
     if (!seciliKitap) { bildirimGoster("Lütfen bir kitap seç.", "uyari"); return; }
-    var odaIsmi = document.getElementById('oda-ismi').value.trim();
-    if (!odaIsmi || odaIsmi.length < 2) { bildirimGoster("Oda ismi en az 2 karakter olmalı.", "uyari"); return; }
     // İleri tarih validasyonu
     var secim = document.querySelector('input[name="baslangic"]:checked').value;
     if (secim === 'ileri') {
@@ -515,14 +488,6 @@ async function odaOlustur() {
         if (!tarihStr) { bildirimGoster("Lütfen başlangıç tarihi seç.", "uyari"); return; }
         var secilen = new Date(tarihStr + 'T00:00:00').getTime();
         if (secilen <= Date.now()) { bildirimGoster("Başlangıç tarihi bugünden sonra olmalı.", "uyari"); return; }
-    }
-    // Şifre kontrolü
-    var sifreSecim = document.querySelector('input[name="sifreSecim"]:checked').value;
-    var sifreHash = '';
-    if (sifreSecim === 'var') {
-        var sifre = document.getElementById('oda-sifre').value.trim();
-        if (!sifre || sifre.length < 3) { bildirimGoster("Şifre en az 3 karakter olmalı.", "uyari"); return; }
-        sifreHash = basitHash(sifre);
     }
     var aciklama = document.getElementById('oda-aciklama').value.trim();
     var sure = parseInt(document.getElementById('oda-sure').value);
@@ -533,7 +498,6 @@ async function odaOlustur() {
     try {
         var now = Date.now();
         var odaVeri = {
-            roomName: odaIsmi,
             book: seciliKitap,
             description: aciklama,
             category: kategori,
@@ -547,9 +511,7 @@ async function odaOlustur() {
             memberCount: 1,
             maxMembers: maxMembers,
             messageCount: 0,
-            status: 'active',
-            hasPassword: sifreSecim === 'var',
-            passwordHash: sifreHash
+            status: 'active'
         };
         var ref = await db.ref('rooms').push(odaVeri);
         await db.ref('rooms/' + ref.key + '/members/' + mevcutKullanici.uid).set({
@@ -563,19 +525,14 @@ async function odaOlustur() {
         kullaniciBilgileri.roomsJoined = mevcut + 1;
 
         yuklemeKapat();
-        // Formu sıfırla
         seciliKitap = null;
         document.getElementById('secili-kitap-alan').innerHTML = '<div style="display:flex;align-items:center;gap:12px;color:var(--text-dim);"><span style="font-size:2rem;">📖</span><span>Kitap seçmek için tıkla...</span></div>';
-        document.getElementById('oda-ismi').value = '';
         document.getElementById('oda-aciklama').value = '';
         document.getElementById('oda-sure').value = 14; sureDegerGuncelle();
         document.getElementById('oda-max-uye').value = 50; document.getElementById('oda-max-uye-deger').textContent = '50 kişi';
         document.getElementById('oda-sinirsiz').checked = false; document.getElementById('oda-max-uye').disabled = false;
         document.querySelector('input[name="baslangic"][value="hemen"]').checked = true;
         document.getElementById('ileri-tarih-alan').classList.add('gizli');
-        document.querySelector('input[name="sifreSecim"][value="yok"]').checked = true;
-        document.getElementById('sifre-input-alan').classList.add('gizli');
-        document.getElementById('oda-sifre').value = '';
 
         bildirimGoster("Oda oluşturuldu! 🎉", "basari");
         odayaGir(ref.key);
@@ -587,108 +544,76 @@ async function odaOlustur() {
 }
 
 // ══════════════════════════════════════════════════════════
-// ODA LİSTESİ — ANA SAYFA (AKTİF + ARŞİV)
+// ODA LİSTESİ — ANA SAYFA
 // ══════════════════════════════════════════════════════════
 function odalariYukle() {
     var liste = document.getElementById('aktif-odalar-liste');
-    var arsivListe = document.getElementById('arsiv-odalar-liste');
     if (odalarDinleyici) { db.ref('rooms').off('value', odalarDinleyici); }
     odalarDinleyici = db.ref('rooms').orderByChild('createdAt').on('value', function(snap) {
         var data = snap.val();
         if (!data) {
             liste.innerHTML = '<div class="bos-durum"><div class="bos-durum-ikon">📚</div><div class="bos-durum-metin">Henüz oda yok.<br>İlk odayı sen oluştur!</div></div>';
-            arsivListe.innerHTML = '';
             return;
         }
-        var aktifOdalar = [];
-        var arsivOdalar = [];
+        var odalar = [];
         Object.keys(data).forEach(function(key) {
             var oda = data[key]; oda._id = key;
-            var sureDoldu = oda.expiresAt && oda.expiresAt < Date.now();
-            if (sureDoldu) {
-                // Süresi dolmuş = arşiv
-                arsivOdalar.push(oda);
-            } else {
-                // Aktif veya henüz başlamamış
-                aktifOdalar.push(oda);
-            }
+            // Arşiv süresini geçmişleri gösterme
+            if (oda.archiveAt && oda.archiveAt < Date.now()) return;
+            odalar.push(oda);
         });
         // En yeni en üstte
-        aktifOdalar.sort(function(a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
-        arsivOdalar.sort(function(a, b) { return (b.expiresAt || 0) - (a.expiresAt || 0); });
+        odalar.sort(function(a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
 
-        // Kategori ve arama filtresi
+        // Kategori filtresi
         var aranan = (document.getElementById('ana-arama').value || '').toLowerCase().trim();
-        var filtrele = function(odalar) {
-            return odalar.filter(function(o) {
-                if (aktifKategori !== 'hepsi' && o.category !== aktifKategori) return false;
-                if (aranan) {
-                    var kitapAdi = (o.book && o.book.title || '').toLowerCase();
-                    var yazar = (o.book && o.book.author || '').toLowerCase();
-                    var aciklama = (o.description || '').toLowerCase();
-                    var odaIsmi = (o.roomName || '').toLowerCase();
-                    if (kitapAdi.indexOf(aranan) === -1 && yazar.indexOf(aranan) === -1 && aciklama.indexOf(aranan) === -1 && odaIsmi.indexOf(aranan) === -1) return false;
-                }
-                return true;
-            });
-        };
+        var filtrelenmis = odalar.filter(function(o) {
+            if (aktifKategori !== 'hepsi' && o.category !== aktifKategori) return false;
+            if (aranan) {
+                var kitapAdi = (o.book && o.book.title || '').toLowerCase();
+                var yazar = (o.book && o.book.author || '').toLowerCase();
+                var aciklama = (o.description || '').toLowerCase();
+                if (kitapAdi.indexOf(aranan) === -1 && yazar.indexOf(aranan) === -1 && aciklama.indexOf(aranan) === -1) return false;
+            }
+            return true;
+        });
 
-        var filtrelenmisAktif = filtrele(aktifOdalar);
-        var filtrelenmisArsiv = filtrele(arsivOdalar);
-
-        // Aktif odalar render
-        if (filtrelenmisAktif.length === 0) {
-            liste.innerHTML = '<div class="bos-durum"><div class="bos-durum-ikon">🔍</div><div class="bos-durum-metin">Aktif oda bulunamadı.</div></div>';
-        } else {
-            liste.innerHTML = odaKartlariOlustur(filtrelenmisAktif, false);
+        if (filtrelenmis.length === 0) {
+            liste.innerHTML = '<div class="bos-durum"><div class="bos-durum-ikon">🔍</div><div class="bos-durum-metin">Bu filtreye uygun oda yok.</div></div>';
+            return;
         }
 
-        // Arşiv odalar render
-        if (filtrelenmisArsiv.length === 0) {
-            arsivListe.innerHTML = '<div class="bos-durum" style="padding:24px;"><div class="bos-durum-metin" style="font-size:0.85rem;">Arşivde oda yok.</div></div>';
-        } else {
-            arsivListe.innerHTML = odaKartlariOlustur(filtrelenmisArsiv, true);
-        }
+        var html = '';
+        filtrelenmis.forEach(function(oda) {
+            var sureDoldu = oda.expiresAt && oda.expiresAt < Date.now();
+            var basladiMi = odaBasladiMi(oda);
+            var kalan = kalanGun(oda.expiresAt);
+            var durum;
+            if (!basladiMi) {
+                var bGun = odaBaslamayaKalanGun(oda);
+                durum = '<span class="badge badge-bekliyor">📅 ' + bGun + ' gün sonra • ' + oda.durationDays + ' günlük</span>';
+            } else if (sureDoldu) {
+                durum = '<span class="badge badge-red">Süresi dolmuş</span>';
+            } else {
+                durum = '<span class="badge badge-green">' + kalan + ' gün kaldı</span>';
+            }
+            var kapak = (oda.book && oda.book.cover) || '';
+            var kapakIsbn = (oda.book && oda.book.isbn) || '';
+            var odaOnerror = kapakIsbn ?
+                'this.onerror=function(){this.outerHTML=\'<div class=&quot;oda-kapak&quot; style=&quot;display:flex;align-items:center;justify-content:center;font-size:1.8rem;background:var(--bg-input);&quot;>📖</div>\'};this.src=\'https://covers.openlibrary.org/b/isbn/' + kapakIsbn + '-M.jpg\'' :
+                'this.outerHTML=\'<div class=&quot;oda-kapak&quot; style=&quot;display:flex;align-items:center;justify-content:center;font-size:1.8rem;background:var(--bg-input);&quot;>📖</div>\'';
+            html += '<div class="kart oda-kart" onclick="odayaGir(\'' + oda._id + '\')">' +
+                (kapak ? '<img class="oda-kapak" src="' + kapak + '" onerror="' + odaOnerror + '">' : '<div class="oda-kapak" style="display:flex;align-items:center;justify-content:center;font-size:1.8rem;background:var(--bg-input);">📖</div>') +
+                '<div class="oda-bilgi">' +
+                '<div class="oda-kitap-adi">' + htmlEscape(oda.book ? oda.book.title : '?') + '</div>' +
+                '<div class="oda-yazar">' + htmlEscape(oda.book ? oda.book.author : '') + '</div>' +
+                '<div class="oda-meta">' + durum +
+                '<span>👥 ' + (oda.memberCount || 1) + (oda.maxMembers ? '/' + oda.maxMembers : '') + '</span>' +
+                '<span>💬 ' + (oda.messageCount || 0) + '</span>' +
+                '</div></div></div>';
+        });
+        liste.innerHTML = html;
     });
-}
-
-function odaKartlariOlustur(odalar, arsivMi) {
-    var html = '';
-    odalar.forEach(function(oda) {
-        var sureDoldu = oda.expiresAt && oda.expiresAt < Date.now();
-        var basladiMi = odaBasladiMi(oda);
-        var kalan = kalanGun(oda.expiresAt);
-        var durum;
-        if (arsivMi) {
-            durum = '<span class="badge badge-arsiv">📦 Arşiv</span>';
-        } else if (!basladiMi) {
-            var bGun = odaBaslamayaKalanGun(oda);
-            durum = '<span class="badge badge-bekliyor">📅 ' + bGun + ' gün sonra • ' + oda.durationDays + ' günlük</span>';
-        } else if (sureDoldu) {
-            durum = '<span class="badge badge-red">Süresi dolmuş</span>';
-        } else {
-            durum = '<span class="badge badge-green">' + kalan + ' gün kaldı</span>';
-        }
-        var sifreIkon = oda.hasPassword ? ' 🔒' : '';
-        var kapak = (oda.book && oda.book.cover) || '';
-        var kapakIsbn = (oda.book && oda.book.isbn) || '';
-        var odaOnerror = kapakIsbn ?
-            'this.onerror=function(){this.outerHTML=\'<div class=&quot;oda-kapak&quot; style=&quot;display:flex;align-items:center;justify-content:center;font-size:1.8rem;background:var(--bg-input);&quot;>📖</div>\'};this.src=\'https://covers.openlibrary.org/b/isbn/' + kapakIsbn + '-M.jpg\'' :
-            'this.outerHTML=\'<div class=&quot;oda-kapak&quot; style=&quot;display:flex;align-items:center;justify-content:center;font-size:1.8rem;background:var(--bg-input);&quot;>📖</div>\'';
-        var onclickFn = arsivMi ? 'arsivOdayaGir(\'' + oda._id + '\')' : 'odayaGir(\'' + oda._id + '\')';
-        var odaIsmiGoster = oda.roomName ? '<div class="oda-ismi-goster">' + htmlEscape(oda.roomName) + sifreIkon + '</div>' : '';
-        html += '<div class="kart oda-kart' + (arsivMi ? ' arsiv-kart' : '') + '" onclick="' + onclickFn + '">' +
-            (kapak ? '<img class="oda-kapak" src="' + kapak + '" onerror="' + odaOnerror + '">' : '<div class="oda-kapak" style="display:flex;align-items:center;justify-content:center;font-size:1.8rem;background:var(--bg-input);">📖</div>') +
-            '<div class="oda-bilgi">' +
-            odaIsmiGoster +
-            '<div class="oda-kitap-adi">' + htmlEscape(oda.book ? oda.book.title : '?') + '</div>' +
-            '<div class="oda-yazar">' + htmlEscape(oda.book ? oda.book.author : '') + '</div>' +
-            '<div class="oda-meta">' + durum +
-            '<span>👥 ' + (oda.memberCount || 1) + (oda.maxMembers ? '/' + oda.maxMembers : '') + '</span>' +
-            '<span>💬 ' + (oda.messageCount || 0) + '</span>' +
-            '</div></div></div>';
-    });
-    return html;
 }
 
 function kategoriSec(el) {
@@ -700,123 +625,6 @@ function kategoriSec(el) {
 function anaAramaFiltrele() { odalariYukle(); }
 
 // ══════════════════════════════════════════════════════════
-// ARŞİV ODAYA GİRİŞ (şifre kontrolü dahil)
-// ══════════════════════════════════════════════════════════
-async function arsivOdayaGir(odaId) {
-    yuklemeGoster("Oda yükleniyor...");
-    try {
-        var snap = await db.ref('rooms/' + odaId).once('value');
-        var oda = snap.val();
-        if (!oda) { yuklemeKapat(); bildirimGoster("Oda bulunamadı.", "hata"); return; }
-
-        // Şifreli arşiv odası kontrolü
-        if (oda.hasPassword && oda.passwordHash) {
-            // Oda sahibi kontrolü - sahip şifresiz girebilir
-            if (oda.ownerId === mevcutKullanici.uid) {
-                yuklemeKapat();
-                arsivOdaAc(odaId, oda);
-                return;
-            }
-            // Daha önce üye olmuşsa şifresiz girebilir
-            var uyeSnap = await db.ref('rooms/' + odaId + '/members/' + mevcutKullanici.uid).once('value');
-            if (uyeSnap.val()) {
-                yuklemeKapat();
-                arsivOdaAc(odaId, oda);
-                return;
-            }
-            // Şifre sor
-            yuklemeKapat();
-            sifreModalGoster(odaId, oda, true);
-            return;
-        }
-
-        yuklemeKapat();
-        arsivOdaAc(odaId, oda);
-    } catch (e) {
-        yuklemeKapat();
-        console.error("Arşiv oda hatası:", e);
-        bildirimGoster("Oda yüklenemedi.", "hata");
-    }
-}
-
-function arsivOdaAc(odaId, oda) {
-    aktifOdaId = odaId;
-    aktifOdaVeri = oda;
-    arsivModuAktif = true;
-
-    // Header güncelle
-    document.getElementById('oda-h-kitap').textContent = oda.roomName || (oda.book ? oda.book.title : '?');
-    document.getElementById('oda-h-durum').textContent = '📦 Arşiv • ' + (oda.memberCount || 1) + ' üye';
-    document.getElementById('oda-h-uye-sayi').textContent = oda.memberCount || 1;
-
-    // Bannerlar
-    var bannerDoldu = document.getElementById('oda-sure-doldu-banner');
-    var bannerArsiv = document.getElementById('oda-arsiv-banner');
-    var bannerBaslamamis = document.getElementById('oda-baslamamis-banner');
-    var girdi = document.getElementById('mesaj-girdi');
-
-    bannerDoldu.classList.add('gizli');
-    bannerBaslamamis.classList.add('gizli');
-    bannerArsiv.classList.remove('gizli');
-    girdi.style.display = 'none';
-
-    // Mesaj alanını temizle
-    document.getElementById('mesaj-alani').innerHTML = '';
-    document.getElementById('mesaj-input').value = '';
-
-    ekranGoster('ekran-oda');
-    mesajDinle(odaId);
-}
-
-// ══════════════════════════════════════════════════════════
-// ŞİFRE MODALI
-// ══════════════════════════════════════════════════════════
-function sifreModalGoster(odaId, oda, arsivMi) {
-    var odaAdi = oda.roomName || (oda.book ? oda.book.title : 'Bu oda');
-    modalGoster(
-        '<div style="text-align:center;">' +
-        '<div style="font-size:2.5rem;margin-bottom:12px;">🔒</div>' +
-        '<h3 style="margin-bottom:8px;">' + htmlEscape(odaAdi) + '</h3>' +
-        '<p style="color:var(--text-secondary);margin-bottom:16px;font-size:0.9rem;">Bu oda şifre korumalı. Giriş için şifreyi girin.</p>' +
-        '<div class="form-group"><input type="password" id="sifre-giris-input" class="input" placeholder="Oda şifresi..." maxlength="32" onkeydown="if(event.key===\'Enter\')sifreDogrula(\'' + odaId + '\',' + arsivMi + ')"></div>' +
-        '<button class="btn btn-amber btn-block" onclick="sifreDogrula(\'' + odaId + '\',' + arsivMi + ')">🔓 Giriş Yap</button>' +
-        '</div>'
-    );
-    setTimeout(function() {
-        var inp = document.getElementById('sifre-giris-input');
-        if (inp) inp.focus();
-    }, 200);
-}
-
-async function sifreDogrula(odaId, arsivMi) {
-    var inp = document.getElementById('sifre-giris-input');
-    if (!inp) return;
-    var sifre = inp.value.trim();
-    if (!sifre) { bildirimGoster("Şifre boş olamaz.", "uyari"); return; }
-
-    var hash = basitHash(sifre);
-    try {
-        var snap = await db.ref('rooms/' + odaId + '/passwordHash').once('value');
-        var dogruHash = snap.val();
-        if (hash === dogruHash) {
-            modalKapat();
-            if (arsivMi) {
-                var odaSnap = await db.ref('rooms/' + odaId).once('value');
-                arsivOdaAc(odaId, odaSnap.val());
-            } else {
-                odayaGirDevam(odaId);
-            }
-        } else {
-            bildirimGoster("Şifre yanlış!", "hata");
-            inp.value = '';
-            inp.focus();
-        }
-    } catch (e) {
-        bildirimGoster("Şifre doğrulama hatası.", "hata");
-    }
-}
-
-// ══════════════════════════════════════════════════════════
 // ODA İÇİ
 // ══════════════════════════════════════════════════════════
 async function odayaGir(odaId) {
@@ -826,54 +634,8 @@ async function odayaGir(odaId) {
         var oda = snap.val();
         if (!oda) { yuklemeKapat(); bildirimGoster("Oda bulunamadı.", "hata"); return; }
 
-        // Süresi dolmuşsa arşive yönlendir
-        var sureDoldu = oda.expiresAt && oda.expiresAt < Date.now();
-        if (sureDoldu) {
-            yuklemeKapat();
-            arsivOdayaGir(odaId);
-            return;
-        }
-
-        // Şifreli oda kontrolü
-        if (oda.hasPassword && oda.passwordHash) {
-            // Oda sahibi şifresiz girebilir
-            if (oda.ownerId === mevcutKullanici.uid) {
-                yuklemeKapat();
-                odayaGirDevam(odaId);
-                return;
-            }
-            // Zaten üye mi kontrol et
-            var uyeSnap = await db.ref('rooms/' + odaId + '/members/' + mevcutKullanici.uid).once('value');
-            if (uyeSnap.val()) {
-                yuklemeKapat();
-                odayaGirDevam(odaId);
-                return;
-            }
-            // Şifre sor
-            yuklemeKapat();
-            sifreModalGoster(odaId, oda, false);
-            return;
-        }
-
-        yuklemeKapat();
-        odayaGirDevam(odaId);
-    } catch (e) {
-        yuklemeKapat();
-        console.error("Odaya giriş hatası:", e);
-        bildirimGoster("Odaya girilemedi.", "hata");
-    }
-}
-
-async function odayaGirDevam(odaId) {
-    yuklemeGoster("Oda yükleniyor...");
-    try {
-        var snap = await db.ref('rooms/' + odaId).once('value');
-        var oda = snap.val();
-        if (!oda) { yuklemeKapat(); bildirimGoster("Oda bulunamadı.", "hata"); return; }
-
         aktifOdaId = odaId;
         aktifOdaVeri = oda;
-        arsivModuAktif = false;
 
         // Üye değilse ekle
         var uyeSnap = await db.ref('rooms/' + odaId + '/members/' + mevcutKullanici.uid).once('value');
@@ -906,7 +668,7 @@ async function odayaGirDevam(odaId) {
         oda.memberCount = guncelmcVal;
 
         // Header güncelle
-        document.getElementById('oda-h-kitap').textContent = oda.roomName || (oda.book ? oda.book.title : '?');
+        document.getElementById('oda-h-kitap').textContent = oda.book ? oda.book.title : '?';
         var sureDoldu = oda.expiresAt && oda.expiresAt < Date.now();
         var basladiMi = odaBasladiMi(oda);
         var kalan = kalanGun(oda.expiresAt);
@@ -922,12 +684,10 @@ async function odayaGirDevam(odaId) {
 
         // Bannerlar
         var bannerDoldu = document.getElementById('oda-sure-doldu-banner');
-        var bannerArsiv = document.getElementById('oda-arsiv-banner');
         var bannerBaslamamis = document.getElementById('oda-baslamamis-banner');
         var girdi = document.getElementById('mesaj-girdi');
 
         bannerDoldu.classList.add('gizli');
-        bannerArsiv.classList.add('gizli');
         bannerBaslamamis.classList.add('gizli');
         girdi.style.display = '';
 
@@ -987,10 +747,6 @@ async function mesajGonder() {
     var input = document.getElementById('mesaj-input');
     var text = input.value.trim();
     if (!text || !aktifOdaId || !mevcutKullanici) return;
-    // Arşiv modunda yazma engelle
-    if (arsivModuAktif) {
-        bildirimGoster("Bu oda arşivde. Mesaj yazılamaz.", "uyari"); return;
-    }
     // Süre dolmuşsa yazma
     if (aktifOdaVeri && aktifOdaVeri.expiresAt && aktifOdaVeri.expiresAt < Date.now()) {
         bildirimGoster("Bu odanın süresi dolmuş.", "uyari"); return;
@@ -1018,7 +774,6 @@ async function mesajGonder() {
 function odadanCik() {
     odaDinleyicileriKapat();
     aktifOdaId = null; aktifOdaVeri = null;
-    arsivModuAktif = false;
     ekranGoster('ekran-ana');
 }
 
@@ -1045,10 +800,7 @@ function odaBilgiModal() {
     var basladiMi = odaBasladiMi(oda);
     // Durum bilgisi
     var durumRenk, durumMetin;
-    if (arsivModuAktif) {
-        durumRenk = 'var(--text-muted)';
-        durumMetin = '📦 Arşiv';
-    } else if (!basladiMi) {
+    if (!basladiMi) {
         durumRenk = 'var(--blue)';
         durumMetin = formatTarih(oda.startsAt) + ' başlayacak';
     } else if (sureDoldu) {
@@ -1058,20 +810,16 @@ function odaBilgiModal() {
         durumRenk = 'var(--green)';
         durumMetin = kalanGun(oda.expiresAt) + ' gün';
     }
-    var sifreDurum = oda.hasPassword ? '<div style="font-size:0.82rem;color:var(--amber);margin-bottom:8px;">🔒 Şifreli Oda</div>' : '<div style="font-size:0.82rem;color:var(--green);margin-bottom:8px;">🔓 Şifresiz Oda</div>';
-    var odaIsmiHTML = oda.roomName ? '<div style="font-size:0.9rem;color:var(--text-secondary);margin-bottom:4px;">' + htmlEscape(oda.roomName) + '</div>' : '';
     var html = '<div style="text-align:center;">' +
         (oda.book && oda.book.cover ? '<img src="' + oda.book.cover + '" style="width:80px;height:120px;border-radius:8px;object-fit:cover;margin-bottom:12px;">' : '') +
-        odaIsmiHTML +
         '<h3 style="margin-bottom:4px;">' + htmlEscape(oda.book ? oda.book.title : '?') + '</h3>' +
-        '<div style="font-size:0.85rem;color:var(--text-dim);margin-bottom:8px;">' + htmlEscape(oda.book ? oda.book.author : '') + '</div>' +
-        sifreDurum +
+        '<div style="font-size:0.85rem;color:var(--text-dim);margin-bottom:12px;">' + htmlEscape(oda.book ? oda.book.author : '') + '</div>' +
         (oda.description ? '<p style="font-size:0.9rem;color:var(--text-secondary);margin-bottom:16px;">' + htmlEscape(oda.description) + '</p>' : '') +
         (oda.book && oda.book.bookUrl ? '<a href="' + htmlEscape(oda.book.bookUrl) + '" target="_blank" rel="noopener" class="btn btn-outline btn-sm btn-block" style="margin-bottom:16px;">📎 Kitabı Oku / PDF Aç</a>' : '') +
         '<div style="display:flex;gap:0;background:var(--bg-input);border-radius:var(--radius-sm);overflow:hidden;margin-bottom:12px;">' +
         '<div style="flex:1;padding:10px;text-align:center;border-right:1px solid var(--border);"><div style="font-weight:700;color:var(--amber);">' + (oda.memberCount || 1) + (oda.maxMembers ? '<span style="font-size:0.7rem;color:var(--text-dim);">/' + oda.maxMembers + '</span>' : '') + '</div><div style="font-size:0.75rem;color:var(--text-dim);">Üye</div></div>' +
         '<div style="flex:1;padding:10px;text-align:center;border-right:1px solid var(--border);"><div style="font-weight:700;color:var(--amber);">' + (oda.messageCount || 0) + '</div><div style="font-size:0.75rem;color:var(--text-dim);">Mesaj</div></div>' +
-        '<div style="flex:1;padding:10px;text-align:center;"><div style="font-weight:700;color:' + durumRenk + ';">' + durumMetin + '</div><div style="font-size:0.75rem;color:var(--text-dim);">' + (arsivModuAktif ? 'Durum' : (!basladiMi ? 'Başlangıç' : 'Kalan')) + '</div></div>' +
+        '<div style="flex:1;padding:10px;text-align:center;"><div style="font-weight:700;color:' + durumRenk + ';">' + durumMetin + '</div><div style="font-size:0.75rem;color:var(--text-dim);">' + (!basladiMi ? 'Başlangıç' : 'Kalan') + '</div></div>' +
         '</div>' +
         '<div style="background:var(--bg-input);border-radius:var(--radius-sm);padding:10px;margin-bottom:12px;font-size:0.82rem;color:var(--text-secondary);line-height:1.6;">' +
         '📅 Başlangıç: <strong>' + formatTarih(oda.startsAt || oda.createdAt) + '</strong><br>' +
@@ -1080,7 +828,7 @@ function odaBilgiModal() {
         '</div>' +
         '<div style="font-size:0.8rem;color:var(--text-muted);">Oluşturan: ' + htmlEscape(oda.ownerName || '?') + '</div>' +
         '</div>';
-    // Oda sahibiyse silme butonu (arşivde de silebilsin)
+    // Oda sahibiyse silme butonu
     if (oda.ownerId === mevcutKullanici.uid) {
         html += '<button class="btn btn-red btn-block btn-sm" style="margin-top:12px;" onclick="odaSil()">🗑️ Odayı Sil</button>';
     }

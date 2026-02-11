@@ -84,8 +84,6 @@
     <div class="ana-icerik">
         <div class="bolum-baslik">🔥 Aktif Odalar</div>
         <div id="aktif-odalar-liste"></div>
-        <div class="bolum-baslik arsiv-bolum-baslik" style="margin-top:24px;">📦 Arşiv</div>
-        <div id="arsiv-odalar-liste"></div>
     </div>
     <button class="fab" onclick="ekranGoster('ekran-oda-olustur')" title="Yeni Oda Oluştur">+</button>
 </div>
@@ -120,10 +118,6 @@
     </div>
     <div style="padding:0 20px 20px;">
         <div class="form-group">
-            <label class="form-label">Oda İsmi *</label>
-            <input type="text" id="oda-ismi" class="input" placeholder="Odaya bir isim ver..." maxlength="60">
-        </div>
-        <div class="form-group">
             <label class="form-label">Kitap *</label>
             <div id="secili-kitap-alan" class="kart" onclick="ekranGoster('ekran-kitap-ara')" style="cursor:pointer;">
                 <div style="display:flex;align-items:center;gap:12px;color:var(--text-dim);">
@@ -135,23 +129,6 @@
         <div class="form-group">
             <label class="form-label">Oda Açıklaması</label>
             <textarea id="oda-aciklama" class="input" placeholder="Bu kitabı neden okumalıyız?" rows="3"></textarea>
-        </div>
-        <div class="form-group">
-            <label class="form-label">🔒 Şifre Koruması</label>
-            <div class="sifre-toggle-alan">
-                <label class="radyo-kart" id="sifre-yok-kart">
-                    <input type="radio" name="sifreSecim" value="yok" checked onchange="sifreSecimDegisti()">
-                    <span class="radyo-icerik">🔓 Şifresiz</span>
-                </label>
-                <label class="radyo-kart" id="sifre-var-kart">
-                    <input type="radio" name="sifreSecim" value="var" onchange="sifreSecimDegisti()">
-                    <span class="radyo-icerik">🔒 Şifreli</span>
-                </label>
-            </div>
-            <div id="sifre-input-alan" class="gizli" style="margin-top:10px;">
-                <input type="password" id="oda-sifre" class="input" placeholder="Oda şifresi belirle..." maxlength="32">
-                <div style="font-size:0.75rem;color:var(--text-dim);margin-top:4px;">Bu şifreyi paylaştığınız kişiler odaya girebilir.</div>
-            </div>
         </div>
         <div class="form-group">
             <label class="form-label">Başlangıç Tarihi</label>
@@ -219,7 +196,6 @@
         </button>
     </div>
     <div id="oda-sure-doldu-banner" class="sure-doldu-banner gizli">⏰ Bu odanın süresi dolmuş. Sadece okunabilir.</div>
-    <div id="oda-arsiv-banner" class="arsiv-banner gizli">📦 Bu oda arşivde. Mesajları okuyabilirsiniz ancak yeni mesaj yazamazsınız.</div>
     <div id="oda-baslamamis-banner" class="baslamamis-banner gizli"></div>
     <div id="mesaj-alani" class="mesaj-alani"></div>
     <div id="mesaj-girdi" class="mesaj-girdi-alan">
