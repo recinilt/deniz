@@ -15,7 +15,6 @@
     --green: #6bcb77;
     --red: #ef6b6b;
     --blue: #5ba4e8;
-    --purple: #b388ff;
     --text-primary: #f0e6d6;
     --text-secondary: #bfad94;
     --text-dim: #8a7a64;
@@ -161,7 +160,6 @@ textarea.input { resize: vertical; min-height: 80px; border-radius: var(--radius
 .badge-red { background: rgba(239,107,107,0.15); color: var(--red); }
 .badge-blue { background: rgba(91,164,232,0.15); color: var(--blue); }
 .badge-arsiv { background: rgba(94,82,68,0.25); color: var(--text-dim); }
-.badge-mesajlasma { background: rgba(179,136,255,0.15); color: var(--purple); }
 
 /* ── KART ── */
 .kart {
@@ -228,21 +226,11 @@ textarea.input { resize: vertical; min-height: 80px; border-radius: var(--radius
     font-family: var(--font-display);
     font-size: 1.15rem; font-weight: 600;
     color: var(--text-primary);
-    margin-bottom: 4px;
+    margin-bottom: 12px;
     display: flex; align-items: center; gap: 8px;
 }
-.bolum-aciklama {
-    font-size: 0.78rem;
-    color: var(--text-dim);
-    margin-bottom: 12px;
-}
 
-/* ── BÖLÜM BAŞLIKLARI ── */
-.mesajlasma-bolum-baslik {
-    color: var(--purple);
-    padding-top: 16px;
-    border-top: 1px solid rgba(179,136,255,0.15);
-}
+/* ── ARŞİV BÖLÜM BAŞLIĞI ── */
 .arsiv-bolum-baslik {
     color: var(--text-dim);
     padding-top: 16px;
@@ -282,18 +270,13 @@ textarea.input { resize: vertical; min-height: 80px; border-radius: var(--radius
 }
 .oda-meta span { display: flex; align-items: center; gap: 3px; }
 
-/* ── MESAJLAŞMA KART STİLİ ── */
-.mesajlasma-kart {
-    border-left: 3px solid var(--purple);
-}
-
 /* ── ARŞİV KART STİLİ ── */
 .arsiv-kart {
-    opacity: 0.65;
+    opacity: 0.7;
     border-left: 3px solid var(--text-muted);
 }
 .arsiv-kart:hover {
-    opacity: 0.85;
+    opacity: 0.9;
 }
 
 /* ── KİTAP ARAMA ── */
@@ -553,10 +536,10 @@ textarea.input { resize: vertical; min-height: 80px; border-radius: var(--radius
 /* ── SÜRE DOLDU BANNER ── */
 .sure-doldu-banner {
     padding: 10px 16px;
-    background: rgba(179,136,255,0.1);
-    border-bottom: 1px solid rgba(179,136,255,0.2);
+    background: rgba(239,107,107,0.12);
+    border-bottom: 1px solid rgba(239,107,107,0.2);
     text-align: center;
-    font-size: 0.85rem; color: var(--purple);
+    font-size: 0.85rem; color: var(--red);
 }
 
 /* ── ARŞİV BANNER ── */
@@ -645,7 +628,6 @@ textarea.input { resize: vertical; min-height: 80px; border-radius: var(--radius
     .oda-kart { padding: 12px; gap: 10px; }
     .oda-kapak { width: 48px; height: 70px; }
     .oda-kitap-adi { font-size: 0.88rem; }
-    .oda-ismi-goster { font-size: 0.82rem; }
     .mesaj { max-width: 88%; font-size: 0.88rem; padding: 9px 12px; }
     .mesaj-girdi-alan { padding: 8px 12px calc(8px + var(--safe-bottom)); gap: 8px; }
     .mesaj-girdi-alan .input { padding: 9px 14px; font-size: 0.92rem; }
@@ -658,10 +640,6 @@ textarea.input { resize: vertical; min-height: 80px; border-radius: var(--radius
     .kat-chip { padding: 7px 12px; font-size: 0.8rem; }
     .baslangic-secim { flex-direction: column; gap: 6px; }
     .sifre-toggle-alan { flex-direction: column; gap: 6px; }
-    .bolum-baslik { font-size: 1.05rem; }
-    .bolum-aciklama { font-size: 0.72rem; }
-    .badge { font-size: 0.7rem; padding: 2px 8px; }
-    .oda-meta { gap: 6px; font-size: 0.72rem; }
 }
 @media (max-width: 360px) {
     .giris-baslik { font-size: 1.7rem; }
@@ -669,8 +647,6 @@ textarea.input { resize: vertical; min-height: 80px; border-radius: var(--radius
     .oda-kapak { width: 42px; height: 62px; }
     .profil-istatistik { flex-wrap: wrap; }
     .profil-ist-item { min-width: 33%; }
-    .oda-ismi-goster { font-size: 0.78rem; }
-    .oda-kitap-adi { font-size: 0.82rem; }
 }
 /* Touch hedefleri */
 @media (pointer: coarse) {
