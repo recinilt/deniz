@@ -98,16 +98,6 @@
     <button class="fab" onclick="ekranGoster('ekran-oda-olustur')" title="Yeni Oda Oluştur">+</button>
 </div>
 
-<!-- ==================== ODALARIM ==================== -->
-<div id="ekran-odalarim" class="ekran gizli">
-    <div class="sayfa-ust">
-        <h2 class="sayfa-baslik">📖 Odalarım</h2>
-    </div>
-    <div class="ana-icerik">
-        <div id="odalarim-liste"></div>
-    </div>
-</div>
-
 <!-- ==================== KİTAP ARAMA (ODA OLUŞTUR İÇİN) ==================== -->
 <div id="ekran-kitap-ara" class="ekran gizli">
     <div class="sayfa-ust">
@@ -232,10 +222,6 @@
             <div id="oda-h-kitap" class="oda-header-kitap"></div>
             <div id="oda-h-durum" class="oda-header-durum"></div>
         </div>
-        <div id="oda-okudum-toggle" class="okudum-toggle gizli" onclick="okudumToggle()">
-            <span id="oda-okudum-ikon">☐</span>
-            <span id="oda-okudum-metin">Okudum</span>
-        </div>
         <button class="oda-uyeler-btn" onclick="odaBilgiModal()">
             👥 <span id="oda-h-uye-sayi">0</span>
         </button>
@@ -244,9 +230,6 @@
     <div id="oda-arsiv-banner" class="arsiv-banner gizli">📦 Bu oda arşivde. Mesajları okuyabilirsiniz ancak yeni mesaj yazamazsınız.</div>
     <div id="oda-baslamamis-banner" class="baslamamis-banner gizli"></div>
     <div id="mesaj-alani" class="mesaj-alani"></div>
-    <div id="oda-katil-alan" class="oda-katil-alan gizli">
-        <button class="btn btn-amber btn-block" onclick="odayaKatil()">📚 Odaya Katıl</button>
-    </div>
     <div id="mesaj-girdi" class="mesaj-girdi-alan">
         <input type="text" id="mesaj-input" class="input" placeholder="Mesaj yaz..." onkeydown="if(event.key==='Enter')mesajGonder()">
         <button class="mesaj-gonder-btn" onclick="mesajGonder()">➤</button>
@@ -281,11 +264,6 @@
             <span class="menu-metin">Profili Düzenle</span>
             <span class="menu-ok">›</span>
         </div>
-        <div class="profil-menu-item" onclick="okunanKitaplariGoster()">
-            <span class="menu-ikon">📚</span>
-            <span class="menu-metin">Okuduğum Kitaplar</span>
-            <span class="menu-ok">›</span>
-        </div>
         <div class="profil-menu-item" onclick="cikisYap()">
             <span class="menu-ikon">🚪</span>
             <span class="menu-metin" style="color:var(--red);">Çıkış Yap</span>
@@ -304,8 +282,8 @@
     <button id="menu-ana" class="aktif" onclick="menuTikla('ekran-ana',this)">
         <span class="m-ikon">🏠</span> Ana Sayfa
     </button>
-    <button id="menu-odalarim" onclick="menuTikla('ekran-odalarim',this)">
-        <span class="m-ikon">📖</span> Odalarım
+    <button id="menu-kesif" onclick="menuTikla('ekran-ana',this)">
+        <span class="m-ikon">🔍</span> Keşfet
     </button>
     <button id="menu-profil" onclick="menuTikla('ekran-profil',this)">
         <span class="m-ikon">👤</span> Profil
