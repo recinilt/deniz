@@ -7,7 +7,7 @@
       }
     },
     "rooms": {
-      ".read": true,
+      ".read": "auth != null",
       ".indexOn": ["createdAt", "category", "status"],
       "$roomId": {
         ".write": "auth != null && (!data.exists() || data.child('ownerId').val() == auth.uid || !newData.exists())",

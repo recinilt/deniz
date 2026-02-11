@@ -29,7 +29,7 @@ var aktifOdaVeri = null;
 var mesajDinleyici = null;
 var odalarDinleyici = null;
 var odalarimDinleyici = null;
-var aktifEkranId = 'ekran-ana';
+var aktifEkranId = 'ekran-giris';
 var aktifKategori = 'hepsi';
 var kitapAraTimeout = null;
 var geciciFotoData = null;
@@ -73,7 +73,7 @@ function ekranGoster(id, geridenMi) {
     var el = document.getElementById(id);
     if (el) { el.classList.remove('gizli'); aktifEkranId = id; }
     var menuGizle = ['ekran-giris','ekran-profil-olustur','ekran-oda'];
-    if (menuGizle.indexOf(id) !== -1) { altMenuGizle(); } else { altMenuGoster(); }
+    if (menuGizle.indexOf(id) !== -1) { altMenuGizle(); } else if (mevcutKullanici) { altMenuGoster(); }
     menuAktifGuncelle(id);
     if (id === 'ekran-profil') profilGoster();
     if (id === 'ekran-ana') odalariYukle();
@@ -106,16 +106,7 @@ window.addEventListener('popstate', function(e) {
 
 function altMenuGoster() { var m = document.getElementById('alt-menu'); if (m) m.classList.remove('gizli'); }
 function altMenuGizle() { var m = document.getElementById('alt-menu'); if (m) m.classList.add('gizli'); }
-
-function menuTikla(id, btn) {
-    // Odalarım ve Profil giriş gerektirir
-    if ((id === 'ekran-odalarim' || id === 'ekran-profil') && !mevcutKullanici) {
-        girisGerekli();
-        return;
-    }
-    ekranGoster(id);
-}
-
+function menuTikla(id, btn) { ekranGoster(id); }
 function menuAktifGuncelle(id) {
     document.querySelectorAll('#alt-menu button').forEach(function(b) { b.classList.remove('aktif'); });
     var map = { 'ekran-ana': 'menu-ana', 'ekran-odalarim': 'menu-odalarim', 'ekran-profil': 'menu-profil' };
@@ -267,45 +258,7 @@ function basitHash(str) {
 }
 
 // ══════════════════════════════════════════════════════════
-// GİRİŞ GEREKLİ — Giriş yapmamış kullanıcıyı yönlendir
-// ══════════════════════════════════════════════════════════
-function girisGerekli() {
-    bildirimGoster("Bu işlem için giriş yapmalısınız.", "uyari");
-    ekranGoster('ekran-giris');
-}
-
-// FAB butonu — giriş kontrolü
-function fabTikla() {
-    if (!mevcutKullanici) {
-        girisGerekli();
-        return;
-    }
-    ekranGoster('ekran-oda-olustur');
-}
-
-// ══════════════════════════════════════════════════════════
-// GİRİŞ / KAYIT SEKME GEÇİŞİ
-// ══════════════════════════════════════════════════════════
-function girisSekmeDegistir(tip) {
-    var girisBtn = document.getElementById('sekme-giris-btn');
-    var kayitBtn = document.getElementById('sekme-kayit-btn');
-    var girisForm = document.getElementById('giris-form-giris');
-    var kayitForm = document.getElementById('giris-form-kayit');
-    if (tip === 'giris') {
-        girisBtn.classList.add('aktif');
-        kayitBtn.classList.remove('aktif');
-        girisForm.classList.remove('gizli');
-        kayitForm.classList.add('gizli');
-    } else {
-        girisBtn.classList.remove('aktif');
-        kayitBtn.classList.add('aktif');
-        girisForm.classList.add('gizli');
-        kayitForm.classList.remove('gizli');
-    }
-}
-
-// ══════════════════════════════════════════════════════════
-// AUTH — Google ile Giriş
+// AUTH
 // ══════════════════════════════════════════════════════════
 function googleIleGiris() {
     auth.signInWithPopup(googleProvider).catch(function(err) {
@@ -319,73 +272,6 @@ function googleIleGiris() {
     });
 }
 
-// ══════════════════════════════════════════════════════════
-// AUTH — E-posta ile Kayıt
-// ══════════════════════════════════════════════════════════
-function epostaIleKayit() {
-    var eposta = document.getElementById('kayit-eposta').value.trim();
-    var sifre = document.getElementById('kayit-sifre').value;
-    var sifreTekrar = document.getElementById('kayit-sifre-tekrar').value;
-
-    if (!eposta) { bildirimGoster("E-posta adresi girin.", "uyari"); return; }
-    if (!sifre || sifre.length < 6) { bildirimGoster("Şifre en az 6 karakter olmalı.", "uyari"); return; }
-    if (sifre !== sifreTekrar) { bildirimGoster("Şifreler eşleşmiyor.", "uyari"); return; }
-
-    yuklemeGoster("Kayıt yapılıyor...");
-    auth.createUserWithEmailAndPassword(eposta, sifre)
-        .then(function(userCredential) {
-            yuklemeKapat();
-            // onAuthStateChanged tetiklenecek
-        })
-        .catch(function(err) {
-            yuklemeKapat();
-            if (err.code === 'auth/email-already-in-use') {
-                bildirimGoster("Bu e-posta zaten kayıtlı.", "hata");
-            } else if (err.code === 'auth/invalid-email') {
-                bildirimGoster("Geçersiz e-posta adresi.", "hata");
-            } else if (err.code === 'auth/weak-password') {
-                bildirimGoster("Şifre çok zayıf. En az 6 karakter olmalı.", "hata");
-            } else {
-                bildirimGoster("Kayıt hatası: " + err.message, "hata");
-            }
-        });
-}
-
-// ══════════════════════════════════════════════════════════
-// AUTH — E-posta ile Giriş
-// ══════════════════════════════════════════════════════════
-function epostaIleGiris() {
-    var eposta = document.getElementById('giris-eposta').value.trim();
-    var sifre = document.getElementById('giris-sifre').value;
-
-    if (!eposta) { bildirimGoster("E-posta adresi girin.", "uyari"); return; }
-    if (!sifre) { bildirimGoster("Şifre girin.", "uyari"); return; }
-
-    yuklemeGoster("Giriş yapılıyor...");
-    auth.signInWithEmailAndPassword(eposta, sifre)
-        .then(function(userCredential) {
-            yuklemeKapat();
-            // onAuthStateChanged tetiklenecek
-        })
-        .catch(function(err) {
-            yuklemeKapat();
-            if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
-                bildirimGoster("E-posta veya şifre hatalı.", "hata");
-            } else if (err.code === 'auth/wrong-password') {
-                bildirimGoster("Şifre hatalı.", "hata");
-            } else if (err.code === 'auth/invalid-email') {
-                bildirimGoster("Geçersiz e-posta adresi.", "hata");
-            } else if (err.code === 'auth/too-many-requests') {
-                bildirimGoster("Çok fazla deneme. Lütfen bekleyin.", "hata");
-            } else {
-                bildirimGoster("Giriş hatası: " + err.message, "hata");
-            }
-        });
-}
-
-// ══════════════════════════════════════════════════════════
-// AUTH — onAuthStateChanged
-// ══════════════════════════════════════════════════════════
 auth.onAuthStateChanged(function(user) {
     if (user) {
         mevcutKullanici = user;
@@ -393,9 +279,8 @@ auth.onAuthStateChanged(function(user) {
     } else {
         mevcutKullanici = null;
         kullaniciBilgileri = null;
-        // Giriş yapmamış kullanıcı ana sayfayı görebilir
-        altMenuGoster();
-        ekranGoster('ekran-ana');
+        altMenuGizle();
+        ekranGoster('ekran-giris');
     }
 });
 
@@ -427,9 +312,7 @@ function cikisYap() {
     if (aktifOdaId) odaDinleyicileriKapat();
     auth.signOut().then(function() {
         mevcutKullanici = null; kullaniciBilgileri = null;
-        // Çıkışta ana sayfaya yönlendir (giriş ekranına değil)
-        altMenuGoster();
-        ekranGoster('ekran-ana');
+        altMenuGizle(); ekranGoster('ekran-giris');
         bildirimGoster("Çıkış yapıldı.", "bilgi");
     });
 }
@@ -569,8 +452,7 @@ async function hesabiSil() {
         await mevcutKullanici.delete();
         yuklemeKapat(); modalKapat();
         mevcutKullanici = null; kullaniciBilgileri = null;
-        altMenuGoster();
-        ekranGoster('ekran-ana');
+        altMenuGizle(); ekranGoster('ekran-giris');
         bildirimGoster("Hesabın silindi.", "bilgi");
     } catch (e) {
         yuklemeKapat();
@@ -1024,16 +906,10 @@ async function sifreDogrula(odaId) {
 
 // ══════════════════════════════════════════════════════════
 // ODA İÇİ — GİRİŞ (YENİ AKIŞ)
-// Odaya tıkla → giriş kontrolü → şifreli ise şifre sor → mesajları göster
+// Odaya tıkla → şifreli ise şifre sor → mesajları read-only göster
 // → üye değilse "Odaya Katıl" butonu → katılınca mesaj yazabilir
 // ══════════════════════════════════════════════════════════
 async function odayaGir(odaId) {
-    // Giriş yapmamış kullanıcı odaya giremez
-    if (!mevcutKullanici) {
-        girisGerekli();
-        return;
-    }
-
     yuklemeGoster("Oda yükleniyor...");
     try {
         var snap = await db.ref('rooms/' + odaId).once('value');
@@ -1325,14 +1201,8 @@ function mesajDinle(odaId) {
     db.ref('rooms/' + odaId + '/messages').orderByChild('ts').on('child_added', function(snap) {
         var m = snap.val();
         var alan = document.getElementById('mesaj-alani');
-        var benMi = mevcutKullanici && m.uid === mevcutKullanici.uid;
+        var benMi = m.uid === mevcutKullanici.uid;
         var okuyanMi = odaOkuyanlar[m.uid] ? true : false;
-
-        // Kitap sayısı gösterimi
-        var kitapSayisiHTML = '';
-        if (typeof m.booksRead === 'number' && m.booksRead > 0) {
-            kitapSayisiHTML = ' <span class="mesaj-kitap-sayisi">(' + m.booksRead + '📚)</span>';
-        }
 
         if (m.type === 'system') {
             alan.innerHTML += '<div class="mesaj mesaj-sistem">' + htmlEscape(m.text) + '</div>';
@@ -1342,7 +1212,7 @@ function mesajDinle(odaId) {
             if (okuyanMi && benMi) mesajClass += ' mesaj-giden-okuyan';
 
             alan.innerHTML += '<div class="' + mesajClass + '">' +
-                (!benMi ? '<div class="mesaj-gonderen">' + htmlEscape(m.name || '?') + kitapSayisiHTML + (okuyanMi ? ' 📗' : '') + '</div>' : '') +
+                (!benMi ? '<div class="mesaj-gonderen">' + htmlEscape(m.name || '?') + (okuyanMi ? ' 📗' : '') + '</div>' : '') +
                 '<div>' + linkifyText(htmlEscape(m.text)) + '</div>' +
                 '<div class="mesaj-saat">' + formatSaat(m.ts) + '</div></div>';
         }
@@ -1373,8 +1243,7 @@ async function mesajGonder() {
             uid: mevcutKullanici.uid,
             name: kullaniciBilgileri.displayName,
             text: text,
-            ts: Date.now(),
-            booksRead: kullaniciBilgileri.booksRead || 0
+            ts: Date.now()
         });
         db.ref('rooms/' + aktifOdaId + '/messageCount').transaction(function(c) { return (c || 0) + 1; });
         var ms = (kullaniciBilgileri.messagesSent || 0) + 1;
@@ -1453,7 +1322,7 @@ function odaBilgiModal() {
         '</div>' +
         '<div style="font-size:0.8rem;color:var(--text-muted);">Oluşturan: ' + htmlEscape(oda.ownerName || '?') + '</div>' +
         '</div>';
-    if (mevcutKullanici && oda.ownerId === mevcutKullanici.uid) {
+    if (oda.ownerId === mevcutKullanici.uid) {
         html += '<button class="btn btn-red btn-block btn-sm" style="margin-top:12px;" onclick="odaSil()">🗑️ Odayı Sil</button>';
     }
     modalGoster(html);
