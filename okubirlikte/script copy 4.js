@@ -68,7 +68,7 @@ function mesajlasmaKalanGun(oda) {
 // ══════════════════════════════════════════════════════════
 // UI FONKSİYONLARI
 // ══════════════════════════════════════════════════════════
-function ekranGoster(id, geridenMi) {
+function ekranGoster(id) {
     document.querySelectorAll('.ekran').forEach(function(e) { e.classList.add('gizli'); });
     var el = document.getElementById(id);
     if (el) { el.classList.remove('gizli'); aktifEkranId = id; }
@@ -81,28 +81,7 @@ function ekranGoster(id, geridenMi) {
     var fab = document.querySelector('.fab');
     if (fab) fab.classList.toggle('gizli', id !== 'ekran-ana');
     window.scrollTo(0, 0);
-    if (!geridenMi && id !== 'ekran-giris' && id !== 'ekran-profil-olustur') {
-        if (id === 'ekran-ana') {
-            history.replaceState({ ekran: id }, '', '');
-        } else {
-            history.replaceState({ ekran: 'ekran-ana' }, '', '');
-            history.pushState({ ekran: id }, '', '');
-        }
-    }
 }
-
-window.addEventListener('popstate', function(e) {
-    if (aktifEkranId === 'ekran-ana' || aktifEkranId === 'ekran-giris' || aktifEkranId === 'ekran-profil-olustur') return;
-    if (aktifEkranId === 'ekran-oda') {
-        odaDinleyicileriKapat();
-        aktifOdaId = null; aktifOdaVeri = null;
-        arsivModuAktif = false;
-        odaUyesiMi = false;
-        odaOkuduMu = false;
-        odaOkuyanlar = {};
-    }
-    ekranGoster('ekran-ana', true);
-});
 
 function altMenuGoster() { var m = document.getElementById('alt-menu'); if (m) m.classList.remove('gizli'); }
 function altMenuGizle() { var m = document.getElementById('alt-menu'); if (m) m.classList.add('gizli'); }
