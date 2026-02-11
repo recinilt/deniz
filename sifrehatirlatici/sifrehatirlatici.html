@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Şifre Hatırlatıcı</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0f1117;--surface:#1a1d27;--surface2:#242836;--border:#2e3346;
+  --text:#e4e6ef;--text2:#9498ad;--accent:#6c8aff;--accent2:#4e6de0;
+  --danger:#ef4444;--success:#22c55e;--warn:#f59e0b;
+  --radius:10px;--shadow:0 2px 12px rgba(0,0,0,0.3);
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.5}
+button{font-family:inherit;cursor:pointer;border:none;outline:none;transition:all .2s}
+input,select,textarea{font-family:inherit;outline:none;border:1px solid var(--border);background:var(--surface2);color:var(--text);border-radius:var(--radius);padding:10px 14px;font-size:14px;width:100%;transition:border .2s}
+input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+textarea{resize:vertical;min-height:60px}
+select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%239498ad' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L2 5h12z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+
+.container{max-width:520px;margin:0 auto;padding:16px}
+.header{display:flex;align-items:center;justify-content:space-between;padding:12px 0;margin-bottom:8px}
+.header h1{font-size:20px;font-weight:700;letter-spacing:-0.3px}
+.header h1 span{color:var(--accent)}
+
+.status-bar{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);margin-bottom:16px}
+.status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.status-dot.online{background:var(--success)}
+.status-dot.offline{background:var(--danger)}
+
+/* Giriş Ekranı */
+#giris-ekran{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:70vh;text-align:center;gap:24px}
+#giris-ekran h2{font-size:28px;font-weight:700}
+#giris-ekran h2 span{color:var(--accent)}
+#giris-ekran p{color:var(--text2);max-width:300px}
+.btn-google{display:flex;align-items:center;gap:10px;background:#fff;color:#333;font-size:15px;font-weight:600;padding:12px 28px;border-radius:var(--radius);box-shadow:var(--shadow)}
+.btn-google:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,0,0,0.4)}
+.btn-google img{width:20px;height:20px}
+
+/* Ana Ekran */
+#ana-ekran{display:none}
+.toolbar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.toolbar input{flex:1;min-width:150px}
+.btn{padding:8px 16px;border-radius:var(--radius);font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent2)}
+.btn-secondary{background:var(--surface2);color:var(--text2);border:1px solid var(--border)}
+.btn-secondary:hover{border-color:var(--accent);color:var(--text)}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-danger:hover{background:#dc2626}
+.btn-sm{padding:6px 10px;font-size:12px}
+.btn-icon{padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text2);font-size:16px}
+.btn-icon:hover{border-color:var(--accent);color:var(--text)}
+
+.kategori-filtre{display:flex;gap:6px;margin-bottom:16px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch}
+.kategori-filtre::-webkit-scrollbar{display:none}
+.kat-btn{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;background:var(--surface2);color:var(--text2);border:1px solid var(--border);white-space:nowrap;flex-shrink:0}
+.kat-btn.aktif{background:var(--accent);color:#fff;border-color:var(--accent)}
+.kat-btn:hover{border-color:var(--accent)}
+
+.sifre-liste{display:flex;flex-direction:column;gap:8px}
+.sifre-kart{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;transition:border .2s;cursor:pointer}
+.sifre-kart:hover{border-color:var(--accent)}
+.kart-ust{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.kart-baslik{font-weight:600;font-size:15px}
+.kart-kategori{font-size:11px;padding:3px 8px;border-radius:12px;background:var(--surface2);color:var(--text2)}
+.kart-kullanici{font-size:13px;color:var(--text2)}
+.kart-sifre-alani{display:flex;align-items:center;gap:8px;margin-top:8px}
+.kart-sifre{font-family:'Courier New',monospace;font-size:14px;background:var(--surface2);padding:6px 10px;border-radius:6px;flex:1;word-break:break-all}
+.kart-sifre.gizli{color:transparent;text-shadow:0 0 8px var(--text2);user-select:none}
+.kart-url{font-size:12px;color:var(--accent);margin-top:6px;word-break:break-all}
+.kart-not{font-size:12px;color:var(--text2);margin-top:4px;font-style:italic}
+.kart-islemler{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+
+.bos-mesaj{text-align:center;padding:48px 16px;color:var(--text2)}
+.bos-mesaj .ikon{font-size:48px;margin-bottom:12px;opacity:.5}
+.bos-mesaj p{font-size:14px}
+
+/* Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:100;align-items:center;justify-content:center;padding:16px}
+.modal-overlay.aktif{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;width:100%;max-width:440px;max-height:85vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.5)}
+.modal-baslik{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border)}
+.modal-baslik h3{font-size:16px;font-weight:700}
+.modal-icerik{padding:20px;display:flex;flex-direction:column;gap:14px}
+.form-grup{display:flex;flex-direction:column;gap:5px}
+.form-grup label{font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px}
+.modal-alt{display:flex;gap:8px;justify-content:flex-end;padding:16px 20px;border-top:1px solid var(--border)}
+
+/* Alt Menü */
+.alt-menu{display:flex;gap:8px;justify-content:center;padding:16px 0;margin-top:16px;border-top:1px solid var(--border);flex-wrap:wrap}
+
+/* Kullanıcı */
+.kullanici-bilgi{display:flex;align-items:center;gap:10px}
+.kullanici-bilgi img{width:32px;height:32px;border-radius:50%;border:2px solid var(--border)}
+.kullanici-bilgi span{font-size:13px;color:var(--text2)}
+
+/* Toast */
+.toast-container{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:200;display:flex;flex-direction:column;gap:8px;align-items:center}
+.toast{padding:10px 20px;border-radius:var(--radius);font-size:13px;font-weight:600;box-shadow:var(--shadow);animation:toastIn .3s ease}
+.toast.basari{background:var(--success);color:#fff}
+.toast.hata{background:var(--danger);color:#fff}
+.toast.bilgi{background:var(--accent);color:#fff}
+@keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* Yükleniyor */
+.yukleniyor{display:flex;align-items:center;justify-content:center;padding:32px;color:var(--text2);font-size:14px;gap:8px}
+.spinner{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Responsive */
+@media(max-width:400px){
+  .container{padding:10px}
+  .toolbar{flex-direction:column}
+  .btn{justify-content:center}
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- HEADER -->
+  <div class="header" id="header" style="display:none">
+    <h1>🔐 <span>Şifre</span> Hatırlatıcı</h1>
+    <div class="kullanici-bilgi" id="kullanici-bilgi"></div>
+  </div>
+
+  <!-- STATUS BAR -->
+  <div class="status-bar" id="status-bar" style="display:none">
+    <div class="status-dot" id="status-dot"></div>
+    <span id="status-metin"></span>
+  </div>
+
+  <!-- GİRİŞ EKRANI -->
+  <div id="giris-ekran">
+    <h2>🔐 <span>Şifre</span> Hatırlatıcı</h2>
+    <p>Şifrelerini güvenle sakla, istediğin yerden eriş.</p>
+    <button class="btn-google" onclick="gmailGiris()">
+      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G">
+      Google ile Giriş Yap
+    </button>
+  </div>
+
+  <!-- ANA EKRAN -->
+  <div id="ana-ekran">
+    <!-- Arama & Ekle -->
+    <div class="toolbar">
+      <input type="text" id="arama-input" placeholder="Ara..." oninput="sifreFiltreUygula()">
+      <button class="btn btn-primary" onclick="modalAc('ekle')">+ Yeni</button>
+      <button class="btn-icon" onclick="menuToggle()" title="Menü">☰</button>
+    </div>
+
+    <!-- Kategori Filtre -->
+    <div class="kategori-filtre" id="kategori-filtre"></div>
+
+    <!-- Şifre Listesi -->
+    <div class="sifre-liste" id="sifre-liste"></div>
+    <div class="yukleniyor" id="yukleniyor" style="display:none"><div class="spinner"></div> Yükleniyor...</div>
+
+    <!-- Alt Menü -->
+    <div class="alt-menu" id="alt-menu" style="display:none">
+      <button class="btn btn-secondary btn-sm" onclick="jsonExport()">📤 Dışa Aktar</button>
+      <button class="btn btn-secondary btn-sm" onclick="document.getElementById('json-import').click()">📥 İçe Aktar</button>
+      <button class="btn btn-secondary btn-sm" onclick="verileriSenkronla()">🔄 Senkronla</button>
+      <button class="btn btn-danger btn-sm" onclick="cikisYap()">🚪 Çıkış</button>
+      <input type="file" id="json-import" accept=".json" style="display:none" onchange="jsonImport(event)">
+    </div>
+  </div>
+</div>
+
+<!-- EKLE/DÜZENLE MODAL -->
+<div class="modal-overlay" id="modal-sifre">
+  <div class="modal">
+    <div class="modal-baslik">
+      <h3 id="modal-baslik-text">Yeni Şifre</h3>
+      <button class="btn-icon" onclick="modalKapat()">✕</button>
+    </div>
+    <div class="modal-icerik">
+      <input type="hidden" id="form-id">
+      <div class="form-grup">
+        <label>Başlık *</label>
+        <input type="text" id="form-baslik" placeholder="ör: Gmail, Netflix...">
+      </div>
+      <div class="form-grup">
+        <label>Kategori</label>
+        <select id="form-kategori">
+          <option value="Sosyal Medya">Sosyal Medya</option>
+          <option value="Banka">Banka</option>
+          <option value="E-posta">E-posta</option>
+          <option value="Alışveriş">Alışveriş</option>
+          <option value="İş">İş</option>
+          <option value="Eğlence">Eğlence</option>
+          <option value="Diğer">Diğer</option>
+        </select>
+      </div>
+      <div class="form-grup">
+        <label>Kullanıcı Adı / E-posta</label>
+        <input type="text" id="form-kullanici" placeholder="ör: kullanici@gmail.com">
+      </div>
+      <div class="form-grup">
+        <label>Şifre *</label>
+        <input type="text" id="form-sifre" placeholder="Şifreniz">
+      </div>
+      <div class="form-grup">
+        <label>URL</label>
+        <input type="url" id="form-url" placeholder="https://...">
+      </div>
+      <div class="form-grup">
+        <label>Not</label>
+        <textarea id="form-not" placeholder="Ek bilgi..."></textarea>
+      </div>
+    </div>
+    <div class="modal-alt">
+      <button class="btn btn-secondary" onclick="modalKapat()">İptal</button>
+      <button class="btn btn-primary" onclick="sifreKaydet()">Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<!-- SİL ONAY MODAL -->
+<div class="modal-overlay" id="modal-sil">
+  <div class="modal" style="max-width:340px">
+    <div class="modal-baslik">
+      <h3>Silme Onayı</h3>
+      <button class="btn-icon" onclick="document.getElementById('modal-sil').classList.remove('aktif')">✕</button>
+    </div>
+    <div class="modal-icerik">
+      <p style="font-size:14px;color:var(--text2)">Bu şifreyi silmek istediğinize emin misiniz?</p>
+    </div>
+    <div class="modal-alt">
+      <button class="btn btn-secondary" onclick="document.getElementById('modal-sil').classList.remove('aktif')">İptal</button>
+      <button class="btn btn-danger" id="sil-onayla-btn">Sil</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+
+<script>
+// ══════════════════════════════════════════════════════════
+// FIREBASE CONFIG
+// ══════════════════════════════════════════════════════════
+var firebaseConfig = {
+    apiKey: "AIzaSyB5YosGWGdxZ-nizZ7ROf_XtZat76z6-4Q",
+    authDomain: "sifrehatirlatici-cf65d.firebaseapp.com",
+    databaseURL: "https://sifrehatirlatici-cf65d-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "sifrehatirlatici-cf65d",
+    storageBucket: "sifrehatirlatici-cf65d.firebasestorage.app",
+    messagingSenderId: "102814458136",
+    appId: "1:102814458136:web:c5ae4a837d2264f9c57e6d"
+};
+firebase.initializeApp(firebaseConfig);
+var auth = firebase.auth();
+var db = firebase.database();
+var googleProvider = new firebase.auth.GoogleAuthProvider();
+auth.languageCode = 'tr';
+
+// ══════════════════════════════════════════════════════════
+// GLOBAL DEĞİŞKENLER
+// ══════════════════════════════════════════════════════════
+var mevcutKullanici = null;
+var sifreListesi = [];
+var aktifKategori = 'Tümü';
+var cevrimIciMi = navigator.onLine;
+var sifrelemeAnahtari = null;
+var firebaseDinleyici = null;
+var menuAcikMi = false;
+
+var KATEGORILER = ['Tümü', 'Sosyal Medya', 'Banka', 'E-posta', 'Alışveriş', 'İş', 'Eğlence', 'Diğer'];
+var LOKAL_ANAHTAR = 'sifreHatirlatici_';
+
+// ══════════════════════════════════════════════════════════
+// AES-GCM ŞİFRELEME (Web Crypto API)
+// ══════════════════════════════════════════════════════════
+var SALT_SABIT = 'SifreHatirlatici2025!';
+
+async function anahtarTuret(uid) {
+    var enc = new TextEncoder();
+    var keyMaterial = await crypto.subtle.importKey(
+        'raw', enc.encode(uid + SALT_SABIT), 'PBKDF2', false, ['deriveKey']
+    );
+    var anahtar = await crypto.subtle.deriveKey(
+        { name: 'PBKDF2', salt: enc.encode(SALT_SABIT), iterations: 100000, hash: 'SHA-256' },
+        keyMaterial,
+        { name: 'AES-GCM', length: 256 },
+        false,
+        ['encrypt', 'decrypt']
+    );
+    return anahtar;
+}
+
+async function sifrele(metin) {
+    if (!sifrelemeAnahtari) return metin;
+    var enc = new TextEncoder();
+    var iv = crypto.getRandomValues(new Uint8Array(12));
+    var sifreli = await crypto.subtle.encrypt(
+        { name: 'AES-GCM', iv: iv }, sifrelemeAnahtari, enc.encode(metin)
+    );
+    var birlesik = new Uint8Array(iv.length + sifreli.byteLength);
+    birlesik.set(iv);
+    birlesik.set(new Uint8Array(sifreli), iv.length);
+    return btoa(String.fromCharCode.apply(null, birlesik));
+}
+
+async function sifrecoz(b64) {
+    if (!sifrelemeAnahtari) return b64;
+    try {
+        var ham = Uint8Array.from(atob(b64), function(c) { return c.charCodeAt(0); });
+        var iv = ham.slice(0, 12);
+        var veri = ham.slice(12);
+        var cozulmus = await crypto.subtle.decrypt(
+            { name: 'AES-GCM', iv: iv }, sifrelemeAnahtari, veri
+        );
+        return new TextDecoder().decode(cozulmus);
+    } catch (e) {
+        console.error('Şifre çözme hatası:', e);
+        return b64;
+    }
+}
+
+// ══════════════════════════════════════════════════════════
+// AUTH İŞLEMLERİ
+// ══════════════════════════════════════════════════════════
+function gmailGiris() {
+    auth.signInWithPopup(googleProvider).catch(function(err) {
+        console.error('Giriş hatası:', err);
+        toast('Giriş başarısız: ' + err.message, 'hata');
+    });
+}
+
+function cikisYap() {
+    if (firebaseDinleyici) {
+        db.ref('passwords/' + mevcutKullanici.uid).off('value', firebaseDinleyici);
+        firebaseDinleyici = null;
+    }
+    auth.signOut();
+}
+
+auth.onAuthStateChanged(async function(user) {
+    if (user) {
+        mevcutKullanici = user;
+        sifrelemeAnahtari = await anahtarTuret(user.uid);
+        girisYapildi();
+    } else {
+        mevcutKullanici = null;
+        sifrelemeAnahtari = null;
+        sifreListesi = [];
+        cikisYapildi();
+    }
+});
+
+function girisYapildi() {
+    document.getElementById('giris-ekran').style.display = 'none';
+    document.getElementById('ana-ekran').style.display = 'block';
+    document.getElementById('header').style.display = 'flex';
+    document.getElementById('status-bar').style.display = 'flex';
+
+    var bilgi = document.getElementById('kullanici-bilgi');
+    bilgi.innerHTML = '<img src="' + (mevcutKullanici.photoURL || '') + '" alt=""><span>' + (mevcutKullanici.displayName || mevcutKullanici.email) + '</span>';
+
+    kategoriFiltreOlustur();
+    durumGuncelle();
+    verileriYukle();
+}
+
+function cikisYapildi() {
+    document.getElementById('giris-ekran').style.display = 'flex';
+    document.getElementById('ana-ekran').style.display = 'none';
+    document.getElementById('header').style.display = 'none';
+    document.getElementById('status-bar').style.display = 'none';
+    document.getElementById('alt-menu').style.display = 'none';
+    menuAcikMi = false;
+}
+
+// ══════════════════════════════════════════════════════════
+// ONLINE/OFFLINE DURUM
+// ══════════════════════════════════════════════════════════
+window.addEventListener('online', function() { cevrimIciMi = true; durumGuncelle(); verileriSenkronla(); });
+window.addEventListener('offline', function() { cevrimIciMi = false; durumGuncelle(); });
+
+function durumGuncelle() {
+    var dot = document.getElementById('status-dot');
+    var metin = document.getElementById('status-metin');
+    if (cevrimIciMi) {
+        dot.className = 'status-dot online';
+        metin.textContent = 'Çevrimiçi — Firebase ile senkron';
+    } else {
+        dot.className = 'status-dot offline';
+        metin.textContent = 'Çevrimdışı — Yerel veriler gösteriliyor';
+    }
+}
+
+// ══════════════════════════════════════════════════════════
+// VERİ YÖNETİMİ (Firebase + localStorage)
+// ══════════════════════════════════════════════════════════
+function lokalAnahtar() {
+    return LOKAL_ANAHTAR + mevcutKullanici.uid;
+}
+
+function lokalKaydet() {
+    try {
+        localStorage.setItem(lokalAnahtar(), JSON.stringify(sifreListesi));
+    } catch (e) {
+        console.error('Lokal kayıt hatası:', e);
+    }
+}
+
+function lokalOku() {
+    try {
+        var veri = localStorage.getItem(lokalAnahtar());
+        return veri ? JSON.parse(veri) : [];
+    } catch (e) {
+        return [];
+    }
+}
+
+function verileriYukle() {
+    document.getElementById('yukleniyor').style.display = 'flex';
+
+    // Önce lokalden yükle (anında göster)
+    sifreListesi = lokalOku();
+    listeGuncelle();
+
+    if (!cevrimIciMi) {
+        document.getElementById('yukleniyor').style.display = 'none';
+        return;
+    }
+
+    // Firebase dinleyici başlat
+    var ref = db.ref('passwords/' + mevcutKullanici.uid);
+    if (firebaseDinleyici) ref.off('value', firebaseDinleyici);
+
+    firebaseDinleyici = ref.on('value', async function(snapshot) {
+        document.getElementById('yukleniyor').style.display = 'none';
+        var veri = snapshot.val();
+        if (!veri) {
+            sifreListesi = [];
+            lokalKaydet();
+            listeGuncelle();
+            return;
+        }
+
+        var liste = [];
+        var anahtarlar = Object.keys(veri);
+        for (var i = 0; i < anahtarlar.length; i++) {
+            var k = anahtarlar[i];
+            var item = veri[k];
+            try {
+                var cozulmus = await sifrecoz(item.data);
+                var obj = JSON.parse(cozulmus);
+                obj.id = k;
+                obj.ts = item.ts || 0;
+                liste.push(obj);
+            } catch (e) {
+                console.error('Veri çözme hatası:', k, e);
+            }
+        }
+        liste.sort(function(a, b) { return (b.ts || 0) - (a.ts || 0); });
+        sifreListesi = liste;
+        lokalKaydet();
+        listeGuncelle();
+    }, function(err) {
+        document.getElementById('yukleniyor').style.display = 'none';
+        console.error('Firebase okuma hatası:', err);
+        toast('Veri okunamadı, yerel veriler gösteriliyor', 'hata');
+    });
+}
+
+async function verileriSenkronla() {
+    if (!cevrimIciMi || !mevcutKullanici) {
+        toast('Çevrimdışısınız', 'hata');
+        return;
+    }
+    toast('Senkronlanıyor...', 'bilgi');
+    verileriYukle();
+}
+
+// ══════════════════════════════════════════════════════════
+// ŞİFRE CRUD
+// ══════════════════════════════════════════════════════════
+async function sifreKaydet() {
+    var id = document.getElementById('form-id').value;
+    var baslik = document.getElementById('form-baslik').value.trim();
+    var sifre = document.getElementById('form-sifre').value.trim();
+
+    if (!baslik) { toast('Başlık zorunludur', 'hata'); return; }
+    if (!sifre) { toast('Şifre zorunludur', 'hata'); return; }
+
+    var kayit = {
+        baslik: baslik,
+        kategori: document.getElementById('form-kategori').value,
+        kullanici: document.getElementById('form-kullanici').value.trim(),
+        sifre: sifre,
+        url: document.getElementById('form-url').value.trim(),
+        not: document.getElementById('form-not').value.trim()
+    };
+
+    var ts = Date.now();
+
+    if (!cevrimIciMi) {
+        // Offline: lokale kaydet
+        if (id) {
+            for (var i = 0; i < sifreListesi.length; i++) {
+                if (sifreListesi[i].id === id) {
+                    kayit.id = id;
+                    kayit.ts = ts;
+                    kayit.offlineYeni = true;
+                    sifreListesi[i] = kayit;
+                    break;
+                }
+            }
+        } else {
+            kayit.id = 'offline_' + ts;
+            kayit.ts = ts;
+            kayit.offlineYeni = true;
+            sifreListesi.unshift(kayit);
+        }
+        lokalKaydet();
+        listeGuncelle();
+        modalKapat();
+        toast('Yerel olarak kaydedildi (çevrimiçi olunca senkronlanacak)', 'bilgi');
+        return;
+    }
+
+    try {
+        var sifreliVeri = await sifrele(JSON.stringify(kayit));
+        var ref = db.ref('passwords/' + mevcutKullanici.uid);
+
+        if (id && !id.startsWith('offline_')) {
+            await ref.child(id).set({ data: sifreliVeri, ts: ts });
+        } else {
+            await ref.push({ data: sifreliVeri, ts: ts });
+        }
+        modalKapat();
+        toast(id ? 'Güncellendi' : 'Eklendi', 'basari');
+    } catch (e) {
+        console.error('Kayıt hatası:', e);
+        toast('Kayıt hatası: ' + e.message, 'hata');
+    }
+}
+
+function sifreSil(id) {
+    document.getElementById('modal-sil').classList.add('aktif');
+    document.getElementById('sil-onayla-btn').onclick = async function() {
+        document.getElementById('modal-sil').classList.remove('aktif');
+
+        if (!cevrimIciMi || id.startsWith('offline_')) {
+            sifreListesi = sifreListesi.filter(function(s) { return s.id !== id; });
+            lokalKaydet();
+            listeGuncelle();
+            toast('Yerel olarak silindi', 'bilgi');
+            return;
+        }
+
+        try {
+            await db.ref('passwords/' + mevcutKullanici.uid + '/' + id).remove();
+            toast('Silindi', 'basari');
+        } catch (e) {
+            toast('Silme hatası: ' + e.message, 'hata');
+        }
+    };
+}
+
+// ══════════════════════════════════════════════════════════
+// KATEGORİ FİLTRE
+// ══════════════════════════════════════════════════════════
+function kategoriFiltreOlustur() {
+    var container = document.getElementById('kategori-filtre');
+    container.innerHTML = '';
+    KATEGORILER.forEach(function(kat) {
+        var btn = document.createElement('button');
+        btn.className = 'kat-btn' + (kat === aktifKategori ? ' aktif' : '');
+        btn.textContent = kat;
+        btn.onclick = function() {
+            aktifKategori = kat;
+            kategoriFiltreOlustur();
+            sifreFiltreUygula();
+        };
+        container.appendChild(btn);
+    });
+}
+
+function sifreFiltreUygula() {
+    listeGuncelle();
+}
+
+// ══════════════════════════════════════════════════════════
+// LİSTE RENDER
+// ══════════════════════════════════════════════════════════
+function listeGuncelle() {
+    var container = document.getElementById('sifre-liste');
+    var aramaMetni = document.getElementById('arama-input').value.toLowerCase().trim();
+
+    var filtreli = sifreListesi.filter(function(s) {
+        var katUygun = (aktifKategori === 'Tümü') || (s.kategori === aktifKategori);
+        var aramaUygun = !aramaMetni ||
+            (s.baslik || '').toLowerCase().indexOf(aramaMetni) !== -1 ||
+            (s.kullanici || '').toLowerCase().indexOf(aramaMetni) !== -1 ||
+            (s.url || '').toLowerCase().indexOf(aramaMetni) !== -1 ||
+            (s.not || '').toLowerCase().indexOf(aramaMetni) !== -1;
+        return katUygun && aramaUygun;
+    });
+
+    if (filtreli.length === 0) {
+        container.innerHTML = '<div class="bos-mesaj"><div class="ikon">🔑</div><p>' +
+            (sifreListesi.length === 0 ? 'Henüz şifre eklenmemiş.<br>Yeni bir tane ekleyin!' : 'Sonuç bulunamadı.') +
+            '</p></div>';
+        return;
+    }
+
+    container.innerHTML = '';
+    filtreli.forEach(function(s) {
+        var kart = document.createElement('div');
+        kart.className = 'sifre-kart';
+        kart.innerHTML =
+            '<div class="kart-ust">' +
+                '<span class="kart-baslik">' + htmlKacis(s.baslik) + '</span>' +
+                '<span class="kart-kategori">' + htmlKacis(s.kategori || 'Diğer') + '</span>' +
+            '</div>' +
+            (s.kullanici ? '<div class="kart-kullanici">👤 ' + htmlKacis(s.kullanici) + '</div>' : '') +
+            '<div class="kart-sifre-alani">' +
+                '<span class="kart-sifre gizli" id="sifre-' + s.id + '">' + htmlKacis(s.sifre) + '</span>' +
+                '<button class="btn-icon btn-sm" onclick="sifreGosterGizle(\'' + s.id + '\')" title="Göster/Gizle">👁</button>' +
+                '<button class="btn-icon btn-sm" onclick="panoyaKopyala(\'' + htmlKacisAttr(s.sifre) + '\')" title="Kopyala">📋</button>' +
+            '</div>' +
+            (s.url ? '<div class="kart-url"><a href="' + htmlKacis(s.url) + '" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none">🔗 ' + htmlKacis(s.url) + '</a></div>' : '') +
+            (s.not ? '<div class="kart-not">📝 ' + htmlKacis(s.not) + '</div>' : '') +
+            '<div class="kart-islemler">' +
+                '<button class="btn btn-secondary btn-sm" onclick="modalAc(\'duzenle\',\'' + s.id + '\')">✏️ Düzenle</button>' +
+                '<button class="btn btn-danger btn-sm" onclick="sifreSil(\'' + s.id + '\')">🗑️ Sil</button>' +
+            '</div>';
+        container.appendChild(kart);
+    });
+}
+
+function sifreGosterGizle(id) {
+    var el = document.getElementById('sifre-' + id);
+    if (el) el.classList.toggle('gizli');
+}
+
+async function panoyaKopyala(metin) {
+    try {
+        await navigator.clipboard.writeText(metin);
+        toast('Kopyalandı', 'basari');
+    } catch (e) {
+        // Fallback
+        var ta = document.createElement('textarea');
+        ta.value = metin;
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        toast('Kopyalandı', 'basari');
+    }
+}
+
+// ══════════════════════════════════════════════════════════
+// MODAL İŞLEMLERİ
+// ══════════════════════════════════════════════════════════
+function modalAc(tip, id) {
+    document.getElementById('form-id').value = '';
+    document.getElementById('form-baslik').value = '';
+    document.getElementById('form-kategori').value = 'Sosyal Medya';
+    document.getElementById('form-kullanici').value = '';
+    document.getElementById('form-sifre').value = '';
+    document.getElementById('form-url').value = '';
+    document.getElementById('form-not').value = '';
+
+    if (tip === 'duzenle' && id) {
+        var kayit = sifreListesi.find(function(s) { return s.id === id; });
+        if (kayit) {
+            document.getElementById('form-id').value = kayit.id;
+            document.getElementById('form-baslik').value = kayit.baslik || '';
+            document.getElementById('form-kategori').value = kayit.kategori || 'Diğer';
+            document.getElementById('form-kullanici').value = kayit.kullanici || '';
+            document.getElementById('form-sifre').value = kayit.sifre || '';
+            document.getElementById('form-url').value = kayit.url || '';
+            document.getElementById('form-not').value = kayit.not || '';
+        }
+        document.getElementById('modal-baslik-text').textContent = 'Şifre Düzenle';
+    } else {
+        document.getElementById('modal-baslik-text').textContent = 'Yeni Şifre';
+    }
+
+    document.getElementById('modal-sifre').classList.add('aktif');
+}
+
+function modalKapat() {
+    document.getElementById('modal-sifre').classList.remove('aktif');
+}
+
+// ══════════════════════════════════════════════════════════
+// JSON İMPORT / EXPORT
+// ══════════════════════════════════════════════════════════
+async function jsonExport() {
+    if (sifreListesi.length === 0) {
+        toast('Dışa aktarılacak veri yok', 'hata');
+        return;
+    }
+
+    var exportVeri = sifreListesi.map(function(s) {
+        return {
+            baslik: s.baslik,
+            kategori: s.kategori,
+            kullanici: s.kullanici,
+            sifre: s.sifre,
+            url: s.url,
+            not: s.not
+        };
+    });
+
+    var blob = new Blob([JSON.stringify(exportVeri, null, 2)], { type: 'application/json' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'sifrelerim_' + new Date().toISOString().slice(0, 10) + '.json';
+    a.click();
+    URL.revokeObjectURL(url);
+    toast('Dışa aktarıldı', 'basari');
+}
+
+async function jsonImport(event) {
+    var dosya = event.target.files[0];
+    if (!dosya) return;
+
+    var reader = new FileReader();
+    reader.onload = async function(e) {
+        try {
+            var veri = JSON.parse(e.target.result);
+            if (!Array.isArray(veri)) { toast('Geçersiz format', 'hata'); return; }
+
+            var eklenen = 0;
+            for (var i = 0; i < veri.length; i++) {
+                var item = veri[i];
+                if (!item.baslik || !item.sifre) continue;
+
+                var kayit = {
+                    baslik: item.baslik || '',
+                    kategori: item.kategori || 'Diğer',
+                    kullanici: item.kullanici || '',
+                    sifre: item.sifre || '',
+                    url: item.url || '',
+                    not: item.not || ''
+                };
+
+                var ts = Date.now() + i;
+
+                if (cevrimIciMi) {
+                    var sifreliVeri = await sifrele(JSON.stringify(kayit));
+                    await db.ref('passwords/' + mevcutKullanici.uid).push({ data: sifreliVeri, ts: ts });
+                } else {
+                    kayit.id = 'offline_' + ts;
+                    kayit.ts = ts;
+                    kayit.offlineYeni = true;
+                    sifreListesi.push(kayit);
+                }
+                eklenen++;
+            }
+
+            if (!cevrimIciMi) {
+                lokalKaydet();
+                listeGuncelle();
+            }
+            toast(eklenen + ' şifre içe aktarıldı', 'basari');
+        } catch (err) {
+            toast('Dosya okunamadı: ' + err.message, 'hata');
+        }
+    };
+    reader.readAsText(dosya);
+    event.target.value = '';
+}
+
+// ══════════════════════════════════════════════════════════
+// YARDIMCI FONKSİYONLAR
+// ══════════════════════════════════════════════════════════
+function htmlKacis(str) {
+    if (!str) return '';
+    var div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
+function htmlKacisAttr(str) {
+    return (str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
+}
+
+function toast(mesaj, tip) {
+    var container = document.getElementById('toast-container');
+    var el = document.createElement('div');
+    el.className = 'toast ' + (tip || 'bilgi');
+    el.textContent = mesaj;
+    container.appendChild(el);
+    setTimeout(function() { el.remove(); }, 3000);
+}
+
+function menuToggle() {
+    menuAcikMi = !menuAcikMi;
+    document.getElementById('alt-menu').style.display = menuAcikMi ? 'flex' : 'none';
+}
+
+// ESC ile modal kapat
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        modalKapat();
+        document.getElementById('modal-sil').classList.remove('aktif');
+    }
+});
+
+// Modal overlay tıklama ile kapat
+document.querySelectorAll('.modal-overlay').forEach(function(overlay) {
+    overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) {
+            overlay.classList.remove('aktif');
+        }
+    });
+});
+
+// Başlangıç durumu
+durumGuncelle();
+</script>
+</body>
+</html>
