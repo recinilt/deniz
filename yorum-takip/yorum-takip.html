@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YouTube Yorum Takip</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0f1117;--surface:#1a1d27;--surface2:#242836;--border:#2e3346;
+  --text:#e4e6ef;--text2:#9498ad;--accent:#e44040;--accent2:#c03030;
+  --blue:#6c8aff;--blue2:#4e6de0;
+  --danger:#ef4444;--success:#22c55e;--warn:#f59e0b;
+  --radius:10px;--shadow:0 2px 12px rgba(0,0,0,0.3);
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.5}
+button{font-family:inherit;cursor:pointer;border:none;outline:none;transition:all .2s}
+input,textarea{font-family:inherit;outline:none;border:1px solid var(--border);background:var(--surface2);color:var(--text);border-radius:var(--radius);padding:10px 14px;font-size:14px;width:100%;transition:border .2s}
+input:focus,textarea:focus{border-color:var(--accent)}
+
+.container{max-width:540px;margin:0 auto;padding:16px}
+.header{display:flex;align-items:center;justify-content:space-between;padding:12px 0;margin-bottom:8px}
+.header h1{font-size:18px;font-weight:700;letter-spacing:-0.3px}
+.header h1 span{color:var(--accent)}
+
+/* Giriş Ekranı */
+#giris-ekran{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:70vh;text-align:center;gap:24px}
+#giris-ekran h2{font-size:26px;font-weight:700}
+#giris-ekran h2 span{color:var(--accent)}
+#giris-ekran p{color:var(--text2);max-width:320px;font-size:14px}
+.btn-google{display:flex;align-items:center;gap:10px;background:#fff;color:#333;font-size:15px;font-weight:600;padding:12px 28px;border-radius:var(--radius);box-shadow:var(--shadow)}
+.btn-google:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,0,0,0.4)}
+.btn-google img{width:20px;height:20px}
+
+/* Ana Ekran */
+#ana-ekran{display:none}
+.kullanici-bilgi{display:flex;align-items:center;gap:10px}
+.kullanici-bilgi img{width:28px;height:28px;border-radius:50%;border:2px solid var(--border)}
+.kullanici-bilgi span{font-size:13px;color:var(--text2)}
+
+.section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px}
+.section-title{font-size:14px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.section-title .icon{font-size:18px}
+
+.btn{padding:8px 16px;border-radius:var(--radius);font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent2)}
+.btn-blue{background:var(--blue);color:#fff}
+.btn-blue:hover{background:var(--blue2)}
+.btn-secondary{background:var(--surface2);color:var(--text2);border:1px solid var(--border)}
+.btn-secondary:hover{border-color:var(--accent);color:var(--text)}
+.btn-danger{background:transparent;color:var(--danger);border:1px solid var(--danger);padding:4px 8px;font-size:11px;border-radius:6px}
+.btn-danger:hover{background:var(--danger);color:#fff}
+.btn-sm{padding:6px 10px;font-size:12px}
+.btn-icon{padding:6px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text2);font-size:14px}
+.btn-icon:hover{border-color:var(--accent);color:var(--text)}
+
+.input-row{display:flex;gap:8px;margin-bottom:8px}
+.input-row input{flex:1}
+
+/* Chat ID alanı */
+.chatid-status{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:13px}
+.chatid-status .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.chatid-status .dot.ok{background:var(--success)}
+.chatid-status .dot.yok{background:var(--danger)}
+
+/* Video Kartı */
+.video-kart{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.video-kart .video-info{flex:1;min-width:0}
+.video-kart .video-baslik{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.video-kart .video-id{font-size:11px;color:var(--text2);font-family:'Courier New',monospace}
+.video-kart .video-thumb{width:64px;height:36px;border-radius:4px;object-fit:cover;flex-shrink:0}
+.video-bos{text-align:center;padding:24px;color:var(--text2);font-size:13px}
+
+/* Yardım Kutusu */
+.yardim-kutu{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-top:10px;font-size:13px;line-height:1.7;display:none}
+.yardim-kutu.acik{display:block}
+.yardim-kutu ol{margin-left:20px;margin-top:6px}
+.yardim-kutu li{margin-bottom:6px}
+.yardim-kutu code{background:var(--bg);padding:2px 6px;border-radius:4px;font-size:12px;color:var(--accent)}
+.yardim-kutu a{color:var(--blue);text-decoration:none}
+.yardim-kutu a:hover{text-decoration:underline}
+.yardim-kutu img{max-width:100%;border-radius:6px;margin:6px 0}
+
+/* Durum Bilgisi */
+.durum-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.durum-item{background:var(--surface2);border-radius:8px;padding:10px;text-align:center}
+.durum-item .sayi{font-size:20px;font-weight:700;color:var(--accent)}
+.durum-item .etiket{font-size:11px;color:var(--text2);margin-top:2px}
+
+/* Alt Menü */
+.alt-menu{display:flex;gap:8px;justify-content:center;padding:12px 0;margin-top:8px;flex-wrap:wrap}
+
+/* Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:100;align-items:center;justify-content:center;padding:16px}
+.modal-overlay.aktif{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;width:100%;max-width:440px;max-height:85vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.5)}
+.modal-baslik{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border)}
+.modal-baslik h3{font-size:15px;font-weight:700}
+.modal-icerik{padding:18px;font-size:13px;line-height:1.7}
+.modal-icerik ol{margin-left:20px}
+.modal-icerik li{margin-bottom:8px}
+.modal-icerik code{background:var(--bg);padding:2px 6px;border-radius:4px;font-size:12px;color:var(--accent)}
+
+/* Toast */
+.toast-container{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:200;display:flex;flex-direction:column;gap:8px;align-items:center}
+.toast{padding:10px 20px;border-radius:var(--radius);font-size:13px;font-weight:600;box-shadow:var(--shadow);animation:toastIn .3s ease}
+.toast.basari{background:var(--success);color:#fff}
+.toast.hata{background:var(--danger);color:#fff}
+.toast.bilgi{background:var(--blue);color:#fff}
+@keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+.spinner{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@media(max-width:400px){
+  .container{padding:10px}
+  .durum-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- HEADER -->
+  <div class="header" id="header" style="display:none">
+    <h1>▶️ YouTube <span>Yorum Takip</span></h1>
+    <div class="kullanici-bilgi" id="kullanici-bilgi"></div>
+  </div>
+
+  <!-- GİRİŞ EKRANI -->
+  <div id="giris-ekran">
+    <h2>▶️ YouTube<br><span>Yorum Takip</span></h2>
+    <p>Videolarına gelen yeni yorumları anında Telegram'dan öğren.</p>
+    <button class="btn-google" onclick="gmailGiris()">
+      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G">
+      Google ile Giriş Yap
+    </button>
+  </div>
+
+  <!-- ANA EKRAN -->
+  <div id="ana-ekran">
+
+    <!-- TELEGRAM AYARLARI -->
+    <div class="section">
+      <div class="section-title"><span class="icon">📨</span> Telegram Bildirim Ayarı</div>
+      <div class="input-row">
+        <input type="text" id="chatid-input" placeholder="Telegram Chat ID girin...">
+        <button class="btn btn-primary btn-sm" onclick="chatIdKaydet()">Kaydet</button>
+      </div>
+      <div class="chatid-status" id="chatid-status"></div>
+      <button class="btn btn-secondary btn-sm" style="margin-top:8px" onclick="yardimToggle()">❓ Chat ID nasıl bulunur?</button>
+
+      <div class="yardim-kutu" id="yardim-kutu">
+        <strong>📋 Telegram Chat ID Bulma Rehberi:</strong>
+        <ol>
+          <li>Telegram uygulamanızı açın (telefon veya bilgisayar).</li>
+          <li>Arama çubuğuna <code>@sosyaltakip_bot</code> yazın ve botu bulun.</li>
+          <li>Bota tıklayın ve <strong>"Başlat"</strong> (Start) butonuna basın.</li>
+          <li>Bota şu mesajı yazın: <code>/start</code></li>
+          <li>Bot size Chat ID'nizi söyleyecektir. Eğer söylemezse aşağıdaki yöntemi deneyin:</li>
+          <li>Tarayıcınızda şu adresi açın:<br>
+            <a href="https://api.telegram.org/bot8098748873:AAH10XoWAOPySWkyuOhGbDoJurcJ5AM4A5I/getUpdates" target="_blank">
+              <code>api.telegram.org/.../getUpdates</code>
+            </a>
+          </li>
+          <li>Açılan sayfada <code>"chat":{"id":</code> yazan yeri bulun. Oradaki sayı sizin <strong>Chat ID</strong>'nizdir.</li>
+          <li>Örnek: <code>1002472450</code> veya grup için <code>-5229371444</code></li>
+          <li>Bu sayıyı yukarıdaki kutuya yapıştırın ve <strong>Kaydet</strong>'e basın.</li>
+        </ol>
+        <p style="margin-top:8px;color:var(--warn)">⚠️ Grup Chat ID'leri eksi (-) ile başlar. Kişisel ID'ler pozitif sayıdır.</p>
+      </div>
+    </div>
+
+    <!-- VİDEO YÖNETİMİ -->
+    <div class="section">
+      <div class="section-title"><span class="icon">🎬</span> Takip Edilen Videolar</div>
+      <div class="input-row">
+        <input type="text" id="video-input" placeholder="YouTube link yapıştırın...">
+        <button class="btn btn-primary btn-sm" onclick="videoEkle()">+ Ekle</button>
+      </div>
+      <div id="video-liste"></div>
+    </div>
+
+    <!-- DURUM -->
+    <div class="section">
+      <div class="section-title"><span class="icon">📊</span> Durum</div>
+      <div class="durum-grid">
+        <div class="durum-item">
+          <div class="sayi" id="durum-video">0</div>
+          <div class="etiket">Takip Edilen Video</div>
+        </div>
+        <div class="durum-item">
+          <div class="sayi" id="durum-chatid">-</div>
+          <div class="etiket">Chat ID</div>
+        </div>
+      </div>
+      <p style="font-size:12px;color:var(--text2);margin-top:10px;text-align:center">
+        ⚙️ Cloudflare Worker her <strong>6 dakikada</strong> bir yorumları kontrol eder ve yeni yorum varsa Telegram'dan bildirim gönderir.
+      </p>
+    </div>
+
+    <!-- ALT MENÜ -->
+    <div class="alt-menu">
+      <button class="btn btn-secondary btn-sm" onclick="testBildirim()">🔔 Test Bildirim</button>
+      <button class="btn btn-danger btn-sm" style="background:transparent;color:var(--danger);border:1px solid var(--danger);padding:6px 10px;font-size:12px;border-radius:var(--radius)" onclick="cikisYap()">🚪 Çıkış</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+
+<script>
+// ══════════════════════════════════════════════════════════
+// FIREBASE CONFIG (sifrehatirlatici projesi - aynı proje)
+// ══════════════════════════════════════════════════════════
+var firebaseConfig = {
+    apiKey: "AIzaSyB5YosGWGdxZ-nizZ7ROf_XtZat76z6-4Q",
+    authDomain: "sifrehatirlatici-cf65d.firebaseapp.com",
+    databaseURL: "https://sifrehatirlatici-cf65d-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "sifrehatirlatici-cf65d",
+    storageBucket: "sifrehatirlatici-cf65d.firebasestorage.app",
+    messagingSenderId: "102814458136",
+    appId: "1:102814458136:web:c5ae4a837d2264f9c57e6d"
+};
+firebase.initializeApp(firebaseConfig);
+var auth = firebase.auth();
+var db = firebase.database();
+var googleProvider = new firebase.auth.GoogleAuthProvider();
+auth.languageCode = 'tr';
+
+// ══════════════════════════════════════════════════════════
+// GLOBAL DEĞİŞKENLER
+// ══════════════════════════════════════════════════════════
+var mevcutKullanici = null;
+var videolar = {};
+var WORKER_URL = 'https://yorum-takip.reccirik4.workers.dev';
+
+// ══════════════════════════════════════════════════════════
+// AUTH İŞLEMLERİ
+// ══════════════════════════════════════════════════════════
+function gmailGiris() {
+    auth.signInWithPopup(googleProvider).catch(function(err) {
+        console.error('Giriş hatası:', err);
+        toast('Giriş başarısız: ' + err.message, 'hata');
+    });
+}
+
+function cikisYap() {
+    auth.signOut();
+}
+
+auth.onAuthStateChanged(function(user) {
+    if (user) {
+        mevcutKullanici = user;
+        girisYapildi();
+    } else {
+        mevcutKullanici = null;
+        videolar = {};
+        cikisYapildi();
+    }
+});
+
+function girisYapildi() {
+    document.getElementById('giris-ekran').style.display = 'none';
+    document.getElementById('ana-ekran').style.display = 'block';
+    document.getElementById('header').style.display = 'flex';
+
+    var bilgi = document.getElementById('kullanici-bilgi');
+    bilgi.innerHTML = '<img src="' + (mevcutKullanici.photoURL || '') + '" alt="">' +
+                      '<span>' + (mevcutKullanici.displayName || mevcutKullanici.email) + '</span>';
+
+    verileriYukle();
+}
+
+function cikisYapildi() {
+    document.getElementById('giris-ekran').style.display = 'flex';
+    document.getElementById('ana-ekran').style.display = 'none';
+    document.getElementById('header').style.display = 'none';
+}
+
+// ══════════════════════════════════════════════════════════
+// VERİ YÖNETİMİ (Firebase RTDB)
+// ══════════════════════════════════════════════════════════
+// Yol: yorumTakip/{uid}/ → sifrehatirlatici verilerine DOKUNMAZ
+function verileriYukle() {
+    var uid = mevcutKullanici.uid;
+
+    // Chat ID dinle
+    db.ref('yorumTakip/' + uid + '/chatId').on('value', function(snap) {
+        var chatId = snap.val() || '';
+        document.getElementById('chatid-input').value = chatId;
+        chatIdDurumGuncelle(chatId);
+    });
+
+    // Videoları dinle
+    db.ref('yorumTakip/' + uid + '/videos').on('value', function(snap) {
+        videolar = snap.val() || {};
+        videoListeGuncelle();
+        durumGuncelle();
+    });
+}
+
+function chatIdKaydet() {
+    var chatId = document.getElementById('chatid-input').value.trim();
+    if (!chatId) {
+        toast('Chat ID boş olamaz', 'hata');
+        return;
+    }
+    if (!/^-?\d+$/.test(chatId)) {
+        toast('Chat ID sadece rakam olmalı (grup için başında - olabilir)', 'hata');
+        return;
+    }
+    db.ref('yorumTakip/' + mevcutKullanici.uid + '/chatId').set(chatId);
+    toast('Chat ID kaydedildi', 'basari');
+}
+
+function chatIdDurumGuncelle(chatId) {
+    var el = document.getElementById('chatid-status');
+    var durumEl = document.getElementById('durum-chatid');
+    if (chatId) {
+        el.innerHTML = '<div class="dot ok"></div> Chat ID kayıtlı: <strong>' + chatId + '</strong>';
+        durumEl.textContent = '✅';
+    } else {
+        el.innerHTML = '<div class="dot yok"></div> Chat ID girilmemiş';
+        durumEl.textContent = '❌';
+    }
+}
+
+// ══════════════════════════════════════════════════════════
+// VİDEO İŞLEMLERİ
+// ══════════════════════════════════════════════════════════
+function videoIdCikar(url) {
+    var match = url.match(/(?:youtube\.com\/watch\?.*v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/);
+    return match ? match[1] : null;
+}
+
+async function videoEkle() {
+    var input = document.getElementById('video-input');
+    var url = input.value.trim();
+    if (!url) {
+        toast('Lütfen bir YouTube linki yapıştırın', 'hata');
+        return;
+    }
+
+    var videoId = videoIdCikar(url);
+    if (!videoId) {
+        toast('Geçerli bir YouTube linki değil', 'hata');
+        return;
+    }
+
+    // Zaten var mı kontrol
+    for (var key in videolar) {
+        if (videolar[key].videoId === videoId) {
+            toast('Bu video zaten takip ediliyor', 'hata');
+            return;
+        }
+    }
+
+    // Video başlığını al (oEmbed API - API key gerektirmez)
+    var baslik = '';
+    try {
+        var oembedUrl = 'https://www.youtube.com/oembed?url=https://youtube.com/watch?v=' + videoId + '&format=json';
+        var res = await fetch(oembedUrl);
+        if (res.ok) {
+            var data = await res.json();
+            baslik = data.title || '';
+        }
+    } catch (e) {
+        console.log('oEmbed hatası:', e);
+    }
+
+    var kayit = {
+        videoId: videoId,
+        url: url,
+        title: baslik,
+        addedAt: Date.now()
+    };
+
+    db.ref('yorumTakip/' + mevcutKullanici.uid + '/videos').push(kayit);
+    input.value = '';
+    toast('Video eklendi: ' + (baslik || videoId), 'basari');
+}
+
+function videoSil(key) {
+    if (confirm('Bu videoyu takipten çıkarmak istediğinize emin misiniz?')) {
+        db.ref('yorumTakip/' + mevcutKullanici.uid + '/videos/' + key).remove();
+        toast('Video kaldırıldı', 'basari');
+    }
+}
+
+function videoListeGuncelle() {
+    var container = document.getElementById('video-liste');
+    var keys = Object.keys(videolar);
+
+    if (keys.length === 0) {
+        container.innerHTML = '<div class="video-bos">📭 Henüz takip edilen video yok.<br>Yukarıdan YouTube linki ekleyin.</div>';
+        return;
+    }
+
+    var html = '';
+    keys.forEach(function(key) {
+        var v = videolar[key];
+        var thumb = 'https://img.youtube.com/vi/' + v.videoId + '/default.jpg';
+        html += '<div class="video-kart">' +
+            '<img src="' + thumb + '" class="video-thumb" onerror="this.style.display=\'none\'">' +
+            '<div class="video-info">' +
+                '<div class="video-baslik">' + htmlKacis(v.title || 'Başlıksız Video') + '</div>' +
+                '<div class="video-id">' + v.videoId + '</div>' +
+            '</div>' +
+            '<button class="btn-danger" onclick="videoSil(\'' + key + '\')">Sil</button>' +
+            '</div>';
+    });
+    container.innerHTML = html;
+}
+
+function durumGuncelle() {
+    document.getElementById('durum-video').textContent = Object.keys(videolar).length;
+}
+
+// ══════════════════════════════════════════════════════════
+// TEST BİLDİRİM
+// ══════════════════════════════════════════════════════════
+async function testBildirim() {
+    var chatId = document.getElementById('chatid-input').value.trim();
+    if (!chatId) {
+        toast('Önce Chat ID girin', 'hata');
+        return;
+    }
+
+    var kullaniciAdi = mevcutKullanici.displayName || mevcutKullanici.email;
+
+    try {
+        // Worker üzerinden Telegram'a gönder (CORS sorunu yok)
+        var workerUrl = WORKER_URL + '/test' +
+                        '?chatId=' + encodeURIComponent(chatId) +
+                        '&kullanici=' + encodeURIComponent(kullaniciAdi);
+        var res = await fetch(workerUrl);
+        var data = await res.json();
+        if (data.ok) {
+            toast('Test bildirimi gönderildi! Telegram\'ı kontrol edin.', 'basari');
+        } else {
+            toast('Hata: ' + (data.description || 'Bilinmeyen hata'), 'hata');
+        }
+    } catch (e) {
+        toast('Bağlantı hatası: ' + e.message, 'hata');
+    }
+}
+
+// ══════════════════════════════════════════════════════════
+// YARDIMCI FONKSİYONLAR
+// ══════════════════════════════════════════════════════════
+function htmlKacis(str) {
+    if (!str) return '';
+    var div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
+function toast(mesaj, tip) {
+    var container = document.getElementById('toast-container');
+    var el = document.createElement('div');
+    el.className = 'toast ' + (tip || 'bilgi');
+    el.textContent = mesaj;
+    container.appendChild(el);
+    setTimeout(function() { el.remove(); }, 3500);
+}
+
+function yardimToggle() {
+    var el = document.getElementById('yardim-kutu');
+    el.classList.toggle('acik');
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+        var active = document.activeElement;
+        if (active && active.id === 'video-input') videoEkle();
+        if (active && active.id === 'chatid-input') chatIdKaydet();
+    }
+});
+</script>
+</body>
+</html>
