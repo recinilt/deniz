@@ -263,68 +263,6 @@
   .results-stats span { display: flex; align-items: center; gap: 4px; }
   .results-stats .val { color: var(--text); font-weight: 700; font-size: 14px; }
 
-  /* Action buttons row */
-  .action-row {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 16px;
-    flex-wrap: wrap;
-  }
-  .action-btn {
-    font-family: 'Outfit', sans-serif;
-    font-size: 13px;
-    font-weight: 600;
-    border: none;
-    border-radius: 8px;
-    padding: 10px 20px;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .action-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
-  .action-btn.save-btn {
-    background: var(--accent);
-    color: #fff;
-  }
-  .action-btn.save-btn.saved {
-    background: var(--success);
-  }
-  .action-btn.refresh-btn {
-    background: var(--surface2);
-    color: var(--text);
-    border: 1px solid var(--border);
-  }
-  .action-btn.refresh-btn:hover {
-    border-color: var(--warn);
-    color: var(--warn);
-  }
-  .action-btn.delete-btn {
-    background: var(--surface2);
-    color: var(--danger);
-    border: 1px solid rgba(248,113,113,0.3);
-  }
-  .action-btn.delete-btn:hover {
-    background: rgba(248,113,113,0.08);
-    border-color: var(--danger);
-  }
-
-  /* Saved date info */
-  .saved-info {
-    font-size: 11px;
-    color: var(--text-dim);
-    margin-bottom: 16px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .saved-info .date {
-    color: var(--warn);
-    font-weight: 600;
-    font-family: 'JetBrains Mono', monospace;
-  }
-
   .filter-row { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
   .search-input {
     flex: 1;
@@ -488,15 +426,11 @@
   @keyframes spin { to { transform: rotate(360deg); } }
   .loading-text { font-size: 14px; color: var(--text-dim); }
 
-  .hidden { display: none !important; }
-
   @media (max-width: 600px) {
     .file-buttons { grid-template-columns: 1fr; }
     .domain-header { grid-template-columns: 36px 1fr auto auto; gap: 10px; padding: 10px 12px; }
     .path-item { padding-left: 52px; }
     .container { padding: 24px 16px 60px; }
-    .action-row { flex-direction: column; }
-    .action-btn { justify-content: center; }
   }
 
   .fade-in { animation: fadeIn 0.4s ease both; }
@@ -521,124 +455,94 @@
     <p>Yer imlerinizi domain bazlı grupla, ziyaret sıklığına göre sırala</p>
   </div>
 
-  <!-- STEPS WRAPPER -->
-  <div id="stepsWrapper">
+  <!-- STEP 1 -->
+  <div class="step active fade-in" id="step1">
+    <div class="step-badge"><span class="num">1</span> PROFİL ALGILAMA</div>
+    <h2>Local State Dosyasını Seçin</h2>
+    <p class="desc">Bu dosya tüm Chrome profillerinizin listesini içerir.</p>
+    <div class="info-box">
+      <span class="emoji">⚠️</span> <strong>Dosya Seçici Açıldığında:</strong>
+      <ol class="steps-list">
+        <li>Aşağıdaki yolu <strong>📋 Kopyala</strong> butonuyla kopyalayın</li>
+        <li>Dosya seçicinin <strong>adres çubuğuna</strong> tıklayın (<code>Alt+D</code>)</li>
+        <li>Yapıştırın (<code>Ctrl+V</code>) ve <strong>Enter</strong>'a basın</li>
+        <li><code>Local State</code> dosyasını seçin</li>
+      </ol>
+    </div>
+    <div class="path-row">
+      <div class="path-display" id="localStatePath">%LOCALAPPDATA%\Google\Chrome\User Data</div>
+      <button class="copy-btn" onclick="copyPath('localStatePath', this)">📋 Kopyala</button>
+    </div>
+    <div class="file-btn-wrap">
+      <div class="file-btn" id="localStateBtn" onclick="document.getElementById('localStateInput').click()">
+        <span class="icon">📂</span>
+        <span class="label">Local State Dosyasını Seç</span>
+        <span class="sublabel">User Data klasöründeki "Local State" dosyası</span>
+      </div>
+      <input type="file" id="localStateInput" accept="*" style="display:none" onchange="handleLocalState(this)">
+    </div>
+  </div>
 
-    <!-- STEP 1 -->
-    <div class="step active fade-in" id="step1">
-      <div class="step-badge"><span class="num">1</span> PROFİL ALGILAMA</div>
-      <h2>Local State Dosyasını Seçin</h2>
-      <p class="desc">Bu dosya tüm Chrome profillerinizin listesini içerir.</p>
+  <!-- STEP 2 -->
+  <div class="step locked" id="step2">
+    <div class="step-badge"><span class="num">2</span> PROFİL SEÇİMİ</div>
+    <h2>Chrome Profilinizi Seçin</h2>
+    <p class="desc">Algılanan profillerden aktif kullandığınızı seçin.</p>
+    <select class="profile-select" id="profileSelect" onchange="onProfileChange()">
+      <option disabled selected>— Profil seçin —</option>
+    </select>
+    <div id="profilePathSection" style="display:none">
       <div class="info-box">
-        <span class="emoji">⚠️</span> <strong>Dosya Seçici Açıldığında:</strong>
-        <ol class="steps-list">
-          <li>Aşağıdaki yolu <strong>📋 Kopyala</strong> butonuyla kopyalayın</li>
-          <li>Dosya seçicinin <strong>adres çubuğuna</strong> tıklayın (<code>Alt+D</code>)</li>
-          <li>Yapıştırın (<code>Ctrl+V</code>) ve <strong>Enter</strong>'a basın</li>
-          <li><code>Local State</code> dosyasını seçin</li>
-        </ol>
+        <span class="emoji">📁</span> Dosya seçici açıldığında bu yolu adres çubuğuna yapıştırın.
       </div>
       <div class="path-row">
-        <div class="path-display" id="localStatePath">%LOCALAPPDATA%\Google\Chrome\User Data</div>
-        <button class="copy-btn" onclick="copyPath('localStatePath', this)">📋 Kopyala</button>
+        <div class="path-display" id="profilePath"></div>
+        <button class="copy-btn" onclick="copyPath('profilePath', this)">📋 Kopyala</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="step locked" id="step3">
+    <div class="step-badge"><span class="num">3</span> DOSYA SEÇİMİ & ANALİZ</div>
+    <h2>Bookmarks ve History Dosyalarını Seçin</h2>
+    <p class="desc">Her iki dosya da seçilen profil klasöründedir.</p>
+    <div class="info-box">
+      <span class="emoji">💡</span> Chrome açıkken okunabilir. Son birkaç dakikalık ziyaretler eksik kalabilir — normal.
+    </div>
+    <div class="file-buttons">
+      <div class="file-btn-wrap">
+        <div class="file-btn" id="bookmarksBtn" onclick="document.getElementById('bookmarksInput').click()">
+          <span class="icon">🔖</span>
+          <span class="label">Bookmarks</span>
+          <span class="sublabel">Yer imleri (JSON)</span>
+        </div>
+        <input type="file" id="bookmarksInput" accept="*" style="display:none" onchange="handleBookmarks(this)">
       </div>
       <div class="file-btn-wrap">
-        <div class="file-btn" id="localStateBtn" onclick="document.getElementById('localStateInput').click()">
-          <span class="icon">📂</span>
-          <span class="label">Local State Dosyasını Seç</span>
-          <span class="sublabel">User Data klasöründeki "Local State" dosyası</span>
+        <div class="file-btn" id="historyBtn" onclick="document.getElementById('historyInput').click()">
+          <span class="icon">📊</span>
+          <span class="label">History</span>
+          <span class="sublabel">Geçmiş (SQLite)</span>
         </div>
-        <input type="file" id="localStateInput" accept="*" style="display:none" onchange="handleLocalState(this)">
+        <input type="file" id="historyInput" accept="*" style="display:none" onchange="handleHistory(this)">
       </div>
     </div>
-
-    <!-- STEP 2 -->
-    <div class="step locked" id="step2">
-      <div class="step-badge"><span class="num">2</span> PROFİL SEÇİMİ</div>
-      <h2>Chrome Profilinizi Seçin</h2>
-      <p class="desc">Algılanan profillerden aktif kullandığınızı seçin.</p>
-      <select class="profile-select" id="profileSelect" onchange="onProfileChange()">
-        <option disabled selected>— Profil seçin —</option>
-      </select>
-      <div id="profilePathSection" style="display:none">
-        <div class="info-box">
-          <span class="emoji">📁</span> Dosya seçici açıldığında bu yolu adres çubuğuna yapıştırın.
-        </div>
-        <div class="path-row">
-          <div class="path-display" id="profilePath"></div>
-          <button class="copy-btn" onclick="copyPath('profilePath', this)">📋 Kopyala</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- STEP 3 -->
-    <div class="step locked" id="step3">
-      <div class="step-badge"><span class="num">3</span> DOSYA SEÇİMİ & ANALİZ</div>
-      <h2>Bookmarks ve History Dosyalarını Seçin</h2>
-      <p class="desc">Her iki dosya da seçilen profil klasöründedir.</p>
-      <div class="info-box">
-        <span class="emoji">💡</span> Chrome açıkken okunabilir. Son birkaç dakikalık ziyaretler eksik kalabilir — normal.
-      </div>
-      <div class="file-buttons">
-        <div class="file-btn-wrap">
-          <div class="file-btn" id="bookmarksBtn" onclick="document.getElementById('bookmarksInput').click()">
-            <span class="icon">🔖</span>
-            <span class="label">Bookmarks</span>
-            <span class="sublabel">Yer imleri (JSON)</span>
-          </div>
-          <input type="file" id="bookmarksInput" accept="*" style="display:none" onchange="handleBookmarks(this)">
-        </div>
-        <div class="file-btn-wrap">
-          <div class="file-btn" id="historyBtn" onclick="document.getElementById('historyInput').click()">
-            <span class="icon">📊</span>
-            <span class="label">History</span>
-            <span class="sublabel">Geçmiş (SQLite)</span>
-          </div>
-          <input type="file" id="historyInput" accept="*" style="display:none" onchange="handleHistory(this)">
-        </div>
-      </div>
-      <button class="analyze-btn" id="analyzeBtn" disabled onclick="analyze()">
-        🔍 Analiz Et — Domain Bazlı Sırala
-      </button>
-    </div>
-
-  </div><!-- /stepsWrapper -->
+    <button class="analyze-btn" id="analyzeBtn" disabled onclick="analyze()">
+      🔍 Analiz Et — Domain Bazlı Sırala
+    </button>
+  </div>
 
   <div id="results"></div>
 </div>
 
 <script>
-// ====== CONSTANTS ======
-const STORAGE_KEY = 'chrome_bm_analyzer_data';
-
 // ====== STATE ======
 let profilesData = {};
 let selectedProfileDir = '';
 let bookmarksJSON = null;
 let historyBuffer = null;
 let domainGroups = [];
-let savedDate = null;
-
-// ====== INIT: localStorage kontrolü ======
-(function init() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const saved = JSON.parse(raw);
-      if (saved && saved.domainGroups && saved.domainGroups.length > 0) {
-        domainGroups = saved.domainGroups;
-        savedDate = saved.savedDate || null;
-        // Adımları gizle, sonuçları göster
-        document.getElementById('stepsWrapper').classList.add('hidden');
-        renderResults(true);
-        return;
-      }
-    }
-  } catch (e) {
-    console.warn('localStorage okunamadı:', e);
-  }
-  // localStorage boş → normal akış
-})();
 
 // ====== CLIPBOARD ======
 async function copyPath(elementId, btn) {
@@ -650,78 +554,6 @@ async function copyPath(elementId, btn) {
   }
   btn.classList.add('copied'); btn.innerHTML = '✅ Kopyalandı!';
   setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = '📋 Kopyala'; }, 2000);
-}
-
-// ====== LOCALSTORAGE ======
-function saveToLocal() {
-  try {
-    const data = {
-      domainGroups: domainGroups,
-      savedDate: new Date().toISOString()
-    };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    savedDate = data.savedDate;
-    // Buton feedback
-    const btn = document.getElementById('saveBtn');
-    if (btn) {
-      btn.classList.add('saved');
-      btn.innerHTML = '✅ Kaydedildi!';
-      setTimeout(() => { btn.classList.remove('saved'); btn.innerHTML = '💾 Lokale Kaydet'; }, 2000);
-    }
-    // Tarih güncelle
-    updateSavedInfo();
-  } catch (e) {
-    if (e.name === 'QuotaExceededError') {
-      alert('localStorage doldu. Veri çok büyük olabilir.');
-    } else {
-      alert('Kaydetme hatası: ' + e.message);
-    }
-  }
-}
-
-function deleteFromLocal() {
-  try { localStorage.removeItem(STORAGE_KEY); } catch (e) { /* ignore */ }
-  savedDate = null;
-}
-
-function updateSavedInfo() {
-  const el = document.getElementById('savedInfo');
-  if (!el) return;
-  if (savedDate) {
-    const d = new Date(savedDate);
-    const str = d.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-    el.innerHTML = `📌 Lokal kayıt: <span class="date">${str}</span>`;
-    el.classList.remove('hidden');
-  } else {
-    el.classList.add('hidden');
-  }
-}
-
-function refreshAnalysis() {
-  // localStorage'ı sil, adımları göster, sonuçları temizle
-  deleteFromLocal();
-  domainGroups = [];
-  bookmarksJSON = null;
-  historyBuffer = null;
-  document.getElementById('results').innerHTML = '';
-  document.getElementById('stepsWrapper').classList.remove('hidden');
-  // Adımları resetle
-  document.getElementById('step1').className = 'step active fade-in';
-  document.getElementById('step2').className = 'step locked';
-  document.getElementById('step3').className = 'step locked';
-  document.getElementById('profilePathSection').style.display = 'none';
-  document.getElementById('profileSelect').innerHTML = '<option disabled selected>— Profil seçin —</option>';
-  document.getElementById('localStateBtn').classList.remove('loaded');
-  document.getElementById('localStateBtn').querySelector('.label').textContent = 'Local State Dosyasını Seç';
-  document.getElementById('bookmarksBtn').classList.remove('loaded');
-  document.getElementById('bookmarksBtn').querySelector('.label').textContent = 'Bookmarks';
-  document.getElementById('historyBtn').classList.remove('loaded');
-  document.getElementById('historyBtn').querySelector('.label').textContent = 'History';
-  document.getElementById('analyzeBtn').disabled = true;
-  // input'ları resetle
-  document.getElementById('localStateInput').value = '';
-  document.getElementById('bookmarksInput').value = '';
-  document.getElementById('historyInput').value = '';
 }
 
 // ====== STEP 1 ======
@@ -866,6 +698,7 @@ async function analyze() {
       if (root && typeof root === 'object') rawBm.push(...extractBookmarksRaw(root, ''));
     });
 
+    // Deduplicate: aynı URL → tek kayıt, klasörler birleş
     lt.textContent = 'URL deduplication...';
     const urlMap = {};
     rawBm.forEach(bm => {
@@ -877,6 +710,7 @@ async function analyze() {
       if (bm.folder) urlMap[bm.url].folders.add(bm.folder);
     });
 
+    // Domain gruplama
     lt.textContent = 'Domain gruplama...';
     const dMap = {};
     Object.values(urlMap).forEach(item => {
@@ -892,11 +726,8 @@ async function analyze() {
     });
     domainGroups.sort((a, b) => b.totalVisits - a.totalVisits);
 
-    savedDate = null; // Yeni analiz, henüz kaydedilmedi
-
     overlay.classList.remove('show');
-    document.getElementById('stepsWrapper').classList.add('hidden');
-    renderResults(false);
+    renderResults();
   } catch (err) {
     overlay.classList.remove('show');
     alert('Hata: ' + err.message);
@@ -907,7 +738,7 @@ async function analyze() {
 // ====== RENDER ======
 let currentFilter = 'all';
 
-function renderResults(fromCache) {
+function renderResults() {
   const c = document.getElementById('results');
   const td = domainGroups.length;
   const tu = domainGroups.reduce((s, g) => s + g.uniqueUrls, 0);
@@ -922,12 +753,6 @@ function renderResults(fromCache) {
         <span>Toplam ziyaret: <span class="val">${tv.toLocaleString('tr-TR')}</span></span>
       </div>
     </div>
-    <div class="saved-info ${savedDate ? '' : 'hidden'}" id="savedInfo"></div>
-    <div class="action-row fade-in">
-      <button class="action-btn save-btn" id="saveBtn" onclick="saveToLocal()">💾 Lokale Kaydet</button>
-      <button class="action-btn refresh-btn" onclick="refreshAnalysis()">🔄 Güncelle (Baştan Analiz)</button>
-      ${savedDate ? '<button class="action-btn delete-btn" onclick="deleteSavedAndReset()">🗑️ Lokal Kaydı Sil</button>' : ''}
-    </div>
     <div class="filter-row fade-in">
       <input type="text" class="search-input" id="searchInput" placeholder="🔍 Domain veya URL ara..." oninput="filterResults()">
       <button class="filter-btn active" onclick="setFilter('all', this)">Tümü</button>
@@ -937,13 +762,7 @@ function renderResults(fromCache) {
     <div class="domain-list" id="domainList"></div>
   `;
   currentFilter = 'all';
-  updateSavedInfo();
   filterResults();
-}
-
-function deleteSavedAndReset() {
-  if (!confirm('Lokal kayıt silinecek. Emin misiniz?')) return;
-  refreshAnalysis();
 }
 
 function setFilter(type, btn) {
