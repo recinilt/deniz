@@ -263,6 +263,7 @@
   .results-stats span { display: flex; align-items: center; gap: 4px; }
   .results-stats .val { color: var(--text); font-weight: 700; font-size: 14px; }
 
+  /* Action buttons row */
   .action-row {
     display: flex;
     gap: 10px;
@@ -283,13 +284,33 @@
     gap: 6px;
   }
   .action-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
-  .action-btn.save-btn { background: var(--accent); color: #fff; }
-  .action-btn.save-btn.saved { background: var(--success); }
-  .action-btn.refresh-btn { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
-  .action-btn.refresh-btn:hover { border-color: var(--warn); color: var(--warn); }
-  .action-btn.delete-btn { background: var(--surface2); color: var(--danger); border: 1px solid rgba(248,113,113,0.3); }
-  .action-btn.delete-btn:hover { background: rgba(248,113,113,0.08); border-color: var(--danger); }
+  .action-btn.save-btn {
+    background: var(--accent);
+    color: #fff;
+  }
+  .action-btn.save-btn.saved {
+    background: var(--success);
+  }
+  .action-btn.refresh-btn {
+    background: var(--surface2);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .action-btn.refresh-btn:hover {
+    border-color: var(--warn);
+    color: var(--warn);
+  }
+  .action-btn.delete-btn {
+    background: var(--surface2);
+    color: var(--danger);
+    border: 1px solid rgba(248,113,113,0.3);
+  }
+  .action-btn.delete-btn:hover {
+    background: rgba(248,113,113,0.08);
+    border-color: var(--danger);
+  }
 
+  /* Saved date info */
   .saved-info {
     font-size: 11px;
     color: var(--text-dim);
@@ -298,7 +319,11 @@
     align-items: center;
     gap: 6px;
   }
-  .saved-info .date { color: var(--warn); font-weight: 600; font-family: 'JetBrains Mono', monospace; }
+  .saved-info .date {
+    color: var(--warn);
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+  }
 
   .filter-row { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
   .search-input {
@@ -313,44 +338,21 @@
     padding: 10px 14px;
   }
   .search-input:focus { outline: none; border-color: var(--accent); }
-
-  /* Tab buttons */
-  .tab-row {
-    display: flex;
-    gap: 0;
-    margin-bottom: 16px;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    overflow: hidden;
-    flex-wrap: wrap;
-  }
-  .tab-btn {
+  .filter-btn {
     font-family: 'Outfit', sans-serif;
     font-size: 12px;
     font-weight: 600;
     background: var(--surface);
-    border: none;
+    border: 1px solid var(--border);
     color: var(--text-dim);
-    padding: 10px 16px;
+    border-radius: 8px;
+    padding: 8px 16px;
     cursor: pointer;
     transition: all 0.2s;
-    flex: 1;
-    min-width: 100px;
-    text-align: center;
-    border-right: 1px solid var(--border);
-    white-space: nowrap;
   }
-  .tab-btn:last-child { border-right: none; }
-  .tab-btn:hover { background: var(--surface2); color: var(--text); }
-  .tab-btn.active { background: var(--accent); color: #fff; }
-  .tab-btn.active.tab-fav { background: var(--gold); color: #000; }
-  .tab-btn.active.tab-imp { background: #e879f9; color: #000; }
-  .tab-btn .tab-count {
-    font-size: 10px;
-    opacity: 0.7;
-    margin-left: 4px;
-  }
+  .filter-btn:hover, .filter-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(74,108,247,0.06); }
 
+  /* ===== DOMAIN ACCORDION ===== */
   .domain-list { display: flex; flex-direction: column; gap: 6px; }
 
   .domain-group {
@@ -415,11 +417,10 @@
   .domain-body { display: none; background: var(--bg); }
   .domain-group.open .domain-body { display: block; }
 
-  /* Path items */
   .path-item {
     display: grid;
-    grid-template-columns: auto 1fr auto auto;
-    gap: 8px;
+    grid-template-columns: 1fr auto;
+    gap: 12px;
     align-items: center;
     padding: 10px 16px 10px 78px;
     border-bottom: 1px solid rgba(42,42,58,0.5);
@@ -429,33 +430,6 @@
   }
   .path-item:last-child { border-bottom: none; }
   .path-item:hover { background: rgba(74,108,247,0.04); }
-
-  /* Mark buttons column */
-  .path-marks {
-    display: flex;
-    gap: 4px;
-    flex-shrink: 0;
-  }
-  .mark-btn {
-    width: 28px;
-    height: 28px;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    background: transparent;
-    cursor: pointer;
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.15s;
-    padding: 0;
-    line-height: 1;
-    opacity: 0.4;
-  }
-  .mark-btn:hover { opacity: 0.8; background: var(--surface2); }
-  .mark-btn.active { opacity: 1; border-color: transparent; }
-  .mark-btn.fav-btn.active { background: rgba(245,158,11,0.15); border-color: var(--gold); }
-  .mark-btn.imp-btn.active { background: rgba(232,121,249,0.15); border-color: #e879f9; }
 
   .path-info { overflow: hidden; }
   .path-title { font-size: 12.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
@@ -490,61 +464,6 @@
   }
   .path-visits.zero { color: var(--text-dim); }
 
-  /* Remove button (fav/imp tabs) */
-  .remove-btn {
-    width: 26px;
-    height: 26px;
-    border: 1px solid rgba(248,113,113,0.3);
-    border-radius: 6px;
-    background: transparent;
-    cursor: pointer;
-    font-size: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.15s;
-    color: var(--danger);
-    flex-shrink: 0;
-    padding: 0;
-  }
-  .remove-btn:hover { background: rgba(248,113,113,0.1); border-color: var(--danger); }
-
-  /* Flat list for fav/imp tabs */
-  .flat-list {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-  .flat-item {
-    display: grid;
-    grid-template-columns: 1fr auto auto;
-    gap: 10px;
-    align-items: center;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px 16px;
-    transition: all 0.2s;
-    text-decoration: none;
-    color: inherit;
-  }
-  .flat-item:hover { border-color: var(--accent); background: var(--surface2); }
-  .flat-info { overflow: hidden; }
-  .flat-title { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
-  .flat-url {
-    font-size: 11px;
-    color: var(--text-dim);
-    font-family: 'JetBrains Mono', monospace;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .flat-domain {
-    font-size: 10px;
-    color: var(--accent);
-    margin-top: 2px;
-  }
-
   .no-match { text-align: center; padding: 40px; color: var(--text-dim); font-size: 14px; }
 
   .loading-overlay {
@@ -578,7 +497,6 @@
     .container { padding: 24px 16px 60px; }
     .action-row { flex-direction: column; }
     .action-btn { justify-content: center; }
-    .tab-btn { font-size: 11px; padding: 8px 10px; }
   }
 
   .fade-in { animation: fadeIn 0.4s ease both; }
@@ -603,7 +521,10 @@
     <p>Yer imlerinizi domain bazlı grupla, ziyaret sıklığına göre sırala</p>
   </div>
 
+  <!-- STEPS WRAPPER -->
   <div id="stepsWrapper">
+
+    <!-- STEP 1 -->
     <div class="step active fade-in" id="step1">
       <div class="step-badge"><span class="num">1</span> PROFİL ALGILAMA</div>
       <h2>Local State Dosyasını Seçin</h2>
@@ -631,6 +552,7 @@
       </div>
     </div>
 
+    <!-- STEP 2 -->
     <div class="step locked" id="step2">
       <div class="step-badge"><span class="num">2</span> PROFİL SEÇİMİ</div>
       <h2>Chrome Profilinizi Seçin</h2>
@@ -649,6 +571,7 @@
       </div>
     </div>
 
+    <!-- STEP 3 -->
     <div class="step locked" id="step3">
       <div class="step-badge"><span class="num">3</span> DOSYA SEÇİMİ & ANALİZ</div>
       <h2>Bookmarks ve History Dosyalarını Seçin</h2>
@@ -678,175 +601,111 @@
         🔍 Analiz Et — Domain Bazlı Sırala
       </button>
     </div>
-  </div>
+
+  </div><!-- /stepsWrapper -->
 
   <div id="results"></div>
 </div>
 
 <script>
-var STORAGE_KEY = 'chrome_bm_analyzer_data';
-var FAV_KEY = 'chrome_bm_favorites';
-var IMP_KEY = 'chrome_bm_important';
+// ====== CONSTANTS ======
+const STORAGE_KEY = 'chrome_bm_analyzer_data';
 
-var profilesData = {};
-var selectedProfileDir = '';
-var bookmarksJSON = null;
-var historyBuffer = null;
-var domainGroups = [];
-var savedDate = null;
-var favorites = {};   // url → true
-var important = {};   // url → true
-var currentTab = 'all';
+// ====== STATE ======
+let profilesData = {};
+let selectedProfileDir = '';
+let bookmarksJSON = null;
+let historyBuffer = null;
+let domainGroups = [];
+let savedDate = null;
 
-// ====== INIT ======
-document.addEventListener('DOMContentLoaded', function() {
-  loadMarks();
+// ====== INIT: localStorage kontrolü ======
+(function init() {
   try {
-    var raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
-      var saved = JSON.parse(raw);
-      if (saved && Array.isArray(saved.domainGroups) && saved.domainGroups.length > 0) {
+      const saved = JSON.parse(raw);
+      if (saved && saved.domainGroups && saved.domainGroups.length > 0) {
         domainGroups = saved.domainGroups;
         savedDate = saved.savedDate || null;
+        // Adımları gizle, sonuçları göster
         document.getElementById('stepsWrapper').classList.add('hidden');
-        requestAnimationFrame(function() { renderResults(); });
+        renderResults(true);
         return;
       }
     }
   } catch (e) {
     console.warn('localStorage okunamadı:', e);
-    try { localStorage.removeItem(STORAGE_KEY); } catch(_) {}
   }
-});
-
-// ====== MARKS (favorites & important) ======
-function loadMarks() {
-  try {
-    var f = localStorage.getItem(FAV_KEY);
-    favorites = f ? JSON.parse(f) : {};
-  } catch(e) { favorites = {}; }
-  try {
-    var im = localStorage.getItem(IMP_KEY);
-    important = im ? JSON.parse(im) : {};
-  } catch(e) { important = {}; }
-}
-
-function saveMarks() {
-  try { localStorage.setItem(FAV_KEY, JSON.stringify(favorites)); } catch(e) {}
-  try { localStorage.setItem(IMP_KEY, JSON.stringify(important)); } catch(e) {}
-}
-
-function toggleFav(url, event) {
-  event.preventDefault();
-  event.stopPropagation();
-  if (favorites[url]) { delete favorites[url]; } else { favorites[url] = true; }
-  saveMarks();
-  updateMarkButtons(url);
-  updateTabCounts();
-}
-
-function toggleImp(url, event) {
-  event.preventDefault();
-  event.stopPropagation();
-  if (important[url]) { delete important[url]; } else { important[url] = true; }
-  saveMarks();
-  updateMarkButtons(url);
-  updateTabCounts();
-}
-
-function removeFav(url, event) {
-  event.preventDefault();
-  event.stopPropagation();
-  delete favorites[url];
-  saveMarks();
-  if (currentTab === 'favorites') renderTabContent();
-  updateTabCounts();
-}
-
-function removeImp(url, event) {
-  event.preventDefault();
-  event.stopPropagation();
-  delete important[url];
-  saveMarks();
-  if (currentTab === 'important') renderTabContent();
-  updateTabCounts();
-}
-
-function updateMarkButtons(url) {
-  var safeUrl = CSS.escape ? url : url;
-  // Update all fav buttons for this url
-  var favBtns = document.querySelectorAll('.fav-btn[data-url="' + escapeAttr(url) + '"]');
-  for (var i = 0; i < favBtns.length; i++) {
-    if (favorites[url]) { favBtns[i].classList.add('active'); favBtns[i].textContent = '⭐'; }
-    else { favBtns[i].classList.remove('active'); favBtns[i].textContent = '☆'; }
-  }
-  var impBtns = document.querySelectorAll('.imp-btn[data-url="' + escapeAttr(url) + '"]');
-  for (var i = 0; i < impBtns.length; i++) {
-    if (important[url]) { impBtns[i].classList.add('active'); impBtns[i].textContent = '📌'; }
-    else { impBtns[i].classList.remove('active'); impBtns[i].textContent = '📍'; }
-  }
-}
-
-function updateTabCounts() {
-  var favCount = Object.keys(favorites).length;
-  var impCount = Object.keys(important).length;
-  var fc = document.getElementById('favCount');
-  var ic = document.getElementById('impCount');
-  if (fc) fc.textContent = '(' + favCount + ')';
-  if (ic) ic.textContent = '(' + impCount + ')';
-}
+  // localStorage boş → normal akış
+})();
 
 // ====== CLIPBOARD ======
 async function copyPath(elementId, btn) {
-  var text = document.getElementById(elementId).textContent;
-  try { await navigator.clipboard.writeText(text); } catch(e) {
-    var ta = document.createElement('textarea');
+  const text = document.getElementById(elementId).textContent;
+  try { await navigator.clipboard.writeText(text); } catch {
+    const ta = document.createElement('textarea');
     ta.value = text; ta.style.cssText = 'position:fixed;left:-9999px';
     document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
   }
   btn.classList.add('copied'); btn.innerHTML = '✅ Kopyalandı!';
-  setTimeout(function() { btn.classList.remove('copied'); btn.innerHTML = '📋 Kopyala'; }, 2000);
+  setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = '📋 Kopyala'; }, 2000);
 }
 
 // ====== LOCALSTORAGE ======
 function saveToLocal() {
   try {
-    var data = { domainGroups: domainGroups, savedDate: new Date().toISOString() };
+    const data = {
+      domainGroups: domainGroups,
+      savedDate: new Date().toISOString()
+    };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     savedDate = data.savedDate;
-    var btn = document.getElementById('saveBtn');
-    if (btn) { btn.classList.add('saved'); btn.innerHTML = '✅ Kaydedildi!';
-      setTimeout(function() { btn.classList.remove('saved'); btn.innerHTML = '💾 Lokale Kaydet'; }, 2000);
+    // Buton feedback
+    const btn = document.getElementById('saveBtn');
+    if (btn) {
+      btn.classList.add('saved');
+      btn.innerHTML = '✅ Kaydedildi!';
+      setTimeout(() => { btn.classList.remove('saved'); btn.innerHTML = '💾 Lokale Kaydet'; }, 2000);
     }
+    // Tarih güncelle
     updateSavedInfo();
   } catch (e) {
-    alert(e.name === 'QuotaExceededError' ? 'localStorage doldu.' : 'Kaydetme hatası: ' + e.message);
+    if (e.name === 'QuotaExceededError') {
+      alert('localStorage doldu. Veri çok büyük olabilir.');
+    } else {
+      alert('Kaydetme hatası: ' + e.message);
+    }
   }
 }
 
 function deleteFromLocal() {
-  try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
+  try { localStorage.removeItem(STORAGE_KEY); } catch (e) { /* ignore */ }
   savedDate = null;
 }
 
 function updateSavedInfo() {
-  var el = document.getElementById('savedInfo');
+  const el = document.getElementById('savedInfo');
   if (!el) return;
   if (savedDate) {
-    var d = new Date(savedDate);
-    var str = d.toLocaleDateString('tr-TR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
-    el.innerHTML = '📌 Lokal kayıt: <span class="date">' + str + '</span>';
+    const d = new Date(savedDate);
+    const str = d.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    el.innerHTML = `📌 Lokal kayıt: <span class="date">${str}</span>`;
     el.classList.remove('hidden');
-  } else { el.classList.add('hidden'); }
+  } else {
+    el.classList.add('hidden');
+  }
 }
 
 function refreshAnalysis() {
+  // localStorage'ı sil, adımları göster, sonuçları temizle
   deleteFromLocal();
   domainGroups = [];
   bookmarksJSON = null;
   historyBuffer = null;
   document.getElementById('results').innerHTML = '';
   document.getElementById('stepsWrapper').classList.remove('hidden');
+  // Adımları resetle
   document.getElementById('step1').className = 'step active fade-in';
   document.getElementById('step2').className = 'step locked';
   document.getElementById('step3').className = 'step locked';
@@ -859,29 +718,30 @@ function refreshAnalysis() {
   document.getElementById('historyBtn').classList.remove('loaded');
   document.getElementById('historyBtn').querySelector('.label').textContent = 'History';
   document.getElementById('analyzeBtn').disabled = true;
+  // input'ları resetle
   document.getElementById('localStateInput').value = '';
   document.getElementById('bookmarksInput').value = '';
   document.getElementById('historyInput').value = '';
 }
 
-// ====== STEPS ======
+// ====== STEP 1 ======
 function handleLocalState(input) {
-  var file = input.files[0]; if (!file) return;
-  var reader = new FileReader();
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
   reader.onload = function(e) {
     try {
-      var data = JSON.parse(e.target.result);
-      var cache = data && data.profile ? data.profile.info_cache : null;
+      const data = JSON.parse(e.target.result);
+      const cache = data?.profile?.info_cache;
       if (!cache || Object.keys(cache).length === 0) { alert('Profil bilgisi bulunamadı.'); return; }
       profilesData = cache;
-      var select = document.getElementById('profileSelect');
+      const select = document.getElementById('profileSelect');
       select.innerHTML = '<option disabled selected>— Profil seçin —</option>';
-      Object.keys(cache).forEach(function(dir) {
-        var info = cache[dir];
-        var name = info.name || info.gaia_name || dir;
-        var email = info.user_name || info.gaia_name || '';
-        var label = email ? name + ' (' + email + ') — [' + dir + ']' : name + ' — [' + dir + ']';
-        var opt = document.createElement('option');
+      Object.entries(cache).forEach(([dir, info]) => {
+        const name = info.name || info.gaia_name || dir;
+        const email = info.user_name || info.gaia_name || '';
+        const label = email ? `${name} (${email}) — [${dir}]` : `${name} — [${dir}]`;
+        const opt = document.createElement('option');
         opt.value = dir; opt.textContent = label; select.appendChild(opt);
       });
       if (Object.keys(cache).length === 1) { select.selectedIndex = 1; onProfileChange(); }
@@ -894,10 +754,12 @@ function handleLocalState(input) {
   reader.readAsText(file, 'utf-8');
 }
 
+// ====== STEP 2 ======
 function onProfileChange() {
-  var dir = document.getElementById('profileSelect').value; if (!dir) return;
+  const dir = document.getElementById('profileSelect').value;
+  if (!dir) return;
   selectedProfileDir = dir;
-  document.getElementById('profilePath').textContent = '%LOCALAPPDATA%\\Google\\Chrome\\User Data\\' + dir;
+  document.getElementById('profilePath').textContent = `%LOCALAPPDATA%\\Google\\Chrome\\User Data\\${dir}`;
   document.getElementById('profilePathSection').style.display = 'block';
   document.getElementById('step2').className = 'step done';
   document.getElementById('step3').className = 'step active';
@@ -910,13 +772,14 @@ function onProfileChange() {
   document.getElementById('results').innerHTML = '';
 }
 
+// ====== STEP 3 ======
 function handleBookmarks(input) {
-  var file = input.files[0]; if (!file) return;
-  var reader = new FileReader();
+  const file = input.files[0]; if (!file) return;
+  const reader = new FileReader();
   reader.onload = function(e) {
     try {
       bookmarksJSON = JSON.parse(e.target.result);
-      if (!bookmarksJSON.roots) { alert('Geçerli Bookmarks değil.'); bookmarksJSON = null; return; }
+      if (!bookmarksJSON.roots) { alert('Geçerli Bookmarks dosyası değil.'); bookmarksJSON = null; return; }
       document.getElementById('bookmarksBtn').classList.add('loaded');
       document.getElementById('bookmarksBtn').querySelector('.label').textContent = '✅ Bookmarks Yüklendi';
       checkReady();
@@ -926,12 +789,12 @@ function handleBookmarks(input) {
 }
 
 function handleHistory(input) {
-  var file = input.files[0]; if (!file) return;
-  var reader = new FileReader();
+  const file = input.files[0]; if (!file) return;
+  const reader = new FileReader();
   reader.onload = function(e) {
     historyBuffer = new Uint8Array(e.target.result);
-    if (!String.fromCharCode.apply(null, historyBuffer.slice(0, 15)).startsWith('SQLite format')) {
-      alert('Geçerli History değil.'); historyBuffer = null; return;
+    if (!String.fromCharCode(...historyBuffer.slice(0, 15)).startsWith('SQLite format')) {
+      alert('Geçerli History dosyası değil.'); historyBuffer = null; return;
     }
     document.getElementById('historyBtn').classList.add('loaded');
     document.getElementById('historyBtn').querySelector('.label').textContent = '✅ History Yüklendi';
@@ -940,132 +803,142 @@ function handleHistory(input) {
   reader.readAsArrayBuffer(file);
 }
 
-function checkReady() { document.getElementById('analyzeBtn').disabled = !(bookmarksJSON && historyBuffer); }
+function checkReady() {
+  document.getElementById('analyzeBtn').disabled = !(bookmarksJSON && historyBuffer);
+}
 
 // ====== HELPERS ======
-function getDomain(url) { try { return new URL(url).hostname.replace(/^www\./, ''); } catch(e) { return null; } }
-function getPathDisplay(url) { try { var u = new URL(url); var p = u.pathname + u.search + u.hash; return p === '/' ? '/' : p; } catch(e) { return url; } }
+function getDomain(url) {
+  try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return null; }
+}
+
+function getPathDisplay(url) {
+  try {
+    const u = new URL(url);
+    const p = u.pathname + u.search + u.hash;
+    return p === '/' ? '/' : p;
+  } catch { return url; }
+}
 
 function extractBookmarksRaw(node, folder) {
-  var items = [];
-  if (node.type === 'url') items.push({ title: node.name || '(İsimsiz)', url: node.url, folder: folder });
+  const items = [];
+  if (node.type === 'url') {
+    items.push({ title: node.name || '(İsimsiz)', url: node.url, folder: folder });
+  }
   if (node.children) {
-    var cur = folder ? folder + ' › ' + (node.name || '') : (node.name || '');
-    node.children.forEach(function(child) { items.push.apply(items, extractBookmarksRaw(child, cur)); });
+    const cur = folder ? `${folder} › ${node.name}` : (node.name || '');
+    node.children.forEach(child => items.push(...extractBookmarksRaw(child, cur)));
   }
   return items;
 }
 
-function escapeHtml(s) { if (!s) return ''; return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function escapeAttr(s) { if (!s) return ''; return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function escapeHtml(s) {
+  if (!s) return '';
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 
 // ====== ANALYSIS ======
 async function analyze() {
-  var overlay = document.getElementById('loadingOverlay');
-  var lt = document.getElementById('loadingText');
+  const overlay = document.getElementById('loadingOverlay');
+  const lt = document.getElementById('loadingText');
   overlay.classList.add('show');
+
   try {
     lt.textContent = 'sql.js yükleniyor...';
-    var SQL = await initSqlJs({ locateFile: function(f) { return 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/' + f; } });
+    const SQL = await initSqlJs({ locateFile: f => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/${f}` });
+
     lt.textContent = 'History okunuyor...';
-    var db = new SQL.Database(historyBuffer);
+    const db = new SQL.Database(historyBuffer);
+
     lt.textContent = 'Ziyaret sayıları çıkarılıyor...';
-    var visitMap = {};
+    const visitMap = {};
     try {
-      var stmt = db.exec("SELECT url, visit_count, title FROM urls");
-      if (stmt.length > 0) stmt[0].values.forEach(function(r) { visitMap[r[0]] = { count: r[1] || 0, title: r[2] || '' }; });
-    } catch(e) { console.warn('SQL:', e); }
+      const stmt = db.exec("SELECT url, visit_count, title FROM urls");
+      if (stmt.length > 0) {
+        stmt[0].values.forEach(r => { visitMap[r[0]] = { count: r[1] || 0, title: r[2] || '' }; });
+      }
+    } catch (e) { console.warn('SQL hatası:', e); }
     db.close();
 
     lt.textContent = 'Yer imleri işleniyor...';
-    var rawBm = [];
-    Object.values(bookmarksJSON.roots).forEach(function(root) {
-      if (root && typeof root === 'object') rawBm.push.apply(rawBm, extractBookmarksRaw(root, ''));
+    const rawBm = [];
+    Object.values(bookmarksJSON.roots).forEach(root => {
+      if (root && typeof root === 'object') rawBm.push(...extractBookmarksRaw(root, ''));
     });
 
     lt.textContent = 'URL deduplication...';
-    var urlMap = {};
-    rawBm.forEach(function(bm) {
+    const urlMap = {};
+    rawBm.forEach(bm => {
       if (!bm.url || !bm.url.startsWith('http')) return;
       if (!urlMap[bm.url]) {
-        var v = visitMap[bm.url];
-        urlMap[bm.url] = { title: bm.title, url: bm.url, folders: [], visitCount: v ? v.count : 0 };
+        const v = visitMap[bm.url];
+        urlMap[bm.url] = { title: bm.title, url: bm.url, folders: new Set(), visitCount: v ? v.count : 0 };
       }
-      if (bm.folder && urlMap[bm.url].folders.indexOf(bm.folder) === -1) urlMap[bm.url].folders.push(bm.folder);
+      if (bm.folder) urlMap[bm.url].folders.add(bm.folder);
     });
 
     lt.textContent = 'Domain gruplama...';
-    var dMap = {};
-    Object.keys(urlMap).forEach(function(key) {
-      var item = urlMap[key]; var d = getDomain(item.url); if (!d) return;
+    const dMap = {};
+    Object.values(urlMap).forEach(item => {
+      const d = getDomain(item.url);
+      if (!d) return;
       if (!dMap[d]) dMap[d] = [];
-      dMap[d].push({ url: item.url, title: item.title, visitCount: item.visitCount, folders: item.folders });
+      dMap[d].push({ url: item.url, title: item.title, visitCount: item.visitCount, folders: [...item.folders] });
     });
-    domainGroups = Object.keys(dMap).map(function(domain) {
-      var paths = dMap[domain];
-      paths.sort(function(a, b) { return b.visitCount - a.visitCount; });
-      var total = 0; paths.forEach(function(p) { total += p.visitCount; });
-      return { domain: domain, totalVisits: total, uniqueUrls: paths.length, paths: paths };
+
+    domainGroups = Object.entries(dMap).map(([domain, paths]) => {
+      paths.sort((a, b) => b.visitCount - a.visitCount);
+      return { domain, totalVisits: paths.reduce((s, p) => s + p.visitCount, 0), uniqueUrls: paths.length, paths };
     });
-    domainGroups.sort(function(a, b) { return b.totalVisits - a.totalVisits; });
-    savedDate = null;
+    domainGroups.sort((a, b) => b.totalVisits - a.totalVisits);
+
+    savedDate = null; // Yeni analiz, henüz kaydedilmedi
+
     overlay.classList.remove('show');
     document.getElementById('stepsWrapper').classList.add('hidden');
-    renderResults();
+    renderResults(false);
   } catch (err) {
     overlay.classList.remove('show');
-    alert('Hata: ' + err.message); console.error(err);
+    alert('Hata: ' + err.message);
+    console.error(err);
   }
 }
 
 // ====== RENDER ======
-function renderResults() {
-  var c = document.getElementById('results');
-  if (!c) return;
-  var td = domainGroups.length, tu = 0, tv = 0;
-  for (var i = 0; i < domainGroups.length; i++) { tu += domainGroups[i].uniqueUrls; tv += domainGroups[i].totalVisits; }
-  var favCount = Object.keys(favorites).length;
-  var impCount = Object.keys(important).length;
-  var hasDelete = savedDate ? '<button class="action-btn delete-btn" onclick="deleteSavedAndReset()">🗑️ Lokal Kaydı Sil</button>' : '';
+let currentFilter = 'all';
 
-  c.innerHTML =
-    '<div class="results-header fade-in">' +
-      '<h2>📊 Sonuçlar</h2>' +
-      '<div class="results-stats">' +
-        '<span>Domain: <span class="val">' + td + '</span></span>' +
-        '<span>Benzersiz URL: <span class="val">' + tu + '</span></span>' +
-        '<span>Toplam ziyaret: <span class="val">' + tv.toLocaleString('tr-TR') + '</span></span>' +
-      '</div>' +
-    '</div>' +
-    '<div class="saved-info hidden" id="savedInfo"></div>' +
-    '<div class="action-row fade-in">' +
-      '<button class="action-btn save-btn" id="saveBtn" onclick="saveToLocal()">💾 Lokale Kaydet</button>' +
-      '<button class="action-btn refresh-btn" onclick="refreshAnalysis()">🔄 Güncelle (Baştan Analiz)</button>' +
-      hasDelete +
-    '</div>' +
-    '<div class="tab-row fade-in">' +
-      '<button class="tab-btn active" onclick="setTab(\'all\', this)">📋 Tümü</button>' +
-      '<button class="tab-btn" onclick="setTab(\'visited\', this)">✅ Ziyaret Edilenler</button>' +
-      '<button class="tab-btn" onclick="setTab(\'unvisited\', this)">🚫 Ziyaret Edilmeyenler</button>' +
-      '<button class="tab-btn tab-fav" onclick="setTab(\'favorites\', this)">⭐ Sık Kullanılanlar <span class="tab-count" id="favCount">(' + favCount + ')</span></button>' +
-      '<button class="tab-btn tab-imp" onclick="setTab(\'important\', this)">📌 Önemliler <span class="tab-count" id="impCount">(' + impCount + ')</span></button>' +
-    '</div>' +
-    '<div class="filter-row fade-in">' +
-      '<input type="text" class="search-input" id="searchInput" placeholder="🔍 Domain veya URL ara..." oninput="renderTabContent()">' +
-    '</div>' +
-    '<div id="tabContent"></div>';
+function renderResults(fromCache) {
+  const c = document.getElementById('results');
+  const td = domainGroups.length;
+  const tu = domainGroups.reduce((s, g) => s + g.uniqueUrls, 0);
+  const tv = domainGroups.reduce((s, g) => s + g.totalVisits, 0);
 
-  currentTab = 'all';
+  c.innerHTML = `
+    <div class="results-header fade-in">
+      <h2>📊 Sonuçlar</h2>
+      <div class="results-stats">
+        <span>Domain: <span class="val">${td}</span></span>
+        <span>Benzersiz URL: <span class="val">${tu}</span></span>
+        <span>Toplam ziyaret: <span class="val">${tv.toLocaleString('tr-TR')}</span></span>
+      </div>
+    </div>
+    <div class="saved-info ${savedDate ? '' : 'hidden'}" id="savedInfo"></div>
+    <div class="action-row fade-in">
+      <button class="action-btn save-btn" id="saveBtn" onclick="saveToLocal()">💾 Lokale Kaydet</button>
+      <button class="action-btn refresh-btn" onclick="refreshAnalysis()">🔄 Güncelle (Baştan Analiz)</button>
+      ${savedDate ? '<button class="action-btn delete-btn" onclick="deleteSavedAndReset()">🗑️ Lokal Kaydı Sil</button>' : ''}
+    </div>
+    <div class="filter-row fade-in">
+      <input type="text" class="search-input" id="searchInput" placeholder="🔍 Domain veya URL ara..." oninput="filterResults()">
+      <button class="filter-btn active" onclick="setFilter('all', this)">Tümü</button>
+      <button class="filter-btn" onclick="setFilter('visited', this)">Ziyaret Edilenler</button>
+      <button class="filter-btn" onclick="setFilter('unvisited', this)">Ziyaret Edilmeyenler</button>
+    </div>
+    <div class="domain-list" id="domainList"></div>
+  `;
+  currentFilter = 'all';
   updateSavedInfo();
-  requestAnimationFrame(function() { renderTabContent(); });
-}
-
-function setTab(tab, btn) {
-  currentTab = tab;
-  var btns = document.querySelectorAll('.tab-btn');
-  for (var i = 0; i < btns.length; i++) btns[i].classList.remove('active');
-  btn.classList.add('active');
-  renderTabContent();
+  filterResults();
 }
 
 function deleteSavedAndReset() {
@@ -1073,172 +946,84 @@ function deleteSavedAndReset() {
   refreshAnalysis();
 }
 
-// ====== TAB CONTENT RENDER ======
-function renderTabContent() {
-  if (currentTab === 'favorites' || currentTab === 'important') {
-    renderFlatList();
-  } else {
-    renderDomainList();
-  }
+function setFilter(type, btn) {
+  currentFilter = type;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  filterResults();
 }
 
-// Flat list for favorites / important
-function renderFlatList() {
-  var container = document.getElementById('tabContent');
-  if (!container) return;
-  var q = getSearchQuery();
-  var markMap = currentTab === 'favorites' ? favorites : important;
-  var urls = Object.keys(markMap);
+function filterResults() {
+  const q = (document.getElementById('searchInput')?.value || '').toLowerCase().trim();
+  let filtered = domainGroups;
 
-  // Find items from domainGroups
-  var items = [];
-  for (var i = 0; i < domainGroups.length; i++) {
-    var g = domainGroups[i];
-    for (var j = 0; j < g.paths.length; j++) {
-      var p = g.paths[j];
-      if (!markMap[p.url]) continue;
-      if (q && (p.title || '').toLowerCase().indexOf(q) === -1 &&
-          (p.url || '').toLowerCase().indexOf(q) === -1 &&
-          g.domain.toLowerCase().indexOf(q) === -1) continue;
-      items.push({ url: p.url, title: p.title, visitCount: p.visitCount, domain: g.domain, folders: p.folders });
-    }
+  if (currentFilter === 'visited') filtered = filtered.filter(g => g.totalVisits > 0);
+  if (currentFilter === 'unvisited') filtered = filtered.filter(g => g.totalVisits === 0);
+
+  if (q) {
+    filtered = filtered.filter(g =>
+      g.domain.toLowerCase().includes(q) ||
+      g.paths.some(p =>
+        (p.title || '').toLowerCase().includes(q) ||
+        (p.url || '').toLowerCase().includes(q) ||
+        p.folders.some(f => f.toLowerCase().includes(q))
+      )
+    );
   }
 
-  // Also check urls not in domainGroups (edge case)
-  items.sort(function(a, b) { return b.visitCount - a.visitCount; });
+  const list = document.getElementById('domainList');
+  if (!list) return;
 
-  if (items.length === 0) {
-    container.innerHTML = '<div class="no-match">' +
-      (currentTab === 'favorites' ? '⭐ Henüz sık kullanılan eklenmedi.' : '📌 Henüz önemli eklenmedi.') +
-      '<br><span style="font-size:12px;color:var(--text-dim)">Listedeki linklerin yanındaki ' +
-      (currentTab === 'favorites' ? '☆' : '📍') + ' ikonuna tıklayarak ekleyebilirsiniz.</span></div>';
+  if (filtered.length === 0) {
+    list.innerHTML = '<div class="no-match">Eşleşen domain bulunamadı.</div>';
     return;
   }
 
-  var removeFn = currentTab === 'favorites' ? 'removeFav' : 'removeImp';
-  var html = '<div class="flat-list">';
-  for (var i = 0; i < items.length; i++) {
-    var it = items[i];
-    var pvt = it.visitCount > 0 ? it.visitCount.toLocaleString('tr-TR') : '0';
-    var pvc = it.visitCount === 0 ? 'zero' : '';
-    html +=
-      '<div class="flat-item">' +
-        '<a href="' + escapeAttr(it.url) + '" target="_blank" rel="noopener" class="flat-info" style="text-decoration:none;color:inherit">' +
-          '<div class="flat-title">' + escapeHtml(it.title) + '</div>' +
-          '<div class="flat-url">' + escapeHtml(getPathDisplay(it.url)) + '</div>' +
-          '<div class="flat-domain">🌐 ' + escapeHtml(it.domain) + '</div>' +
-        '</a>' +
-        '<div class="path-visits ' + pvc + '">' + pvt + '</div>' +
-        '<button class="remove-btn" onclick="' + removeFn + '(\'' + escapeAttr(it.url).replace(/'/g, "\\'") + '\', event)" title="Listeden Kaldır">✕</button>' +
-      '</div>';
-  }
-  html += '</div>';
-  container.innerHTML = html;
-}
+  const toRender = filtered.slice(0, 200);
+  list.innerHTML = toRender.map((g, i) => {
+    const vc = g.totalVisits === 0 ? 'zero' : '';
+    const vt = g.totalVisits > 0 ? `${g.totalVisits.toLocaleString('tr-TR')} ziyaret` : 'Yok';
+    const ul = g.uniqueUrls === 1 ? '1 yer imi' : `${g.uniqueUrls} yer imi`;
 
-// Domain accordion for all/visited/unvisited
-function renderDomainList() {
-  var container = document.getElementById('tabContent');
-  if (!container) return;
+    const ph = g.paths.map(p => {
+      const ps = getPathDisplay(p.url);
+      const pvc = p.visitCount === 0 ? 'zero' : '';
+      const pvt = p.visitCount > 0 ? p.visitCount.toLocaleString('tr-TR') : '0';
+      const fh = p.folders.length > 0
+        ? `<div class="path-folders">${p.folders.map(f => `<span class="path-folder-tag" title="${escapeHtml(f)}">📁 ${escapeHtml(f)}</span>`).join('')}</div>`
+        : '';
+      return `<a class="path-item" href="${escapeHtml(p.url)}" target="_blank" rel="noopener" title="${escapeHtml(p.url)}">
+        <div class="path-info">
+          <div class="path-title">${escapeHtml(p.title)}</div>
+          <div class="path-url">${escapeHtml(ps)}</div>
+          ${fh}
+        </div>
+        <div class="path-visits ${pvc}">${pvt}</div>
+      </a>`;
+    }).join('');
 
-  try {
-    var q = getSearchQuery();
-    var filtered = [];
-    for (var i = 0; i < domainGroups.length; i++) {
-      var g = domainGroups[i];
-      if (currentTab === 'visited' && g.totalVisits <= 0) continue;
-      if (currentTab === 'unvisited' && g.totalVisits > 0) continue;
-      if (q) {
-        var match = g.domain.toLowerCase().indexOf(q) !== -1;
-        if (!match) {
-          for (var j = 0; j < g.paths.length; j++) {
-            var p = g.paths[j];
-            if ((p.title||'').toLowerCase().indexOf(q) !== -1 || (p.url||'').toLowerCase().indexOf(q) !== -1) { match = true; break; }
-            if (p.folders) for (var k = 0; k < p.folders.length; k++) { if (p.folders[k].toLowerCase().indexOf(q) !== -1) { match = true; break; } }
-            if (match) break;
-          }
-        }
-        if (!match) continue;
-      }
-      filtered.push(g);
-    }
+    return `<div class="domain-group" data-domain="${escapeHtml(g.domain)}">
+      <div class="domain-header" onclick="toggleDomain(this)">
+        <div class="domain-rank">#${i + 1}</div>
+        <div class="domain-info">
+          <div class="domain-name">${escapeHtml(g.domain)}</div>
+          <div class="domain-meta"><span class="bm-count-label">${ul}</span></div>
+        </div>
+        <div class="domain-visits ${vc}">${vt}</div>
+        <div class="domain-chevron">▶</div>
+      </div>
+      <div class="domain-body">${ph}</div>
+    </div>`;
+  }).join('');
 
-    if (filtered.length === 0) {
-      container.innerHTML = '<div class="no-match">Eşleşen domain bulunamadı.</div>';
-      return;
-    }
-
-    var max = Math.min(filtered.length, 200);
-    var html = '<div class="domain-list">';
-    for (var i = 0; i < max; i++) {
-      var g = filtered[i];
-      var vc = g.totalVisits === 0 ? 'zero' : '';
-      var vt = g.totalVisits > 0 ? g.totalVisits.toLocaleString('tr-TR') + ' ziyaret' : 'Yok';
-      var ul = g.uniqueUrls === 1 ? '1 yer imi' : g.uniqueUrls + ' yer imi';
-
-      var ph = '';
-      for (var j = 0; j < g.paths.length; j++) {
-        var p = g.paths[j];
-        var ps = getPathDisplay(p.url);
-        var pvc = p.visitCount === 0 ? 'zero' : '';
-        var pvt = p.visitCount > 0 ? p.visitCount.toLocaleString('tr-TR') : '0';
-        var isFav = !!favorites[p.url];
-        var isImp = !!important[p.url];
-        var eu = escapeAttr(p.url).replace(/'/g, "\\'");
-
-        var fh = '';
-        if (p.folders && p.folders.length > 0) {
-          fh = '<div class="path-folders">';
-          for (var k = 0; k < p.folders.length; k++) {
-            fh += '<span class="path-folder-tag" title="' + escapeAttr(p.folders[k]) + '">📁 ' + escapeHtml(p.folders[k]) + '</span>';
-          }
-          fh += '</div>';
-        }
-
-        ph +=
-          '<div class="path-item">' +
-            '<div class="path-marks">' +
-              '<button class="mark-btn fav-btn' + (isFav ? ' active' : '') + '" data-url="' + escapeAttr(p.url) + '" onclick="toggleFav(\'' + eu + '\', event)" title="Sık Kullanılanlara Ekle/Çıkar">' + (isFav ? '⭐' : '☆') + '</button>' +
-              '<button class="mark-btn imp-btn' + (isImp ? ' active' : '') + '" data-url="' + escapeAttr(p.url) + '" onclick="toggleImp(\'' + eu + '\', event)" title="Önemlilere Ekle/Çıkar">' + (isImp ? '📌' : '📍') + '</button>' +
-            '</div>' +
-            '<a href="' + escapeAttr(p.url) + '" target="_blank" rel="noopener" style="overflow:hidden;text-decoration:none;color:inherit">' +
-              '<div class="path-title">' + escapeHtml(p.title) + '</div>' +
-              '<div class="path-url">' + escapeHtml(ps) + '</div>' +
-              fh +
-            '</a>' +
-            '<div class="path-visits ' + pvc + '">' + pvt + '</div>' +
-          '</div>';
-      }
-
-      html +=
-        '<div class="domain-group" data-domain="' + escapeAttr(g.domain) + '">' +
-          '<div class="domain-header" onclick="toggleDomain(this)">' +
-            '<div class="domain-rank">#' + (i+1) + '</div>' +
-            '<div class="domain-info">' +
-              '<div class="domain-name">' + escapeHtml(g.domain) + '</div>' +
-              '<div class="domain-meta"><span class="bm-count-label">' + ul + '</span></div>' +
-            '</div>' +
-            '<div class="domain-visits ' + vc + '">' + vt + '</div>' +
-            '<div class="domain-chevron">▶</div>' +
-          '</div>' +
-          '<div class="domain-body">' + ph + '</div>' +
-        '</div>';
-    }
-    if (filtered.length > 200) html += '<div class="no-match">... ve ' + (filtered.length-200) + ' domain daha</div>';
-    html += '</div>';
-    container.innerHTML = html;
-  } catch(err) {
-    console.error('Render hatası:', err);
-    container.innerHTML = '<div class="no-match">Render hatası: ' + escapeHtml(err.message) + '</div>';
+  if (filtered.length > 200) {
+    list.innerHTML += `<div class="no-match">... ve ${filtered.length - 200} domain daha</div>`;
   }
 }
 
-function getSearchQuery() {
-  var el = document.getElementById('searchInput');
-  return el ? el.value.toLowerCase().trim() : '';
+function toggleDomain(el) {
+  el.closest('.domain-group').classList.toggle('open');
 }
-
-function toggleDomain(el) { el.closest('.domain-group').classList.toggle('open'); }
 </script>
 </body>
 </html>
