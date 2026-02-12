@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chrome Yer İmi Sıklık Analizi</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface2: #1a1a26;
+    --border: #2a2a3a;
+    --border-active: #4a6cf7;
+    --text: #e8e8f0;
+    --text-dim: #8888a0;
+    --accent: #4a6cf7;
+    --accent-glow: rgba(74,108,247,0.25);
+    --success: #34d399;
+    --warn: #fbbf24;
+    --danger: #f87171;
+    --gold: #f59e0b;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: 'Outfit', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Background grain */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+  .header-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+    display: block;
+    filter: drop-shadow(0 0 24px var(--accent-glow));
+  }
+  .header h1 {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, #fff 0%, #4a6cf7 50%, #34d399 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .header p {
+    color: var(--text-dim);
+    font-size: 14px;
+    margin-top: 8px;
+    font-weight: 300;
+  }
+
+  /* Steps */
+  .step {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 20px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .step.active {
+    border-color: var(--border-active);
+    box-shadow: 0 0 40px var(--accent-glow), inset 0 1px 0 rgba(74,108,247,0.1);
+  }
+  .step.done {
+    border-color: var(--success);
+    box-shadow: 0 0 20px rgba(52,211,153,0.1);
+  }
+  .step.locked {
+    opacity: 0.45;
+    pointer-events: none;
+    filter: grayscale(0.3);
+  }
+
+  .step-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--accent);
+    margin-bottom: 14px;
+  }
+  .step.done .step-badge { color: var(--success); }
+  .step-badge .num {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 800;
+  }
+  .step.done .step-badge .num { background: var(--success); }
+
+  .step h2 {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .step .desc {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-bottom: 18px;
+    line-height: 1.6;
+  }
+
+  /* Warning / Info box */
+  .info-box {
+    background: rgba(251,191,36,0.06);
+    border: 1px solid rgba(251,191,36,0.2);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    font-size: 12.5px;
+    line-height: 1.7;
+    color: #e8d5a0;
+  }
+  .info-box strong {
+    color: var(--warn);
+    font-weight: 600;
+  }
+  .info-box .emoji { font-size: 15px; }
+  .info-box code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    background: rgba(255,255,255,0.06);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #fbbf24;
+    word-break: break-all;
+  }
+  .info-box .steps-list {
+    margin-top: 8px;
+    padding-left: 0;
+    list-style: none;
+    counter-reset: infoStep;
+  }
+  .info-box .steps-list li {
+    counter-increment: infoStep;
+    margin-bottom: 4px;
+  }
+  .info-box .steps-list li::before {
+    content: counter(infoStep) ".";
+    font-weight: 700;
+    color: var(--warn);
+    margin-right: 6px;
+  }
+
+  /* Path display */
+  .path-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .path-display {
+    flex: 1;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: var(--accent);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    user-select: all;
+  }
+  .copy-btn {
+    flex-shrink: 0;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .copy-btn:hover { filter: brightness(1.15); transform: translateY(-1px); }
+  .copy-btn:active { transform: scale(0.97); }
+  .copy-btn.copied {
+    background: var(--success);
+  }
+
+  /* Profile select */
+  .profile-select {
+    width: 100%;
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    appearance: none;
+    cursor: pointer;
+    margin-bottom: 14px;
+    background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%238888a0' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+  }
+  .profile-select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+
+  /* File buttons */
+  .file-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .file-btn-wrap { position: relative; }
+  .file-btn {
+    width: 100%;
+    background: var(--surface2);
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    padding: 20px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .file-btn:hover {
+    border-color: var(--accent);
+    background: rgba(74,108,247,0.04);
+    transform: translateY(-2px);
+  }
+  .file-btn.loaded {
+    border-style: solid;
+    border-color: var(--success);
+    background: rgba(52,211,153,0.04);
+  }
+  .file-btn .icon { font-size: 28px; }
+  .file-btn .label {
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .file-btn .sublabel {
+    font-size: 11px;
+    color: var(--text-dim);
+    font-weight: 400;
+  }
+  .file-btn input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  /* Analyze button */
+  .analyze-btn {
+    width: 100%;
+    padding: 16px;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 16px;
+    background: linear-gradient(135deg, var(--accent), #34d399);
+    color: #fff;
+    transition: all 0.3s;
+    letter-spacing: 0.5px;
+  }
+  .analyze-btn:hover { filter: brightness(1.1); transform: translateY(-1px); box-shadow: 0 8px 30px var(--accent-glow); }
+  .analyze-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    filter: none;
+    transform: none;
+    box-shadow: none;
+  }
+
+  /* Results */
+  #results {
+    margin-top: 24px;
+  }
+  .results-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .results-header h2 {
+    font-size: 20px;
+    font-weight: 700;
+  }
+  .results-stats {
+    display: flex;
+    gap: 16px;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+  .results-stats span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .results-stats .val {
+    color: var(--text);
+    font-weight: 700;
+    font-size: 14px;
+  }
+
+  /* Search / filter */
+  .filter-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .search-input {
+    flex: 1;
+    min-width: 200px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 13px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 8px;
+    padding: 10px 14px;
+  }
+  .search-input:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+  .filter-btn {
+    font-family: 'Outfit', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    border-radius: 8px;
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .filter-btn:hover, .filter-btn.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(74,108,247,0.06);
+  }
+
+  /* Bookmark item */
+  .bm-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .bm-item {
+    display: grid;
+    grid-template-columns: 48px 1fr auto;
+    gap: 14px;
+    align-items: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    transition: all 0.2s;
+    text-decoration: none;
+    color: inherit;
+  }
+  .bm-item:hover {
+    border-color: var(--accent);
+    background: var(--surface2);
+    transform: translateX(4px);
+  }
+  .bm-rank {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    font-weight: 800;
+    text-align: center;
+    color: var(--text-dim);
+  }
+  .bm-item:nth-child(1) .bm-rank { color: #fbbf24; font-size: 20px; }
+  .bm-item:nth-child(2) .bm-rank { color: #cbd5e1; font-size: 18px; }
+  .bm-item:nth-child(3) .bm-rank { color: #d97706; font-size: 18px; }
+  .bm-info { overflow: hidden; }
+  .bm-title {
+    font-size: 13.5px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 2px;
+  }
+  .bm-url {
+    font-size: 11px;
+    color: var(--text-dim);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .bm-folder {
+    font-size: 10px;
+    color: var(--accent);
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .bm-count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--success);
+    background: rgba(52,211,153,0.08);
+    padding: 6px 12px;
+    border-radius: 8px;
+    white-space: nowrap;
+    text-align: right;
+  }
+  .bm-count.zero {
+    color: var(--text-dim);
+    background: rgba(136,136,160,0.06);
+  }
+
+  .no-match {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-dim);
+    font-size: 14px;
+  }
+
+  /* Loading */
+  .loading-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(10,10,15,0.85);
+    z-index: 999;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .loading-overlay.show { display: flex; }
+  .spinner {
+    width: 40px; height: 40px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text {
+    font-size: 14px;
+    color: var(--text-dim);
+  }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    .file-buttons { grid-template-columns: 1fr; }
+    .bm-item { grid-template-columns: 36px 1fr auto; gap: 10px; padding: 10px 12px; }
+    .container { padding: 24px 16px 60px; }
+  }
+
+  /* Fade-in animation */
+  .fade-in {
+    animation: fadeIn 0.4s ease both;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loadingText">Analiz ediliyor...</div>
+</div>
+
+<div class="container">
+
+  <!-- Header -->
+  <div class="header fade-in">
+    <span class="header-icon">🔖</span>
+    <h1>Chrome Yer İmi Sıklık Analizi</h1>
+    <p>Yer imlerinizi ziyaret sıklığına göre sıralayın — Chrome açıkken çalışır</p>
+  </div>
+
+  <!-- STEP 1: Local State -->
+  <div class="step active fade-in" id="step1">
+    <div class="step-badge"><span class="num">1</span> PROFİL ALGILAMA</div>
+    <h2>Local State Dosyasını Seçin</h2>
+    <p class="desc">Bu dosya tüm Chrome profillerinizin listesini içerir. Seçtikten sonra profilleriniz otomatik listelenecek.</p>
+
+    <div class="info-box">
+      <span class="emoji">⚠️</span> <strong>Dosya Seçici Açıldığında:</strong>
+      <ol class="steps-list">
+        <li>Aşağıdaki yolu <strong>📋 Kopyala</strong> butonuyla kopyalayın</li>
+        <li>Dosya seçici penceresinin üstündeki <strong>adres çubuğuna</strong> tıklayın (veya <code>Alt+D</code>)</li>
+        <li>Kopyalanan yolu yapıştırın (<code>Ctrl+V</code>) ve <strong>Enter</strong>'a basın</li>
+        <li>Açılan klasörde <code>Local State</code> dosyasını seçin</li>
+      </ol>
+    </div>
+
+    <div class="path-row">
+      <div class="path-display" id="localStatePath">%LOCALAPPDATA%\Google\Chrome\User Data</div>
+      <button class="copy-btn" onclick="copyPath('localStatePath', this)">📋 Kopyala</button>
+    </div>
+
+    <div class="file-btn-wrap">
+      <div class="file-btn" id="localStateBtn" onclick="document.getElementById('localStateInput').click()">
+        <span class="icon">📂</span>
+        <span class="label">Local State Dosyasını Seç</span>
+        <span class="sublabel">User Data klasöründeki "Local State" dosyası</span>
+      </div>
+      <input type="file" id="localStateInput" accept="*" style="display:none" onchange="handleLocalState(this)">
+    </div>
+  </div>
+
+  <!-- STEP 2: Profile -->
+  <div class="step locked" id="step2">
+    <div class="step-badge"><span class="num">2</span> PROFİL SEÇİMİ</div>
+    <h2>Chrome Profilinizi Seçin</h2>
+    <p class="desc">Algılanan profillerden aktif kullandığınızı seçin. Dosya yolu otomatik güncellenecek.</p>
+
+    <select class="profile-select" id="profileSelect" onchange="onProfileChange()">
+      <option disabled selected>— Profil seçin —</option>
+    </select>
+
+    <div id="profilePathSection" style="display:none">
+      <div class="info-box">
+        <span class="emoji">📁</span> Seçilen profil klasörü aşağıdadır. Sonraki adımda dosya seçici açıldığında bu yolu adres çubuğuna yapıştırın.
+      </div>
+      <div class="path-row">
+        <div class="path-display" id="profilePath"></div>
+        <button class="copy-btn" onclick="copyPath('profilePath', this)">📋 Kopyala</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3: Files -->
+  <div class="step locked" id="step3">
+    <div class="step-badge"><span class="num">3</span> DOSYA SEÇİMİ & ANALİZ</div>
+    <h2>Bookmarks ve History Dosyalarını Seçin</h2>
+    <p class="desc">Her iki dosya da seçilen profil klasöründedir. Dosya seçici açıldığında yukarıdaki yolu adres çubuğuna yapıştırın.</p>
+
+    <div class="info-box">
+      <span class="emoji">💡</span> <strong>İpucu:</strong> Chrome açıkken her iki dosya da okunabilir. History verisinde son birkaç dakikalık ziyaretler eksik kalabilir (WAL cache nedeniyle) — bu normal.
+    </div>
+
+    <div class="file-buttons">
+      <div class="file-btn-wrap">
+        <div class="file-btn" id="bookmarksBtn" onclick="document.getElementById('bookmarksInput').click()">
+          <span class="icon">🔖</span>
+          <span class="label">Bookmarks</span>
+          <span class="sublabel">Yer imleri (JSON)</span>
+        </div>
+        <input type="file" id="bookmarksInput" accept="*" style="display:none" onchange="handleBookmarks(this)">
+      </div>
+      <div class="file-btn-wrap">
+        <div class="file-btn" id="historyBtn" onclick="document.getElementById('historyInput').click()">
+          <span class="icon">📊</span>
+          <span class="label">History</span>
+          <span class="sublabel">Geçmiş (SQLite)</span>
+        </div>
+        <input type="file" id="historyInput" accept="*" style="display:none" onchange="handleHistory(this)">
+      </div>
+    </div>
+
+    <button class="analyze-btn" id="analyzeBtn" disabled onclick="analyze()">
+      🔍 Analiz Et — Sıklığa Göre Sırala
+    </button>
+  </div>
+
+  <!-- Results -->
+  <div id="results"></div>
+
+</div>
+
+<script>
+// ====== STATE ======
+let profilesData = {};
+let selectedProfileDir = '';
+let bookmarksJSON = null;
+let historyBuffer = null;
+let allResults = [];
+
+// ====== CLIPBOARD ======
+async function copyPath(elementId, btn) {
+  const text = document.getElementById(elementId).textContent;
+  try {
+    await navigator.clipboard.writeText(text);
+    btn.classList.add('copied');
+    btn.innerHTML = '✅ Kopyalandı!';
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      btn.innerHTML = '📋 Kopyala';
+    }, 2000);
+  } catch {
+    // Fallback
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;left:-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    btn.classList.add('copied');
+    btn.innerHTML = '✅ Kopyalandı!';
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      btn.innerHTML = '📋 Kopyala';
+    }, 2000);
+  }
+}
+
+// ====== STEP MANAGEMENT ======
+function setStep(num) {
+  document.querySelectorAll('.step').forEach((el, i) => {
+    el.classList.remove('active', 'locked');
+    if (i + 1 < num) el.classList.add('done');
+    else if (i + 1 === num) el.classList.add('active');
+    else el.classList.add('locked');
+  });
+}
+
+// ====== STEP 1: Local State ======
+function handleLocalState(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      const cache = data?.profile?.info_cache;
+      if (!cache || Object.keys(cache).length === 0) {
+        alert('Bu dosyada profil bilgisi bulunamadı. Doğru "Local State" dosyasını seçtiğinizden emin olun.');
+        return;
+      }
+
+      profilesData = cache;
+      const select = document.getElementById('profileSelect');
+      select.innerHTML = '<option disabled selected>— Profil seçin —</option>';
+
+      Object.entries(cache).forEach(([dir, info]) => {
+        const name = info.name || info.gaia_name || dir;
+        const email = info.user_name || info.gaia_name || '';
+        const label = email ? `${name} (${email}) — [${dir}]` : `${name} — [${dir}]`;
+        const opt = document.createElement('option');
+        opt.value = dir;
+        opt.textContent = label;
+        select.appendChild(opt);
+      });
+
+      // Auto-select if only one profile
+      if (Object.keys(cache).length === 1) {
+        select.selectedIndex = 1;
+        onProfileChange();
+      }
+
+      document.getElementById('localStateBtn').classList.add('loaded');
+      document.getElementById('localStateBtn').querySelector('.label').textContent = '✅ Local State Yüklendi';
+      setStep(2);
+      document.getElementById('step1').classList.add('done');
+      document.getElementById('step2').classList.remove('locked');
+      document.getElementById('step2').classList.add('active');
+    } catch (err) {
+      alert('Dosya okunamadı: ' + err.message + '\n\nLütfen "Local State" dosyasını seçtiğinizden emin olun.');
+    }
+  };
+  reader.readAsText(file, 'utf-8');
+}
+
+// ====== STEP 2: Profile Select ======
+function onProfileChange() {
+  const select = document.getElementById('profileSelect');
+  const dir = select.value;
+  if (!dir) return;
+
+  selectedProfileDir = dir;
+  const path = `%LOCALAPPDATA%\\Google\\Chrome\\User Data\\${dir}`;
+  document.getElementById('profilePath').textContent = path;
+  document.getElementById('profilePathSection').style.display = 'block';
+
+  // Unlock step 3
+  document.getElementById('step2').classList.add('done');
+  document.getElementById('step2').classList.remove('active');
+  document.getElementById('step3').classList.remove('locked');
+  document.getElementById('step3').classList.add('active');
+
+  // Reset file states
+  bookmarksJSON = null;
+  historyBuffer = null;
+  document.getElementById('bookmarksBtn').classList.remove('loaded');
+  document.getElementById('bookmarksBtn').querySelector('.label').textContent = 'Bookmarks';
+  document.getElementById('historyBtn').classList.remove('loaded');
+  document.getElementById('historyBtn').querySelector('.label').textContent = 'History';
+  document.getElementById('analyzeBtn').disabled = true;
+  document.getElementById('results').innerHTML = '';
+}
+
+// ====== STEP 3: File Handling ======
+function handleBookmarks(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      bookmarksJSON = JSON.parse(e.target.result);
+      if (!bookmarksJSON.roots) {
+        alert('Bu geçerli bir Bookmarks dosyası değil.');
+        bookmarksJSON = null;
+        return;
+      }
+      document.getElementById('bookmarksBtn').classList.add('loaded');
+      document.getElementById('bookmarksBtn').querySelector('.label').textContent = '✅ Bookmarks Yüklendi';
+      checkReady();
+    } catch (err) {
+      alert('Bookmarks dosyası okunamadı: ' + err.message);
+    }
+  };
+  reader.readAsText(file, 'utf-8');
+}
+
+function handleHistory(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    historyBuffer = new Uint8Array(e.target.result);
+    // Quick validation: SQLite header = "SQLite format 3\0"
+    const header = String.fromCharCode(...historyBuffer.slice(0, 15));
+    if (!header.startsWith('SQLite format')) {
+      alert('Bu geçerli bir History (SQLite) dosyası değil.');
+      historyBuffer = null;
+      return;
+    }
+    document.getElementById('historyBtn').classList.add('loaded');
+    document.getElementById('historyBtn').querySelector('.label').textContent = '✅ History Yüklendi';
+    checkReady();
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function checkReady() {
+  document.getElementById('analyzeBtn').disabled = !(bookmarksJSON && historyBuffer);
+}
+
+// ====== ANALYSIS ======
+function extractBookmarks(node, folder = '') {
+  const items = [];
+  if (node.type === 'url') {
+    items.push({
+      title: node.name || '(İsimsiz)',
+      url: node.url,
+      folder: folder,
+      dateAdded: node.date_added ? chromeTimeToDate(parseInt(node.date_added)) : null
+    });
+  }
+  if (node.children) {
+    const currentFolder = folder ? `${folder} › ${node.name}` : (node.name || '');
+    node.children.forEach(child => {
+      items.push(...extractBookmarks(child, currentFolder));
+    });
+  }
+  return items;
+}
+
+function chromeTimeToDate(chromeTimestamp) {
+  // Chrome timestamp: microseconds since 1601-01-01
+  const epoch = 11644473600000000; // microseconds between 1601 and 1970
+  const ms = (chromeTimestamp - epoch) / 1000;
+  return new Date(ms);
+}
+
+async function analyze() {
+  const overlay = document.getElementById('loadingOverlay');
+  const loadingText = document.getElementById('loadingText');
+  overlay.classList.add('show');
+  loadingText.textContent = 'sql.js yükleniyor...';
+
+  try {
+    // Init sql.js
+    const SQL = await initSqlJs({
+      locateFile: file => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/${file}`
+    });
+
+    loadingText.textContent = 'History veritabanı okunuyor...';
+
+    // Open History DB
+    const db = new SQL.Database(historyBuffer);
+
+    // Extract visit counts
+    loadingText.textContent = 'Ziyaret sayıları çıkarılıyor...';
+    const visitMap = {};
+    try {
+      const stmt = db.exec("SELECT url, visit_count, title FROM urls WHERE visit_count > 0");
+      if (stmt.length > 0) {
+        stmt[0].values.forEach(row => {
+          const url = row[0];
+          const count = row[1];
+          const title = row[2];
+          visitMap[url] = { count, title };
+        });
+      }
+    } catch (sqlErr) {
+      console.warn('SQL sorgu hatası:', sqlErr);
+    }
+    db.close();
+
+    // Extract bookmarks
+    loadingText.textContent = 'Yer imleri işleniyor...';
+    const bookmarks = [];
+    const roots = bookmarksJSON.roots;
+    Object.values(roots).forEach(root => {
+      if (root && typeof root === 'object') {
+        bookmarks.push(...extractBookmarks(root));
+      }
+    });
+
+    // Match & sort
+    loadingText.textContent = 'Eşleştirme ve sıralama...';
+    allResults = bookmarks.map(bm => {
+      const visit = visitMap[bm.url];
+      return {
+        ...bm,
+        visitCount: visit ? visit.count : 0,
+        historyTitle: visit ? visit.title : null
+      };
+    });
+    allResults.sort((a, b) => b.visitCount - a.visitCount);
+
+    overlay.classList.remove('show');
+    renderResults(allResults);
+
+  } catch (err) {
+    overlay.classList.remove('show');
+    alert('Analiz sırasında hata: ' + err.message);
+    console.error(err);
+  }
+}
+
+// ====== RENDER RESULTS ======
+function renderResults(data) {
+  const container = document.getElementById('results');
+  const total = data.length;
+  const withVisits = data.filter(d => d.visitCount > 0).length;
+  const totalVisits = data.reduce((s, d) => s + d.visitCount, 0);
+
+  let html = `
+    <div class="results-header fade-in">
+      <h2>📊 Sonuçlar</h2>
+      <div class="results-stats">
+        <span>Toplam: <span class="val">${total}</span></span>
+        <span>Ziyaret edilen: <span class="val">${withVisits}</span></span>
+        <span>Toplam ziyaret: <span class="val">${totalVisits.toLocaleString('tr-TR')}</span></span>
+      </div>
+    </div>
+    <div class="filter-row fade-in">
+      <input type="text" class="search-input" id="searchInput" placeholder="🔍 Yer imi ara (isim veya URL)..." oninput="filterResults()">
+      <button class="filter-btn active" onclick="setFilter('all', this)">Tümü</button>
+      <button class="filter-btn" onclick="setFilter('visited', this)">Ziyaret Edilenler</button>
+      <button class="filter-btn" onclick="setFilter('unvisited', this)">Hiç Ziyaret Edilmeyenler</button>
+    </div>
+    <div class="bm-list" id="bmList"></div>
+  `;
+  container.innerHTML = html;
+  currentFilter = 'all';
+  filterResults();
+}
+
+let currentFilter = 'all';
+
+function setFilter(type, btn) {
+  currentFilter = type;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  filterResults();
+}
+
+function filterResults() {
+  const query = (document.getElementById('searchInput')?.value || '').toLowerCase().trim();
+  let filtered = allResults;
+
+  if (currentFilter === 'visited') filtered = filtered.filter(d => d.visitCount > 0);
+  if (currentFilter === 'unvisited') filtered = filtered.filter(d => d.visitCount === 0);
+
+  if (query) {
+    filtered = filtered.filter(d =>
+      (d.title || '').toLowerCase().includes(query) ||
+      (d.url || '').toLowerCase().includes(query) ||
+      (d.folder || '').toLowerCase().includes(query)
+    );
+  }
+
+  const list = document.getElementById('bmList');
+  if (!list) return;
+
+  if (filtered.length === 0) {
+    list.innerHTML = '<div class="no-match">Eşleşen yer imi bulunamadı.</div>';
+    return;
+  }
+
+  // Render max 500 for performance
+  const toRender = filtered.slice(0, 500);
+  list.innerHTML = toRender.map((item, i) => {
+    const rank = i + 1;
+    const domain = extractDomain(item.url);
+    const countClass = item.visitCount === 0 ? 'zero' : '';
+    const countText = item.visitCount > 0 ? `${item.visitCount} ziyaret` : 'Yok';
+    return `
+      <a class="bm-item" href="${escapeHtml(item.url)}" target="_blank" rel="noopener" title="${escapeHtml(item.url)}">
+        <div class="bm-rank">#${rank}</div>
+        <div class="bm-info">
+          <div class="bm-title">${escapeHtml(item.title)}</div>
+          <div class="bm-url">${escapeHtml(domain)}</div>
+          ${item.folder ? `<div class="bm-folder">📁 ${escapeHtml(item.folder)}</div>` : ''}
+        </div>
+        <div class="bm-count ${countClass}">${countText}</div>
+      </a>
+    `;
+  }).join('');
+
+  if (filtered.length > 500) {
+    list.innerHTML += `<div class="no-match">... ve ${filtered.length - 500} yer imi daha (performans için ilk 500 gösterildi)</div>`;
+  }
+}
+
+function extractDomain(url) {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return url;
+  }
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+
+</body>
+</html>
