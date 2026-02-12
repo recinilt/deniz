@@ -12,7 +12,6 @@
     --bg: #0a0a0f;
     --surface: #12121a;
     --surface2: #1a1a26;
-    --surface3: #1e1e2e;
     --border: #2a2a3a;
     --border-active: #4a6cf7;
     --text: #e8e8f0;
@@ -35,6 +34,7 @@
     overflow-x: hidden;
   }
 
+  /* Background grain */
   body::before {
     content: '';
     position: fixed;
@@ -52,6 +52,7 @@
     z-index: 1;
   }
 
+  /* Header */
   .header {
     text-align: center;
     margin-bottom: 48px;
@@ -78,6 +79,7 @@
     font-weight: 300;
   }
 
+  /* Steps */
   .step {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -85,6 +87,8 @@
     padding: 28px;
     margin-bottom: 20px;
     transition: border-color 0.3s, box-shadow 0.3s;
+    position: relative;
+    overflow: hidden;
   }
   .step.active {
     border-color: var(--border-active);
@@ -125,9 +129,19 @@
   }
   .step.done .step-badge .num { background: var(--success); }
 
-  .step h2 { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
-  .step .desc { font-size: 13px; color: var(--text-dim); margin-bottom: 18px; line-height: 1.6; }
+  .step h2 {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .step .desc {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-bottom: 18px;
+    line-height: 1.6;
+  }
 
+  /* Warning / Info box */
   .info-box {
     background: rgba(251,191,36,0.06);
     border: 1px solid rgba(251,191,36,0.2);
@@ -138,7 +152,11 @@
     line-height: 1.7;
     color: #e8d5a0;
   }
-  .info-box strong { color: var(--warn); font-weight: 600; }
+  .info-box strong {
+    color: var(--warn);
+    font-weight: 600;
+  }
+  .info-box .emoji { font-size: 15px; }
   .info-box code {
     font-family: 'JetBrains Mono', monospace;
     font-size: 11px;
@@ -146,6 +164,7 @@
     padding: 2px 6px;
     border-radius: 4px;
     color: #fbbf24;
+    word-break: break-all;
   }
   .info-box .steps-list {
     margin-top: 8px;
@@ -153,10 +172,24 @@
     list-style: none;
     counter-reset: infoStep;
   }
-  .info-box .steps-list li { counter-increment: infoStep; margin-bottom: 4px; }
-  .info-box .steps-list li::before { content: counter(infoStep) "."; font-weight: 700; color: var(--warn); margin-right: 6px; }
+  .info-box .steps-list li {
+    counter-increment: infoStep;
+    margin-bottom: 4px;
+  }
+  .info-box .steps-list li::before {
+    content: counter(infoStep) ".";
+    font-weight: 700;
+    color: var(--warn);
+    margin-right: 6px;
+  }
 
-  .path-row { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+  /* Path display */
+  .path-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
   .path-display {
     flex: 1;
     font-family: 'JetBrains Mono', monospace;
@@ -189,8 +222,12 @@
     white-space: nowrap;
   }
   .copy-btn:hover { filter: brightness(1.15); transform: translateY(-1px); }
-  .copy-btn.copied { background: var(--success); }
+  .copy-btn:active { transform: scale(0.97); }
+  .copy-btn.copied {
+    background: var(--success);
+  }
 
+  /* Profile select */
   .profile-select {
     width: 100%;
     font-family: 'Outfit', sans-serif;
@@ -207,9 +244,18 @@
     background-repeat: no-repeat;
     background-position: right 14px center;
   }
-  .profile-select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+  .profile-select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
 
-  .file-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  /* File buttons */
+  .file-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
   .file-btn-wrap { position: relative; }
   .file-btn {
     width: 100%;
@@ -225,12 +271,34 @@
     align-items: center;
     gap: 8px;
   }
-  .file-btn:hover { border-color: var(--accent); background: rgba(74,108,247,0.04); transform: translateY(-2px); }
-  .file-btn.loaded { border-style: solid; border-color: var(--success); background: rgba(52,211,153,0.04); }
+  .file-btn:hover {
+    border-color: var(--accent);
+    background: rgba(74,108,247,0.04);
+    transform: translateY(-2px);
+  }
+  .file-btn.loaded {
+    border-style: solid;
+    border-color: var(--success);
+    background: rgba(52,211,153,0.04);
+  }
   .file-btn .icon { font-size: 28px; }
-  .file-btn .label { font-size: 13px; font-weight: 600; }
-  .file-btn .sublabel { font-size: 11px; color: var(--text-dim); }
+  .file-btn .label {
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .file-btn .sublabel {
+    font-size: 11px;
+    color: var(--text-dim);
+    font-weight: 400;
+  }
+  .file-btn input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
 
+  /* Analyze button */
   .analyze-btn {
     width: 100%;
     padding: 16px;
@@ -247,9 +315,18 @@
     letter-spacing: 0.5px;
   }
   .analyze-btn:hover { filter: brightness(1.1); transform: translateY(-1px); box-shadow: 0 8px 30px var(--accent-glow); }
-  .analyze-btn:disabled { opacity: 0.35; cursor: not-allowed; filter: none; transform: none; box-shadow: none; }
+  .analyze-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    filter: none;
+    transform: none;
+    box-shadow: none;
+  }
 
-  #results { margin-top: 24px; }
+  /* Results */
+  #results {
+    margin-top: 24px;
+  }
   .results-header {
     display: flex;
     align-items: center;
@@ -258,12 +335,34 @@
     flex-wrap: wrap;
     gap: 12px;
   }
-  .results-header h2 { font-size: 20px; font-weight: 700; }
-  .results-stats { display: flex; gap: 16px; font-size: 12px; color: var(--text-dim); }
-  .results-stats span { display: flex; align-items: center; gap: 4px; }
-  .results-stats .val { color: var(--text); font-weight: 700; font-size: 14px; }
+  .results-header h2 {
+    font-size: 20px;
+    font-weight: 700;
+  }
+  .results-stats {
+    display: flex;
+    gap: 16px;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+  .results-stats span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .results-stats .val {
+    color: var(--text);
+    font-weight: 700;
+    font-size: 14px;
+  }
 
-  .filter-row { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+  /* Search / filter */
+  .filter-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
   .search-input {
     flex: 1;
     min-width: 200px;
@@ -275,7 +374,10 @@
     border-radius: 8px;
     padding: 10px 14px;
   }
-  .search-input:focus { outline: none; border-color: var(--accent); }
+  .search-input:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
   .filter-btn {
     font-family: 'Outfit', sans-serif;
     font-size: 12px;
@@ -288,50 +390,72 @@
     cursor: pointer;
     transition: all 0.2s;
   }
-  .filter-btn:hover, .filter-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(74,108,247,0.06); }
-
-  /* ===== DOMAIN ACCORDION ===== */
-  .domain-list { display: flex; flex-direction: column; gap: 6px; }
-
-  .domain-group {
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    overflow: hidden;
-    transition: border-color 0.2s;
+  .filter-btn:hover, .filter-btn.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(74,108,247,0.06);
   }
-  .domain-group.open { border-color: var(--accent); }
 
-  .domain-header {
+  /* Bookmark item */
+  .bm-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .bm-item {
     display: grid;
-    grid-template-columns: 48px 1fr auto auto;
+    grid-template-columns: 48px 1fr auto;
     gap: 14px;
     align-items: center;
     background: var(--surface);
-    padding: 14px 16px;
-    cursor: pointer;
-    transition: background 0.2s;
-    user-select: none;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    transition: all 0.2s;
+    text-decoration: none;
+    color: inherit;
   }
-  .domain-header:hover { background: var(--surface2); }
-  .domain-group.open .domain-header { background: var(--surface2); border-bottom: 1px solid var(--border); }
-
-  .domain-rank {
+  .bm-item:hover {
+    border-color: var(--accent);
+    background: var(--surface2);
+    transform: translateX(4px);
+  }
+  .bm-rank {
     font-family: 'JetBrains Mono', monospace;
     font-size: 16px;
     font-weight: 800;
     text-align: center;
     color: var(--text-dim);
   }
-  .domain-group:nth-child(1) .domain-rank { color: #fbbf24; font-size: 20px; }
-  .domain-group:nth-child(2) .domain-rank { color: #cbd5e1; font-size: 18px; }
-  .domain-group:nth-child(3) .domain-rank { color: #d97706; font-size: 18px; }
-
-  .domain-info { overflow: hidden; }
-  .domain-name { font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .domain-meta { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
-  .domain-meta .bm-count-label { color: var(--accent); font-weight: 600; }
-
-  .domain-visits {
+  .bm-item:nth-child(1) .bm-rank { color: #fbbf24; font-size: 20px; }
+  .bm-item:nth-child(2) .bm-rank { color: #cbd5e1; font-size: 18px; }
+  .bm-item:nth-child(3) .bm-rank { color: #d97706; font-size: 18px; }
+  .bm-info { overflow: hidden; }
+  .bm-title {
+    font-size: 13.5px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 2px;
+  }
+  .bm-url {
+    font-size: 11px;
+    color: var(--text-dim);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .bm-folder {
+    font-size: 10px;
+    color: var(--accent);
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .bm-count {
     font-family: 'JetBrains Mono', monospace;
     font-size: 14px;
     font-weight: 700;
@@ -340,70 +464,21 @@
     padding: 6px 12px;
     border-radius: 8px;
     white-space: nowrap;
+    text-align: right;
   }
-  .domain-visits.zero { color: var(--text-dim); background: rgba(136,136,160,0.06); }
-
-  .domain-chevron {
-    font-size: 14px;
+  .bm-count.zero {
     color: var(--text-dim);
-    transition: transform 0.25s;
-    width: 20px;
+    background: rgba(136,136,160,0.06);
+  }
+
+  .no-match {
     text-align: center;
-  }
-  .domain-group.open .domain-chevron { transform: rotate(90deg); color: var(--accent); }
-
-  .domain-body { display: none; background: var(--bg); }
-  .domain-group.open .domain-body { display: block; }
-
-  .path-item {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 12px;
-    align-items: center;
-    padding: 10px 16px 10px 78px;
-    border-bottom: 1px solid rgba(42,42,58,0.5);
-    transition: background 0.15s;
-    text-decoration: none;
-    color: inherit;
-  }
-  .path-item:last-child { border-bottom: none; }
-  .path-item:hover { background: rgba(74,108,247,0.04); }
-
-  .path-info { overflow: hidden; }
-  .path-title { font-size: 12.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
-  .path-url {
-    font-size: 10.5px;
+    padding: 40px;
     color: var(--text-dim);
-    font-family: 'JetBrains Mono', monospace;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .path-folders { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px; }
-  .path-folder-tag {
-    font-size: 9.5px;
-    color: var(--accent);
-    background: rgba(74,108,247,0.08);
-    padding: 2px 7px;
-    border-radius: 4px;
-    white-space: nowrap;
-    max-width: 220px;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    font-size: 14px;
   }
 
-  .path-visits {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--success);
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-  .path-visits.zero { color: var(--text-dim); }
-
-  .no-match { text-align: center; padding: 40px; color: var(--text-dim); font-size: 14px; }
-
+  /* Loading */
   .loading-overlay {
     display: none;
     position: fixed;
@@ -424,16 +499,22 @@
     animation: spin 0.7s linear infinite;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
-  .loading-text { font-size: 14px; color: var(--text-dim); }
+  .loading-text {
+    font-size: 14px;
+    color: var(--text-dim);
+  }
 
+  /* Responsive */
   @media (max-width: 600px) {
     .file-buttons { grid-template-columns: 1fr; }
-    .domain-header { grid-template-columns: 36px 1fr auto auto; gap: 10px; padding: 10px 12px; }
-    .path-item { padding-left: 52px; }
+    .bm-item { grid-template-columns: 36px 1fr auto; gap: 10px; padding: 10px 12px; }
     .container { padding: 24px 16px 60px; }
   }
 
-  .fade-in { animation: fadeIn 0.4s ease both; }
+  /* Fade-in animation */
+  .fade-in {
+    animation: fadeIn 0.4s ease both;
+  }
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(12px); }
     to { opacity: 1; transform: translateY(0); }
@@ -449,30 +530,34 @@
 
 <div class="container">
 
+  <!-- Header -->
   <div class="header fade-in">
     <span class="header-icon">🔖</span>
     <h1>Chrome Yer İmi Sıklık Analizi</h1>
-    <p>Yer imlerinizi domain bazlı grupla, ziyaret sıklığına göre sırala</p>
+    <p>Yer imlerinizi ziyaret sıklığına göre sıralayın — Chrome açıkken çalışır</p>
   </div>
 
-  <!-- STEP 1 -->
+  <!-- STEP 1: Local State -->
   <div class="step active fade-in" id="step1">
     <div class="step-badge"><span class="num">1</span> PROFİL ALGILAMA</div>
     <h2>Local State Dosyasını Seçin</h2>
-    <p class="desc">Bu dosya tüm Chrome profillerinizin listesini içerir.</p>
+    <p class="desc">Bu dosya tüm Chrome profillerinizin listesini içerir. Seçtikten sonra profilleriniz otomatik listelenecek.</p>
+
     <div class="info-box">
       <span class="emoji">⚠️</span> <strong>Dosya Seçici Açıldığında:</strong>
       <ol class="steps-list">
         <li>Aşağıdaki yolu <strong>📋 Kopyala</strong> butonuyla kopyalayın</li>
-        <li>Dosya seçicinin <strong>adres çubuğuna</strong> tıklayın (<code>Alt+D</code>)</li>
-        <li>Yapıştırın (<code>Ctrl+V</code>) ve <strong>Enter</strong>'a basın</li>
-        <li><code>Local State</code> dosyasını seçin</li>
+        <li>Dosya seçici penceresinin üstündeki <strong>adres çubuğuna</strong> tıklayın (veya <code>Alt+D</code>)</li>
+        <li>Kopyalanan yolu yapıştırın (<code>Ctrl+V</code>) ve <strong>Enter</strong>'a basın</li>
+        <li>Açılan klasörde <code>Local State</code> dosyasını seçin</li>
       </ol>
     </div>
+
     <div class="path-row">
       <div class="path-display" id="localStatePath">%LOCALAPPDATA%\Google\Chrome\User Data</div>
       <button class="copy-btn" onclick="copyPath('localStatePath', this)">📋 Kopyala</button>
     </div>
+
     <div class="file-btn-wrap">
       <div class="file-btn" id="localStateBtn" onclick="document.getElementById('localStateInput').click()">
         <span class="icon">📂</span>
@@ -483,17 +568,19 @@
     </div>
   </div>
 
-  <!-- STEP 2 -->
+  <!-- STEP 2: Profile -->
   <div class="step locked" id="step2">
     <div class="step-badge"><span class="num">2</span> PROFİL SEÇİMİ</div>
     <h2>Chrome Profilinizi Seçin</h2>
-    <p class="desc">Algılanan profillerden aktif kullandığınızı seçin.</p>
+    <p class="desc">Algılanan profillerden aktif kullandığınızı seçin. Dosya yolu otomatik güncellenecek.</p>
+
     <select class="profile-select" id="profileSelect" onchange="onProfileChange()">
       <option disabled selected>— Profil seçin —</option>
     </select>
+
     <div id="profilePathSection" style="display:none">
       <div class="info-box">
-        <span class="emoji">📁</span> Dosya seçici açıldığında bu yolu adres çubuğuna yapıştırın.
+        <span class="emoji">📁</span> Seçilen profil klasörü aşağıdadır. Sonraki adımda dosya seçici açıldığında bu yolu adres çubuğuna yapıştırın.
       </div>
       <div class="path-row">
         <div class="path-display" id="profilePath"></div>
@@ -502,14 +589,16 @@
     </div>
   </div>
 
-  <!-- STEP 3 -->
+  <!-- STEP 3: Files -->
   <div class="step locked" id="step3">
     <div class="step-badge"><span class="num">3</span> DOSYA SEÇİMİ & ANALİZ</div>
     <h2>Bookmarks ve History Dosyalarını Seçin</h2>
-    <p class="desc">Her iki dosya da seçilen profil klasöründedir.</p>
+    <p class="desc">Her iki dosya da seçilen profil klasöründedir. Dosya seçici açıldığında yukarıdaki yolu adres çubuğuna yapıştırın.</p>
+
     <div class="info-box">
-      <span class="emoji">💡</span> Chrome açıkken okunabilir. Son birkaç dakikalık ziyaretler eksik kalabilir — normal.
+      <span class="emoji">💡</span> <strong>İpucu:</strong> Chrome açıkken her iki dosya da okunabilir. History verisinde son birkaç dakikalık ziyaretler eksik kalabilir (WAL cache nedeniyle) — bu normal.
     </div>
+
     <div class="file-buttons">
       <div class="file-btn-wrap">
         <div class="file-btn" id="bookmarksBtn" onclick="document.getElementById('bookmarksInput').click()">
@@ -528,12 +617,15 @@
         <input type="file" id="historyInput" accept="*" style="display:none" onchange="handleHistory(this)">
       </div>
     </div>
+
     <button class="analyze-btn" id="analyzeBtn" disabled onclick="analyze()">
-      🔍 Analiz Et — Domain Bazlı Sırala
+      🔍 Analiz Et — Sıklığa Göre Sırala
     </button>
   </div>
 
+  <!-- Results -->
   <div id="results"></div>
+
 </div>
 
 <script>
@@ -542,60 +634,115 @@ let profilesData = {};
 let selectedProfileDir = '';
 let bookmarksJSON = null;
 let historyBuffer = null;
-let domainGroups = [];
+let allResults = [];
 
 // ====== CLIPBOARD ======
 async function copyPath(elementId, btn) {
   const text = document.getElementById(elementId).textContent;
-  try { await navigator.clipboard.writeText(text); } catch {
+  try {
+    await navigator.clipboard.writeText(text);
+    btn.classList.add('copied');
+    btn.innerHTML = '✅ Kopyalandı!';
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      btn.innerHTML = '📋 Kopyala';
+    }, 2000);
+  } catch {
+    // Fallback
     const ta = document.createElement('textarea');
-    ta.value = text; ta.style.cssText = 'position:fixed;left:-9999px';
-    document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;left:-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    btn.classList.add('copied');
+    btn.innerHTML = '✅ Kopyalandı!';
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      btn.innerHTML = '📋 Kopyala';
+    }, 2000);
   }
-  btn.classList.add('copied'); btn.innerHTML = '✅ Kopyalandı!';
-  setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = '📋 Kopyala'; }, 2000);
 }
 
-// ====== STEP 1 ======
+// ====== STEP MANAGEMENT ======
+function setStep(num) {
+  document.querySelectorAll('.step').forEach((el, i) => {
+    el.classList.remove('active', 'locked');
+    if (i + 1 < num) el.classList.add('done');
+    else if (i + 1 === num) el.classList.add('active');
+    else el.classList.add('locked');
+  });
+}
+
+// ====== STEP 1: Local State ======
 function handleLocalState(input) {
   const file = input.files[0];
   if (!file) return;
+
   const reader = new FileReader();
   reader.onload = function(e) {
     try {
       const data = JSON.parse(e.target.result);
       const cache = data?.profile?.info_cache;
-      if (!cache || Object.keys(cache).length === 0) { alert('Profil bilgisi bulunamadı.'); return; }
+      if (!cache || Object.keys(cache).length === 0) {
+        alert('Bu dosyada profil bilgisi bulunamadı. Doğru "Local State" dosyasını seçtiğinizden emin olun.');
+        return;
+      }
+
       profilesData = cache;
       const select = document.getElementById('profileSelect');
       select.innerHTML = '<option disabled selected>— Profil seçin —</option>';
+
       Object.entries(cache).forEach(([dir, info]) => {
         const name = info.name || info.gaia_name || dir;
         const email = info.user_name || info.gaia_name || '';
         const label = email ? `${name} (${email}) — [${dir}]` : `${name} — [${dir}]`;
         const opt = document.createElement('option');
-        opt.value = dir; opt.textContent = label; select.appendChild(opt);
+        opt.value = dir;
+        opt.textContent = label;
+        select.appendChild(opt);
       });
-      if (Object.keys(cache).length === 1) { select.selectedIndex = 1; onProfileChange(); }
+
+      // Auto-select if only one profile
+      if (Object.keys(cache).length === 1) {
+        select.selectedIndex = 1;
+        onProfileChange();
+      }
+
       document.getElementById('localStateBtn').classList.add('loaded');
       document.getElementById('localStateBtn').querySelector('.label').textContent = '✅ Local State Yüklendi';
-      document.getElementById('step1').className = 'step done fade-in';
-      document.getElementById('step2').className = 'step active';
-    } catch (err) { alert('Dosya okunamadı: ' + err.message); }
+      setStep(2);
+      document.getElementById('step1').classList.add('done');
+      document.getElementById('step2').classList.remove('locked');
+      document.getElementById('step2').classList.add('active');
+    } catch (err) {
+      alert('Dosya okunamadı: ' + err.message + '\n\nLütfen "Local State" dosyasını seçtiğinizden emin olun.');
+    }
   };
   reader.readAsText(file, 'utf-8');
 }
 
-// ====== STEP 2 ======
+// ====== STEP 2: Profile Select ======
 function onProfileChange() {
-  const dir = document.getElementById('profileSelect').value;
+  const select = document.getElementById('profileSelect');
+  const dir = select.value;
   if (!dir) return;
+
   selectedProfileDir = dir;
-  document.getElementById('profilePath').textContent = `%LOCALAPPDATA%\\Google\\Chrome\\User Data\\${dir}`;
+  const path = `%LOCALAPPDATA%\\Google\\Chrome\\User Data\\${dir}`;
+  document.getElementById('profilePath').textContent = path;
   document.getElementById('profilePathSection').style.display = 'block';
-  document.getElementById('step2').className = 'step done';
-  document.getElementById('step3').className = 'step active';
-  bookmarksJSON = null; historyBuffer = null;
+
+  // Unlock step 3
+  document.getElementById('step2').classList.add('done');
+  document.getElementById('step2').classList.remove('active');
+  document.getElementById('step3').classList.remove('locked');
+  document.getElementById('step3').classList.add('active');
+
+  // Reset file states
+  bookmarksJSON = null;
+  historyBuffer = null;
   document.getElementById('bookmarksBtn').classList.remove('loaded');
   document.getElementById('bookmarksBtn').querySelector('.label').textContent = 'Bookmarks';
   document.getElementById('historyBtn').classList.remove('loaded');
@@ -604,29 +751,43 @@ function onProfileChange() {
   document.getElementById('results').innerHTML = '';
 }
 
-// ====== STEP 3 ======
+// ====== STEP 3: File Handling ======
 function handleBookmarks(input) {
-  const file = input.files[0]; if (!file) return;
+  const file = input.files[0];
+  if (!file) return;
+
   const reader = new FileReader();
   reader.onload = function(e) {
     try {
       bookmarksJSON = JSON.parse(e.target.result);
-      if (!bookmarksJSON.roots) { alert('Geçerli Bookmarks dosyası değil.'); bookmarksJSON = null; return; }
+      if (!bookmarksJSON.roots) {
+        alert('Bu geçerli bir Bookmarks dosyası değil.');
+        bookmarksJSON = null;
+        return;
+      }
       document.getElementById('bookmarksBtn').classList.add('loaded');
       document.getElementById('bookmarksBtn').querySelector('.label').textContent = '✅ Bookmarks Yüklendi';
       checkReady();
-    } catch (err) { alert('Okunamadı: ' + err.message); }
+    } catch (err) {
+      alert('Bookmarks dosyası okunamadı: ' + err.message);
+    }
   };
   reader.readAsText(file, 'utf-8');
 }
 
 function handleHistory(input) {
-  const file = input.files[0]; if (!file) return;
+  const file = input.files[0];
+  if (!file) return;
+
   const reader = new FileReader();
   reader.onload = function(e) {
     historyBuffer = new Uint8Array(e.target.result);
-    if (!String.fromCharCode(...historyBuffer.slice(0, 15)).startsWith('SQLite format')) {
-      alert('Geçerli History dosyası değil.'); historyBuffer = null; return;
+    // Quick validation: SQLite header = "SQLite format 3\0"
+    const header = String.fromCharCode(...historyBuffer.slice(0, 15));
+    if (!header.startsWith('SQLite format')) {
+      alert('Bu geçerli bir History (SQLite) dosyası değil.');
+      historyBuffer = null;
+      return;
     }
     document.getElementById('historyBtn').classList.add('loaded');
     document.getElementById('historyBtn').querySelector('.label').textContent = '✅ History Yüklendi';
@@ -639,131 +800,130 @@ function checkReady() {
   document.getElementById('analyzeBtn').disabled = !(bookmarksJSON && historyBuffer);
 }
 
-// ====== HELPERS ======
-function getDomain(url) {
-  try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return null; }
-}
-
-function getPathDisplay(url) {
-  try {
-    const u = new URL(url);
-    const p = u.pathname + u.search + u.hash;
-    return p === '/' ? '/' : p;
-  } catch { return url; }
-}
-
-function extractBookmarksRaw(node, folder) {
+// ====== ANALYSIS ======
+function extractBookmarks(node, folder = '') {
   const items = [];
   if (node.type === 'url') {
-    items.push({ title: node.name || '(İsimsiz)', url: node.url, folder: folder });
+    items.push({
+      title: node.name || '(İsimsiz)',
+      url: node.url,
+      folder: folder,
+      dateAdded: node.date_added ? chromeTimeToDate(parseInt(node.date_added)) : null
+    });
   }
   if (node.children) {
-    const cur = folder ? `${folder} › ${node.name}` : (node.name || '');
-    node.children.forEach(child => items.push(...extractBookmarksRaw(child, cur)));
+    const currentFolder = folder ? `${folder} › ${node.name}` : (node.name || '');
+    node.children.forEach(child => {
+      items.push(...extractBookmarks(child, currentFolder));
+    });
   }
   return items;
 }
 
-function escapeHtml(s) {
-  if (!s) return '';
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function chromeTimeToDate(chromeTimestamp) {
+  // Chrome timestamp: microseconds since 1601-01-01
+  const epoch = 11644473600000000; // microseconds between 1601 and 1970
+  const ms = (chromeTimestamp - epoch) / 1000;
+  return new Date(ms);
 }
 
-// ====== ANALYSIS ======
 async function analyze() {
   const overlay = document.getElementById('loadingOverlay');
-  const lt = document.getElementById('loadingText');
+  const loadingText = document.getElementById('loadingText');
   overlay.classList.add('show');
+  loadingText.textContent = 'sql.js yükleniyor...';
 
   try {
-    lt.textContent = 'sql.js yükleniyor...';
-    const SQL = await initSqlJs({ locateFile: f => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/${f}` });
+    // Init sql.js
+    const SQL = await initSqlJs({
+      locateFile: file => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/${file}`
+    });
 
-    lt.textContent = 'History okunuyor...';
+    loadingText.textContent = 'History veritabanı okunuyor...';
+
+    // Open History DB
     const db = new SQL.Database(historyBuffer);
 
-    lt.textContent = 'Ziyaret sayıları çıkarılıyor...';
+    // Extract visit counts
+    loadingText.textContent = 'Ziyaret sayıları çıkarılıyor...';
     const visitMap = {};
     try {
-      const stmt = db.exec("SELECT url, visit_count, title FROM urls");
+      const stmt = db.exec("SELECT url, visit_count, title FROM urls WHERE visit_count > 0");
       if (stmt.length > 0) {
-        stmt[0].values.forEach(r => { visitMap[r[0]] = { count: r[1] || 0, title: r[2] || '' }; });
+        stmt[0].values.forEach(row => {
+          const url = row[0];
+          const count = row[1];
+          const title = row[2];
+          visitMap[url] = { count, title };
+        });
       }
-    } catch (e) { console.warn('SQL hatası:', e); }
+    } catch (sqlErr) {
+      console.warn('SQL sorgu hatası:', sqlErr);
+    }
     db.close();
 
-    lt.textContent = 'Yer imleri işleniyor...';
-    const rawBm = [];
-    Object.values(bookmarksJSON.roots).forEach(root => {
-      if (root && typeof root === 'object') rawBm.push(...extractBookmarksRaw(root, ''));
-    });
-
-    // Deduplicate: aynı URL → tek kayıt, klasörler birleş
-    lt.textContent = 'URL deduplication...';
-    const urlMap = {};
-    rawBm.forEach(bm => {
-      if (!bm.url || !bm.url.startsWith('http')) return;
-      if (!urlMap[bm.url]) {
-        const v = visitMap[bm.url];
-        urlMap[bm.url] = { title: bm.title, url: bm.url, folders: new Set(), visitCount: v ? v.count : 0 };
+    // Extract bookmarks
+    loadingText.textContent = 'Yer imleri işleniyor...';
+    const bookmarks = [];
+    const roots = bookmarksJSON.roots;
+    Object.values(roots).forEach(root => {
+      if (root && typeof root === 'object') {
+        bookmarks.push(...extractBookmarks(root));
       }
-      if (bm.folder) urlMap[bm.url].folders.add(bm.folder);
     });
 
-    // Domain gruplama
-    lt.textContent = 'Domain gruplama...';
-    const dMap = {};
-    Object.values(urlMap).forEach(item => {
-      const d = getDomain(item.url);
-      if (!d) return;
-      if (!dMap[d]) dMap[d] = [];
-      dMap[d].push({ url: item.url, title: item.title, visitCount: item.visitCount, folders: [...item.folders] });
+    // Match & sort
+    loadingText.textContent = 'Eşleştirme ve sıralama...';
+    allResults = bookmarks.map(bm => {
+      const visit = visitMap[bm.url];
+      return {
+        ...bm,
+        visitCount: visit ? visit.count : 0,
+        historyTitle: visit ? visit.title : null
+      };
     });
-
-    domainGroups = Object.entries(dMap).map(([domain, paths]) => {
-      paths.sort((a, b) => b.visitCount - a.visitCount);
-      return { domain, totalVisits: paths.reduce((s, p) => s + p.visitCount, 0), uniqueUrls: paths.length, paths };
-    });
-    domainGroups.sort((a, b) => b.totalVisits - a.totalVisits);
+    allResults.sort((a, b) => b.visitCount - a.visitCount);
 
     overlay.classList.remove('show');
-    renderResults();
+    renderResults(allResults);
+
   } catch (err) {
     overlay.classList.remove('show');
-    alert('Hata: ' + err.message);
+    alert('Analiz sırasında hata: ' + err.message);
     console.error(err);
   }
 }
 
-// ====== RENDER ======
-let currentFilter = 'all';
+// ====== RENDER RESULTS ======
+function renderResults(data) {
+  const container = document.getElementById('results');
+  const total = data.length;
+  const withVisits = data.filter(d => d.visitCount > 0).length;
+  const totalVisits = data.reduce((s, d) => s + d.visitCount, 0);
 
-function renderResults() {
-  const c = document.getElementById('results');
-  const td = domainGroups.length;
-  const tu = domainGroups.reduce((s, g) => s + g.uniqueUrls, 0);
-  const tv = domainGroups.reduce((s, g) => s + g.totalVisits, 0);
-
-  c.innerHTML = `
+  let html = `
     <div class="results-header fade-in">
       <h2>📊 Sonuçlar</h2>
       <div class="results-stats">
-        <span>Domain: <span class="val">${td}</span></span>
-        <span>Benzersiz URL: <span class="val">${tu}</span></span>
-        <span>Toplam ziyaret: <span class="val">${tv.toLocaleString('tr-TR')}</span></span>
+        <span>Toplam: <span class="val">${total}</span></span>
+        <span>Ziyaret edilen: <span class="val">${withVisits}</span></span>
+        <span>Toplam ziyaret: <span class="val">${totalVisits.toLocaleString('tr-TR')}</span></span>
       </div>
     </div>
     <div class="filter-row fade-in">
-      <input type="text" class="search-input" id="searchInput" placeholder="🔍 Domain veya URL ara..." oninput="filterResults()">
+      <input type="text" class="search-input" id="searchInput" placeholder="🔍 Yer imi ara (isim veya URL)..." oninput="filterResults()">
       <button class="filter-btn active" onclick="setFilter('all', this)">Tümü</button>
       <button class="filter-btn" onclick="setFilter('visited', this)">Ziyaret Edilenler</button>
-      <button class="filter-btn" onclick="setFilter('unvisited', this)">Ziyaret Edilmeyenler</button>
+      <button class="filter-btn" onclick="setFilter('unvisited', this)">Hiç Ziyaret Edilmeyenler</button>
     </div>
-    <div class="domain-list" id="domainList"></div>
+    <div class="bm-list" id="bmList"></div>
   `;
+  container.innerHTML = html;
   currentFilter = 'all';
   filterResults();
 }
+
+let currentFilter = 'all';
 
 function setFilter(type, btn) {
   currentFilter = type;
@@ -773,76 +933,66 @@ function setFilter(type, btn) {
 }
 
 function filterResults() {
-  const q = (document.getElementById('searchInput')?.value || '').toLowerCase().trim();
-  let filtered = domainGroups;
+  const query = (document.getElementById('searchInput')?.value || '').toLowerCase().trim();
+  let filtered = allResults;
 
-  if (currentFilter === 'visited') filtered = filtered.filter(g => g.totalVisits > 0);
-  if (currentFilter === 'unvisited') filtered = filtered.filter(g => g.totalVisits === 0);
+  if (currentFilter === 'visited') filtered = filtered.filter(d => d.visitCount > 0);
+  if (currentFilter === 'unvisited') filtered = filtered.filter(d => d.visitCount === 0);
 
-  if (q) {
-    filtered = filtered.filter(g =>
-      g.domain.toLowerCase().includes(q) ||
-      g.paths.some(p =>
-        (p.title || '').toLowerCase().includes(q) ||
-        (p.url || '').toLowerCase().includes(q) ||
-        p.folders.some(f => f.toLowerCase().includes(q))
-      )
+  if (query) {
+    filtered = filtered.filter(d =>
+      (d.title || '').toLowerCase().includes(query) ||
+      (d.url || '').toLowerCase().includes(query) ||
+      (d.folder || '').toLowerCase().includes(query)
     );
   }
 
-  const list = document.getElementById('domainList');
+  const list = document.getElementById('bmList');
   if (!list) return;
 
   if (filtered.length === 0) {
-    list.innerHTML = '<div class="no-match">Eşleşen domain bulunamadı.</div>';
+    list.innerHTML = '<div class="no-match">Eşleşen yer imi bulunamadı.</div>';
     return;
   }
 
-  const toRender = filtered.slice(0, 200);
-  list.innerHTML = toRender.map((g, i) => {
-    const vc = g.totalVisits === 0 ? 'zero' : '';
-    const vt = g.totalVisits > 0 ? `${g.totalVisits.toLocaleString('tr-TR')} ziyaret` : 'Yok';
-    const ul = g.uniqueUrls === 1 ? '1 yer imi' : `${g.uniqueUrls} yer imi`;
-
-    const ph = g.paths.map(p => {
-      const ps = getPathDisplay(p.url);
-      const pvc = p.visitCount === 0 ? 'zero' : '';
-      const pvt = p.visitCount > 0 ? p.visitCount.toLocaleString('tr-TR') : '0';
-      const fh = p.folders.length > 0
-        ? `<div class="path-folders">${p.folders.map(f => `<span class="path-folder-tag" title="${escapeHtml(f)}">📁 ${escapeHtml(f)}</span>`).join('')}</div>`
-        : '';
-      return `<a class="path-item" href="${escapeHtml(p.url)}" target="_blank" rel="noopener" title="${escapeHtml(p.url)}">
-        <div class="path-info">
-          <div class="path-title">${escapeHtml(p.title)}</div>
-          <div class="path-url">${escapeHtml(ps)}</div>
-          ${fh}
+  // Render max 500 for performance
+  const toRender = filtered.slice(0, 500);
+  list.innerHTML = toRender.map((item, i) => {
+    const rank = i + 1;
+    const domain = extractDomain(item.url);
+    const countClass = item.visitCount === 0 ? 'zero' : '';
+    const countText = item.visitCount > 0 ? `${item.visitCount} ziyaret` : 'Yok';
+    return `
+      <a class="bm-item" href="${escapeHtml(item.url)}" target="_blank" rel="noopener" title="${escapeHtml(item.url)}">
+        <div class="bm-rank">#${rank}</div>
+        <div class="bm-info">
+          <div class="bm-title">${escapeHtml(item.title)}</div>
+          <div class="bm-url">${escapeHtml(domain)}</div>
+          ${item.folder ? `<div class="bm-folder">📁 ${escapeHtml(item.folder)}</div>` : ''}
         </div>
-        <div class="path-visits ${pvc}">${pvt}</div>
-      </a>`;
-    }).join('');
-
-    return `<div class="domain-group" data-domain="${escapeHtml(g.domain)}">
-      <div class="domain-header" onclick="toggleDomain(this)">
-        <div class="domain-rank">#${i + 1}</div>
-        <div class="domain-info">
-          <div class="domain-name">${escapeHtml(g.domain)}</div>
-          <div class="domain-meta"><span class="bm-count-label">${ul}</span></div>
-        </div>
-        <div class="domain-visits ${vc}">${vt}</div>
-        <div class="domain-chevron">▶</div>
-      </div>
-      <div class="domain-body">${ph}</div>
-    </div>`;
+        <div class="bm-count ${countClass}">${countText}</div>
+      </a>
+    `;
   }).join('');
 
-  if (filtered.length > 200) {
-    list.innerHTML += `<div class="no-match">... ve ${filtered.length - 200} domain daha</div>`;
+  if (filtered.length > 500) {
+    list.innerHTML += `<div class="no-match">... ve ${filtered.length - 500} yer imi daha (performans için ilk 500 gösterildi)</div>`;
   }
 }
 
-function toggleDomain(el) {
-  el.closest('.domain-group').classList.toggle('open');
+function extractDomain(url) {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return url;
+  }
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 </script>
+
 </body>
 </html>
