@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#1976D2">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="format-detection" content="telephone=no">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob: https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com; img-src 'self' data: blob:;">
+  <title>Ödeme Hatırlatıcı</title>
+  <link rel="stylesheet" href="css/app.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body class="theme-light">
+
+  <!-- ==================== LOADING SPLASH ==================== -->
+  <div class="app-loading" id="app-loading">
+    <div class="app-loading-spinner"></div>
+  </div>
+
+  <!-- ==================== HEADER ==================== -->
+  <header class="app-header">
+    <h1>💰 <span data-i18n="app_name">Ödeme Hatırlatıcı</span></h1>
+    <div class="header-actions">
+      <span class="premium-badge">⭐ PRO</span>
+    </div>
+  </header>
+
+  <!-- ==================== SAYFA: DASHBOARD ==================== -->
+  <div class="page active" id="page-dashboard">
+
+    <!-- Özet Kartları -->
+    <div class="dash-cards">
+      <div class="dash-card card-total">
+        <div class="dash-label" data-i18n="dash_this_month">Bu Ay Toplam</div>
+        <div class="dash-value" id="dash-total">0 ₺</div>
+      </div>
+      <div class="dash-card card-paid">
+        <div class="dash-label" data-i18n="dash_paid_count">Ödenen</div>
+        <div class="dash-value" id="dash-paid">0 ₺</div>
+      </div>
+      <div class="dash-card card-overdue">
+        <div class="dash-label" data-i18n="filter_overdue">Gecikmiş</div>
+        <div class="dash-value" id="dash-overdue">0</div>
+      </div>
+      <div class="dash-card card-upcoming">
+        <div class="dash-label" data-i18n="dash_upcoming">Yaklaşan</div>
+        <div class="dash-value" id="dash-upcoming-count">0</div>
+      </div>
+    </div>
+
+    <!-- Kalan Ödeme Hakkı -->
+    <div class="dash-remaining" id="dash-remaining" style="display:none;"></div>
+
+    <!-- Gecikmiş Ödeme Uyarısı -->
+    <div id="dash-overdue-alert"></div>
+
+    <!-- Yaklaşan Ödemeler -->
+    <h2 class="section-title" data-i18n="dash_upcoming">Yaklaşan Ödemeler</h2>
+    <div id="dash-upcoming-list">
+      <div class="empty-state"><p data-i18n="no_data">Veri bulunamadı</p></div>
+    </div>
+  </div>
+
+  <!-- ==================== SAYFA: ÖDEMELER ==================== -->
+  <div class="page" id="page-payments">
+
+    <!-- Arama -->
+    <div class="search-bar">
+      <input type="text" data-i18n-placeholder="filter_search" placeholder="Ara..." oninput="handleSearch(this.value)">
+    </div>
+
+    <!-- Kategori Filtresi -->
+    <div class="filter-bar" id="filter-category">
+      <button class="filter-btn active" onclick="setFilter('category','all');activateFilter(this)" data-i18n="filter_all">Tümü</button>
+      <button class="filter-btn" onclick="setFilter('category','fatura');activateFilter(this)">📄 Fatura</button>
+      <button class="filter-btn" onclick="setFilter('category','kredi');activateFilter(this)">💳 Kredi</button>
+      <button class="filter-btn" onclick="setFilter('category','vergi');activateFilter(this)">🏛️ Vergi</button>
+      <button class="filter-btn" onclick="setFilter('category','arac');activateFilter(this)">🚗 Araç</button>
+      <button class="filter-btn" onclick="setFilter('category','sigorta');activateFilter(this)">🛡️ Sigorta</button>
+      <button class="filter-btn" onclick="setFilter('category','abonelik');activateFilter(this)">🔄 Abonelik</button>
+      <button class="filter-btn" onclick="setFilter('category','borc');activateFilter(this)">🤝 Borç</button>
+      <button class="filter-btn" onclick="setFilter('category','diger');activateFilter(this)">📌 Diğer</button>
+    </div>
+
+    <!-- Durum Filtresi -->
+    <div class="filter-bar" id="filter-status">
+      <button class="filter-btn active" onclick="setFilter('status','all');activateFilter(this)" data-i18n="filter_all">Tümü</button>
+      <button class="filter-btn" onclick="setFilter('status','pending');activateFilter(this)" data-i18n="filter_pending">Bekleyen</button>
+      <button class="filter-btn" onclick="setFilter('status','overdue');activateFilter(this)" data-i18n="filter_overdue">Gecikmiş</button>
+      <button class="filter-btn" onclick="setFilter('status','partial');activateFilter(this)" data-i18n="filter_partial">Kısmi</button>
+      <button class="filter-btn" onclick="setFilter('status','paid');activateFilter(this)" data-i18n="filter_paid">Ödendi</button>
+    </div>
+
+    <!-- Ödeme Listesi -->
+    <div id="payment-list">
+      <div class="empty-state"><p data-i18n="no_data">Veri bulunamadı</p></div>
+    </div>
+  </div>
+
+  <!-- ==================== SAYFA: TAKVİM ==================== -->
+  <div class="page" id="page-calendar">
+    <div class="calendar-header">
+      <button class="cal-nav-btn" onclick="calendarPrev()">◀</button>
+      <h2 id="calendar-title">Şubat 2026</h2>
+      <button class="cal-nav-btn" onclick="calendarNext()">▶</button>
+    </div>
+    <div class="calendar-grid" id="calendar-grid"></div>
+  </div>
+
+  <!-- ==================== SAYFA: RAPORLAR ==================== -->
+  <div class="page" id="page-reports">
+
+    <!-- Premium Overlay -->
+    <div class="premium-overlay" id="reports-premium-overlay" style="display:none; position:relative; min-height:300px;">
+      <div class="premium-overlay-content">
+        <p>🔒 <span data-i18n="set_premium_desc">Premium özellik</span></p>
+        <button class="btn btn-premium best" onclick="showPremiumPrompt()">⭐ Premium</button>
+      </div>
+    </div>
+
+    <!-- Aylık Dağılım -->
+    <h2 class="section-title" data-i18n="rep_monthly">Aylık Dağılım</h2>
+    <div class="chart-container">
+      <canvas id="chartMonthly"></canvas>
+    </div>
+
+    <!-- Trend -->
+    <h2 class="section-title" data-i18n="rep_trend">6 Aylık Trend</h2>
+    <div class="chart-container">
+      <canvas id="chartTrend"></canvas>
+    </div>
+
+    <!-- CSV Export -->
+    <button class="btn btn-primary mt-16" onclick="shareCSV()" style="width:100%;">
+      📤 <span data-i18n="rep_export_csv">CSV Dışa Aktar</span>
+    </button>
+
+    <!-- Hesap Makineleri -->
+    <h2 class="section-title mt-20" data-i18n="nav_calculators">Hesap Makineleri</h2>
+
+    <!-- Kredi Hesaplama -->
+    <div class="calc-section">
+      <h3>🏦 <span data-i18n="calc_loan">Kredi Taksit Hesaplama</span></h3>
+      <div class="form-group">
+        <label data-i18n="calc_principal">Anapara (₺)</label>
+        <input type="number" id="calc-loan-principal" placeholder="100000" min="0" step="1000">
+      </div>
+      <div class="form-row">
+        <div class="form-group flex-1">
+          <label data-i18n="calc_rate">Yıllık Faiz (%)</label>
+          <input type="number" id="calc-loan-rate" placeholder="42" min="0" step="0.1">
+        </div>
+        <div class="form-group flex-1">
+          <label data-i18n="calc_months">Vade (Ay)</label>
+          <input type="number" id="calc-loan-months" placeholder="36" min="1">
+        </div>
+      </div>
+      <button class="btn btn-primary calc-btn" onclick="handleCalcLoan()" style="width:100%;" data-i18n="calc_calculate">Hesapla</button>
+      <div id="calc-loan-result"></div>
+    </div>
+
+    <!-- Gecikme Cezası -->
+    <div class="calc-section">
+      <h3>⏰ <span data-i18n="calc_late_fee">Gecikme Cezası Hesaplama</span></h3>
+      <div class="form-group">
+        <label data-i18n="pay_amount">Tutar (₺)</label>
+        <input type="number" id="calc-late-amount" placeholder="5000" min="0">
+      </div>
+      <div class="form-row">
+        <div class="form-group flex-1">
+          <label data-i18n="calc_days_late">Geciken Gün</label>
+          <input type="number" id="calc-late-days" placeholder="30" min="1">
+        </div>
+        <div class="form-group flex-1">
+          <label data-i18n="calc_daily_rate">Günlük Oran (%)</label>
+          <input type="number" id="calc-late-rate" placeholder="0.05" min="0" step="0.01">
+        </div>
+      </div>
+      <button class="btn btn-primary calc-btn" onclick="handleCalcLateFee()" style="width:100%;" data-i18n="calc_calculate">Hesapla</button>
+      <div id="calc-late-result"></div>
+    </div>
+
+    <!-- Borç Ödeme Planı -->
+    <div class="calc-section">
+      <h3>📊 <span data-i18n="calc_payoff">Borç Ödeme Planı</span></h3>
+      <div class="form-group">
+        <label data-i18n="calc_total_debt">Toplam Borç (₺)</label>
+        <input type="number" id="calc-payoff-debt" placeholder="50000" min="0">
+      </div>
+      <div class="form-row">
+        <div class="form-group flex-1">
+          <label data-i18n="calc_monthly_budget">Aylık Bütçe (₺)</label>
+          <input type="number" id="calc-payoff-budget" placeholder="5000" min="0">
+        </div>
+        <div class="form-group flex-1">
+          <label data-i18n="calc_rate">Yıllık Faiz (%)</label>
+          <input type="number" id="calc-payoff-rate" placeholder="0" min="0" step="0.1">
+        </div>
+      </div>
+      <button class="btn btn-primary calc-btn" onclick="handleCalcPayoff()" style="width:100%;" data-i18n="calc_calculate">Hesapla</button>
+      <div id="calc-payoff-result"></div>
+    </div>
+  </div>
+
+  <!-- ==================== SAYFA: AYARLAR ==================== -->
+  <div class="page" id="page-settings">
+
+    <!-- Genel -->
+    <div class="settings-group">
+      <div class="settings-item">
+        <div class="set-label"><span class="set-icon">🌐</span> <span data-i18n="set_language">Dil</span></div>
+        <select id="set-language" onchange="handleLanguageChange(this.value)">
+          <option value="tr">Türkçe</option>
+          <option value="en">English</option>
+        </select>
+      </div>
+      <div class="settings-item">
+        <div class="set-label"><span class="set-icon">🎨</span> <span data-i18n="set_theme">Tema</span></div>
+        <select id="set-theme" onchange="handleThemeChange(this.value)">
+          <option value="light">☀️ Açık</option>
+          <option value="dark">🌙 Koyu</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Premium -->
+    <div class="settings-group">
+      <div class="settings-item" onclick="showPremiumPrompt()">
+        <div class="set-label"><span class="set-icon">⭐</span> <span data-i18n="set_premium">Premium</span></div>
+        <div>
+          <span class="set-value" id="set-premium-status" data-i18n="set_premium_inactive">Aktif değil</span>
+          <span class="premium-active-label" data-i18n="set_premium_active">Aktif ✓</span>
+        </div>
+      </div>
+      <div class="settings-item" onclick="restorePurchases()">
+        <div class="set-label"><span class="set-icon">🔄</span> <span data-i18n="set_restore">Satın Almaları Geri Yükle</span></div>
+        <span class="set-value">›</span>
+      </div>
+    </div>
+
+    <!-- Yedekleme -->
+    <div class="settings-group">
+      <div class="settings-item" onclick="backupExport()">
+        <div class="set-label"><span class="set-icon">📤</span> <span data-i18n="set_backup_export">Yedek Dışa Aktar</span></div>
+        <span class="set-value">JSON ›</span>
+      </div>
+      <div class="settings-item" onclick="backupImport()">
+        <div class="set-label"><span class="set-icon">📥</span> <span data-i18n="set_backup_import">Yedek İçe Aktar</span></div>
+        <span class="set-value">JSON ›</span>
+      </div>
+    </div>
+
+    <!-- Bildirimler -->
+    <div class="settings-group">
+      <div class="settings-item" onclick="rescheduleAllNotifications()">
+        <div class="set-label"><span class="set-icon">🔔</span> <span data-i18n="set_reminders">Bildirimleri Yenile</span></div>
+        <span class="set-value">›</span>
+      </div>
+    </div>
+
+    <!-- Hakkında -->
+    <div class="settings-group">
+      <div class="settings-item">
+        <div class="set-label"><span class="set-icon">ℹ️</span> <span data-i18n="set_about">Hakkında</span></div>
+        <span class="set-value">v1.0.0</span>
+      </div>
+    </div>
+
+    <p class="text-center text-muted mt-16" style="font-size:12px;">
+      Ödeme Hatırlatıcı v1.0.0<br>
+      © 2026 Recinilt
+    </p>
+  </div>
+
+  <!-- ==================== FAB BUTON ==================== -->
+  <button class="btn-fab" onclick="showAddPaymentForm()" title="Yeni Ödeme Ekle">+</button>
+
+  <!-- ==================== BOTTOM NAVİGASYON ==================== -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" data-page="dashboard">
+      <span class="nav-icon">🏠</span>
+      <span data-i18n="nav_home">Ana Sayfa</span>
+    </button>
+    <button class="nav-item" data-page="payments">
+      <span class="nav-icon">💳</span>
+      <span data-i18n="nav_payments">Ödemeler</span>
+    </button>
+    <button class="nav-item" data-page="calendar">
+      <span class="nav-icon">📅</span>
+      <span data-i18n="nav_calendar">Takvim</span>
+    </button>
+    <button class="nav-item" data-page="reports">
+      <span class="nav-icon">📊</span>
+      <span data-i18n="nav_reports">Raporlar</span>
+    </button>
+    <button class="nav-item" data-page="settings">
+      <span class="nav-icon">⚙️</span>
+      <span data-i18n="nav_settings">Ayarlar</span>
+    </button>
+  </nav>
+
+  <!-- ==================== MODAL: ÖDEME DETAY ==================== -->
+  <div class="modal" id="modal-payment-detail"></div>
+
+  <!-- ==================== MODAL: ÖDEME FORMU ==================== -->
+  <div class="modal" id="modal-payment-form"></div>
+
+  <!-- ==================== MODAL: ONAY DİALOG ==================== -->
+  <div class="modal" id="modal-confirm"></div>
+
+  <!-- ==================== MODAL: PREMİUM ==================== -->
+  <div class="modal" id="modal-premium"></div>
+
+  <!-- ==================== TOAST ==================== -->
+  <div class="toast" id="toast"></div>
+
+  <!-- ==================== YARDIMCI FONKSİYON ==================== -->
+  <script>
+    // Filtre buton aktif durumu
+    function activateFilter(btn) {
+      const parent = btn.parentElement;
+      parent.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    // Loading ekranını kaldır
+    function hideLoading() {
+      const el = document.getElementById('app-loading');
+      if (el) {
+        el.classList.add('hide');
+        setTimeout(() => el.remove(), 500);
+      }
+    }
+
+    // Uygulama hazır olduğunda loading'i kaldır
+    const origOnAppReady = window.onAppReady;
+    const _origReady = typeof onAppReady === 'function' ? onAppReady : null;
+    document.addEventListener('DOMContentLoaded', function() {
+      // onAppReady tamamlandıktan sonra loading kaldırılacak
+      setTimeout(hideLoading, 800);
+    });
+  </script>
+
+  <!-- ==================== JS DOSYALARI ==================== -->
+  <script src="cordova.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/templates.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/notifications.js"></script>
+  <script src="js/reports.js"></script>
+  <script src="js/purchase.js"></script>
+  <script src="js/backup.js"></script>
+  <script src="js/calculator.js"></script>
+  <script src="js/app.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,1318 @@
+/**
+ * app.css - Ödeme Hatırlatıcı Uygulaması
+ * Material Design benzeri, Light/Dark tema
+ * Responsive: 320px - 428px mobil
+ */
+
+/* ==================== CSS DEĞİŞKENLERİ ==================== */
+:root {
+  --primary: #1976D2;
+  --primary-dark: #1565C0;
+  --primary-light: #BBDEFB;
+  --accent: #FF6F00;
+  --success: #4CAF50;
+  --warning: #FF9800;
+  --danger: #F44336;
+  --info: #2196F3;
+
+  --bg: #F5F5F5;
+  --bg-card: #FFFFFF;
+  --bg-modal: #FFFFFF;
+  --bg-input: #FFFFFF;
+  --bg-nav: #FFFFFF;
+  --text: #212121;
+  --text-secondary: #757575;
+  --text-hint: #9E9E9E;
+  --border: #E0E0E0;
+  --divider: #EEEEEE;
+  --shadow: rgba(0, 0, 0, 0.12);
+  --shadow-strong: rgba(0, 0, 0, 0.24);
+  --overlay: rgba(0, 0, 0, 0.5);
+
+  --radius: 12px;
+  --radius-sm: 8px;
+  --radius-lg: 16px;
+  --nav-height: 60px;
+  --header-height: 56px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* ==================== DARK TEMA ==================== */
+.theme-dark {
+  --bg: #121212;
+  --bg-card: #1E1E1E;
+  --bg-modal: #252525;
+  --bg-input: #2C2C2C;
+  --bg-nav: #1E1E1E;
+  --text: #E0E0E0;
+  --text-secondary: #BDBDBD;
+  --text-hint: #757575;
+  --border: #333333;
+  --divider: #2C2C2C;
+  --shadow: rgba(0, 0, 0, 0.3);
+  --shadow-strong: rgba(0, 0, 0, 0.5);
+  --overlay: rgba(0, 0, 0, 0.7);
+}
+
+/* ==================== RESET & BASE ==================== */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  min-height: 100vh;
+  padding-top: var(--safe-top);
+  padding-bottom: calc(var(--nav-height) + var(--safe-bottom) + 16px);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+input, textarea, select, button {
+  font-family: inherit;
+  font-size: inherit;
+  -webkit-user-select: auto;
+  user-select: auto;
+}
+
+a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+hr {
+  border: none;
+  border-top: 1px solid var(--divider);
+  margin: 16px 0;
+}
+
+/* ==================== HEADER ==================== */
+.app-header {
+  position: fixed;
+  top: var(--safe-top);
+  left: 0;
+  right: 0;
+  height: var(--header-height);
+  background: var(--primary);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  z-index: 100;
+  box-shadow: 0 2px 4px var(--shadow);
+}
+
+.app-header h1 {
+  font-size: 18px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.header-btn {
+  background: none;
+  border: none;
+  color: #FFFFFF;
+  font-size: 22px;
+  padding: 8px;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: background 0.2s;
+}
+
+.header-btn:active {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.theme-dark .app-header {
+  background: #1E1E1E;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+/* ==================== SAYFA İÇERİĞİ ==================== */
+.page {
+  display: none;
+  padding: calc(var(--header-height) + 16px) 16px 16px;
+  animation: fadeIn 0.25s ease;
+}
+
+.page.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ==================== BOTTOM NAVİGASYON ==================== */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: calc(var(--nav-height) + var(--safe-bottom));
+  padding-bottom: var(--safe-bottom);
+  background: var(--bg-nav);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  border-top: 1px solid var(--border);
+  z-index: 100;
+  box-shadow: 0 -2px 8px var(--shadow);
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 6px 12px;
+  cursor: pointer;
+  color: var(--text-hint);
+  font-size: 10px;
+  font-weight: 500;
+  transition: color 0.2s;
+  border: none;
+  background: none;
+  min-width: 56px;
+}
+
+.nav-item .nav-icon {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.nav-item.active {
+  color: var(--primary);
+}
+
+.nav-item:active {
+  opacity: 0.7;
+}
+
+/* ==================== DASHBOARD KARTLARI ==================== */
+.dash-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.dash-card {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: 0 2px 6px var(--shadow);
+  text-align: center;
+}
+
+.dash-card .dash-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.dash-card .dash-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.dash-card.card-total { border-top: 3px solid var(--primary); }
+.dash-card.card-paid { border-top: 3px solid var(--success); }
+.dash-card.card-overdue { border-top: 3px solid var(--danger); }
+.dash-card.card-upcoming { border-top: 3px solid var(--warning); }
+
+.dash-card.card-overdue .dash-value { color: var(--danger); }
+.dash-card.card-paid .dash-value { color: var(--success); }
+
+/* Kalan ödeme hakkı */
+.dash-remaining {
+  background: var(--primary-light);
+  color: var(--primary-dark);
+  border-radius: var(--radius-sm);
+  padding: 8px 16px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 16px;
+}
+
+.theme-dark .dash-remaining {
+  background: rgba(25, 118, 210, 0.2);
+  color: #90CAF9;
+}
+
+/* ==================== ALERT ==================== */
+.alert {
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.alert-danger {
+  background: #FFEBEE;
+  color: #C62828;
+  border-left: 4px solid var(--danger);
+}
+
+.theme-dark .alert-danger {
+  background: rgba(244, 67, 54, 0.15);
+  color: #EF9A9A;
+}
+
+/* ==================== SECTION BAŞLIK ==================== */
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 20px 0 12px;
+  color: var(--text);
+}
+
+/* ==================== ÖDEME KARTLARI ==================== */
+.payment-card {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  box-shadow: 0 1px 4px var(--shadow);
+  border-left: 4px solid var(--primary);
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.payment-card:active {
+  transform: scale(0.98);
+  box-shadow: 0 1px 2px var(--shadow);
+}
+
+.payment-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.payment-icon {
+  font-size: 28px;
+  flex-shrink: 0;
+}
+
+.payment-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.payment-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.payment-category {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.payment-amount {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.payment-amount strong {
+  font-size: 16px;
+  color: var(--text);
+  display: block;
+}
+
+.payment-amount small {
+  font-size: 11px;
+  color: var(--success);
+}
+
+.payment-card-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.payment-date {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.payment-status-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.status-paid .payment-status-badge,
+.payment-status-badge.status-paid {
+  background: #E8F5E9;
+  color: #2E7D32;
+}
+
+.status-overdue .payment-status-badge,
+.payment-status-badge.status-overdue {
+  background: #FFEBEE;
+  color: #C62828;
+}
+
+.status-partial .payment-status-badge,
+.payment-status-badge.status-partial {
+  background: #FFF3E0;
+  color: #E65100;
+}
+
+.status-pending .payment-status-badge,
+.payment-status-badge.status-pending {
+  background: #E3F2FD;
+  color: #1565C0;
+}
+
+.status-urgent .payment-status-badge,
+.payment-status-badge.status-urgent {
+  background: #FFF3E0;
+  color: #E65100;
+  animation: pulse 2s infinite;
+}
+
+.theme-dark .status-paid .payment-status-badge { background: rgba(76, 175, 80, 0.2); color: #81C784; }
+.theme-dark .status-overdue .payment-status-badge { background: rgba(244, 67, 54, 0.2); color: #EF9A9A; }
+.theme-dark .status-partial .payment-status-badge { background: rgba(255, 152, 0, 0.2); color: #FFB74D; }
+.theme-dark .status-pending .payment-status-badge { background: rgba(33, 150, 243, 0.2); color: #90CAF9; }
+
+.payment-days {
+  font-size: 11px;
+  color: var(--text-hint);
+  font-weight: 500;
+}
+
+.payment-recurrence {
+  font-size: 11px;
+  color: var(--text-hint);
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* ==================== EMPTY STATE ==================== */
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-hint);
+}
+
+.empty-state p {
+  font-size: 14px;
+}
+
+/* ==================== FİLTRE BAR ==================== */
+.filter-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.filter-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.filter-btn {
+  flex-shrink: 0;
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.filter-btn.active {
+  background: var(--primary);
+  color: #FFFFFF;
+  border-color: var(--primary);
+}
+
+.filter-btn:active {
+  opacity: 0.7;
+}
+
+/* Arama */
+.search-bar {
+  position: relative;
+  margin-bottom: 12px;
+}
+
+.search-bar input {
+  width: 100%;
+  padding: 10px 16px 10px 40px;
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  background: var(--bg-card);
+  color: var(--text);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.search-bar input:focus {
+  border-color: var(--primary);
+}
+
+.search-bar::before {
+  content: '🔍';
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 16px;
+}
+
+/* ==================== TAKVİM ==================== */
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.calendar-header h2 {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.cal-nav-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: var(--primary);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+}
+
+.cal-nav-btn:active {
+  background: var(--primary-light);
+}
+
+.theme-dark .cal-nav-btn:active {
+  background: rgba(25, 118, 210, 0.2);
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.cal-day-header {
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  padding: 8px 0;
+}
+
+.cal-day {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-card);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  position: relative;
+  gap: 2px;
+  padding: 2px;
+  transition: background 0.15s;
+}
+
+.cal-day:active {
+  background: var(--primary-light);
+}
+
+.theme-dark .cal-day:active {
+  background: rgba(25, 118, 210, 0.2);
+}
+
+.cal-day.empty {
+  background: transparent;
+  cursor: default;
+}
+
+.cal-day.today {
+  background: var(--primary);
+  color: #FFFFFF;
+}
+
+.cal-day.today .cal-day-num {
+  color: #FFFFFF;
+  font-weight: 700;
+}
+
+.cal-day-num {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1;
+}
+
+.cal-dots {
+  display: flex;
+  gap: 2px;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 100%;
+}
+
+.cal-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+  font-size: 0;
+  line-height: 0;
+}
+
+.cal-day.has-payment {
+  box-shadow: 0 0 0 1px var(--primary-light);
+}
+
+/* ==================== MODAL ==================== */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--overlay);
+  z-index: 200;
+  align-items: flex-end;
+  justify-content: center;
+  animation: fadeIn 0.2s ease;
+}
+
+.modal.active {
+  display: flex;
+}
+
+.modal-content {
+  background: var(--bg-modal);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease;
+  -webkit-overflow-scrolling: touch;
+}
+
+.modal-content.modal-sm {
+  max-width: 320px;
+  border-radius: var(--radius-lg);
+  margin: auto;
+  animation: scaleIn 0.2s ease;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--divider);
+  position: sticky;
+  top: 0;
+  background: var(--bg-modal);
+  z-index: 1;
+}
+
+.modal-header h2 {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.btn-close {
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: var(--text-hint);
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 8px;
+  padding: 16px 20px;
+  border-top: 1px solid var(--divider);
+  flex-wrap: wrap;
+  position: sticky;
+  bottom: 0;
+  background: var(--bg-modal);
+}
+
+.modal-footer .btn {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 10px 12px;
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 480px) {
+  .modal-footer {
+    gap: 6px;
+    padding: 12px 16px;
+  }
+  .modal-footer .btn {
+    font-size: 12px;
+    padding: 9px 8px;
+  }
+}
+
+/* ==================== DETAY SATIRI ==================== */
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--divider);
+}
+
+.detail-row span {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.detail-row strong {
+  font-size: 14px;
+  color: var(--text);
+  text-align: right;
+  max-width: 60%;
+  word-break: break-word;
+}
+
+/* Geçmiş listesi */
+.history-list {
+  margin-top: 8px;
+}
+
+.history-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--divider);
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.history-item span {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.history-item strong {
+  font-size: 14px;
+  color: var(--success);
+}
+
+.history-item small {
+  font-size: 12px;
+  color: var(--text-hint);
+  width: 100%;
+}
+
+/* ==================== FORM ==================== */
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group input[type="date"],
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-input);
+  color: var(--text);
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.15);
+}
+
+.form-group select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23757575' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+.form-row {
+  display: flex;
+  gap: 12px;
+}
+
+.form-row .flex-1 { flex: 1; }
+.form-row .flex-2 { flex: 2; }
+
+/* Checkbox */
+.checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text);
+  margin-right: 12px;
+  margin-bottom: 6px;
+  cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary);
+}
+
+.reminder-checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+/* ==================== RENK SEÇİCİ ==================== */
+.color-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.color-option {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 3px solid transparent;
+  transition: border-color 0.2s, transform 0.15s;
+}
+
+.color-option.selected {
+  border-color: var(--text);
+  transform: scale(1.15);
+}
+
+.color-option:active {
+  transform: scale(0.9);
+}
+
+/* ==================== TEMPLATE GRID ==================== */
+.template-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.template-btn {
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--bg-card);
+  color: var(--text);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.template-btn:active {
+  background: var(--primary-light);
+}
+
+.theme-dark .template-btn:active {
+  background: rgba(25, 118, 210, 0.2);
+}
+
+/* ==================== BUTONLAR ==================== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 20px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.1s;
+  gap: 6px;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.btn:active {
+  transform: scale(0.97);
+  opacity: 0.8;
+}
+
+.btn-primary { background: var(--primary); color: #FFFFFF; }
+.btn-success { background: var(--success); color: #FFFFFF; }
+.btn-warning { background: var(--warning); color: #FFFFFF; }
+.btn-danger { background: var(--danger); color: #FFFFFF; }
+.btn-secondary { background: var(--border); color: var(--text); }
+
+.btn-link {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 8px;
+  text-align: center;
+  width: 100%;
+}
+
+.btn-fab {
+  position: fixed;
+  bottom: calc(var(--nav-height) + var(--safe-bottom) + 16px);
+  right: 16px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #FFFFFF;
+  font-size: 28px;
+  border: none;
+  box-shadow: 0 4px 12px var(--shadow-strong);
+  cursor: pointer;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn-fab:active {
+  transform: scale(0.9);
+  box-shadow: 0 2px 6px var(--shadow);
+}
+
+/* Premium buton */
+.btn-premium {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  border: 2px solid var(--accent);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--accent);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-bottom: 10px;
+  transition: all 0.2s;
+}
+
+.btn-premium.best {
+  background: var(--accent);
+  color: #FFFFFF;
+}
+
+.btn-premium small {
+  font-size: 12px;
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+.btn-premium:active {
+  opacity: 0.8;
+}
+
+/* ==================== PREMIUM ==================== */
+.premium-badge {
+  display: none;
+  background: linear-gradient(135deg, #FF6F00, #FFA000);
+  color: #FFFFFF;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.premium-overlay {
+  display: flex;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--overlay);
+  border-radius: var(--radius);
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+.premium-overlay-content {
+  text-align: center;
+  color: #FFFFFF;
+  padding: 20px;
+}
+
+.premium-overlay-content p {
+  margin-bottom: 12px;
+}
+
+.premium-locked {
+  position: relative;
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+.premium-locked.locked::after {
+  content: '🔒';
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 20px;
+}
+
+.premium-active-label {
+  display: none;
+  color: var(--success);
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  padding: 8px;
+}
+
+.premium-features {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0;
+}
+
+.premium-features li {
+  padding: 8px 0;
+  font-size: 14px;
+  border-bottom: 1px solid var(--divider);
+}
+
+.premium-prices {
+  margin-top: 16px;
+}
+
+/* ==================== RAPORLAR ==================== */
+.chart-container {
+  position: relative;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 4px var(--shadow);
+  height: 280px;
+}
+
+.chart-container canvas {
+  max-height: 250px;
+}
+
+/* ==================== HESAP MAKİNESİ ==================== */
+.calc-section {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 4px var(--shadow);
+}
+
+.calc-section h3 {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: var(--text);
+}
+
+.calc-result {
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  margin-top: 12px;
+}
+
+.calc-result-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  font-size: 14px;
+}
+
+.calc-result-row span {
+  color: var(--text-secondary);
+}
+
+.calc-result-row strong {
+  color: var(--text);
+}
+
+.text-red { color: var(--danger) !important; }
+.text-green { color: var(--success) !important; }
+
+.calc-btn {
+  margin-top: 12px;
+}
+
+/* ==================== AYARLAR ==================== */
+.settings-group {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+  box-shadow: 0 1px 4px var(--shadow);
+  overflow: hidden;
+}
+
+.settings-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--divider);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.settings-item:last-child {
+  border-bottom: none;
+}
+
+.settings-item:active {
+  background: var(--divider);
+}
+
+.settings-item .set-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.settings-item .set-icon {
+  font-size: 20px;
+}
+
+.settings-item .set-value {
+  font-size: 13px;
+  color: var(--text-hint);
+}
+
+.settings-item select {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-input);
+  color: var(--text);
+  font-size: 14px;
+  outline: none;
+}
+
+/* ==================== TOAST ==================== */
+.toast {
+  position: fixed;
+  bottom: calc(var(--nav-height) + var(--safe-bottom) + 24px);
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: #323232;
+  color: #FFFFFF;
+  padding: 12px 24px;
+  border-radius: 24px;
+  font-size: 14px;
+  font-weight: 500;
+  z-index: 300;
+  opacity: 0;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  pointer-events: none;
+  white-space: nowrap;
+  max-width: 90%;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ==================== YARDIMCI SINIFLAR ==================== */
+.mt-8 { margin-top: 8px; }
+.mt-12 { margin-top: 12px; }
+.mt-16 { margin-top: 16px; }
+.mt-20 { margin-top: 20px; }
+.mb-8 { margin-bottom: 8px; }
+.mb-12 { margin-bottom: 12px; }
+.mb-16 { margin-bottom: 16px; }
+.text-center { text-align: center; }
+.text-muted { color: var(--text-hint); }
+.hidden { display: none !important; }
+
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 359px) {
+  .dash-cards {
+    grid-template-columns: 1fr;
+  }
+  .payment-amount strong {
+    font-size: 14px;
+  }
+  .template-btn {
+    font-size: 12px;
+    padding: 5px 10px;
+  }
+}
+
+@media (min-width: 414px) {
+  .modal-content {
+    max-width: 414px;
+    margin: 0 auto;
+  }
+}
+
+/* ==================== SCROLLBAR ==================== */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+/* ==================== SPLASH SCREEN FIX ==================== */
+.app-loading {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  transition: opacity 0.3s;
+}
+
+.app-loading.hide {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.app-loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #FFFFFF;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

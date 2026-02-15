@@ -1,0 +1,47 @@
+<?xml version='1.0' encoding='utf-8'?>
+<widget id="com.recinilt.odemehatirlatici" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    <name>Ödeme Hatırlatıcı</name>
+    <description>Fatura, kredi, vergi, sigorta - tüm ödemelerinizi tek yerden takip edin</description>
+    <author email="info@vr-sinema.online" href="https://vr-sinema.online">
+    ReciNilt
+  </author>
+    <content src="index.html" />
+    <preference name="StatusBarOverlaysWebView" value="false" />
+    <preference name="StatusBarBackgroundColor" value="#1565C0" />
+    <preference name="StatusBarStyle" value="lightcontent" />
+    <preference name="SplashScreenDelay" value="3000" />
+    <preference name="AutoHideSplashScreen" value="true" />
+    <preference name="Orientation" value="portrait" />
+   
+    <preference name="DisallowOverscroll" value="true" />
+    <preference name="KeyboardDisplayRequiresUserAction" value="false" />
+    <preference name="android-minSdkVersion" value="24" />
+    <preference name="android-targetSdkVersion" value="35" />
+    <preference name="GradlePluginGoogleServicesEnabled" value="false" />
+    <access origin="*" />
+    <allow-intent href="http://*/*" />
+    <allow-intent href="https://*/*" />
+    <allow-intent href="tel:*" />
+    <allow-intent href="sms:*" />
+    <allow-intent href="mailto:*" />
+    <allow-intent href="market:*" />
+    <plugin name="cordova-plugin-local-notification" spec="*" />
+    <plugin name="cordova-plugin-device" spec="*" />
+    <plugin name="cordova-plugin-statusbar" spec="*" />
+    <plugin name="cordova-plugin-file" spec="*" />
+    <plugin name="cordova-plugin-x-socialsharing" spec="*" />
+    <platform name="android">
+        <config-file parent="/manifest" target="AndroidManifest.xml">
+            <uses-permission android:maxSdkVersion="32" android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+            <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+            <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+            <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+            <uses-permission android:name="android.permission.VIBRATE" />
+            <uses-permission android:name="android.permission.WAKE_LOCK" />
+        </config-file>
+    </platform>
+    <platform name="ios">
+        <preference name="WKWebViewOnly" value="true" />
+        <preference name="deployment-target" value="13.0" />
+    </platform>
+</widget>
