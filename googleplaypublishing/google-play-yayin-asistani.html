@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Google Play Yayın Asistanı</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=DM+Sans:wght@400;500;600;700&family=Instrument+Serif&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+--bg:#0a0a0f;--bg2:#12121a;--bg3:#1a1a28;--bg4:#222236;
+--text:#e8e6f0;--text2:#a8a6b8;--text3:#6b6980;
+--accent:#6c5ce7;--accent2:#a29bfe;--accent3:#3d34a5;
+--green:#00b894;--green2:#55efc4;--greenbg:rgba(0,184,148,.12);
+--red:#d63031;--redbg:rgba(214,48,49,.12);
+--yellow:#fdcb6e;--yellowbg:rgba(253,203,110,.12);
+--blue:#74b9ff;--bluebg:rgba(116,185,255,.12);
+--border:#2d2d44;--radius:12px;
+--font:'DM Sans',sans-serif;--mono:'JetBrains Mono',monospace;--serif:'Instrument Serif',serif;
+}
+html{font-size:15px;scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh}
+::selection{background:var(--accent);color:#fff}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px}
+
+.container{max-width:1200px;margin:0 auto;padding:0 24px}
+
+/* ============ LANDING ============ */
+#landing{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 24px;position:relative;overflow:hidden}
+#landing::before{content:'';position:absolute;top:-200px;left:50%;transform:translateX(-50%);width:800px;height:800px;background:radial-gradient(circle,rgba(108,92,231,.15) 0%,transparent 60%);pointer-events:none}
+.landing-badge{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;background:var(--bg3);border:1px solid var(--border);border-radius:100px;font-size:.8rem;color:var(--accent2);margin-bottom:32px;letter-spacing:.5px}
+.landing-badge span{width:8px;height:8px;background:var(--green);border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.landing-title{font-family:var(--serif);font-size:clamp(2.4rem,6vw,4.2rem);font-weight:400;line-height:1.15;margin-bottom:16px;color:#fff}
+.landing-title em{font-style:italic;color:var(--accent2)}
+.landing-sub{font-size:1.05rem;color:var(--text2);max-width:600px;margin:0 auto 48px}
+.landing-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;width:100%;max-width:900px;margin-bottom:48px}
+.lcard{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:28px 24px;text-align:left;transition:border-color .3s}
+.lcard:hover{border-color:var(--accent)}
+.lcard-num{font-family:var(--mono);font-size:.75rem;color:var(--accent);margin-bottom:12px;letter-spacing:2px}
+.lcard h3{font-size:1.1rem;font-weight:600;margin-bottom:8px;color:#fff}
+.lcard p{font-size:.88rem;color:var(--text2);line-height:1.5}
+.btn{display:inline-flex;align-items:center;gap:10px;padding:14px 32px;border-radius:var(--radius);font-family:var(--font);font-size:.95rem;font-weight:600;cursor:pointer;border:none;transition:all .25s}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent2);color:var(--bg);transform:translateY(-2px);box-shadow:0 8px 30px rgba(108,92,231,.3)}
+.btn-secondary{background:var(--bg3);color:var(--text);border:1px solid var(--border)}
+.btn-secondary:hover{border-color:var(--accent);color:var(--accent2)}
+.btn-sm{padding:8px 16px;font-size:.82rem;border-radius:8px}
+.btn-green{background:var(--green);color:#000}
+.btn-green:hover{background:var(--green2);transform:translateY(-2px)}
+.landing-actions{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
+
+/* ============ PROMPT MODAL ============ */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);z-index:1000;display:none;align-items:center;justify-content:center;padding:24px}
+.modal-overlay.active{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:16px;width:100%;max-width:800px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden}
+.modal-head{padding:24px 28px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border)}
+.modal-head h2{font-size:1.2rem;font-weight:600}
+.modal-close{width:36px;height:36px;border-radius:8px;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.modal-close:hover{background:var(--red);color:#fff;border-color:var(--red)}
+.modal-body{padding:20px 28px;overflow-y:auto;flex:1}
+.modal-foot{padding:16px 28px;border-top:1px solid var(--border);display:flex;gap:12px;justify-content:flex-end}
+
+/* ============ JSON INPUT ============ */
+#jsonSection{display:none;min-height:100vh;padding:60px 24px}
+.json-wrap{max-width:720px;margin:0 auto}
+.json-wrap h2{font-family:var(--serif);font-size:2rem;margin-bottom:8px;color:#fff}
+.json-wrap p{color:var(--text2);margin-bottom:24px}
+.json-textarea{width:100%;min-height:300px;background:var(--bg2);border:2px solid var(--border);border-radius:var(--radius);padding:20px;font-family:var(--mono);font-size:.85rem;color:var(--green2);resize:vertical;outline:none;transition:border-color .3s}
+.json-textarea:focus{border-color:var(--accent)}
+.json-textarea.error{border-color:var(--red)}
+.json-error{color:var(--red);font-size:.85rem;margin-top:8px;min-height:20px}
+.json-actions{margin-top:20px;display:flex;gap:12px}
+
+/* ============ WIZARD ============ */
+#wizard{display:none;min-height:100vh}
+.wizard-layout{display:grid;grid-template-columns:300px 1fr;min-height:100vh}
+@media(max-width:900px){.wizard-layout{grid-template-columns:1fr}.wizard-sidebar{display:none}}
+
+/* SIDEBAR */
+.wizard-sidebar{background:var(--bg2);border-right:1px solid var(--border);padding:24px 0;position:sticky;top:0;height:100vh;overflow-y:auto}
+.sidebar-header{padding:0 20px 20px;border-bottom:1px solid var(--border);margin-bottom:16px}
+.sidebar-appname{font-weight:700;font-size:1rem;color:#fff}
+.sidebar-scenario{font-family:var(--mono);font-size:.75rem;color:var(--accent2);margin-top:4px}
+.sidebar-progress{margin-top:12px;height:4px;background:var(--bg4);border-radius:2px;overflow:hidden}
+.sidebar-progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--green));border-radius:2px;transition:width .5s}
+.sidebar-steps{list-style:none}
+.sidebar-step{display:flex;align-items:center;gap:12px;padding:10px 20px;cursor:pointer;transition:background .2s;font-size:.88rem;color:var(--text2)}
+.sidebar-step:hover{background:var(--bg3)}
+.sidebar-step.active{background:var(--bg3);color:var(--accent2);border-right:3px solid var(--accent)}
+.sidebar-step.done{color:var(--green)}
+.sidebar-step.skipped{color:var(--text3);text-decoration:line-through;font-size:.82rem}
+.step-icon{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.7rem;flex-shrink:0;font-weight:700;border:2px solid var(--border);color:var(--text3)}
+.sidebar-step.done .step-icon{background:var(--green);border-color:var(--green);color:#000}
+.sidebar-step.active .step-icon{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* MAIN CONTENT */
+.wizard-main{padding:40px 48px 80px;max-width:840px}
+@media(max-width:900px){.wizard-main{padding:24px 16px 80px}}
+.step-badge{font-family:var(--mono);font-size:.75rem;color:var(--accent);letter-spacing:2px;margin-bottom:8px}
+.step-title{font-family:var(--serif);font-size:1.8rem;color:#fff;margin-bottom:6px}
+.step-menu-path{font-size:.85rem;color:var(--text2);margin-bottom:24px;padding:12px 16px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;display:flex;flex-direction:column;gap:4px}
+.step-menu-path .tr{color:var(--yellow)}
+.step-menu-path .en{color:var(--text3)}
+
+/* TASKS */
+.task-list{display:flex;flex-direction:column;gap:12px;margin-bottom:32px}
+.task{display:flex;gap:14px;padding:16px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:all .25s;align-items:flex-start}
+.task:hover{border-color:var(--accent3)}
+.task.done{border-color:var(--green);background:var(--greenbg)}
+.task-check{width:22px;height:22px;border-radius:6px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;transition:all .2s;color:transparent;font-size:.75rem}
+.task.done .task-check{background:var(--green);border-color:var(--green);color:#000}
+.task-content{flex:1}
+.task-label{font-weight:500;font-size:.92rem;color:var(--text);margin-bottom:4px}
+.task-detail{font-size:.82rem;color:var(--text2);line-height:1.5}
+.task-value{font-family:var(--mono);background:var(--bg4);padding:2px 8px;border-radius:4px;font-size:.8rem;color:var(--accent2);cursor:pointer;display:inline-flex;align-items:center;gap:6px;margin-top:6px;transition:background .2s}
+.task-value:hover{background:var(--accent3)}
+.task-value::after{content:'📋';font-size:.7rem}
+
+/* INFO BOXES */
+.info-box{padding:14px 18px;border-radius:var(--radius);margin-bottom:16px;font-size:.88rem;line-height:1.5}
+.info-box.warn{background:var(--yellowbg);border:1px solid rgba(253,203,110,.3);color:var(--yellow)}
+.info-box.tip{background:var(--bluebg);border:1px solid rgba(116,185,255,.3);color:var(--blue)}
+.info-box.danger{background:var(--redbg);border:1px solid rgba(214,48,49,.3);color:var(--red)}
+.info-box.success{background:var(--greenbg);border:1px solid rgba(0,184,148,.3);color:var(--green2)}
+
+/* TABLE */
+.data-table{width:100%;border-collapse:collapse;margin-bottom:20px;font-size:.85rem}
+.data-table th{text-align:left;padding:10px 14px;background:var(--bg3);color:var(--accent2);font-weight:600;border-bottom:2px solid var(--border)}
+.data-table td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text2)}
+.data-table tr:hover td{background:var(--bg2)}
+
+/* NAV BUTTONS */
+.step-nav{display:flex;gap:16px;margin-top:32px;padding-top:24px;border-top:1px solid var(--border)}
+
+/* CODE BLOCK */
+.code-block{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:16px;font-family:var(--mono);font-size:.82rem;color:var(--green2);overflow-x:auto;margin:12px 0;position:relative;white-space:pre-wrap;word-break:break-all}
+.code-block .copy-btn{position:absolute;top:8px;right:8px;padding:4px 10px;font-size:.72rem;background:var(--bg4);color:var(--text2);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-family:var(--mono)}
+.code-block .copy-btn:hover{background:var(--accent);color:#fff}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;padding:12px 20px;background:var(--green);color:#000;border-radius:8px;font-weight:600;font-size:.88rem;transform:translateY(100px);opacity:0;transition:all .3s;z-index:2000}
+.toast.show{transform:translateY(0);opacity:1}
+
+/* MOBILE NAV */
+.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--border);padding:12px 24px;z-index:100}
+@media(max-width:900px){.mobile-nav{display:flex;justify-content:space-between;align-items:center}}
+.mobile-progress-text{font-family:var(--mono);font-size:.8rem;color:var(--accent2)}
+</style>
+</head>
+<body>
+
+<!-- ===== LANDING ===== -->
+<div id="landing">
+  <div class="landing-badge"><span></span> 2026 Güncel — Şubat</div>
+  <h1 class="landing-title">Google Play<br><em>Yayın Asistanı</em></h1>
+  <p class="landing-sub">AI ile uygulamanı analiz et, kişiselleştirilmiş yayın rehberini oluştur.<br>Her adımda neyi tıklayacağını, nereye ne yazacağını bil.</p>
+  <div class="landing-cards">
+    <div class="lcard">
+      <div class="lcard-num">01</div>
+      <h3>AI'dan JSON Al</h3>
+      <p>Prompt'u kopyala, herhangi bir AI'ya yapıştır, uygulama dosyalarını ekle. AI sana JSON verir.</p>
+    </div>
+    <div class="lcard">
+      <div class="lcard-num">02</div>
+      <h3>JSON'ı Yapıştır</h3>
+      <p>AI'ın verdiği JSON'ı buraya yapıştır. Site uygulamanı tanır ve kişisel rehberini oluşturur.</p>
+    </div>
+    <div class="lcard">
+      <div class="lcard-num">03</div>
+      <h3>Adım Adım Yayınla</h3>
+      <p>Her ekranda ne tıklanacak, ne yazılacak, ne işaretlenecek — hepsi burada. "Yaptım" de, ilerle.</p>
+    </div>
+  </div>
+  <div class="landing-actions">
+    <button class="btn btn-primary" onclick="showPromptModal()">📋 AI Prompt'u Kopyala</button>
+    <button class="btn btn-secondary" onclick="showJsonInput()">⬇️ JSON Yapıştır</button>
+  </div>
+</div>
+
+<!-- ===== PROMPT MODAL ===== -->
+<div class="modal-overlay" id="promptModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>📋 AI'ya Verilecek Prompt</h2>
+      <button class="modal-close" onclick="closePromptModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="info-box tip">Bu prompt'u kopyala → herhangi bir AI'ya (Claude, ChatGPT, Gemini vb.) yapıştır → uygulama dosyalarını (build.gradle, AndroidManifest.xml, kaynak kodlar) ekle → AI sana JSON verecek.</div>
+      <div class="code-block" id="promptText" style="max-height:500px;overflow-y:auto;font-size:.78rem;line-height:1.6">SEN BİR ANDROİD PROJE ANALİZ BOTUSUN.
+
+GÖREV: Kullanıcının eklediği Android proje dosyalarını analiz et ve SADECE aşağıdaki JSON formatında çıktı ver. BAŞKA HİÇBİR ŞEY YAZMA. Açıklama yazma. Yorum yazma. Sadece JSON ver.
+
+KURALLAR:
+1. Kullanıcı dosya eklemezse veya bilgi eksikse, o alanı "KULLANICI_DOLDURACAK" yaz.
+2. Manifest'te AdMob App ID varsa hasAds=true, yoksa false.
+3. build.gradle'da billing library varsa hasSubscription veya hasLifetime=true.
+4. Login/Auth kodu varsa hasLogin=true.
+5. Senaryo otomatik belirle:
+   - A: hasAds=false, hasSubscription=false, hasLifetime=false
+   - B: hasAds=true, hasSubscription=false, hasLifetime=false
+   - C: hasAds=true, hasSubscription=true, hasLifetime=false
+   - D: hasAds=true, hasSubscription=false, hasLifetime=true
+   - E: hasAds=true, hasSubscription=true, hasLifetime=true
+   - F: hasAds=false, isPaid=true
+   - G: accountType="organization"
+6. JSON DIŞINDA TEK BİR KARAKTER BİLE YAZMA. Markdown code block bile kullanma. Düz JSON ver.
+
+JSON FORMATI (AYNEN BU YAPIYI KULLAN):
+
+{
+  "appName": "Uygulama Adı (manifest veya kullanıcıdan)",
+  "packageName": "com.example.app (manifest'ten)",
+  "scenario": "A|B|C|D|E|F|G",
+  "accountType": "personal|organization",
+  "language": "tr-TR",
+  "isPaid": false,
+  "hasAds": false,
+  "hasSubscription": false,
+  "hasLifetime": false,
+  "hasLogin": false,
+  "hasFirebase": false,
+  "hasLocation": false,
+  "hasCamera": false,
+  "hasUserContent": false,
+  "admob": {
+    "appId": "ca-app-pub-XXXX~YYYY veya boş string",
+    "units": [
+      {"type": "banner|interstitial|rewarded|native|app_open", "id": "ca-app-pub-XXXX/YYYY", "name": "Açıklama"}
+    ]
+  },
+  "products": [
+    {"id": "com.app.premium.monthly", "type": "subscription|one-time", "name": "Görünen Ad", "price": "₺99,99", "period": "1 month|3 months|6 months|1 year|lifetime"}
+  ],
+  "storeInfo": {
+    "title": "Mağaza adı (max 30 karakter)",
+    "shortDesc": "Kısa açıklama (max 80 karakter)",
+    "fullDesc": "Tam açıklama (max 4000 karakter, AI önerisi)",
+    "category": "Entertainment|Tools|Education|Health|Finance|diğer",
+    "email": "iletişim e-postası",
+    "phone": "telefon veya boş",
+    "website": "https://site.com veya boş",
+    "privacyUrl": "https://site.com/privacy"
+  },
+  "contentRating": {
+    "violence": false,
+    "sexual": false,
+    "language": false,
+    "substances": false,
+    "gambling": false,
+    "userInteraction": false,
+    "onlineContent": false,
+    "locationSharing": false,
+    "iap": false,
+    "adId": false
+  },
+  "targetAge": "18+",
+  "dataSafety": {
+    "collectsData": true,
+    "encryptedInTransit": true,
+    "deletionMechanism": true,
+    "dataTypes": ["device_ids","app_interactions","crash_logs","diagnostics","name","email","user_ids","purchase_history","approximate_location","photos_videos"]
+  }
+}
+
+AÇIKLAMALAR (okuyup anla, sonra sadece JSON ver):
+
+admob.units dizisi: Manifest veya kodda bulduğun her reklam birimini ekle. Bulamadıysan boş dizi [].
+products dizisi: build.gradle'da billing varsa ve kodda product ID bulursan ekle. Bulamadıysan KULLANICI_DOLDURACAK yaz ve type'ı tahmin et.
+contentRating: Kodda şiddet/cinsel içerik/küfür yoksa hepsini false yap. Online bağlantı varsa onlineContent=true. IAP varsa iap=true. AdMob varsa adId=true.
+dataSafety.dataTypes dizisindeki geçerli değerler:
+  - device_ids (AdMob veya analytics varsa)
+  - app_interactions (Firebase veya analytics varsa)
+  - crash_logs (Firebase Crashlytics varsa)
+  - diagnostics (Firebase Performance varsa)
+  - name (login + isim alanı varsa)
+  - email (login + email alanı varsa)
+  - user_ids (login/auth varsa)
+  - purchase_history (IAP/subscription varsa)
+  - approximate_location (konum izni varsa)
+  - precise_location (hassas konum izni varsa)
+  - photos_videos (kamera/galeri erişimi varsa)
+  - files_docs (dosya erişimi varsa)
+  - contacts (rehber erişimi varsa)
+  - phone_number (telefon izni varsa)
+
+SADECE JSON VER. HİÇBİR AÇIKLAMA YAZMA.</div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-primary btn-sm" onclick="copyPrompt()">📋 Prompt'u Kopyala</button>
+      <button class="btn btn-secondary btn-sm" onclick="closePromptModal();showJsonInput()">JSON Yapıştırmaya Geç →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== JSON INPUT ===== -->
+<div id="jsonSection">
+  <div class="json-wrap">
+    <h2>JSON Yapıştır</h2>
+    <p>AI'dan aldığın JSON çıktısını aşağıya yapıştır:</p>
+    <textarea class="json-textarea" id="jsonInput" placeholder='{ "appName": "...", "scenario": "B", ... }'></textarea>
+    <div class="json-error" id="jsonError"></div>
+    <div class="json-actions">
+      <button class="btn btn-green" onclick="parseJson()">🚀 Rehberi Oluştur</button>
+      <button class="btn btn-secondary btn-sm" onclick="loadSample()">📝 Örnek JSON Yükle</button>
+      <button class="btn btn-secondary btn-sm" onclick="showLanding()">← Geri</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== WIZARD ===== -->
+<div id="wizard">
+  <div class="wizard-layout">
+    <aside class="wizard-sidebar" id="sidebar"></aside>
+    <main class="wizard-main" id="wizardContent"></main>
+  </div>
+  <div class="mobile-nav">
+    <button class="btn btn-sm btn-secondary" onclick="prevStep()">← Önceki</button>
+    <span class="mobile-progress-text" id="mobileProgress">1/20</span>
+    <button class="btn btn-sm btn-green" onclick="nextStep()">Sonraki →</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+let appData = null;
+let steps = [];
+let currentStepIndex = 0;
+let completedTasks = {};
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function showLanding(){
+  document.getElementById('landing').style.display='flex';
+  document.getElementById('jsonSection').style.display='none';
+  document.getElementById('wizard').style.display='none';
+}
+function showJsonInput(){
+  document.getElementById('landing').style.display='none';
+  document.getElementById('jsonSection').style.display='block';
+  document.getElementById('wizard').style.display='none';
+  document.getElementById('jsonInput').focus();
+}
+function showWizard(){
+  document.getElementById('landing').style.display='none';
+  document.getElementById('jsonSection').style.display='none';
+  document.getElementById('wizard').style.display='block';
+}
+function showPromptModal(){document.getElementById('promptModal').classList.add('active')}
+function closePromptModal(){document.getElementById('promptModal').classList.remove('active')}
+function copyPrompt(){
+  navigator.clipboard.writeText(document.getElementById('promptText').innerText);
+  toast('Prompt kopyalandı!');
+}
+function toast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+function copyText(text){navigator.clipboard.writeText(text);toast('Kopyalandı: '+text.substring(0,40)+'...')}
+
+// ============================================================
+// SAMPLE JSON
+// ============================================================
+function loadSample(){
+  document.getElementById('jsonInput').value=JSON.stringify({
+    appName:"VR Sinema",packageName:"com.vrsinema.app",scenario:"E",accountType:"personal",language:"tr-TR",isPaid:false,
+    hasAds:true,hasSubscription:true,hasLifetime:true,hasLogin:true,hasFirebase:true,hasLocation:false,hasCamera:false,hasUserContent:false,
+    admob:{appId:"ca-app-pub-1234567890123456~9876543210",units:[
+      {type:"banner",id:"ca-app-pub-1234567890123456/1111111111",name:"Ana Sayfa Banner"},
+      {type:"interstitial",id:"ca-app-pub-1234567890123456/2222222222",name:"Sahne Geçiş Reklamı"},
+      {type:"rewarded",id:"ca-app-pub-1234567890123456/3333333333",name:"Ödüllü İzle"}
+    ]},
+    products:[
+      {id:"com.vrsinema.premium.monthly",type:"subscription",name:"Aylık Premium",price:"₺99,99",period:"1 month"},
+      {id:"com.vrsinema.premium.yearly",type:"subscription",name:"Yıllık Premium",price:"₺799,99",period:"1 year"},
+      {id:"com.vrsinema.premium.lifetime",type:"one-time",name:"Ömür Boyu Premium",price:"₺1.499,99",period:"lifetime"}
+    ],
+    storeInfo:{title:"VR Sinema",shortDesc:"Sanal gerçeklik sinema deneyimi",fullDesc:"VR gözlüğünüzle sinema salonunda film izleme deneyimi yaşayın.",category:"Entertainment",email:"info@vr-sinema.online",phone:"",website:"https://vr-sinema.online",privacyUrl:"https://vr-sinema.online/privacy"},
+    contentRating:{violence:false,sexual:false,language:false,substances:false,gambling:false,userInteraction:false,onlineContent:true,locationSharing:false,iap:true,adId:true},
+    targetAge:"18+",
+    dataSafety:{collectsData:true,encryptedInTransit:true,deletionMechanism:true,dataTypes:["device_ids","app_interactions","crash_logs","diagnostics","name","email","user_ids","purchase_history"]}
+  },null,2);
+}
+
+// ============================================================
+// PARSE JSON & BUILD STEPS
+// ============================================================
+function parseJson(){
+  const raw=document.getElementById('jsonInput').value.trim();
+  const errEl=document.getElementById('jsonError');
+  const ta=document.getElementById('jsonInput');
+  try{
+    appData=JSON.parse(raw);
+    if(!appData.appName||!appData.scenario){throw new Error('appName ve scenario zorunlu');}
+    errEl.textContent='';ta.classList.remove('error');
+    buildSteps();
+    loadProgress();
+    renderSidebar();
+    renderStep(0);
+    showWizard();
+  }catch(e){
+    errEl.textContent='❌ JSON Hatası: '+e.message;
+    ta.classList.add('error');
+  }
+}
+
+function buildSteps(){
+  steps=[];
+  const s=appData.scenario;
+  const isPersonal=appData.accountType!=='organization';
+  const hasAds=appData.hasAds;
+  const hasSub=appData.hasSubscription;
+  const hasLT=appData.hasLifetime;
+  const hasIAP=hasSub||hasLT;
+  const hasLogin=appData.hasLogin;
+
+  // Step 1: Account
+  steps.push({id:'account',title:'Play Console Hesabı',icon:'🔑',tasks:buildAccountTasks()});
+  // Step 2: Verification
+  steps.push({id:'verify',title:'Kimlik Doğrulama',icon:'🛡️',tasks:buildVerifyTasks()});
+  // Step 3: AdMob (conditional)
+  if(hasAds) steps.push({id:'admob',title:'AdMob Kurulumu',icon:'📢',tasks:buildAdmobTasks()});
+  // Step 4: Create App
+  steps.push({id:'createapp',title:'Uygulama Oluştur',icon:'📱',tasks:buildCreateAppTasks()});
+  // Step 5: Store Listing
+  steps.push({id:'store',title:'Mağaza Girişi',icon:'🏪',tasks:buildStoreTasks()});
+  // Step 6: App Content - Privacy
+  steps.push({id:'privacy',title:'Gizlilik Politikası',icon:'🔒',tasks:buildPrivacyTasks()});
+  // Step 7: App Content - Access
+  steps.push({id:'access',title:'Uygulama Erişimi',icon:'🚪',tasks:buildAccessTasks()});
+  // Step 8: App Content - Ads
+  steps.push({id:'ads_decl',title:'Reklam Beyanı',icon:'📺',tasks:buildAdsDeclarationTasks()});
+  // Step 9: Content Rating
+  steps.push({id:'rating',title:'İçerik Derecelendirmesi',icon:'⭐',tasks:buildRatingTasks()});
+  // Step 10: Target Audience
+  steps.push({id:'audience',title:'Hedef Kitle',icon:'👥',tasks:buildAudienceTasks()});
+  // Step 11: Data Safety
+  steps.push({id:'datasafety',title:'Veri Güvenliği',icon:'🔍',tasks:buildDataSafetyTasks()});
+  // Step 12: Other declarations
+  steps.push({id:'other_decl',title:'Diğer Beyanlar',icon:'📋',tasks:buildOtherDeclTasks()});
+  // Step 13: AAB
+  steps.push({id:'aab',title:'AAB Hazırla',icon:'🔧',tasks:buildAabTasks()});
+  // Step 14: Internal Test
+  steps.push({id:'internal',title:'Dahili Test',icon:'🧪',tasks:buildInternalTasks()});
+  // Step 15: Monetization (conditional)
+  if(hasIAP) steps.push({id:'monetize',title:'Ücretli Ürünler',icon:'💰',tasks:buildMonetizeTasks()});
+  // Step 16: Closed Test (personal only)
+  if(isPersonal) steps.push({id:'closed',title:'Kapalı Test',icon:'🔒',tasks:buildClosedTasks()});
+  // Step 17: Production Access (personal only)
+  if(isPersonal) steps.push({id:'prodaccess',title:'Üretim Başvurusu',icon:'✅',tasks:buildProdAccessTasks()});
+  // Step 18: Production Release
+  steps.push({id:'production',title:'Üretime Yayınla',icon:'🎯',tasks:buildProductionTasks()});
+  // Step 19: app-ads.txt (conditional)
+  if(hasAds) steps.push({id:'appads',title:'app-ads.txt',icon:'📡',tasks:buildAppAdsTasks()});
+  // Step 20: Post-launch
+  steps.push({id:'postlaunch',title:'Yayın Sonrası',icon:'📊',tasks:buildPostLaunchTasks()});
+}
+
+// ============================================================
+// TASK BUILDERS
+// ============================================================
+function T(label,detail,value){return {label,detail:detail||'',value:value||null,done:false}}
+
+function buildAccountTasks(){return [
+  T('play.google.com/console adresini aç','Türkçe için: play.google.com/console?hl=tr'),
+  T('Google hesabınla giriş yap'),
+  T('"Başlayın" / "Get Started" butonuna tıkla'),
+  T('Hesap türünü seç: '+(appData.accountType==='organization'?'Kurumsal / Organization':'Kişisel / Personal')),
+  T('Geliştirici Dağıtım Sözleşmesi\'ni kabul et','🇹🇷 Geliştirici Dağıtım Sözleşmesi / 🇬🇧 Developer Distribution Agreement'),
+  T('25 USD kayıt ücretini öde','Ön ödemeli kart kabul edilmez!'),
+  T('Profil bilgilerini doldur','Geliştirici adı, e-posta, telefon, web sitesi'),
+  T('Gönder ve onay bekle','⏳ Onay: 48 saate kadar'),
+]}
+
+function buildVerifyTasks(){
+  if(appData.accountType==='organization') return [
+    T('D-U-N-S numarasını gir','9 haneli Dun & Bradstreet numarası'),
+    T('Kurum bilgilerini doğrula','Yasal ad ve adres D-U-N-S ile eşleşmeli'),
+    T('Ödeme profili oluştur veya mevcut profili seç'),
+  ];
+  return [
+    T('Kimlik belgesi yükle','Nüfus cüzdanı / pasaport / ehliyet'),
+    T('Kart doğrulama','Kimlikle aynı isimde kredi/banka kartı'),
+    T('Cihaz doğrulama','Play Store\'dan "Google Play Console" uygulamasını indir → hesabınla giriş yap'),
+    T('Doğrulama tamamlanana kadar bekle'),
+  ];
+}
+
+function buildAdmobTasks(){
+  const units=appData.admob?.units||[];
+  const tasks=[
+    T('admob.google.com adresine git ve hesap oluştur/giriş yap'),
+    T('Ödeme bilgilerini ekle','Banka hesabı, vergi bilgileri'),
+    T('Uygulamalar → Uygulama ekle','🇹🇷 Uygulamalar → Uygulama ekle / 🇬🇧 Apps → Add app'),
+    T('Platform: Android, Durum: Yayınlanmamış seç'),
+    T('App ID\'yi not al',null,appData.admob?.appId),
+  ];
+  units.forEach(u=>{
+    tasks.push(T('Reklam birimi oluştur: '+u.name,'Tür: '+u.type,u.id));
+  });
+  tasks.push(T('AndroidManifest.xml\'e App ID ekle',
+    '<meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="'+appData.admob?.appId+'"/>',
+    appData.admob?.appId));
+  tasks.push(T('build.gradle\'a AdMob + UMP SDK ekle',
+    "implementation 'com.google.android.gms:play-services-ads:23.6.0'\nimplementation 'com.google.android.ump:user-messaging-platform:3.1.0'"));
+  tasks.push(T('⚠️ Geliştirmede TEST ID kullan, gerçek reklama tıklama!','Test Banner: ca-app-pub-3940256099942544/6300978111\nTest Interstitial: ca-app-pub-3940256099942544/1033173712\nTest Rewarded: ca-app-pub-3940256099942544/5224354917'));
+  return tasks;
+}
+
+function buildCreateAppTasks(){return [
+  T('🇹🇷 Tüm uygulamalar → Uygulama oluştur\n🇬🇧 All apps → Create app'),
+  T('Uygulama adı gir (max 30 karakter)',null,appData.storeInfo?.title),
+  T('Varsayılan dil seç',null,appData.language||'tr-TR'),
+  T('Uygulama mı Oyun mu seç','🇹🇷 Uygulama / Oyun — 🇬🇧 App / Game'),
+  T(appData.isPaid?'Ücretli (Paid) seç — fiyat gir':'Ücretsiz (Free) seç','⚠️ Ücretsizden ücretliye geçiş yapılamaz!'),
+  T('☑️ İşaretle: Google Play Geliştirici Program Politikaları\'na uygundur','🇬🇧 Developer Program Policies'),
+  T('☑️ İşaretle: ABD ihracat yasalarını kabul ediyorum','🇬🇧 US export laws'),
+  T('☑️ İşaretle: Play Uygulama İmzalama Hizmet Şartları','🇬🇧 Play App Signing Terms of Service'),
+  T('🇹🇷 "Uygulama oluştur" / 🇬🇧 "Create app" tıkla'),
+]}
+
+function buildStoreTasks(){return [
+  T('🇹🇷 Kullanıcı sayısını artır → Mağaza varlığı → Ana mağaza girişi\n🇬🇧 Grow users → Store presence → Main store listing'),
+  T('Uygulama adı',null,appData.storeInfo?.title),
+  T('Kısa açıklama (max 80 karakter)',null,appData.storeInfo?.shortDesc),
+  T('Tam açıklama (max 4000 karakter)',null,appData.storeInfo?.fullDesc?.substring(0,80)+'...'),
+  T('Uygulama simgesi yükle','512×512 px, 32-bit PNG'),
+  T('Öne çıkan grafik yükle','1024×500 px, JPEG veya 24-bit PNG'),
+  T('Ekran görüntüleri yükle (telefon)','Min 2, max 8 adet, 16:9 oran'),
+  T('🇹🇷 Mağaza varlığı → Mağaza ayarları\n🇬🇧 Store presence → Store settings'),
+  T('Kategori seç',null,appData.storeInfo?.category),
+  T('İletişim e-postası',null,appData.storeInfo?.email),
+  T(appData.storeInfo?.website?'Geliştirici web sitesi gir':'Geliştirici web sitesi gir (AdMob için zorunlu!)',null,appData.storeInfo?.website),
+  T('🇹🇷 "Kaydet" / 🇬🇧 "Save" tıkla'),
+]}
+
+function buildPrivacyTasks(){return [
+  T('🇹🇷 Politika ve programlar → Uygulama içeriği → Gizlilik Politikası → Başlat\n🇬🇧 Policy → App content → Privacy Policy → Start'),
+  T('Gizlilik politikası URL\'sini gir',null,appData.storeInfo?.privacyUrl),
+  T('🇹🇷 "Kaydet" / 🇬🇧 "Save" tıkla'),
+]}
+
+function buildAccessTasks(){
+  const restricted=appData.hasLogin||appData.hasSubscription||appData.hasLifetime;
+  const tasks=[
+    T('🇹🇷 Politika ve programlar → Uygulama içeriği → Uygulama erişimi → Başlat\n🇬🇧 Policy → App content → App access → Start'),
+  ];
+  if(restricted){
+    tasks.push(T('🇹🇷 "İşlevlerin tamamı veya bir kısmı kısıtlıdır" seç\n🇬🇧 "All or some functionality is restricted"'));
+    tasks.push(T('🇹🇷 "Yeni talimat ekle" → test hesap bilgileri gir\n🇬🇧 "Add new instructions" → enter test account','E-posta + Şifre — Google inceleme ekibi bu hesapla test edecek'));
+  }else{
+    tasks.push(T('🇹🇷 "Tüm işlevler özel erişim olmadan kullanılabilir" seç\n🇬🇧 "All functionality is available without special access"'));
+  }
+  tasks.push(T('🇹🇷 "Kaydet" / 🇬🇧 "Save"'));
+  return tasks;
+}
+
+function buildAdsDeclarationTasks(){return [
+  T('🇹🇷 Politika ve programlar → Uygulama içeriği → Reklamlar → Başlat\n🇬🇧 Policy → App content → Ads → Start'),
+  T(appData.hasAds
+    ?'🇹🇷 "Evet, uygulamam reklam içeriyor" seç\n🇬🇧 "Yes, my app contains ads"\n→ Mağazada "Reklam içerir" etiketi görünecek'
+    :'🇹🇷 "Hayır, uygulamam reklam içermiyor" seç\n🇬🇧 "No, my app does not contain ads"'),
+  T('🇹🇷 "Kaydet" / 🇬🇧 "Save"'),
+]}
+
+function buildRatingTasks(){
+  const cr=appData.contentRating||{};
+  const tasks=[
+    T('🇹🇷 Politika ve programlar → Uygulama içeriği → İçerik derecelendirmesi → Başlat\n🇬🇧 Policy → App content → Content rating → Start'),
+    T('E-posta adresini gir'),
+    T('Kategori seç: Yardımcı program / Utility (çoğu uygulama) veya Oyun / Game'),
+  ];
+  const questions=[
+    ['Şiddet / Violence',cr.violence],
+    ['Cinsellik / Sexuality',cr.sexual],
+    ['Dil (küfür) / Language',cr.language],
+    ['Kontrollü maddeler / Controlled substances',cr.substances],
+    ['Kumar / Gambling',cr.gambling],
+    ['Etkileşimli öğeler / Interactive elements',cr.userInteraction],
+    ['Çevrimiçi içerik / Online content',cr.onlineContent],
+    ['Konum paylaşma / Location sharing',cr.locationSharing],
+    ['Uygulama içi satın alma / In-app purchases',cr.iap],
+    ['Reklam kimliği / Advertising ID',cr.adId],
+  ];
+  questions.forEach(([q,v])=>{
+    tasks.push(T(q+' → '+(v?'✅ EVET / YES':'❌ HAYIR / NO')));
+  });
+  tasks.push(T('🇹🇷 "Kaydet" → "Derecelendirmeyi uygula"\n🇬🇧 "Save" → "Apply rating"'));
+  return tasks;
+}
+
+function buildAudienceTasks(){return [
+  T('🇹🇷 Politika ve programlar → Uygulama içeriği → Hedef kitle ve içerik → Başlat\n🇬🇧 Policy → App content → Target audience and content → Start'),
+  T('Hedef yaş grubu seç → '+(appData.targetAge||'18 ve üzeri / 18 and over')),
+  T('🇹🇷 "Öncelikli olarak çocuklara yönelik mi?" → Hayır\n🇬🇧 "Primarily designed for children?" → No','⚠️ 13 altı seçersen Aile Politikası devreye girer!'),
+  T('🇹🇷 "Kaydet" / 🇬🇧 "Save"'),
+]}
+
+function buildDataSafetyTasks(){
+  const ds=appData.dataSafety||{};
+  const tasks=[
+    T('🇹🇷 Politika ve programlar → Uygulama içeriği → Veri güvenliği → Başlat\n🇬🇧 Policy → App content → Data safety → Start'),
+    T('Sayfa 1: 🇹🇷 "İleri" / 🇬🇧 "Next" tıkla'),
+  ];
+  // Page 2
+  tasks.push(T('Sayfa 2 — Veri topluyor mu?\n🇹🇷 "Uygulamanız gerekli kullanıcı veri türlerinden herhangi birini topluyor veya paylaşıyor mu?"\n→ '+(ds.collectsData?'✅ EVET / YES':'❌ HAYIR / NO')));
+  if(ds.collectsData){
+    tasks.push(T('Aktarımda şifreleniyor mu?\n🇹🇷 "Tüm kullanıcı verileri aktarım sırasında şifreleniyor mu?"\n→ '+(ds.encryptedInTransit?'✅ EVET / YES':'❌ HAYIR / NO')));
+    tasks.push(T('Veri silme yolu var mı?\n🇹🇷 "Kullanıcılara verilerinin silinmesini isteme yolu sunuyor musunuz?"\n→ '+(ds.deletionMechanism?'✅ EVET / YES':'❌ HAYIR / NO')));
+    // Page 3 - data types
+    const typeLabels={
+      device_ids:'☑️ Cihaz veya diğer kimlikler / Device or other IDs',
+      app_interactions:'☑️ Uygulama etkinliği → Uygulama etkileşimleri / App activity → App interactions',
+      crash_logs:'☑️ Uygulama bilgileri → Kilitlenme günlükleri / App info → Crash logs',
+      diagnostics:'☑️ Uygulama bilgileri → Tanılama / App info → Diagnostics',
+      name:'☑️ Kişisel bilgiler → Ad / Personal info → Name',
+      email:'☑️ Kişisel bilgiler → E-posta adresi / Personal info → Email address',
+      user_ids:'☑️ Hesap bilgileri → Kullanıcı kimlikleri / Account info → Account identifiers',
+      purchase_history:'☑️ Finansal bilgiler → Satın alma geçmişi / Financial info → Purchase history',
+      approximate_location:'☑️ Konum → Yaklaşık konum / Location → Approximate location',
+      precise_location:'☑️ Konum → Hassas konum / Location → Precise location',
+      photos_videos:'☑️ Fotoğraflar ve videolar / Photos and videos',
+      files_docs:'☑️ Dosyalar ve dokümanlar / Files and docs',
+      contacts:'☑️ Kişiler / Contacts',
+      phone_number:'☑️ Telefon numarası / Phone number',
+    };
+    tasks.push(T('Sayfa 3 — Veri türlerini işaretle:'));
+    (ds.dataTypes||[]).forEach(dt=>{
+      if(typeLabels[dt]) tasks.push(T(typeLabels[dt]));
+    });
+    // Page 4 - purposes
+    tasks.push(T('Sayfa 4 — Her veri türü için amaç seç:'));
+    if(appData.hasAds) tasks.push(T('Cihaz kimlikleri → Toplanan: Evet, Paylaşılan: Evet\nAmaç: ☑️ Reklamcılık veya pazarlama / Advertising or marketing'));
+    if(appData.hasFirebase) tasks.push(T('Kilitlenme günlükleri + Tanılama → Toplanan: Evet, Paylaşılan: Hayır\nAmaç: ☑️ Analiz / Analytics'));
+    if(appData.hasAds||appData.hasFirebase) tasks.push(T('Uygulama etkileşimleri → Toplanan: Evet, Paylaşılan: '+(appData.hasAds?'Evet':'Hayır')+'\nAmaç: ☑️ Analiz / Analytics'+(appData.hasAds?', ☑️ Reklamcılık / Advertising':'')));
+    if(appData.hasLogin) tasks.push(T('Ad / E-posta / Kullanıcı kimlikleri → Toplanan: Evet, Paylaşılan: Hayır\nAmaç: ☑️ Uygulama işlevi / App functionality, ☑️ Hesap yönetimi / Account management'));
+    if(appData.hasSubscription||appData.hasLifetime) tasks.push(T('Satın alma geçmişi → Toplanan: Evet, Paylaşılan: Hayır\nAmaç: ☑️ Uygulama işlevi / App functionality'));
+  }
+  tasks.push(T('Sayfa 5 — Önizleme kontrol et → 🇹🇷 "Gönder" / 🇬🇧 "Submit"'));
+  return tasks;
+}
+
+function buildOtherDeclTasks(){
+  const isPersonal=appData.accountType!=='organization';
+  return [
+    T('🇹🇷 Uygulama içeriği → Haber uygulaması → Başlat\n🇬🇧 App content → News app → Start\n→ ❌ Hayır / No'),
+    T('🇹🇷 Uygulama içeriği → Devlet uygulamaları → Başlat\n🇬🇧 App content → Government apps → Start\n→ '+(isPersonal?'❌ Hayır / No (kişisel hesap = kesinlikle Hayır)':'Durumuna göre seç')),
+    T('🇹🇷 Uygulama içeriği → Finansal özellikler → Başlat\n🇬🇧 App content → Financial features → Start\n→ '+(isPersonal?'"Uygulamam finansal özellik sağlamıyor / My app doesn\'t provide any financial features" → İleri → Kaydet':'Durumuna göre seç')),
+    T('🇹🇷 Uygulama içeriği → Sağlık uygulamaları → Başlat\n🇬🇧 App content → Health apps → Start\n→ '+(isPersonal?'"Uygulamam sağlık özelliği içermiyor / My app does not have any health features" → Kaydet':'Durumuna göre seç')),
+  ];
+}
+
+function buildAabTasks(){
+  const tasks=[
+    T('Target API Level: 35+ (Android 15) doğrula'),
+    T('versionCode ve versionName kontrol et'),
+    T('Release build al (debug değil!)'),
+  ];
+  if(appData.hasAds){
+    tasks.push(T('⚠️ Test AdMob ID\'lerini GERÇEK ID\'lerle değiştir!','Bu adımı atlarsan reklam geliri alamazsın'));
+    tasks.push(T('AdMob App ID manifest\'te doğru mu kontrol et',null,appData.admob?.appId));
+  }
+  if(appData.hasSubscription||appData.hasLifetime){
+    tasks.push(T('Billing izni manifest\'te var mı kontrol et','<uses-permission android:name="com.android.vending.BILLING" />'));
+  }
+  tasks.push(T('AAB oluştur: Build → Generate Signed Bundle → Android App Bundle','Dosya: app/release/app-release.aab'));
+  tasks.push(T('AAB boyutu max 200 MB (üstü için Play Asset Delivery)'));
+  return tasks;
+}
+
+function buildInternalTasks(){return [
+  T('🇹🇷 Sürüm → Test etme → Dahili test → Yeni sürüm oluştur\n🇬🇧 Release → Testing → Internal testing → Create new release'),
+  T('Play App Signing kurulumunu kabul et'),
+  T('AAB dosyasını sürükle-bırak yükle'),
+  T('Sürüm adı ve notları gir'),
+  T('🇹🇷 "Kaydet" → "Sürümü incele" → "Dahili teste yayınlamaya başla"\n🇬🇧 "Save" → "Review release" → "Start rollout to Internal testing"'),
+  T('Test kullanıcıları → E-posta listesi oluştur → Gmail ekle\n🇬🇧 Testers → Create email list'),
+  T('Katılım bağlantısını kopyala\n🇬🇧 Copy opt-in link'),
+]}
+
+function buildMonetizeTasks(){
+  const tasks=[
+    T('🇹🇷 Play ile para kazanma → Para kazanma kurulumu\n🇬🇧 Monetize with Play → Monetization setup'),
+    T('🇹🇷 "Satıcı hesabı oluştur" → banka bilgileri gir → doğrula\n🇬🇧 "Set up a merchant account"'),
+  ];
+  if(appData.hasSubscription){
+    tasks.push(T('🇹🇷 Play ile para kazanma → Ürünler → Abonelikler → Abonelik oluştur\n🇬🇧 Monetize with Play → Products → Subscriptions → Create subscription'));
+    (appData.products||[]).filter(p=>p.type==='subscription').forEach(p=>{
+      tasks.push(T('Abonelik: '+p.name,'Product ID: '+p.id+' | Fiyat: '+p.price+' | Dönem: '+p.period,p.id));
+      tasks.push(T('Temel plan ekle → Otomatik yenilenen → Faturalandırma: '+p.period+' → Fiyat: '+p.price+' → Etkinleştir','🇹🇷 Temel plan ekle → Fiyatları ayarla → Güncelle → Uygula → Etkinleştir\n🇬🇧 Add base plan → Set prices → Update → Apply → Activate'));
+    });
+  }
+  if(appData.hasLifetime){
+    tasks.push(T('🇹🇷 Play ile para kazanma → Ürünler → Uygulama içi ürünler → Ürün oluştur\n🇬🇧 Monetize with Play → Products → In-app products → Create product'));
+    (appData.products||[]).filter(p=>p.type==='one-time').forEach(p=>{
+      tasks.push(T('Ürün: '+p.name,'Product ID: '+p.id+' | Fiyat: '+p.price,p.id));
+      tasks.push(T('⚠️ Lifetime = non-consumable! acknowledgePurchase() çağır, consumePurchase() çağırMA! 3 gün acknowledge etmezsen otomatik iade!'));
+    });
+  }
+  return tasks;
+}
+
+function buildClosedTasks(){return [
+  T('🇹🇷 Sürüm → Test etme → Kapalı test → Parça oluştur\n🇬🇧 Release → Testing → Closed testing → Create track'),
+  T('Ülkeleri seç → Yeni sürüm oluştur → AAB yükle'),
+  T('🇹🇷 "Kapalı teste yayınlamaya başla"\n🇬🇧 "Start rollout to Closed testing"'),
+  T('Test kullanıcıları → E-posta listesi oluştur → Min 12 Gmail (15-20 önerilir)\n🇬🇧 Testers → Create email list'),
+  T('Katılım bağlantısını kopyala → testerlara gönder'),
+  T('⏳ 14 GÜN BEKLE — Testerlar "Programdan ayrıl/Leave" tıklamasın!'),
+]}
+
+function buildProdAccessTasks(){return [
+  T('14 gün doldu + 12+ tester opt-in → Dashboard\'a git'),
+  T('🇹🇷 "Üretime erişim için başvur"\n🇬🇧 "Apply for production access"'),
+  T('Soruları yanıtla → Gönder'),
+  T('Onay: birkaç saat – birkaç gün'),
+]}
+
+function buildProductionTasks(){return [
+  T('🇹🇷 Sürüm → Üretim → Yeni sürüm oluştur\n🇬🇧 Release → Production → Create new release'),
+  T('AAB yükle'),
+  T('Sürüm adı + notları gir'),
+  T('🇹🇷 "Kaydet" → "Sürümü incele" → hataları kontrol et\n🇬🇧 "Save" → "Review release"'),
+  T('🇹🇷 "Üretime yayınlamaya başla" (önerilir: %20-50 staged rollout)\n🇬🇧 "Start rollout to Production"'),
+  T('Google incelemesi: Yeni uygulama 1-3 gün, güncelleme birkaç saat'),
+]}
+
+function buildAppAdsTasks(){
+  const site=appData.storeInfo?.website||'https://SITEN.com';
+  return [
+  T('AdMob → uygulamanı seç → "Link to app store" → Play Store\'dan bul ve bağla'),
+  T('AdMob → Apps → app-ads.txt sekmesi → snippet kopyala','google.com, pub-XXXX, DIRECT, f08c47fec0942fa0'),
+  T('app-ads.txt dosyası oluştur → snippet yapıştır'),
+  T('Web sitene yükle',null,site+'/app-ads.txt'),
+  T('Play Console → Mağaza ayarları → Geliştirici web sitesi URL\'si gir\n🇬🇧 Store settings → Developer website URL',null,site),
+  T('24 saat bekle → AdMob\'da "Verified" kontrol et'),
+  T('robots.txt engel olmasın:\nUser-agent: Google-adstxt\nAllow: /app-ads.txt'),
+]}
+
+function buildPostLaunchTasks(){return [
+  T('🇹🇷 Kontrol paneli → indirme, aktif yükleme kontrol\n🇬🇧 Dashboard'),
+  T('🇹🇷 Kalite → Derecelendirmeler ve yorumlar → YANITLA!\n🇬🇧 Quality → Ratings and reviews'),
+  T('🇹🇷 Kalite → Android vitals → crash/ANR kontrol\n🇬🇧 Quality → Android vitals'),
+  T('Hedef: Crash-free %99+, ANR %0.47 altı, Puan 4.0+'),
+  T(appData.hasAds?'AdMob → Revenue, eCPM, fill rate kontrol et':''),
+  T(appData.hasSubscription?'Play ile para kazanma → Finansal raporlar → abonelik metrikleri\n🇬🇧 Monetize → Financial reports':''),
+].filter(t=>t.label)}
+
+// ============================================================
+// RENDER
+// ============================================================
+function renderSidebar(){
+  const sb=document.getElementById('sidebar');
+  const doneCount=steps.filter((_,i)=>isStepDone(i)).length;
+  const pct=Math.round(doneCount/steps.length*100);
+  let html=`<div class="sidebar-header">
+    <div class="sidebar-appname">${appData.appName}</div>
+    <div class="sidebar-scenario">Senaryo ${appData.scenario} · ${appData.accountType==='organization'?'Kurumsal':'Kişisel'}</div>
+    <div class="sidebar-progress"><div class="sidebar-progress-fill" style="width:${pct}%"></div></div>
+  </div><ul class="sidebar-steps">`;
+  steps.forEach((s,i)=>{
+    const cls=i===currentStepIndex?'active':isStepDone(i)?'done':'';
+    const icon=isStepDone(i)?'✓':(i+1);
+    html+=`<li class="sidebar-step ${cls}" onclick="goToStep(${i})"><span class="step-icon">${icon}</span>${s.icon} ${s.title}</li>`;
+  });
+  html+='</ul>';
+  sb.innerHTML=html;
+}
+
+function isStepDone(i){
+  const key=steps[i].id;
+  const tasks=steps[i].tasks;
+  if(!completedTasks[key]) return false;
+  return tasks.every((_,ti)=>completedTasks[key][ti]);
+}
+
+function renderStep(i){
+  currentStepIndex=i;
+  const step=steps[i];
+  const mc=document.getElementById('wizardContent');
+  let html=`<div class="step-badge">ADIM ${i+1} / ${steps.length}</div>
+  <h1 class="step-title">${step.icon} ${step.title}</h1>`;
+
+  html+=`<div class="task-list">`;
+  step.tasks.forEach((t,ti)=>{
+    const done=completedTasks[step.id]?.[ti]||false;
+    html+=`<div class="task ${done?'done':''}" onclick="toggleTask('${step.id}',${ti},this)">
+      <div class="task-check">${done?'✓':''}</div>
+      <div class="task-content">
+        <div class="task-label">${t.label.replace(/\n/g,'<br>')}</div>
+        ${t.detail?`<div class="task-detail">${t.detail.replace(/\n/g,'<br>')}</div>`:''}
+        ${t.value?`<div class="task-value" onclick="event.stopPropagation();copyText('${t.value.replace(/'/g,"\\'")}')">${t.value}</div>`:''}
+      </div>
+    </div>`;
+  });
+  html+=`</div>`;
+
+  // Nav
+  html+=`<div class="step-nav">`;
+  if(i>0) html+=`<button class="btn btn-secondary" onclick="prevStep()">← Önceki</button>`;
+  if(i<steps.length-1) html+=`<button class="btn btn-green" onclick="nextStep()">Yaptım → Sonraki Adım</button>`;
+  else html+=`<button class="btn btn-primary" onclick="toast('🎉 Tebrikler! Tüm adımlar tamamlandı!')">🎉 Tamamlandı!</button>`;
+  html+=`</div>`;
+
+  mc.innerHTML=html;
+  document.getElementById('mobileProgress').textContent=`${i+1}/${steps.length}`;
+  renderSidebar();
+  window.scrollTo(0,0);
+}
+
+function toggleTask(stepId,taskIndex,el){
+  if(!completedTasks[stepId]) completedTasks[stepId]={};
+  completedTasks[stepId][taskIndex]=!completedTasks[stepId][taskIndex];
+  el.classList.toggle('done');
+  el.querySelector('.task-check').textContent=completedTasks[stepId][taskIndex]?'✓':'';
+  saveProgress();
+  renderSidebar();
+}
+
+function nextStep(){
+  if(currentStepIndex<steps.length-1){renderStep(currentStepIndex+1)}
+}
+function prevStep(){
+  if(currentStepIndex>0){renderStep(currentStepIndex-1)}
+}
+function goToStep(i){renderStep(i)}
+
+// ============================================================
+// PERSISTENCE
+// ============================================================
+function saveProgress(){
+  try{
+    const data={completedTasks,currentStepIndex,appName:appData?.appName};
+    localStorage.setItem('gplay_wizard_progress',JSON.stringify(data));
+  }catch(e){}
+}
+function loadProgress(){
+  try{
+    const raw=localStorage.getItem('gplay_wizard_progress');
+    if(raw){
+      const data=JSON.parse(raw);
+      if(data.appName===appData.appName){
+        completedTasks=data.completedTasks||{};
+        currentStepIndex=data.currentStepIndex||0;
+      }
+    }
+  }catch(e){}
+}
+</script>
+</body>
+</html>
