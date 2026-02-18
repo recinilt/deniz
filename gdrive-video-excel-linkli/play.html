@@ -14,181 +14,212 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    padding: 1.5rem;
+    padding: 0;
   }
-  .card {
+
+  /* --- Hata kutusu --- */
+  .error-card {
     background: #1e293b;
     border-radius: 16px;
-    padding: 2.5rem 2rem;
+    padding: 2rem;
     max-width: 480px;
-    width: 100%;
+    width: 90%;
     text-align: center;
+    margin-top: 15vh;
     box-shadow: 0 8px 32px rgba(0,0,0,0.4);
   }
-  .icon { font-size: 3rem; margin-bottom: 1rem; }
-  h1 { font-size: 1.4rem; font-weight: 600; margin-bottom: 0.5rem; color: #f8fafc; }
+  .error-card .icon { font-size: 3rem; margin-bottom: 0.8rem; }
+  .error-card h1 { font-size: 1.2rem; color: #f87171; margin-bottom: 0.5rem; }
+  .error-card p { font-size: 0.9rem; color: #94a3b8; }
+
+  /* --- Video modu --- */
+  .video-wrapper {
+    width: 100%;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  /* Ust bilgi bari */
+  .info-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.7rem 1rem;
+    background: #1e293b;
+  }
   .time-badge {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
     background: #2563eb;
     color: white;
-    padding: 0.3rem 0.8rem;
+    padding: 0.35rem 0.75rem;
     border-radius: 6px;
     font-family: 'Consolas', 'Courier New', monospace;
-    font-size: 1.1rem;
-    font-weight: 600;
-    margin: 0.8rem 0;
-  }
-  .status {
-    font-size: 0.95rem;
-    color: #94a3b8;
-    margin: 1rem 0;
-    line-height: 1.5;
-  }
-  .spinner {
-    display: inline-block;
-    width: 20px; height: 20px;
-    border: 3px solid #334155;
-    border-top-color: #3b82f6;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    vertical-align: middle;
-    margin-right: 0.4rem;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .btn {
-    display: inline-block;
-    margin-top: 1rem;
-    padding: 0.7rem 1.5rem;
-    background: #2563eb;
-    color: white;
-    border: none;
-    border-radius: 8px;
     font-size: 1rem;
-    font-weight: 500;
+    font-weight: 600;
+  }
+  .info-text {
+    font-size: 0.82rem;
+    color: #94a3b8;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.4rem 0.9rem;
+    background: #334155;
+    color: #e2e8f0;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.85rem;
     cursor: pointer;
     text-decoration: none;
     transition: background 0.2s;
+    white-space: nowrap;
   }
-  .btn:hover { background: #1d4ed8; }
-  .btn.secondary { background: #475569; margin-left: 0.5rem; }
-  .btn.secondary:hover { background: #64748b; }
-  .error { color: #f87171; }
-  .help {
-    margin-top: 1.5rem;
-    padding-top: 1rem;
-    border-top: 1px solid #334155;
-    font-size: 0.82rem;
+  .btn:hover { background: #475569; }
+  .btn-primary { background: #2563eb; color: white; }
+  .btn-primary:hover { background: #1d4ed8; }
+
+  /* iframe alani */
+  .video-container {
+    position: relative;
+    width: 100%;
+    padding-bottom: 56.25%; /* 16:9 */
+    background: #000;
+  }
+  .video-container iframe {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+  }
+
+  /* Alt bilgi */
+  .bottom-bar {
+    padding: 0.6rem 1rem;
+    background: #1e293b;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .bottom-bar .hint {
+    font-size: 0.8rem;
     color: #64748b;
-    line-height: 1.6;
+    line-height: 1.4;
   }
-  .hidden { display: none; }
+  .bottom-bar .hint strong { color: #f59e0b; }
+
+  /* Mobil */
+  @media (max-width: 640px) {
+    .info-bar { flex-direction: column; align-items: flex-start; }
+    .bottom-bar { flex-direction: column; align-items: flex-start; }
+  }
 </style>
 </head>
 <body>
 
-<div class="card">
-  <div class="icon">🎬</div>
-  <h1>Video Oynatıcı</h1>
+<!-- Hata durumu -->
+<div class="error-card" id="errorCard" style="display:none;">
+  <div class="icon">&#x26A0;&#xFE0F;</div>
+  <h1 id="errorTitle">Hata</h1>
+  <p id="errorMsg">Video ID bulunamadi.</p>
+</div>
 
-  <!-- Yükleniyor durumu -->
-  <div id="loading">
-    <div class="time-badge" id="timeBadge">--:--:--</div>
-    <div class="status">
-      <span class="spinner"></span> Yönlendiriliyor...
+<!-- Video modu -->
+<div class="video-wrapper" id="videoSection" style="display:none;">
+
+  <!-- Ust bar -->
+  <div class="info-bar">
+    <div>
+      <span class="time-badge" id="timeBadge">&#x23F1; 00:00:00</span>
+      <span class="info-text" id="seekInfo">konumuna gidin</span>
+    </div>
+    <div style="display:flex; gap:0.4rem; flex-wrap:wrap;">
+      <a class="btn btn-primary" id="openInBrowser" href="#" target="_blank">&#x25B6;&#xFE0F; Tam Ekran Ac</a>
     </div>
   </div>
 
-  <!-- Hata durumu -->
-  <div id="errorBox" class="hidden">
-    <div class="status error" id="errorMsg">Hata oluştu.</div>
-    <a id="manualLink" class="btn" href="#" target="_blank">▶️ Manuel Aç</a>
+  <!-- Video iframe -->
+  <div class="video-container">
+    <iframe id="videoFrame" src="" allow="autoplay; fullscreen" allowfullscreen></iframe>
   </div>
 
-  <!-- Bilgi -->
-  <div class="help">
-    Bu sayfa Google Drive videosunu belirtilen zaman damgasında açar.<br>
-    Mobilde de tarayıcıda oynatılır, timestamp çalışır.
+  <!-- Alt bilgi -->
+  <div class="bottom-bar">
+    <div class="hint">
+      &#x1F4A1; Video yuklenince <strong id="seekTimeText">belirtilen zamana</strong> manuel ilerleyin.<br>
+      &#x1F4F1; Mobilde tam ekran icin yukardaki <strong>"Tam Ekran Ac"</strong> butonunu kullanin.
+    </div>
   </div>
+
 </div>
 
 <script>
 (function() {
-  // === URL parametrelerini oku ===
   var params = new URLSearchParams(window.location.search);
   var fileId = params.get('id');
   var t = params.get('t');
 
-  // Hata göster
-  function showError(msg) {
-    document.getElementById('loading').classList.add('hidden');
-    document.getElementById('errorBox').classList.remove('hidden');
+  function showError(title, msg) {
+    document.getElementById('errorCard').style.display = 'block';
+    document.getElementById('errorTitle').textContent = title;
     document.getElementById('errorMsg').textContent = msg;
   }
 
-  // === Doğrulama ===
   if (!fileId) {
-    showError('Hata: Video ID (id) parametresi eksik.');
+    showError('Parametre Eksik', 'URL\'de "id" parametresi bulunamadi. Ornek: play.html?id=DOSYA_ID&t=5m12s');
     return;
   }
-
-  // fileId temizle (sadece alfanumerik, tire ve alt çizgi)
   fileId = fileId.replace(/[^a-zA-Z0-9_-]/g, '');
   if (fileId.length < 10) {
-    showError('Hata: Geçersiz video ID.');
+    showError('Gecersiz ID', 'Video ID cok kisa veya gecersiz.');
     return;
   }
 
-  // === Drive URL oluştur ===
-  var driveUrl = 'https://drive.google.com/file/d/' + fileId + '/view';
+  var timeSeconds = 0;
+  var timeDisplay = '00:00:00';
   if (t) {
-    // t parametresini temizle (sadece sayı, h, m, s)
     t = t.replace(/[^0-9hms]/g, '');
-    if (t) {
-      driveUrl += '?t=' + t;
-    }
-  }
-
-  // === Zaman göster ===
-  if (t) {
-    document.getElementById('timeBadge').textContent = '⏱ ' + formatTime(t);
-  } else {
-    document.getElementById('timeBadge').textContent = '▶️ Baştan';
-  }
-
-  // Manuel link her zaman hazır
-  document.getElementById('manualLink').href = driveUrl;
-
-  // === Yönlendirme ===
-  // Kısa bir gecikme ile redirect (kullanıcı sayfayı görsün)
-  setTimeout(function() {
-    try {
-      window.location.href = driveUrl;
-    } catch(e) {
-      showError('Otomatik yönlendirme başarısız. Manuel açın:');
-      document.getElementById('errorBox').classList.remove('hidden');
-    }
-
-    // 3 saniye sonra hâlâ buradaysak, manuel buton göster
-    setTimeout(function() {
-      document.getElementById('loading').classList.add('hidden');
-      document.getElementById('errorBox').classList.remove('hidden');
-      document.getElementById('errorMsg').textContent = 'Otomatik açılamadıysa:';
-    }, 3000);
-  }, 800);
-
-  // === Zaman formatlama ===
-  function formatTime(tParam) {
-    // "5m12s" → "00:05:12", "1h23m45s" → "01:23:45"
     var h = 0, m = 0, s = 0;
-    var hMatch = tParam.match(/(\d+)h/);
-    var mMatch = tParam.match(/(\d+)m/);
-    var sMatch = tParam.match(/(\d+)s/);
-    if (hMatch) h = parseInt(hMatch[1]);
-    if (mMatch) m = parseInt(mMatch[1]);
-    if (sMatch) s = parseInt(sMatch[1]);
-    return pad(h) + ':' + pad(m) + ':' + pad(s);
+    var hM = t.match(/(\d+)h/);
+    var mM = t.match(/(\d+)m/);
+    var sM = t.match(/(\d+)s/);
+    if (hM) h = parseInt(hM[1]);
+    if (mM) m = parseInt(mM[1]);
+    if (sM) s = parseInt(sM[1]);
+    timeSeconds = h * 3600 + m * 60 + s;
+    timeDisplay = pad(h) + ':' + pad(m) + ':' + pad(s);
   }
+
+  // preview: iframe icinde acar, Drive uygulamasi ACILMAZ
+  var previewUrl = 'https://drive.google.com/file/d/' + fileId + '/preview';
+
+  // view: tam tarayici modunda acar (timestamp destekli)
+  var viewUrl = 'https://drive.google.com/file/d/' + fileId + '/view';
+  if (t) viewUrl += '?t=' + t;
+
+  document.getElementById('videoSection').style.display = 'block';
+  document.getElementById('videoFrame').src = previewUrl;
+  document.getElementById('openInBrowser').href = viewUrl;
+
+  if (timeSeconds > 0) {
+    document.getElementById('timeBadge').textContent = '\u23F1 ' + timeDisplay;
+    document.getElementById('seekInfo').textContent = 'konumuna gidin';
+    document.getElementById('seekTimeText').textContent = timeDisplay + ' konumuna';
+  } else {
+    document.getElementById('timeBadge').textContent = '\u25B6\uFE0F Bastan';
+    document.getElementById('seekInfo').textContent = '';
+    document.getElementById('seekTimeText').textContent = 'baslangica';
+  }
+
+  document.title = 'Video \u2014 ' + timeDisplay;
 
   function pad(n) { return n < 10 ? '0' + n : '' + n; }
 })();
