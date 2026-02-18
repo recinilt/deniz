@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Video Oynat</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: #0f172a;
+    color: #e2e8f0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+  }
+  .card {
+    background: #1e293b;
+    border-radius: 16px;
+    padding: 2.5rem 2rem;
+    max-width: 480px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+  .icon { font-size: 3rem; margin-bottom: 1rem; }
+  h1 { font-size: 1.4rem; font-weight: 600; margin-bottom: 0.5rem; color: #f8fafc; }
+  .time-badge {
+    display: inline-block;
+    background: #2563eb;
+    color: white;
+    padding: 0.3rem 0.8rem;
+    border-radius: 6px;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0.8rem 0;
+  }
+  .status {
+    font-size: 0.95rem;
+    color: #94a3b8;
+    margin: 1rem 0;
+    line-height: 1.5;
+  }
+  .spinner {
+    display: inline-block;
+    width: 20px; height: 20px;
+    border: 3px solid #334155;
+    border-top-color: #3b82f6;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    vertical-align: middle;
+    margin-right: 0.4rem;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .btn {
+    display: inline-block;
+    margin-top: 1rem;
+    padding: 0.7rem 1.5rem;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.2s;
+  }
+  .btn:hover { background: #1d4ed8; }
+  .btn.secondary { background: #475569; margin-left: 0.5rem; }
+  .btn.secondary:hover { background: #64748b; }
+  .error { color: #f87171; }
+  .help {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #334155;
+    font-size: 0.82rem;
+    color: #64748b;
+    line-height: 1.6;
+  }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="icon">🎬</div>
+  <h1>Video Oynatıcı</h1>
+
+  <!-- Yükleniyor durumu -->
+  <div id="loading">
+    <div class="time-badge" id="timeBadge">--:--:--</div>
+    <div class="status">
+      <span class="spinner"></span> Yönlendiriliyor...
+    </div>
+  </div>
+
+  <!-- Hata durumu -->
+  <div id="errorBox" class="hidden">
+    <div class="status error" id="errorMsg">Hata oluştu.</div>
+    <a id="manualLink" class="btn" href="#" target="_blank">▶️ Manuel Aç</a>
+  </div>
+
+  <!-- Bilgi -->
+  <div class="help">
+    Bu sayfa Google Drive videosunu belirtilen zaman damgasında açar.<br>
+    Mobilde de tarayıcıda oynatılır, timestamp çalışır.
+  </div>
+</div>
+
+<script>
+(function() {
+  // === URL parametrelerini oku ===
+  var params = new URLSearchParams(window.location.search);
+  var fileId = params.get('id');
+  var t = params.get('t');
+
+  // Hata göster
+  function showError(msg) {
+    document.getElementById('loading').classList.add('hidden');
+    document.getElementById('errorBox').classList.remove('hidden');
+    document.getElementById('errorMsg').textContent = msg;
+  }
+
+  // === Doğrulama ===
+  if (!fileId) {
+    showError('Hata: Video ID (id) parametresi eksik.');
+    return;
+  }
+
+  // fileId temizle (sadece alfanumerik, tire ve alt çizgi)
+  fileId = fileId.replace(/[^a-zA-Z0-9_-]/g, '');
+  if (fileId.length < 10) {
+    showError('Hata: Geçersiz video ID.');
+    return;
+  }
+
+  // === Drive URL oluştur ===
+  var driveUrl = 'https://drive.google.com/file/d/' + fileId + '/view';
+  if (t) {
+    // t parametresini temizle (sadece sayı, h, m, s)
+    t = t.replace(/[^0-9hms]/g, '');
+    if (t) {
+      driveUrl += '?t=' + t;
+    }
+  }
+
+  // === Zaman göster ===
+  if (t) {
+    document.getElementById('timeBadge').textContent = '⏱ ' + formatTime(t);
+  } else {
+    document.getElementById('timeBadge').textContent = '▶️ Baştan';
+  }
+
+  // Manuel link her zaman hazır
+  document.getElementById('manualLink').href = driveUrl;
+
+  // === Yönlendirme ===
+  // Kısa bir gecikme ile redirect (kullanıcı sayfayı görsün)
+  setTimeout(function() {
+    try {
+      window.location.href = driveUrl;
+    } catch(e) {
+      showError('Otomatik yönlendirme başarısız. Manuel açın:');
+      document.getElementById('errorBox').classList.remove('hidden');
+    }
+
+    // 3 saniye sonra hâlâ buradaysak, manuel buton göster
+    setTimeout(function() {
+      document.getElementById('loading').classList.add('hidden');
+      document.getElementById('errorBox').classList.remove('hidden');
+      document.getElementById('errorMsg').textContent = 'Otomatik açılamadıysa:';
+    }, 3000);
+  }, 800);
+
+  // === Zaman formatlama ===
+  function formatTime(tParam) {
+    // "5m12s" → "00:05:12", "1h23m45s" → "01:23:45"
+    var h = 0, m = 0, s = 0;
+    var hMatch = tParam.match(/(\d+)h/);
+    var mMatch = tParam.match(/(\d+)m/);
+    var sMatch = tParam.match(/(\d+)s/);
+    if (hMatch) h = parseInt(hMatch[1]);
+    if (mMatch) m = parseInt(mMatch[1]);
+    if (sMatch) s = parseInt(sMatch[1]);
+    return pad(h) + ':' + pad(m) + ':' + pad(s);
+  }
+
+  function pad(n) { return n < 10 ? '0' + n : '' + n; }
+})();
+</script>
+</body>
+</html>
