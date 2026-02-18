@@ -94,6 +94,11 @@
     color: #64748b;
     line-height: 1.5;
   }
+  .saved-note {
+    font-size: 0.78rem;
+    color: #22c55e;
+    margin-top: 0.3rem;
+  }
   .hidden { display: none; }
 
   /* VIDEO PLAYER */
@@ -181,6 +186,7 @@
     <div class="key-group">
       <label for="keyInput">Anahtar kelimeyi girin:</label>
       <input type="text" id="keyInput" class="key-input" placeholder="anahtar" autocomplete="off" autocapitalize="none" spellcheck="false">
+      <div id="savedNote" class="saved-note hidden"></div>
     </div>
     <div id="keyError" class="error hidden"></div>
 
@@ -189,7 +195,7 @@
 
   <div class="help">
     Anahtar kelimeyi girip butona basın.<br>
-    Video bu sayfada oynatılacaktır.
+    Anahtar bu cihazda hatırlanır. Değiştirmek isterseniz silip yenisini yazın.
   </div>
 </div>
 
@@ -209,6 +215,7 @@
 
 <script>
 (function() {
+  var STORAGE_KEY = 'vp_key';
   var p = new URLSearchParams(window.location.search);
   var _d = p.get('d');
   var _t = p.get('t');
@@ -239,14 +246,28 @@
     document.getElementById('infoText').textContent = 'Video ba\u015Ftan oynat\u0131lacak.';
   }
 
-  document.getElementById('keyInput').addEventListener('keydown', function(e) {
+  /* KAYITLI ANAHTARI YUKLE */
+  var keyInput = document.getElementById('keyInput');
+  var savedNote = document.getElementById('savedNote');
+  try {
+    var saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      keyInput.value = saved;
+      savedNote.textContent = '\u2705 Kay\u0131tl\u0131 anahtar y\u00FCklendi. De\u011Fi\u015Ftirmek i\u00E7in silin.';
+      savedNote.classList.remove('hidden');
+    }
+  } catch(e) {}
+
+  /* Enter tusu */
+  keyInput.addEventListener('keydown', function(e) {
     if (e.key === 'Enter') document.getElementById('goBtn').click();
   });
 
+  /* BUTONA BASINCA */
   document.getElementById('goBtn').addEventListener('click', function() {
     document.getElementById('keyError').classList.add('hidden');
 
-    var raw = document.getElementById('keyInput').value;
+    var raw = keyInput.value;
     if (!raw || !raw.trim()) {
       showKeyError('L\u00FCtfen anahtar kelimeyi girin.');
       return;
@@ -274,7 +295,12 @@
       return;
     }
 
-    /* URL olustur — charCode ile gizli */
+    /* ANAHTARI KAYDET */
+    try {
+      localStorage.setItem(STORAGE_KEY, raw.trim());
+    } catch(e) {}
+
+    /* URL olustur */
     var s1 = [104,116,116,112,115,58,47,47];
     var s2 = [100,114,105,118,101,46,103,111,111,103,108,101,46,99,111,109];
     var s3 = [47,102,105,108,101,47,100,47];
@@ -291,7 +317,6 @@
       url += '?t=' + _t;
     }
 
-    /* ANAHTAR GIZLE — PLAYER GOSTER */
     document.getElementById('keyScreen').classList.add('hidden');
     document.getElementById('playerScreen').classList.remove('hidden');
 
@@ -301,7 +326,6 @@
       document.getElementById('playerTime').textContent = '\u25B6\uFE0F Ba\u015Ftan';
     }
 
-    /* IFRAME EKLE */
     var iframe = document.createElement('iframe');
     iframe.src = url;
     iframe.setAttribute('allowfullscreen', 'true');
@@ -309,7 +333,6 @@
     iframe.id = 'videoFrame';
     document.getElementById('videoContainer').appendChild(iframe);
 
-    /* FULLSCREEN */
     document.getElementById('fsBtn').addEventListener('click', function() {
       var vc = document.getElementById('videoContainer');
       if (vc.requestFullscreen) vc.requestFullscreen();
