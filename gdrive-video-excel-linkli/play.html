@@ -14,212 +14,180 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 0;
+    justify-content: center;
+    padding: 1.5rem;
   }
-
-  /* --- Hata kutusu --- */
-  .error-card {
+  .card {
     background: #1e293b;
     border-radius: 16px;
-    padding: 2rem;
+    padding: 2.5rem 2rem;
     max-width: 480px;
-    width: 90%;
+    width: 100%;
     text-align: center;
-    margin-top: 15vh;
     box-shadow: 0 8px 32px rgba(0,0,0,0.4);
   }
-  .error-card .icon { font-size: 3rem; margin-bottom: 0.8rem; }
-  .error-card h1 { font-size: 1.2rem; color: #f87171; margin-bottom: 0.5rem; }
-  .error-card p { font-size: 0.9rem; color: #94a3b8; }
-
-  /* --- Video modu --- */
-  .video-wrapper {
-    width: 100%;
-    max-width: 960px;
-    margin: 0 auto;
-  }
-
-  /* Ust bilgi bari */
-  .info-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    padding: 0.7rem 1rem;
-    background: #1e293b;
-  }
+  .icon { font-size: 3rem; margin-bottom: 1rem; }
+  h1 { font-size: 1.4rem; font-weight: 600; margin-bottom: 0.5rem; color: #f8fafc; }
   .time-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
+    display: inline-block;
     background: #2563eb;
     color: white;
-    padding: 0.35rem 0.75rem;
+    padding: 0.3rem 0.8rem;
     border-radius: 6px;
     font-family: 'Consolas', 'Courier New', monospace;
-    font-size: 1rem;
+    font-size: 1.1rem;
     font-weight: 600;
+    margin: 0.8rem 0;
   }
-  .info-text {
-    font-size: 0.82rem;
+  .status {
+    font-size: 0.95rem;
     color: #94a3b8;
+    margin: 1rem 0;
+    line-height: 1.5;
   }
+  .spinner {
+    display: inline-block;
+    width: 20px; height: 20px;
+    border: 3px solid #334155;
+    border-top-color: #3b82f6;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    vertical-align: middle;
+    margin-right: 0.4rem;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
   .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.3rem;
-    padding: 0.4rem 0.9rem;
-    background: #334155;
-    color: #e2e8f0;
+    display: inline-block;
+    margin-top: 1rem;
+    padding: 0.7rem 1.5rem;
+    background: #2563eb;
+    color: white;
     border: none;
-    border-radius: 6px;
-    font-size: 0.85rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
     cursor: pointer;
     text-decoration: none;
     transition: background 0.2s;
-    white-space: nowrap;
   }
-  .btn:hover { background: #475569; }
-  .btn-primary { background: #2563eb; color: white; }
-  .btn-primary:hover { background: #1d4ed8; }
-
-  /* iframe alani */
-  .video-container {
-    position: relative;
-    width: 100%;
-    padding-bottom: 56.25%; /* 16:9 */
-    background: #000;
-  }
-  .video-container iframe {
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%;
-    height: 100%;
-    border: none;
-  }
-
-  /* Alt bilgi */
-  .bottom-bar {
-    padding: 0.6rem 1rem;
-    background: #1e293b;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-  .bottom-bar .hint {
-    font-size: 0.8rem;
+  .btn:hover { background: #1d4ed8; }
+  .btn.secondary { background: #475569; margin-left: 0.5rem; }
+  .btn.secondary:hover { background: #64748b; }
+  .error { color: #f87171; }
+  .help {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #334155;
+    font-size: 0.82rem;
     color: #64748b;
-    line-height: 1.4;
+    line-height: 1.6;
   }
-  .bottom-bar .hint strong { color: #f59e0b; }
-
-  /* Mobil */
-  @media (max-width: 640px) {
-    .info-bar { flex-direction: column; align-items: flex-start; }
-    .bottom-bar { flex-direction: column; align-items: flex-start; }
-  }
+  .hidden { display: none; }
 </style>
 </head>
 <body>
 
-<!-- Hata durumu -->
-<div class="error-card" id="errorCard" style="display:none;">
-  <div class="icon">&#x26A0;&#xFE0F;</div>
-  <h1 id="errorTitle">Hata</h1>
-  <p id="errorMsg">Video ID bulunamadi.</p>
-</div>
+<div class="card">
+  <div class="icon">&#x1F3AC;</div>
+  <h1>Video Oynat&#x131;c&#x131;</h1>
 
-<!-- Video modu -->
-<div class="video-wrapper" id="videoSection" style="display:none;">
-
-  <!-- Ust bar -->
-  <div class="info-bar">
-    <div>
-      <span class="time-badge" id="timeBadge">&#x23F1; 00:00:00</span>
-      <span class="info-text" id="seekInfo">konumuna gidin</span>
-    </div>
-    <div style="display:flex; gap:0.4rem; flex-wrap:wrap;">
-      <a class="btn btn-primary" id="openInBrowser" href="#" target="_blank">&#x25B6;&#xFE0F; Tam Ekran Ac</a>
+  <!-- Yukleniyor durumu -->
+  <div id="loading">
+    <div class="time-badge" id="timeBadge">--:--:--</div>
+    <div class="status">
+      <span class="spinner"></span> Y&#xF6;nlendiriliyor...
     </div>
   </div>
 
-  <!-- Video iframe -->
-  <div class="video-container">
-    <iframe id="videoFrame" src="" allow="autoplay; fullscreen" allowfullscreen></iframe>
+  <!-- Hata durumu -->
+  <div id="errorBox" class="hidden">
+    <div class="status error" id="errorMsg">Hata olu&#x15F;tu.</div>
+    <a id="manualLink" class="btn" href="#" target="_blank">&#x25B6;&#xFE0F; Manuel A&#xE7;</a>
   </div>
 
-  <!-- Alt bilgi -->
-  <div class="bottom-bar">
-    <div class="hint">
-      &#x1F4A1; Video yuklenince <strong id="seekTimeText">belirtilen zamana</strong> manuel ilerleyin.<br>
-      &#x1F4F1; Mobilde tam ekran icin yukardaki <strong>"Tam Ekran Ac"</strong> butonunu kullanin.
-    </div>
+  <!-- Bilgi -->
+  <div class="help">
+    Bu sayfa Google Drive videosunu belirtilen zaman damgas&#x131;nda a&#xE7;ar.<br>
+    Mobilde de taray&#x131;c&#x131;da oynat&#x131;l&#x131;r, timestamp &#xE7;al&#x131;&#x15F;&#x131;r.
   </div>
-
 </div>
 
 <script>
 (function() {
   var params = new URLSearchParams(window.location.search);
-  var fileId = params.get('id');
+
+  // === OBFUSCATED PARAMETRE: v = tersine cevrilmis file ID ===
+  var vParam = params.get('v');
   var t = params.get('t');
 
-  function showError(title, msg) {
-    document.getElementById('errorCard').style.display = 'block';
-    document.getElementById('errorTitle').textContent = title;
+  function showError(msg) {
+    document.getElementById('loading').classList.add('hidden');
+    document.getElementById('errorBox').classList.remove('hidden');
     document.getElementById('errorMsg').textContent = msg;
   }
 
-  if (!fileId) {
-    showError('Parametre Eksik', 'URL\'de "id" parametresi bulunamadi. Ornek: play.html?id=DOSYA_ID&t=5m12s');
+  if (!vParam) {
+    showError('Hata: Video parametresi (v) eksik.');
     return;
   }
+
+  // === DECODE: ters cevir (reverse) ===
+  var fileId = vParam.split('').reverse().join('');
+
+  // Temizle (sadece alfanumerik, tire ve alt cizgi)
   fileId = fileId.replace(/[^a-zA-Z0-9_-]/g, '');
   if (fileId.length < 10) {
-    showError('Gecersiz ID', 'Video ID cok kisa veya gecersiz.');
+    showError('Hata: Gecersiz video ID.');
     return;
   }
 
-  var timeSeconds = 0;
-  var timeDisplay = '00:00:00';
+  // === Drive URL olustur ===
+  var driveUrl = 'https://drive.google.com/file/d/' + fileId + '/view';
   if (t) {
     t = t.replace(/[^0-9hms]/g, '');
-    var h = 0, m = 0, s = 0;
-    var hM = t.match(/(\d+)h/);
-    var mM = t.match(/(\d+)m/);
-    var sM = t.match(/(\d+)s/);
-    if (hM) h = parseInt(hM[1]);
-    if (mM) m = parseInt(mM[1]);
-    if (sM) s = parseInt(sM[1]);
-    timeSeconds = h * 3600 + m * 60 + s;
-    timeDisplay = pad(h) + ':' + pad(m) + ':' + pad(s);
+    if (t) {
+      driveUrl += '?t=' + t;
+    }
   }
 
-  // preview: iframe icinde acar, Drive uygulamasi ACILMAZ
-  var previewUrl = 'https://drive.google.com/file/d/' + fileId + '/preview';
-
-  // view: tam tarayici modunda acar (timestamp destekli)
-  var viewUrl = 'https://drive.google.com/file/d/' + fileId + '/view';
-  if (t) viewUrl += '?t=' + t;
-
-  document.getElementById('videoSection').style.display = 'block';
-  document.getElementById('videoFrame').src = previewUrl;
-  document.getElementById('openInBrowser').href = viewUrl;
-
-  if (timeSeconds > 0) {
-    document.getElementById('timeBadge').textContent = '\u23F1 ' + timeDisplay;
-    document.getElementById('seekInfo').textContent = 'konumuna gidin';
-    document.getElementById('seekTimeText').textContent = timeDisplay + ' konumuna';
+  // === Zaman goster ===
+  if (t) {
+    document.getElementById('timeBadge').textContent = '\u23F1 ' + formatTime(t);
   } else {
     document.getElementById('timeBadge').textContent = '\u25B6\uFE0F Bastan';
-    document.getElementById('seekInfo').textContent = '';
-    document.getElementById('seekTimeText').textContent = 'baslangica';
   }
 
-  document.title = 'Video \u2014 ' + timeDisplay;
+  // Manuel link her zaman hazir
+  document.getElementById('manualLink').href = driveUrl;
+
+  // === Yonlendirme ===
+  setTimeout(function() {
+    try {
+      window.location.href = driveUrl;
+    } catch(e) {
+      showError('Otomatik yonlendirme basarisiz. Manuel acin:');
+      document.getElementById('errorBox').classList.remove('hidden');
+    }
+
+    // 3 saniye sonra hala buradaysak, manuel buton goster
+    setTimeout(function() {
+      document.getElementById('loading').classList.add('hidden');
+      document.getElementById('errorBox').classList.remove('hidden');
+      document.getElementById('errorMsg').textContent = 'Otomatik acilamadiysa:';
+    }, 3000);
+  }, 800);
+
+  // === Zaman formatlama ===
+  function formatTime(tParam) {
+    var h = 0, m = 0, s = 0;
+    var hMatch = tParam.match(/(\d+)h/);
+    var mMatch = tParam.match(/(\d+)m/);
+    var sMatch = tParam.match(/(\d+)s/);
+    if (hMatch) h = parseInt(hMatch[1]);
+    if (mMatch) m = parseInt(mMatch[1]);
+    if (sMatch) s = parseInt(sMatch[1]);
+    return pad(h) + ':' + pad(m) + ':' + pad(s);
+  }
 
   function pad(n) { return n < 10 ? '0' + n : '' + n; }
 })();
