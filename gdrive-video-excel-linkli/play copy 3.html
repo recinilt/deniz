@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Video Oynatıcı</title>
+<title>Video Oynat</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
@@ -32,12 +32,12 @@
     display: inline-block;
     background: #2563eb;
     color: white;
-    padding: 0.4rem 1rem;
-    border-radius: 8px;
+    padding: 0.3rem 0.8rem;
+    border-radius: 6px;
     font-family: 'Consolas', 'Courier New', monospace;
-    font-size: 1.3rem;
-    font-weight: 700;
-    margin: 1rem 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0.8rem 0;
   }
   .status {
     font-size: 0.95rem;
@@ -45,22 +45,34 @@
     margin: 1rem 0;
     line-height: 1.5;
   }
+  .spinner {
+    display: inline-block;
+    width: 20px; height: 20px;
+    border: 3px solid #334155;
+    border-top-color: #3b82f6;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    vertical-align: middle;
+    margin-right: 0.4rem;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
   .btn {
     display: inline-block;
     margin-top: 1rem;
-    padding: 0.9rem 2rem;
+    padding: 0.7rem 1.5rem;
     background: #2563eb;
     color: white;
     border: none;
-    border-radius: 10px;
-    font-size: 1.1rem;
-    font-weight: 600;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
     cursor: pointer;
     text-decoration: none;
-    transition: background 0.2s, transform 0.1s;
+    transition: background 0.2s;
   }
-  .btn:hover { background: #1d4ed8; transform: scale(1.02); }
-  .btn:active { transform: scale(0.98); }
+  .btn:hover { background: #1d4ed8; }
+  .btn.secondary { background: #475569; margin-left: 0.5rem; }
+  .btn.secondary:hover { background: #64748b; }
   .error { color: #f87171; }
   .help {
     margin-top: 1.5rem;
@@ -77,34 +89,39 @@
 
 <div class="card">
   <div class="icon">&#x1F3AC;</div>
-  <h1>Video Oynatıcı</h1>
+  <h1>Video Oynat&#x131;c&#x131;</h1>
+
+  <!-- Yukleniyor durumu -->
+  <div id="loading">
+    <div class="time-badge" id="timeBadge">--:--:--</div>
+    <div class="status">
+      <span class="spinner"></span> Y&#xF6;nlendiriliyor...
+    </div>
+  </div>
 
   <!-- Hata durumu -->
   <div id="errorBox" class="hidden">
-    <div class="status error" id="errorMsg">Hata oluştu.</div>
-  </div>
-
-  <!-- Normal durum -->
-  <div id="mainArea" class="hidden">
-    <div class="time-badge" id="timeBadge">--:--:--</div>
-    <div class="status" id="infoText">Videoyu açmak için aşağıdaki butona basın.</div>
-    <button class="btn" id="goBtn">&#x25B6;&#xFE0F; Videoya Git</button>
+    <div class="status error" id="errorMsg">Hata olu&#x15F;tu.</div>
+    <a id="manualLink" class="btn" href="#" target="_blank">&#x25B6;&#xFE0F; Manuel A&#xE7;</a>
   </div>
 
   <!-- Bilgi -->
   <div class="help">
-    Bu sayfa Google Drive videosunu belirtilen zaman damgasında açar.<br>
-    Butona basınca video tarayıcıda oynatılır.
+    Bu sayfa Google Drive videosunu belirtilen zaman damgas&#x131;nda a&#xE7;ar.<br>
+    Mobilde de taray&#x131;c&#x131;da oynat&#x131;l&#x131;r, timestamp &#xE7;al&#x131;&#x15F;&#x131;r.
   </div>
 </div>
 
 <script>
 (function() {
   var params = new URLSearchParams(window.location.search);
+
+  // === OBFUSCATED PARAMETRE: v = tersine cevrilmis file ID ===
   var vParam = params.get('v');
   var t = params.get('t');
 
   function showError(msg) {
+    document.getElementById('loading').classList.add('hidden');
     document.getElementById('errorBox').classList.remove('hidden');
     document.getElementById('errorMsg').textContent = msg;
   }
@@ -117,10 +134,10 @@
   // === DECODE: ters cevir (reverse) ===
   var fileId = vParam.split('').reverse().join('');
 
-  // Temizle
+  // Temizle (sadece alfanumerik, tire ve alt cizgi)
   fileId = fileId.replace(/[^a-zA-Z0-9_-]/g, '');
   if (fileId.length < 10) {
-    showError('Hata: Geçersiz video kodu.');
+    showError('Hata: Gecersiz video ID.');
     return;
   }
 
@@ -128,25 +145,37 @@
   var driveUrl = 'https://drive.google.com/file/d/' + fileId + '/view';
   if (t) {
     t = t.replace(/[^0-9hms]/g, '');
-    if (t) driveUrl += '?t=' + t;
+    if (t) {
+      driveUrl += '?t=' + t;
+    }
   }
 
   // === Zaman goster ===
-  if (t && t !== '0s') {
+  if (t) {
     document.getElementById('timeBadge').textContent = '\u23F1 ' + formatTime(t);
-    document.getElementById('infoText').textContent =
-      'Video ' + formatTime(t) + ' zamanında açılacak.';
   } else {
-    document.getElementById('timeBadge').textContent = '\u25B6\uFE0F Baştan';
-    document.getElementById('infoText').textContent = 'Video baştan açılacak.';
+    document.getElementById('timeBadge').textContent = '\u25B6\uFE0F Bastan';
   }
 
-  document.getElementById('mainArea').classList.remove('hidden');
+  // Manuel link her zaman hazir
+  document.getElementById('manualLink').href = driveUrl;
 
-  // === BUTONA BASINCA YONLENDIR ===
-  document.getElementById('goBtn').addEventListener('click', function() {
-    window.location.href = driveUrl;
-  });
+  // === Yonlendirme ===
+  setTimeout(function() {
+    try {
+      window.location.href = driveUrl;
+    } catch(e) {
+      showError('Otomatik yonlendirme basarisiz. Manuel acin:');
+      document.getElementById('errorBox').classList.remove('hidden');
+    }
+
+    // 3 saniye sonra hala buradaysak, manuel buton goster
+    setTimeout(function() {
+      document.getElementById('loading').classList.add('hidden');
+      document.getElementById('errorBox').classList.remove('hidden');
+      document.getElementById('errorMsg').textContent = 'Otomatik acilamadiysa:';
+    }, 3000);
+  }, 800);
 
   // === Zaman formatlama ===
   function formatTime(tParam) {
