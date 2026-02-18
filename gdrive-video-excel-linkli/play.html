@@ -42,8 +42,40 @@
   .info {
     font-size: 0.95rem;
     color: #94a3b8;
-    margin: 1rem 0;
+    margin: 0.8rem 0;
     line-height: 1.5;
+  }
+  .key-group {
+    margin: 1.2rem 0;
+  }
+  .key-group label {
+    display: block;
+    font-size: 0.9rem;
+    color: #cbd5e1;
+    margin-bottom: 0.4rem;
+    font-weight: 500;
+  }
+  .key-input {
+    width: 100%;
+    max-width: 220px;
+    padding: 0.6rem 1rem;
+    border: 2px solid #475569;
+    border-radius: 8px;
+    background: #0f172a;
+    color: #f1f5f9;
+    font-size: 1.1rem;
+    text-align: center;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .key-input:focus {
+    border-color: #3b82f6;
+  }
+  .key-input::placeholder {
+    color: #64748b;
+    font-weight: 400;
   }
   .btn {
     display: inline-block;
@@ -61,7 +93,11 @@
   }
   .btn:hover { background: #1d4ed8; transform: scale(1.02); }
   .btn:active { transform: scale(0.98); }
-  .error { color: #f87171; }
+  .error {
+    color: #f87171;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+  }
   .help {
     margin-top: 1.5rem;
     padding-top: 1rem;
@@ -86,88 +122,118 @@
   <div id="mainArea" class="hidden">
     <div class="time-badge" id="timeBadge"></div>
     <div class="info" id="infoText"></div>
-    <!-- BUTONDA HREF YOK — sadece click event ile calisiyor -->
+
+    <div class="key-group">
+      <label for="keyInput">Anahtar kelimeyi girin:</label>
+      <input type="text" id="keyInput" class="key-input" placeholder="anahtar" autocomplete="off" autocapitalize="none" spellcheck="false">
+    </div>
+    <div id="keyError" class="error hidden"></div>
+
     <button class="btn" id="goBtn">&#x25B6;&#xFE0F; Videoya Git</button>
   </div>
 
   <div class="help">
-    Videoya gitmek için butona basın.<br>
-    Video tarayıcıda açılacaktır.
+    Anahtar kelimeyi girip butona bas&#x131;n.<br>
+    Video taray&#x131;c&#x131;da a&#xE7;&#x131;lacakt&#x131;r.
   </div>
 </div>
 
-<!--
-  KRITIK: Bu script SAYFA YUKLENDIGINDE hicbir Drive URL'si OLUSTURMAZ.
-  Sifreli veri sadece degiskende tutulur.
-  Drive URL'si SADECE buton click aninda hesaplanir ve yonlendirilir.
-  Google Sheets link preview bu sayfayi fetch ettiginde:
-  - HTML'de drive.google.com GECMEZ
-  - JS otomatik calistiginda hicbir redirect OLMAZ
-  - Hicbir <a href>, <iframe src>, window.location ATAMASI YOKTUR
-  Sonuc: Sheets sadece statik bir HTML sayfasi gorur, video preview YAPAMAZ.
--->
 <script>
 (function() {
-  /* === 1. URL PARAMETRELERINI OKU === */
   var p = new URLSearchParams(window.location.search);
-  var enc = p.get('v');
-  var ts = p.get('t');
+  var _d = p.get('d');
+  var _t = p.get('t');
 
   function showError(m) {
     document.getElementById('errorBox').classList.remove('hidden');
     document.getElementById('errorMsg').textContent = m;
   }
+  function showKeyError(m) {
+    var el = document.getElementById('keyError');
+    el.textContent = m;
+    el.classList.remove('hidden');
+  }
 
-  if (!enc) {
-    showError('Video parametresi (v) eksik.');
+  if (!_d) {
+    showError('Video parametresi (d) eksik.');
     return;
   }
 
-  /* === 2. SIFRELI VERIYI SADECE DEGISKENDE SAKLA === */
-  /* Hicbir yere yazma, hicbir DOM elementine atama, href olusturma */
-  var _e = enc;
-  var _t = ts ? ts.replace(/[^0-9hms]/g, '') : '';
+  if (_t) _t = _t.replace(/[^0-9hms]/g, '');
 
-  /* === 3. ZAMAN GOSTER (sadece gorsel, Drive ile ilgisi yok) === */
+  /* Zaman goster */
   document.getElementById('mainArea').classList.remove('hidden');
-
   if (_t && _t !== '0s') {
     document.getElementById('timeBadge').textContent = '\u23F1 ' + fmtTime(_t);
-    document.getElementById('infoText').textContent =
-      'Video ' + fmtTime(_t) + ' zamaninda acilacak.';
+    document.getElementById('infoText').textContent = 'Video ' + fmtTime(_t) + ' zamanında açılacak.';
   } else {
-    document.getElementById('timeBadge').textContent = '\u25B6\uFE0F Bastan';
-    document.getElementById('infoText').textContent = 'Video bastan acilacak.';
+    document.getElementById('timeBadge').textContent = '\u25B6\uFE0F Baştan';
+    document.getElementById('infoText').textContent = 'Video baştan açılacak.';
   }
 
-  /* === 4. BUTON CLICK — SADECE BU ANDA DECODE + REDIRECT === */
+  /* Enter tusu ile de calissin */
+  document.getElementById('keyInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') document.getElementById('goBtn').click();
+  });
+
+  /* BUTONA BASINCA — DECODE + REDIRECT */
   document.getElementById('goBtn').addEventListener('click', function() {
-    /* Decode: ters cevir (reverse) */
-    var id = _e.split('').reverse().join('');
-    id = id.replace(/[^a-zA-Z0-9_\-]/g, '');
-    if (id.length < 10) {
-      showError('Gecersiz video kodu.');
+    document.getElementById('keyError').classList.add('hidden');
+
+    var raw = document.getElementById('keyInput').value;
+    if (!raw || !raw.trim()) {
+      showKeyError('Lütfen anahtar kelimeyi girin.');
       return;
     }
-    /* URL'yi SADECE SIMDI olustur */
-    var u = 'https://drive.google.com/file/d/' + id + '/view';
+
+    /* Turkce toLowerCase */
+    var key = raw.trim().toLowerCase();
+
+    /* Hex dogrula */
+    var h = _d.replace(/[^0-9a-fA-F]/g, '');
+    if (h.length < 20 || h.length % 2 !== 0) {
+      showKeyError('Geçersiz video kodu.');
+      return;
+    }
+
+    /* XOR decode */
+    var id = '';
+    for (var i = 0; i < h.length; i += 2) {
+      var byte = parseInt(h.substr(i, 2), 16);
+      var kc = key.charCodeAt((i / 2) % key.length);
+      id += String.fromCharCode(byte ^ kc);
+    }
+
+    /* Temizle */
+    id = id.replace(/[^a-zA-Z0-9_\-]/g, '');
+    if (id.length < 10) {
+      showKeyError('Hatalı anahtar. Tekrar deneyin.');
+      return;
+    }
+
+    /* URL simdi olustur — charCode ile gizli */
+    var a = [104,116,116,112,115,58,47,47];
+    var b = [100,114,105,118,101,46,103,111,111,103,108,101,46,99,111,109];
+    var c = [47,102,105,108,101,47,100,47];
+    var e = [47,118,105,101,119];
+    var u = '';
+    for (var j = 0; j < a.length; j++) u += String.fromCharCode(a[j]);
+    for (var j = 0; j < b.length; j++) u += String.fromCharCode(b[j]);
+    for (var j = 0; j < c.length; j++) u += String.fromCharCode(c[j]);
+    u += id;
+    for (var j = 0; j < e.length; j++) u += String.fromCharCode(e[j]);
     if (_t) u += '?t=' + _t;
-    /* Yonlendir */
+
     window.location.href = u;
   });
 
-  /* === YARDIMCI === */
   function fmtTime(t) {
-    var h=0, m=0, s=0;
-    var a = t.match(/(\d+)h/);
-    var b = t.match(/(\d+)m/);
-    var c = t.match(/(\d+)s/);
-    if (a) h = parseInt(a[1]);
-    if (b) m = parseInt(b[1]);
-    if (c) s = parseInt(c[1]);
-    return pad(h)+':'+pad(m)+':'+pad(s);
+    var h = 0, m = 0, s = 0;
+    var a = t.match(/(\d+)h/), b = t.match(/(\d+)m/), c = t.match(/(\d+)s/);
+    if (a) h = parseInt(a[1]); if (b) m = parseInt(b[1]); if (c) s = parseInt(c[1]);
+    return pad(h) + ':' + pad(m) + ':' + pad(s);
   }
-  function pad(n) { return n < 10 ? '0'+n : ''+n; }
+  function pad(n) { return n < 10 ? '0' + n : '' + n; }
 })();
 </script>
 </body>
