@@ -39,7 +39,7 @@
     font-weight: 700;
     margin: 1rem 0;
   }
-  .status {
+  .info {
     font-size: 0.95rem;
     color: #94a3b8;
     margin: 1rem 0;
@@ -79,88 +79,95 @@
   <div class="icon">&#x1F3AC;</div>
   <h1>Video Oynatıcı</h1>
 
-  <!-- Hata durumu -->
   <div id="errorBox" class="hidden">
-    <div class="status error" id="errorMsg">Hata oluştu.</div>
+    <div class="info error" id="errorMsg"></div>
   </div>
 
-  <!-- Normal durum -->
   <div id="mainArea" class="hidden">
-    <div class="time-badge" id="timeBadge">--:--:--</div>
-    <div class="status" id="infoText">Videoyu açmak için aşağıdaki butona basın.</div>
+    <div class="time-badge" id="timeBadge"></div>
+    <div class="info" id="infoText"></div>
+    <!-- BUTONDA HREF YOK — sadece click event ile calisiyor -->
     <button class="btn" id="goBtn">&#x25B6;&#xFE0F; Videoya Git</button>
   </div>
 
-  <!-- Bilgi -->
   <div class="help">
-    Bu sayfa Google Drive videosunu belirtilen zaman damgasında açar.<br>
-    Butona basınca video tarayıcıda oynatılır.
+    Videoya gitmek için butona basın.<br>
+    Video tarayıcıda açılacaktır.
   </div>
 </div>
 
+<!--
+  KRITIK: Bu script SAYFA YUKLENDIGINDE hicbir Drive URL'si OLUSTURMAZ.
+  Sifreli veri sadece degiskende tutulur.
+  Drive URL'si SADECE buton click aninda hesaplanir ve yonlendirilir.
+  Google Sheets link preview bu sayfayi fetch ettiginde:
+  - HTML'de drive.google.com GECMEZ
+  - JS otomatik calistiginda hicbir redirect OLMAZ
+  - Hicbir <a href>, <iframe src>, window.location ATAMASI YOKTUR
+  Sonuc: Sheets sadece statik bir HTML sayfasi gorur, video preview YAPAMAZ.
+-->
 <script>
 (function() {
-  var params = new URLSearchParams(window.location.search);
-  var vParam = params.get('v');
-  var t = params.get('t');
+  /* === 1. URL PARAMETRELERINI OKU === */
+  var p = new URLSearchParams(window.location.search);
+  var enc = p.get('v');
+  var ts = p.get('t');
 
-  function showError(msg) {
+  function showError(m) {
     document.getElementById('errorBox').classList.remove('hidden');
-    document.getElementById('errorMsg').textContent = msg;
+    document.getElementById('errorMsg').textContent = m;
   }
 
-  if (!vParam) {
-    showError('Hata: Video parametresi (v) eksik.');
+  if (!enc) {
+    showError('Video parametresi (v) eksik.');
     return;
   }
 
-  // === DECODE: ters cevir (reverse) ===
-  var fileId = vParam.split('').reverse().join('');
+  /* === 2. SIFRELI VERIYI SADECE DEGISKENDE SAKLA === */
+  /* Hicbir yere yazma, hicbir DOM elementine atama, href olusturma */
+  var _e = enc;
+  var _t = ts ? ts.replace(/[^0-9hms]/g, '') : '';
 
-  // Temizle
-  fileId = fileId.replace(/[^a-zA-Z0-9_-]/g, '');
-  if (fileId.length < 10) {
-    showError('Hata: Geçersiz video kodu.');
-    return;
-  }
-
-  // === Drive URL olustur ===
-  var driveUrl = 'https://drive.google.com/file/d/' + fileId + '/view';
-  if (t) {
-    t = t.replace(/[^0-9hms]/g, '');
-    if (t) driveUrl += '?t=' + t;
-  }
-
-  // === Zaman goster ===
-  if (t && t !== '0s') {
-    document.getElementById('timeBadge').textContent = '\u23F1 ' + formatTime(t);
-    document.getElementById('infoText').textContent =
-      'Video ' + formatTime(t) + ' zamanında açılacak.';
-  } else {
-    document.getElementById('timeBadge').textContent = '\u25B6\uFE0F Baştan';
-    document.getElementById('infoText').textContent = 'Video baştan açılacak.';
-  }
-
+  /* === 3. ZAMAN GOSTER (sadece gorsel, Drive ile ilgisi yok) === */
   document.getElementById('mainArea').classList.remove('hidden');
 
-  // === BUTONA BASINCA YONLENDIR ===
-  document.getElementById('goBtn').addEventListener('click', function() {
-    window.location.href = driveUrl;
-  });
-
-  // === Zaman formatlama ===
-  function formatTime(tParam) {
-    var h = 0, m = 0, s = 0;
-    var hMatch = tParam.match(/(\d+)h/);
-    var mMatch = tParam.match(/(\d+)m/);
-    var sMatch = tParam.match(/(\d+)s/);
-    if (hMatch) h = parseInt(hMatch[1]);
-    if (mMatch) m = parseInt(mMatch[1]);
-    if (sMatch) s = parseInt(sMatch[1]);
-    return pad(h) + ':' + pad(m) + ':' + pad(s);
+  if (_t && _t !== '0s') {
+    document.getElementById('timeBadge').textContent = '\u23F1 ' + fmtTime(_t);
+    document.getElementById('infoText').textContent =
+      'Video ' + fmtTime(_t) + ' zamaninda acilacak.';
+  } else {
+    document.getElementById('timeBadge').textContent = '\u25B6\uFE0F Bastan';
+    document.getElementById('infoText').textContent = 'Video bastan acilacak.';
   }
 
-  function pad(n) { return n < 10 ? '0' + n : '' + n; }
+  /* === 4. BUTON CLICK — SADECE BU ANDA DECODE + REDIRECT === */
+  document.getElementById('goBtn').addEventListener('click', function() {
+    /* Decode: ters cevir (reverse) */
+    var id = _e.split('').reverse().join('');
+    id = id.replace(/[^a-zA-Z0-9_\-]/g, '');
+    if (id.length < 10) {
+      showError('Gecersiz video kodu.');
+      return;
+    }
+    /* URL'yi SADECE SIMDI olustur */
+    var u = 'https://drive.google.com/file/d/' + id + '/view';
+    if (_t) u += '?t=' + _t;
+    /* Yonlendir */
+    window.location.href = u;
+  });
+
+  /* === YARDIMCI === */
+  function fmtTime(t) {
+    var h=0, m=0, s=0;
+    var a = t.match(/(\d+)h/);
+    var b = t.match(/(\d+)m/);
+    var c = t.match(/(\d+)s/);
+    if (a) h = parseInt(a[1]);
+    if (b) m = parseInt(b[1]);
+    if (c) s = parseInt(c[1]);
+    return pad(h)+':'+pad(m)+':'+pad(s);
+  }
+  function pad(n) { return n < 10 ? '0'+n : ''+n; }
 })();
 </script>
 </body>
