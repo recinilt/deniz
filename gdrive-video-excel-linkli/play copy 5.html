@@ -101,6 +101,53 @@
   }
   .hidden { display: none; }
 
+  /* SAFARI UYARI BANNER */
+  .safari-warn {
+    background: linear-gradient(135deg, #92400e 0%, #b45309 100%);
+    border: 1px solid #f59e0b;
+    border-radius: 12px;
+    padding: 1rem 1.2rem;
+    margin-bottom: 1rem;
+    max-width: 500px;
+    width: 100%;
+    text-align: left;
+    box-shadow: 0 4px 16px rgba(245,158,11,0.2);
+  }
+  .safari-warn-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #fef3c7;
+    margin-bottom: 0.5rem;
+  }
+  .safari-warn-text {
+    font-size: 0.82rem;
+    color: #fde68a;
+    line-height: 1.55;
+    margin-bottom: 0.6rem;
+  }
+  .safari-warn-steps {
+    font-size: 0.8rem;
+    color: #fef9c3;
+    line-height: 1.7;
+    padding-left: 0.2rem;
+  }
+  .safari-warn-steps b {
+    color: #fff;
+  }
+  .safari-warn-dismiss {
+    display: inline-block;
+    margin-top: 0.6rem;
+    padding: 0.3rem 0.8rem;
+    background: rgba(255,255,255,0.15);
+    color: #fef3c7;
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 6px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .safari-warn-dismiss:hover { background: rgba(255,255,255,0.25); }
+
   /* VIDEO PLAYER */
   .player-wrap {
     width: 100%;
@@ -170,6 +217,16 @@
 </head>
 <body>
 
+<!-- SAFARI UYARI BANNER -->
+<div class="safari-warn hidden" id="safariWarn">
+  <div class="safari-warn-title">⚠️ Safari Kullanıcıları İçin Önemli</div>
+  <div class="safari-warn-text">
+    Safari'nin gizlilik ayarları Google Drive videolarının oynatılmasını engelleyebilir. Video yüklenmezse aşağıdaki adımları uygulayın:
+  </div>
+  <div class="safari-warn-steps" id="safariSteps"></div>
+  <button class="safari-warn-dismiss" id="safariDismiss">Anladım, kapat</button>
+</div>
+
 <!-- ANAHTAR EKRANI -->
 <div class="card" id="keyScreen">
   <div class="icon">&#x1F3AC;</div>
@@ -215,6 +272,41 @@
 
 <script>
 (function() {
+
+  /* === SAFARI / iOS TESPİT & UYARI === */
+  var isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+  var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+  if (isSafari || isIOS) {
+    var warn = document.getElementById('safariWarn');
+    var steps = document.getElementById('safariSteps');
+
+    if (isIOS) {
+      steps.innerHTML =
+        '<b>iPhone / iPad:</b><br>' +
+        '1\uFE0F\u20E3 Ayarlar uygulamasını açın<br>' +
+        '2\uFE0F\u20E3 Aşağı kaydırıp <b>Safari</b> (veya <b>Uygulamalar → Safari</b>) seçin<br>' +
+        '3\uFE0F\u20E3 Gizlilik ve Güvenlik bölümünde<br>' +
+        '\u00A0\u00A0\u00A0\u00A0<b>"Siteler Arası İzlemeyi Engelle"</b> seçeneğini <b>kapatın</b><br>' +
+        '4\uFE0F\u20E3 Bu sayfaya dönüp yenileyin<br>' +
+        '<br><span style="font-size:0.75rem;color:#fcd34d;">Not: Video izledikten sonra ayarı tekrar açabilirsiniz.</span>';
+    } else {
+      steps.innerHTML =
+        '<b>Mac Safari:</b><br>' +
+        '1\uFE0F\u20E3 Safari → Tercihler (veya Ayarlar) → Gizlilik<br>' +
+        '2\uFE0F\u20E3 <b>"Siteler arası izlemeyi engelle"</b> seçeneğinin işaretini kaldırın<br>' +
+        '3\uFE0F\u20E3 Sayfayı yenileyin<br>' +
+        '<br><span style="font-size:0.75rem;color:#fcd34d;">Not: Video izledikten sonra ayarı tekrar açabilirsiniz.</span>';
+    }
+
+    warn.classList.remove('hidden');
+
+    document.getElementById('safariDismiss').addEventListener('click', function() {
+      warn.classList.add('hidden');
+    });
+  }
+
+  /* === MEVCUT KOD (AYNEN) === */
   var STORAGE_KEY = 'vp_key';
   var p = new URLSearchParams(window.location.search);
   var _d = p.get('d');
@@ -319,6 +411,15 @@
 
     document.getElementById('keyScreen').classList.add('hidden');
     document.getElementById('playerScreen').classList.remove('hidden');
+
+    /* Safari uyarisini player ekraninda da goster */
+    if (isSafari || isIOS) {
+      var warn = document.getElementById('safariWarn');
+      if (!warn.classList.contains('hidden')) {
+        var playerWrap = document.getElementById('playerScreen');
+        playerWrap.insertBefore(warn, playerWrap.firstChild);
+      }
+    }
 
     if (_t && _t !== '0s') {
       document.getElementById('playerTime').textContent = '\u23F1 ' + fmtTime(_t);
