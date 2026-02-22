@@ -1415,7 +1415,7 @@ async function passphraseeDegistir() {
     hataEl.textContent = '';
 
     if (!eski) { hataEl.textContent = 'Mevcut güvenlik kelimesini girin.'; return; }
-    if (!yeni || yeni.length < 8) { hataEl.textContent = 'Yeni güvenlik kelimesi en az 8 karakter olmalıdır.'; return; }
+    if (!yeni || yeni.length < 5) { hataEl.textContent = 'Yeni güvenlik kelimesi en az 5 karakter olmalıdır.'; return; }
     if (yeni !== yeni2) { hataEl.textContent = 'Yeni güvenlik kelimeleri eşleşmiyor.'; return; }
     if (eski === yeni) { hataEl.textContent = 'Yeni güvenlik kelimesi eskiyle aynı olamaz.'; return; }
 
