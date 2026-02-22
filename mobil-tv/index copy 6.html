@@ -57,7 +57,7 @@
   }
 
   /* ── LAYOUT SCREENS ── */
-  .screen { display: none; height: 100vh; overflow: hidden; }
+  .screen { display: none; min-height: 100vh; }
   .screen.active { display: flex; }
 
   /* ── GIRIŞ EKRANI ── */
@@ -1323,7 +1323,8 @@ function loadUrl(url) {
 
   iframe.onload = () => {
     loaded = true;
-    iframe.onload = null; // sonraki iframe-içi navigasyonlarda tekrar tetiklenmesin
+    // Proxy üzerinden gelen yüklemelerde contentWindow.location cross-origin hatası verir.
+    // Yüklendi sinyali yeterli — direkt video polling başlat.
     startVideoDetectPolling();
   };
 
