@@ -489,7 +489,6 @@
     <div class="tv-devices" id="tv-device-count">
       <span class="dot-online"></span> <span id="tv-mobile-count">0</span> mobil
     </div>
-    <button class="btn btn-ghost btn-sm" id="btn-newtab" onclick="openNewTab()" style="display:none;">↗ Yeni Sekme</button>
     <button class="btn btn-ghost btn-sm" onclick="closeIframe()">✕ Kapat</button>
     <button class="btn btn-ghost btn-sm" onclick="showSettings()">⚙</button>
   </div>
@@ -531,7 +530,7 @@
       <div class="section-label">URL Gönder</div>
       <div class="send-box">
         <div class="send-row">
-          <input class="form-input" type="text" id="inp-url" placeholder="https://..." autocomplete="off" inputmode="url">
+          <input class="form-input" type="url" id="inp-url" placeholder="https://..." autocomplete="off">
           <button class="btn-send" id="btn-send" onclick="sendUrl()">Gönder</button>
         </div>
         <div id="send-target-note" style="font-size:12px;color:var(--text3);margin-top:8px;"></div>
@@ -808,43 +807,46 @@ function loadUrl(url) {
   document.getElementById("tv-url-bar").textContent = url;
   document.getElementById("tv-waiting").style.display = "none";
   document.getElementById("iframe-warn").classList.remove("show");
-  document.getElementById("btn-newtab").style.display = "";
 
   const iframe = document.getElementById("tv-iframe");
   iframe.classList.remove("active");
-  iframe.src = "";
 
-  // Engel tespiti: iframe yüklenince contentDocument boş mu?
-  let loaded = false;
+  // iframe yükle, engel tespiti
+  iframe.src = url;
+  iframe.classList.add("active");
+
+  // Yükleme hatası tespiti (X-Frame-Options = load eventi gelir ama boş kalır)
+  // Basit yöntem: timeout + contentWindow erişimi
+  const checkTimer = setTimeout(() => {
+    try {
+      // Aynı origin değilse erişemeyiz ama exception da almayız
+      // Asıl kontrol: iframe yüklendi mi ama içerik boş mu
+      if (!iframe.contentWindow || !iframe.contentDocument) {
+        showIframeWarn(url);
+      }
+    } catch(e) {
+      showIframeWarn(url);
+    }
+  }, 4000);
 
   iframe.onload = () => {
-    loaded = true;
-    let blocked = false;
+    clearTimeout(checkTimer);
     try {
-      // Cross-origin ise SecurityError fırlatır → iframe çalışıyor
-      const loc = iframe.contentWindow.location.href;
-      if (loc === "about:blank" || loc === "") blocked = true;
+      // Cross-origin = SecurityError, ama iframe yüklendi demektir
+      const test = iframe.contentWindow.location.href;
+      // Eğer about:blank ise engellendi
+      if (iframe.contentWindow.location.href === "about:blank") {
+        showIframeWarn(url);
+      }
     } catch(e) {
-      // SecurityError = cross-origin ama yüklendi → normal
-      blocked = false;
-    }
-    if (blocked) {
-      showIframeWarn(url);
+      // Cross-origin — normal, iframe çalışıyor
     }
   };
 
   iframe.onerror = () => {
-    loaded = true;
+    clearTimeout(checkTimer);
     showIframeWarn(url);
   };
-
-  // Timeout: 6sn içinde onload gelmezse veya boş kaldıysa uyar
-  setTimeout(() => {
-    if (!loaded) showIframeWarn(url);
-  }, 6000);
-
-  iframe.src = url;
-  iframe.classList.add("active");
 }
 
 function showIframeWarn(url) {
@@ -854,10 +856,6 @@ function showIframeWarn(url) {
   document.getElementById("iframe-warn").classList.add("show");
 }
 
-window.openNewTab = function() {
-  if (currentUrl) window.open(currentUrl, "_blank");
-};
-
 window.closeIframe = function() {
   currentUrl = "";
   document.getElementById("tv-iframe").src = "about:blank";
@@ -865,7 +863,6 @@ window.closeIframe = function() {
   document.getElementById("iframe-warn").classList.remove("show");
   document.getElementById("tv-waiting").style.display = "";
   document.getElementById("tv-url-bar").textContent = "Bağlantı bekleniyor...";
-  document.getElementById("btn-newtab").style.display = "none";
 };
 
 // Ok tuşu desteği (TV kumanda)
