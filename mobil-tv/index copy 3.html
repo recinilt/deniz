@@ -339,37 +339,6 @@
   .tv-item-status { font-size: 12px; color: var(--text3); display: flex; align-items: center; gap: 4px; margin-top: 2px; }
   .tv-empty { font-size: 14px; color: var(--text3); text-align: center; padding: 24px 0; }
 
-  /* Video Kumanda */
-  .video-ctrl-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 16px;
-  }
-  .video-ctrl-row {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-  }
-  .btn-ctrl {
-    width: 52px; height: 52px;
-    border-radius: 50%;
-    border: 1px solid var(--border);
-    background: var(--bg2);
-    font-size: 20px;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    transition: background .12s, transform .1s;
-    flex-shrink: 0;
-  }
-  .btn-ctrl:active { transform: scale(.92); }
-  .btn-ctrl:hover { background: var(--border); }
-  .btn-ctrl-play  { background: var(--accent); color: #fff; border-color: transparent; font-size: 18px; }
-  .btn-ctrl-play:hover { opacity: .85; background: var(--accent); }
-  .btn-ctrl-pause { background: var(--bg2); }
-  .btn-ctrl-stop  { background: var(--danger-light); color: var(--danger); border-color: transparent; }
-
   /* URL gönder */
   .send-box {
     background: var(--surface);
@@ -578,21 +547,6 @@
           <button class="btn-send" id="btn-send" onclick="sendUrl()">Gönder</button>
         </div>
         <div id="send-target-note" style="font-size:12px;color:var(--text3);margin-top:8px;"></div>
-      </div>
-    </div>
-
-    <!-- Video Kumanda -->
-    <div id="video-ctrl-section" style="display:none;">
-      <div class="section-label">Video Kumanda</div>
-      <div class="video-ctrl-card">
-        <div class="video-ctrl-row">
-          <button class="btn-ctrl" onclick="sendVideoCmd('seekBack')" title="10 saniye geri">⏪</button>
-          <button class="btn-ctrl btn-ctrl-play" onclick="sendVideoCmd('play')" title="Oynat">▶</button>
-          <button class="btn-ctrl btn-ctrl-pause" onclick="sendVideoCmd('pause')" title="Duraklat">⏸</button>
-          <button class="btn-ctrl btn-ctrl-stop" onclick="sendVideoCmd('stop')" title="Durdur">⏹</button>
-          <button class="btn-ctrl" onclick="sendVideoCmd('seekForward')" title="10 saniye ileri">⏩</button>
-        </div>
-        <div id="video-ctrl-status" style="font-size:12px;color:var(--text3);text-align:center;margin-top:8px;">TV'de video bekleniyor...</div>
       </div>
     </div>
 
@@ -834,21 +788,17 @@ async function startSession(role) {
 }
 
 // ─── TV EKRANI ───
-let videoCheckInterval = null;
-
 function startTvScreen() {
   showScreen("tv");
+  document.getElementById("mobile-email-display");
 
   // Kendi session'ı dinle (komut gelirse)
   sessionUnsub = onSnapshot(doc(db, "sessions", sessionId), snap => {
     const data = snap.data();
     if (!data) return;
     const cmd = data.command;
-    if (!cmd) return;
-    if (cmd.type === "navigate" && cmd.url) {
+    if (cmd && cmd.type === "navigate" && cmd.url) {
       loadUrl(cmd.url);
-    } else if (cmd.type === "videoControl") {
-      handleVideoControl(cmd.action);
     }
   });
 
@@ -861,60 +811,6 @@ function startTvScreen() {
       document.getElementById("tv-mobile-count").textContent = snap.size;
     }
   );
-}
-
-// TV'de video kontrolü uygula
-function handleVideoControl(action) {
-  const iframe = document.getElementById("tv-iframe");
-  if (!iframe.classList.contains("active")) return;
-  let video = null;
-  try {
-    const videos = iframe.contentWindow.document.querySelectorAll("video");
-    // En uzun süreli veya oynayan videoyu bul
-    videos.forEach(v => {
-      if (!video || (!video.paused && v.paused === false) || v.duration > (video.duration || 0)) {
-        video = v;
-      }
-    });
-  } catch(e) {
-    // Cross-origin — kontrol edilemiyor
-    setDoc(doc(db, "sessions", sessionId), {
-      videoStatus: { detected: false, reason: "cross-origin" }
-    }, { merge: true });
-    return;
-  }
-  if (!video) return;
-  try {
-    if (action === "play")        video.play();
-    else if (action === "pause")  video.pause();
-    else if (action === "stop")   { video.pause(); video.currentTime = 0; }
-    else if (action === "seekBack")    video.currentTime = Math.max(0, video.currentTime - 10);
-    else if (action === "seekForward") video.currentTime = video.currentTime + 10;
-  } catch(e) { /* sessiz hata */ }
-}
-
-// Video tespit polling — iframe yüklenince başlar
-function startVideoDetectPolling() {
-  if (videoCheckInterval) clearInterval(videoCheckInterval);
-  videoCheckInterval = setInterval(async () => {
-    const iframe = document.getElementById("tv-iframe");
-    if (!iframe.classList.contains("active")) {
-      clearInterval(videoCheckInterval);
-      videoCheckInterval = null;
-      await setDoc(doc(db, "sessions", sessionId), { videoStatus: { detected: false } }, { merge: true });
-      return;
-    }
-    let detected = false;
-    try {
-      const videos = iframe.contentWindow.document.querySelectorAll("video");
-      detected = videos.length > 0;
-    } catch(e) {
-      detected = false;
-    }
-    await setDoc(doc(db, "sessions", sessionId), {
-      videoStatus: { detected, ts: Date.now() }
-    }, { merge: true });
-  }, 2000);
 }
 
 let currentUrl = "";
@@ -944,11 +840,7 @@ function loadUrl(url) {
     } catch(e) {
       blocked = false;
     }
-    if (blocked) {
-      showIframeWarn(url);
-    } else {
-      startVideoDetectPolling();
-    }
+    if (blocked) showIframeWarn(url);
   };
 
   iframe.onerror = () => {
@@ -993,8 +885,6 @@ window.openNewTab = function() {
 
 window.closeIframe = function() {
   currentUrl = "";
-  if (videoCheckInterval) { clearInterval(videoCheckInterval); videoCheckInterval = null; }
-  if (sessionId) setDoc(doc(db, "sessions", sessionId), { videoStatus: { detected: false } }, { merge: true });
   document.getElementById("tv-iframe").src = "about:blank";
   document.getElementById("tv-iframe").classList.remove("active");
   document.getElementById("iframe-warn").classList.remove("show");
@@ -1031,8 +921,6 @@ async function switchRoleTo(role) {
 }
 
 // ─── MOBİL EKRANI ───
-let videoStatusUnsub = null;
-
 function startMobileScreen() {
   showScreen("mobile");
   document.getElementById("mobile-email-display").textContent = currentUser.email;
@@ -1047,38 +935,8 @@ function startMobileScreen() {
           where("role", "==", "tv")),
     snap => {
       renderTvList(snap.docs);
-      // Seçili TV'nin videoStatus'unu dinle
-      watchVideoStatus(snap.docs);
     }
   );
-}
-
-function watchVideoStatus(tvDocs) {
-  if (videoStatusUnsub) { videoStatusUnsub(); videoStatusUnsub = null; }
-  if (tvDocs.length === 0) {
-    document.getElementById("video-ctrl-section").style.display = "none";
-    return;
-  }
-  // selectedTvId yoksa ilkini kullan
-  const targetId = selectedTvId || tvDocs[0].id;
-  videoStatusUnsub = onSnapshot(doc(db, "sessions", targetId), snap => {
-    const data = snap.data();
-    if (!data) return;
-    const vs = data.videoStatus;
-    const section = document.getElementById("video-ctrl-section");
-    const statusEl = document.getElementById("video-ctrl-status");
-    if (vs && vs.detected) {
-      section.style.display = "";
-      statusEl.textContent = "TV'de video bulundu — kontrol aktif";
-      statusEl.style.color = "var(--accent)";
-    } else if (vs && vs.reason === "cross-origin") {
-      section.style.display = "";
-      statusEl.textContent = "⚠ Bu site video kontrolüne izin vermiyor";
-      statusEl.style.color = "var(--danger)";
-    } else {
-      section.style.display = "none";
-    }
-  });
 }
 
 function renderTvList(docs) {
@@ -1178,18 +1036,6 @@ function renderHistory() {
   });
 }
 
-window.sendVideoCmd = async function(action) {
-  const targetId = selectedTvId;
-  if (!targetId) { toast("TV seçili değil."); return; }
-  try {
-    await setDoc(doc(db, "sessions", targetId), {
-      command: { type: "videoControl", action, sentAt: serverTimestamp() }
-    }, { merge: true });
-  } catch(e) {
-    toast("Hata: " + e.message);
-  }
-};
-
 window.switchToTV = function() {
   if (confirm("TV moduna geçmek istiyor musunuz?")) {
     switchRoleTo("tv");
@@ -1201,10 +1047,8 @@ window.doLogout = async function() {
   if (sessionId) {
     try { await deleteDoc(doc(db, "sessions", sessionId)); } catch(_) {}
   }
-  if (sessionUnsub)      sessionUnsub();
-  if (tvListUnsub)       tvListUnsub();
-  if (videoStatusUnsub)  videoStatusUnsub();
-  if (videoCheckInterval) clearInterval(videoCheckInterval);
+  if (sessionUnsub) sessionUnsub();
+  if (tvListUnsub)  tvListUnsub();
   sessionId = null;
   await signOut(auth);
 };
