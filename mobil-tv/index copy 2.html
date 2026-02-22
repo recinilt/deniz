@@ -348,17 +348,6 @@
   }
   .send-row { display: flex; gap: 8px; }
   .send-row .form-input { flex: 1; }
-  .btn-paste {
-    flex-shrink: 0;
-    padding: 11px 13px;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    background: var(--bg2);
-    font-size: 16px;
-    cursor: pointer;
-    transition: background .12s;
-  }
-  .btn-paste:hover { background: var(--border); }
   .btn-send {
     background: var(--accent);
     color: #fff;
@@ -542,8 +531,7 @@
       <div class="section-label">URL Gönder</div>
       <div class="send-box">
         <div class="send-row">
-          <input class="form-input" type="text" id="inp-url" placeholder="https://..." inputmode="url" autocomplete="url">
-          <button class="btn-paste" id="btn-paste" onclick="pasteUrl()" title="Panodan yapıştır">📋</button>
+          <input class="form-input" type="text" id="inp-url" placeholder="https://..." autocomplete="off" inputmode="url">
           <button class="btn-send" id="btn-send" onclick="sendUrl()">Gönder</button>
         </div>
         <div id="send-target-note" style="font-size:12px;color:var(--text3);margin-top:8px;"></div>
@@ -815,8 +803,6 @@ function startTvScreen() {
 
 let currentUrl = "";
 
-const CORS_PROXY = "https://mycors.recepyeni.workers.dev/?url=";
-
 function loadUrl(url) {
   currentUrl = url;
   document.getElementById("tv-url-bar").textContent = url;
@@ -828,19 +814,23 @@ function loadUrl(url) {
   iframe.classList.remove("active");
   iframe.src = "";
 
+  // Engel tespiti: iframe yüklenince contentDocument boş mu?
   let loaded = false;
-  const proxyUrl = CORS_PROXY + encodeURIComponent(url);
 
   iframe.onload = () => {
     loaded = true;
     let blocked = false;
     try {
+      // Cross-origin ise SecurityError fırlatır → iframe çalışıyor
       const loc = iframe.contentWindow.location.href;
       if (loc === "about:blank" || loc === "") blocked = true;
     } catch(e) {
+      // SecurityError = cross-origin ama yüklendi → normal
       blocked = false;
     }
-    if (blocked) showIframeWarn(url);
+    if (blocked) {
+      showIframeWarn(url);
+    }
   };
 
   iframe.onerror = () => {
@@ -848,11 +838,12 @@ function loadUrl(url) {
     showIframeWarn(url);
   };
 
+  // Timeout: 6sn içinde onload gelmezse veya boş kaldıysa uyar
   setTimeout(() => {
     if (!loaded) showIframeWarn(url);
-  }, 8000);
+  }, 6000);
 
-  iframe.src = proxyUrl;
+  iframe.src = url;
   iframe.classList.add("active");
 }
 
@@ -862,22 +853,6 @@ function showIframeWarn(url) {
   document.getElementById("btn-open-newtab").onclick = () => window.open(url, "_blank");
   document.getElementById("iframe-warn").classList.add("show");
 }
-
-window.pasteUrl = async function() {
-  try {
-    const text = await navigator.clipboard.readText();
-    if (text) {
-      document.getElementById("inp-url").value = text.trim();
-      toast("Yapıştırıldı ✓");
-    }
-  } catch(e) {
-    // İzin verilmediyse input'u focus et, kullanıcı manuel yapıştırır
-    const inp = document.getElementById("inp-url");
-    inp.focus();
-    inp.select();
-    toast("URL kutusuna uzun basıp yapıştırın");
-  }
-};
 
 window.openNewTab = function() {
   if (currentUrl) window.open(currentUrl, "_blank");
