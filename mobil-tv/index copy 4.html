@@ -338,15 +338,6 @@
   .tv-item-name { font-size: 14px; font-weight: 500; }
   .tv-item-status { font-size: 12px; color: var(--text3); display: flex; align-items: center; gap: 4px; margin-top: 2px; }
   .tv-empty { font-size: 14px; color: var(--text3); text-align: center; padding: 24px 0; }
-  .dot-offline {
-    width: 7px; height: 7px;
-    border-radius: 50%;
-    background: var(--text3);
-    display: inline-block;
-    flex-shrink: 0;
-  }
-  .tv-item-offline { opacity: .45; cursor: default; }
-  .tv-item-offline:hover { background: var(--surface) !important; }
 
   /* Video Kumanda */
   .video-ctrl-card {
@@ -829,11 +820,10 @@ async function startSession(role) {
     command:    null
   });
 
-  // Sayfa kapanınca session sil
+  // Çevrimdışı işareti (sayfa kapanınca)
   window.addEventListener("beforeunload", () => {
-    if (!sessionId || !firebaseConfig.projectId) return;
-    const url = `https://firestore.googleapis.com/v1/projects/${firebaseConfig.projectId}/databases/(default)/documents/sessions/${sessionId}`;
-    try { fetch(url, { method: "DELETE", keepalive: true }); } catch(_) {}
+    // navigator.sendBeacon ile online=false gönderemiyoruz Firestore için
+    // session TTL için lastSeen kullanılır
   });
 
   if (role === "tv") {
@@ -845,16 +835,9 @@ async function startSession(role) {
 
 // ─── TV EKRANI ───
 let videoCheckInterval = null;
-let heartbeatInterval = null;
 
 function startTvScreen() {
   showScreen("tv");
-
-  // Heartbeat: her 15sn lastSeen güncelle (çevrimiçi işareti)
-  if (heartbeatInterval) clearInterval(heartbeatInterval);
-  heartbeatInterval = setInterval(() => {
-    if (sessionId) setDoc(doc(db, "sessions", sessionId), { lastSeen: serverTimestamp() }, { merge: true });
-  }, 15000);
 
   // Kendi session'ı dinle (komut gelirse)
   sessionUnsub = onSnapshot(doc(db, "sessions", sessionId), snap => {
@@ -1037,7 +1020,6 @@ window.showSettings = function() {
 
 async function switchRoleTo(role) {
   currentRole = role;
-  if (heartbeatInterval) { clearInterval(heartbeatInterval); heartbeatInterval = null; }
   await setDoc(doc(db, "sessions", sessionId), { role }, { merge: true });
   if (role === "mobile") {
     if (sessionUnsub) { sessionUnsub(); sessionUnsub = null; }
@@ -1106,48 +1088,31 @@ function renderTvList(docs) {
     selectedTvId = null;
     return;
   }
-  const now = Date.now();
-  const STALE_MS = 40000; // 40sn — heartbeat 15sn, tolerans için 40sn
   listEl.innerHTML = "";
-  let anyOnline = false;
   docs.forEach(d => {
     const data = d.data();
-    // lastSeen kontrolü
-    let isOnline = false;
-    if (data.lastSeen && data.lastSeen.toMillis) {
-      isOnline = (now - data.lastSeen.toMillis()) < STALE_MS;
-    } else if (data.lastSeen && data.lastSeen.seconds) {
-      isOnline = (now - data.lastSeen.seconds * 1000) < STALE_MS;
-    }
     const isSelected = d.id === selectedTvId;
     const el = document.createElement("div");
-    el.className = "tv-item" + (isSelected && isOnline ? " selected" : "") + (!isOnline ? " tv-item-offline" : "");
+    el.className = "tv-item" + (isSelected ? " selected" : "");
     el.innerHTML = `
       <div class="tv-item-icon">📺</div>
       <div class="tv-item-info">
         <div class="tv-item-name">${data.deviceName || "TV"}</div>
-        <div class="tv-item-status">${isOnline
-          ? '<span class="dot-online"></span> Çevrimiçi'
-          : '<span class="dot-offline"></span> Çevrimdışı'
-        }</div>
+        <div class="tv-item-status"><span class="dot-online"></span> Çevrimiçi</div>
       </div>
     `;
-    if (isOnline) {
-      anyOnline = true;
-      el.onclick = () => {
-        selectedTvId = d.id;
-        document.querySelectorAll(".tv-item").forEach(i => i.classList.remove("selected"));
-        el.classList.add("selected");
-        updateSendNote();
-      };
-      if (!selectedTvId) {
-        selectedTvId = d.id;
-        el.classList.add("selected");
-      }
-    }
+    el.onclick = () => {
+      selectedTvId = d.id;
+      document.querySelectorAll(".tv-item").forEach(i => i.classList.remove("selected"));
+      el.classList.add("selected");
+      updateSendNote();
+    };
     listEl.appendChild(el);
+    if (!selectedTvId) {
+      selectedTvId = d.id;
+      el.classList.add("selected");
+    }
   });
-  if (!anyOnline) selectedTvId = null;
   updateSendNote();
 }
 
@@ -1233,14 +1198,13 @@ window.switchToTV = function() {
 
 // ─── ÇIKIŞ ───
 window.doLogout = async function() {
-  if (heartbeatInterval)  { clearInterval(heartbeatInterval); heartbeatInterval = null; }
-  if (videoCheckInterval) { clearInterval(videoCheckInterval); videoCheckInterval = null; }
-  if (sessionUnsub)       sessionUnsub();
-  if (tvListUnsub)        tvListUnsub();
-  if (videoStatusUnsub)   videoStatusUnsub();
   if (sessionId) {
     try { await deleteDoc(doc(db, "sessions", sessionId)); } catch(_) {}
   }
+  if (sessionUnsub)      sessionUnsub();
+  if (tvListUnsub)       tvListUnsub();
+  if (videoStatusUnsub)  videoStatusUnsub();
+  if (videoCheckInterval) clearInterval(videoCheckInterval);
   sessionId = null;
   await signOut(auth);
 };
