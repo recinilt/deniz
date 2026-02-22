@@ -190,12 +190,13 @@ select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%
 
     <!-- Alt Menü -->
     <div class="alt-menu" id="alt-menu" style="display:none">
-      <button class="btn btn-secondary btn-sm" onclick="exportBaslat()">📧 Gmail'ime Gönder</button>
+      <button class="btn btn-secondary btn-sm" onclick="exportBaslat()">🔒 Gmail'ime Şifreli Gönder</button>
+      <button class="btn btn-secondary btn-sm" onclick="exportSifresizBaslat()">📄 Gmail'ime Şifresiz Gönder</button>
       <button class="btn btn-secondary btn-sm" onclick="document.getElementById('txt-import').click()">📥 İçe Aktar</button>
       <button class="btn btn-secondary btn-sm" onclick="verileriSenkronla()">🔄 Senkronla</button>
       <button class="btn btn-secondary btn-sm" onclick="passphraseeDegistirModalAc()">🔑 Güvenlik Kelimesini Değiştir</button>
       <button class="btn btn-danger btn-sm" onclick="cikisYap()">🚪 Çıkış</button>
-      <input type="file" id="txt-import" accept=".txt,.json" style="display:none" onchange="txtImport(event)">
+      <input type="file" id="txt-import" accept=".txt,.json,.enc" style="display:none" onchange="txtImport(event)">
     </div>
   </div>
 </div>
@@ -285,6 +286,32 @@ select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%
 </div>
 
 
+<!-- ŞİFRESİZ EXPORT ONAY MODAL -->
+<div class="modal-overlay" id="modal-export-sifresiz">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-baslik">
+      <h3>⚠️ Şifresiz Gönderme Uyarısı</h3>
+      <button class="btn-icon" onclick="document.getElementById('modal-export-sifresiz').classList.remove('aktif')">✕</button>
+    </div>
+    <div class="modal-icerik">
+      <p style="font-size:14px;color:var(--warn);font-weight:600;margin-bottom:10px">Bu işlem şifrelerinizi düz metin olarak gönderir!</p>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:8px">Şifreleriniz <strong style="color:var(--text)">herhangi bir şifreleme olmadan</strong>, okunabilir formatta Gmail hesabınıza gönderilecektir.</p>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:8px">📌 <strong style="color:var(--text)">Tehlikeler:</strong></p>
+      <ul style="font-size:13px;color:var(--text2);padding-left:18px;display:flex;flex-direction:column;gap:5px;margin-bottom:10px">
+        <li>E-posta hesabınıza erişen kişi tüm şifrelerinizi görebilir.</li>
+        <li>E-posta sağlayıcısı sunucularında şifresiz olarak saklanabilir.</li>
+        <li>İletim sırasında (nadiren de olsa) ele geçirilebilir.</li>
+        <li>E-posta iletilirse alıcı tüm şifrelerinizi okuyabilir.</li>
+      </ul>
+      <p style="font-size:13px;color:var(--text2)">✅ Bu dosya <strong style="color:var(--text)">.txt</strong> uzantılı olacak ve <strong style="color:var(--text)">İçe Aktar</strong> ile geri yüklenebilir. Güvenli bir yerde saklayın, kimseyle paylaşmayın.</p>
+    </div>
+    <div class="modal-alt">
+      <button class="btn btn-secondary" onclick="document.getElementById('modal-export-sifresiz').classList.remove('aktif')">İptal</button>
+      <button class="btn btn-danger" onclick="gmailSifresizGonder()">Anlıyorum, Gönder</button>
+    </div>
+  </div>
+</div>
+
 <!-- GÜVENLİK KELİMESİ DEĞİŞTİR MODAL -->
 <div class="modal-overlay" id="modal-passphrase-degistir">
   <div class="modal" style="max-width:400px">
@@ -359,6 +386,7 @@ auth.languageCode = 'tr';
 var mevcutKullanici = null;
 var sifreListesi = [];
 var aktifKategori = 'Tümü';
+var cevrimIciMi = navigator.onLine;
 var sifrelemeAnahtari = null;
 var OTURUM_SURE = 5 * 60 * 1000; // 5 dakika hareketsizlik
 var oturumZamanAsimi = null;
@@ -371,11 +399,13 @@ var passphraseDogrulandiMi = false;
 var googleAccessToken = null; // Gmail API için OAuth access token
 
 var KATEGORILER = ['Tümü', 'Sosyal Medya', 'Banka', 'E-posta', 'Alışveriş', 'İş', 'Eğlence', 'Diğer'];
+var LOKAL_ANAHTAR = 'sifreHatirlatici_';
+var LOKAL_SALT_ANAHTAR = 'sifreHatirlatici_salt_';
+var LOKAL_DOGRULAMA_ANAHTAR = 'sifreHatirlatici_dogrulama_';
+var LOKAL_SIFRELI_VERI_ANAHTAR = 'sifreHatirlatici_enc_';
+var LOKAL_KILIT_ANAHTAR = 'sifreHatirlatici_kilit_';
 var MAX_YANLIS_DENEME = 5;   // 5 yanlış denemede kilitle
 var KILIT_SURE_BASE = 5 * 60 * 1000; // 5 dakika (üstel artış: 5, 10, 20...)
-// Brute-force koruma (bellekte, sayfa yenilenince sıfırlanır)
-var bruteYanlisSayisi = 0;
-var bruteKilitliKadar = 0;
 var PBKDF2_ITERASYON = 600000; // Eski kullanıcılar için korunuyor (kdfVersion=1)
 
 // Argon2id parametreleri (RFC 9106 önerisi)
@@ -498,6 +528,67 @@ async function sifrecoz(b64) {
 }
 
 // ══════════════════════════════════════════════════════════
+// LOKAL ŞİFRELİ DEPOLAMA
+// ══════════════════════════════════════════════════════════
+async function lokalKaydet() {
+    if (!sifrelemeAnahtari || !mevcutKullanici) return;
+    try {
+        var veriStr = JSON.stringify(sifreListesi);
+        var sifreliVeri = await sifrele(veriStr);
+        localStorage.setItem(LOKAL_SIFRELI_VERI_ANAHTAR + mevcutKullanici.uid, sifreliVeri);
+    } catch (e) {
+        console.error('Lokal şifreli kayıt hatası:', e);
+    }
+}
+
+async function lokalOku() {
+    if (!sifrelemeAnahtari || !mevcutKullanici) return [];
+    try {
+        var sifreliVeri = localStorage.getItem(LOKAL_SIFRELI_VERI_ANAHTAR + mevcutKullanici.uid);
+        if (!sifreliVeri) return [];
+        var cozulmus = await sifrecoz(sifreliVeri);
+        return JSON.parse(cozulmus);
+    } catch (e) {
+        console.error('Lokal şifreli okuma hatası:', e);
+        return [];
+    }
+}
+
+// Salt'ı lokalde sakla (salt gizli olmak zorunda değil)
+function lokalSaltKaydet(uid, saltB64) {
+    localStorage.setItem(LOKAL_SALT_ANAHTAR + uid, saltB64);
+}
+
+function lokalSaltOku(uid) {
+    return localStorage.getItem(LOKAL_SALT_ANAHTAR + uid);
+}
+
+// Doğrulama hash'ini lokalde sakla
+function lokalDogrulamaKaydet(uid, hash) {
+    localStorage.setItem(LOKAL_DOGRULAMA_ANAHTAR + uid, hash);
+}
+
+function lokalDogrulamaOku(uid) {
+    return localStorage.getItem(LOKAL_DOGRULAMA_ANAHTAR + uid);
+}
+
+// Brute-force kilit yardımcıları
+function lokalKilitOku(uid) {
+    try {
+        var v = localStorage.getItem(LOKAL_KILIT_ANAHTAR + uid);
+        return v ? JSON.parse(v) : null;
+    } catch (e) { return null; }
+}
+
+function lokalKilitYaz(uid, veri) {
+    localStorage.setItem(LOKAL_KILIT_ANAHTAR + uid, JSON.stringify(veri));
+}
+
+function lokalKilitSifirla(uid) {
+    localStorage.removeItem(LOKAL_KILIT_ANAHTAR + uid);
+}
+
+// ══════════════════════════════════════════════════════════
 // AUTH İŞLEMLERİ
 // ══════════════════════════════════════════════════════════
 function gmailGiris() {
@@ -570,13 +661,25 @@ async function passphraseEkraniGoster() {
 }
 
 async function ilkKullanimKontrol() {
-    try {
-        var snapshot = await db.ref('users/' + mevcutKullanici.uid + '/salt').once('value');
-        return !snapshot.val();
-    } catch (e) {
-        console.error('Salt kontrol hatası:', e);
-        return true;
+    // Önce lokalde salt var mı bak
+    var lokalSalt = lokalSaltOku(mevcutKullanici.uid);
+    if (lokalSalt) return false;
+
+    // Online ise Firebase'den kontrol et
+    if (cevrimIciMi) {
+        try {
+            var snapshot = await db.ref('users/' + mevcutKullanici.uid + '/salt').once('value');
+            if (snapshot.val()) {
+                // Firebase'de var ama lokalde yok — lokale kaydet
+                lokalSaltKaydet(mevcutKullanici.uid, snapshot.val());
+                return false;
+            }
+        } catch (e) {
+            console.error('Salt kontrol hatası:', e);
+        }
     }
+
+    return true; // İlk kullanım
 }
 
 async function passphraseOnayla() {
@@ -586,13 +689,16 @@ async function passphraseOnayla() {
         return;
     }
 
-    // ── BRUTE-FORCE KİLİT KONTROLÜ (bellekte) ──
-    if (bruteKilitliKadar > Date.now()) {
-        var kalanSn = Math.ceil((bruteKilitliKadar - Date.now()) / 1000);
-        var kalanDk = Math.ceil(kalanSn / 60);
-        document.getElementById('passphrase-hata').textContent =
-            'Çok fazla yanlış deneme. ' + (kalanSn < 60 ? kalanSn + ' saniye' : kalanDk + ' dakika') + ' sonra tekrar deneyin.';
-        return;
+    // ── BRUTE-FORCE KİLİT KONTROLÜ ──
+    if (mevcutKullanici) {
+        var kilitVerisi = lokalKilitOku(mevcutKullanici.uid);
+        if (kilitVerisi && kilitVerisi.kilitliKadar > Date.now()) {
+            var kalanSn = Math.ceil((kilitVerisi.kilitliKadar - Date.now()) / 1000);
+            var kalanDk = Math.ceil(kalanSn / 60);
+            document.getElementById('passphrase-hata').textContent =
+                'Çok fazla yanlış deneme. ' + (kalanSn < 60 ? kalanSn + ' saniye' : kalanDk + ' dakika') + ' sonra tekrar deneyin.';
+            return;
+        }
     }
 
     document.getElementById('passphrase-btn').disabled = true;
@@ -600,28 +706,35 @@ async function passphraseOnayla() {
     document.getElementById('passphrase-btn').textContent = 'Doğrulanıyor...';
 
     try {
-        // Firebase'den kullanıcı verisi çek
-        var saltB64 = null;
-        var kayitliHash = null;
-        var kdfVersion = 2;
-        var ilkKullanim = false;
+        var lokalSaltB64 = lokalSaltOku(mevcutKullanici.uid);
+        var ilkKullanim = !lokalSaltB64;
 
-        try {
-            var userSnap = await db.ref('users/' + mevcutKullanici.uid).once('value');
-            var userData = userSnap.val();
-            if (userData && userData.salt) {
-                saltB64 = userData.salt;
-                kdfVersion = userData.kdfVersion || 1;
-                kayitliHash = userData.dogrulamaHashi || null;
-            } else {
-                ilkKullanim = true;
+        // Firebase'den salt + kdfVersion çekmeyi dene (lokal yoksa)
+        var kdfVersion = 2; // Varsayılan: yeni kullanıcılar Argon2id
+        if (!lokalSaltB64 && cevrimIciMi) {
+            try {
+                var userSnap = await db.ref('users/' + mevcutKullanici.uid).once('value');
+                var userData = userSnap.val();
+                if (userData && userData.salt) {
+                    lokalSaltB64 = userData.salt;
+                    lokalSaltKaydet(mevcutKullanici.uid, lokalSaltB64);
+                    ilkKullanim = false;
+                    kdfVersion = userData.kdfVersion || 1; // Eski kayıt yoksa PBKDF2
+                    if (userData.dogrulamaHashi) {
+                        lokalDogrulamaKaydet(mevcutKullanici.uid, userData.dogrulamaHashi);
+                    }
+                }
+            } catch (e) {
+                console.error('Firebase kullanıcı verisi çekme hatası:', e);
             }
-        } catch (e) {
-            console.error('Firebase kullanıcı verisi çekme hatası:', e);
-            document.getElementById('passphrase-hata').textContent = 'Bağlantı hatası, lütfen tekrar deneyin.';
-            document.getElementById('passphrase-btn').disabled = false;
-            document.getElementById('passphrase-btn').textContent = 'Kilidi Aç';
-            return;
+        } else if (lokalSaltB64 && cevrimIciMi) {
+            // Lokal salt var ama kdfVersion bilinmiyor — Firebase'den kontrol et
+            try {
+                var kdfSnap = await db.ref('users/' + mevcutKullanici.uid + '/kdfVersion').once('value');
+                kdfVersion = kdfSnap.val() || 1;
+            } catch (e) {
+                kdfVersion = 1; // Hata durumunda güvenli tarafta kal
+            }
         }
 
         if (ilkKullanim) {
@@ -634,26 +747,44 @@ async function passphraseOnayla() {
             sifrelemeAnahtari = await anahtarTuretArgon2(passphrase, mevcutKullanici.uid, kullaniciSalt);
             var dogrulamaHashi = await dogrulamaHashiOlusturArgon2(passphrase, mevcutKullanici.uid, kullaniciSalt);
 
-            try {
-                await db.ref('users/' + mevcutKullanici.uid).set({
-                    salt: yeniSaltB64,
-                    dogrulamaHashi: dogrulamaHashi,
-                    kdfVersion: 2
-                });
-            } catch (e) {
-                console.error('Firebase salt kayıt hatası:', e);
+            lokalSaltKaydet(mevcutKullanici.uid, yeniSaltB64);
+            lokalDogrulamaKaydet(mevcutKullanici.uid, dogrulamaHashi);
+
+            if (cevrimIciMi) {
+                try {
+                    await db.ref('users/' + mevcutKullanici.uid).set({
+                        salt: yeniSaltB64,
+                        dogrulamaHashi: dogrulamaHashi,
+                        kdfVersion: 2
+                    });
+                } catch (e) {
+                    console.error('Firebase salt kayıt hatası:', e);
+                }
             }
 
             passphraseDogrulandiMi = true;
-            bruteYanlisSayisi = 0;
-            bruteKilitliKadar = 0;
             girisYapildi();
             toast('Güvenlik kelimesi belirlendi! (Argon2id)', 'basari');
 
         } else {
             // ── MEVCUT KULLANICI ──
-            kullaniciSalt = base64ToSalt(saltB64);
+            kullaniciSalt = base64ToSalt(lokalSaltB64);
+            var kayitliHash = lokalDogrulamaOku(mevcutKullanici.uid);
 
+            // Lokalde doğrulama hash'i yoksa Firebase'den çek
+            if (!kayitliHash && cevrimIciMi) {
+                try {
+                    var hashSnap = await db.ref('users/' + mevcutKullanici.uid + '/dogrulamaHashi').once('value');
+                    if (hashSnap.val()) {
+                        kayitliHash = hashSnap.val();
+                        lokalDogrulamaKaydet(mevcutKullanici.uid, kayitliHash);
+                    }
+                } catch (e) {
+                    console.error('Firebase hash çekme hatası:', e);
+                }
+            }
+
+            // Doğrulama hash'ini hesapla (eski veya yeni KDF)
             document.getElementById('passphrase-btn').textContent = 'Anahtar türetiliyor...';
             var hesaplananHash;
             if (kdfVersion === 2) {
@@ -663,42 +794,54 @@ async function passphraseOnayla() {
             }
 
             if (kayitliHash && hesaplananHash !== kayitliHash) {
-                bruteYanlisSayisi = (bruteYanlisSayisi || 0) + 1;
-                if (bruteYanlisSayisi >= MAX_YANLIS_DENEME) {
-                    var kilitSure = KILIT_SURE_BASE * Math.pow(2, bruteYanlisSayisi - MAX_YANLIS_DENEME);
-                    bruteKilitliKadar = Date.now() + kilitSure;
+                // Yanlış deneme sayacını artır
+                var kilitVerisi = lokalKilitOku(mevcutKullanici.uid) || { yanlisSayisi: 0, kilitliKadar: 0 };
+                kilitVerisi.yanlisSayisi = (kilitVerisi.yanlisSayisi || 0) + 1;
+
+                if (kilitVerisi.yanlisSayisi >= MAX_YANLIS_DENEME) {
+                    // Üstel kilitleme: 5dk, 10dk, 20dk...
+                    var kilitSure = KILIT_SURE_BASE * Math.pow(2, kilitVerisi.yanlisSayisi - MAX_YANLIS_DENEME);
+                    kilitVerisi.kilitliKadar = Date.now() + kilitSure;
+                    lokalKilitYaz(mevcutKullanici.uid, kilitVerisi);
                     var kilitDk = Math.round(kilitSure / 60000);
                     document.getElementById('passphrase-hata').textContent =
                         'Çok fazla yanlış deneme! ' + kilitDk + ' dakika kilitlendi.';
                 } else {
-                    var kalan = MAX_YANLIS_DENEME - bruteYanlisSayisi;
+                    lokalKilitYaz(mevcutKullanici.uid, kilitVerisi);
+                    var kalan = MAX_YANLIS_DENEME - kilitVerisi.yanlisSayisi;
                     document.getElementById('passphrase-hata').textContent =
                         'Güvenlik kelimesi yanlış! ' + kalan + ' deneme hakkınız kaldı.';
                 }
+
                 document.getElementById('passphrase-btn').disabled = false;
                 document.getElementById('passphrase-btn').textContent = 'Kilidi Aç';
                 return;
             }
 
-            // Anahtarı türet
+            // Anahtarı türet (doğru KDF ile)
             if (kdfVersion === 2) {
                 sifrelemeAnahtari = await anahtarTuretArgon2(passphrase, mevcutKullanici.uid, kullaniciSalt);
             } else {
                 sifrelemeAnahtari = await anahtarTuret(passphrase, mevcutKullanici.uid, kullaniciSalt);
             }
 
+            if (!lokalDogrulamaOku(mevcutKullanici.uid)) {
+                lokalDogrulamaKaydet(mevcutKullanici.uid, hesaplananHash);
+            }
+
             passphraseDogrulandiMi = true;
-            bruteYanlisSayisi = 0;
-            bruteKilitliKadar = 0;
+            lokalKilitSifirla(mevcutKullanici.uid); // Başarılı giriş — sayacı sıfırla
             girisYapildi();
 
             // ── OTOMATİK GEÇİŞ: PBKDF2 → Argon2id (sessiz) ──
-            if (kdfVersion === 1) {
+            if (kdfVersion === 1 && cevrimIciMi) {
                 setTimeout(async function() {
                     try {
+                        // Yeni Argon2id hash'leri hesapla
                         var yeniHash = await dogrulamaHashiOlusturArgon2(passphrase, mevcutKullanici.uid, kullaniciSalt);
                         var yeniAnahtar = await anahtarTuretArgon2(passphrase, mevcutKullanici.uid, kullaniciSalt);
 
+                        // Tüm şifreli verileri yeniden şifrele
                         var ref = db.ref('passwords/' + mevcutKullanici.uid);
                         var snap = await ref.once('value');
                         var fbVeri = snap.val();
@@ -708,6 +851,7 @@ async function passphraseOnayla() {
                             for (var i = 0; i < anahtarlar.length; i++) {
                                 var k = anahtarlar[i];
                                 var item = fbVeri[k];
+                                // Eski PBKDF2 anahtarıyla çöz
                                 var hamEski = Uint8Array.from(atob(item.data), function(c) { return c.charCodeAt(0); });
                                 var ivEski = hamEski.slice(0, 12);
                                 var veriEski = hamEski.slice(12);
@@ -715,6 +859,8 @@ async function passphraseOnayla() {
                                     { name: 'AES-GCM', iv: ivEski }, sifrelemeAnahtari, veriEski
                                 );
                                 var duzMetin = new TextDecoder().decode(cozulmus);
+
+                                // Yeni Argon2id anahtarıyla şifrele
                                 var ivYeni = crypto.getRandomValues(new Uint8Array(12));
                                 var sifreliYeni = await crypto.subtle.encrypt(
                                     { name: 'AES-GCM', iv: ivYeni }, yeniAnahtar, new TextEncoder().encode(duzMetin)
@@ -727,17 +873,27 @@ async function passphraseOnayla() {
                             await ref.update(guncellemeler);
                         }
 
+                        // Firebase'de kdfVersion ve doğrulama hash'ini güncelle
                         await db.ref('users/' + mevcutKullanici.uid).update({
                             dogrulamaHashi: yeniHash,
                             kdfVersion: 2
                         });
 
+                        // localStorage doğrulama hash'ini güncelle
+                        lokalDogrulamaKaydet(mevcutKullanici.uid, yeniHash);
+
+                        // Bellekteki anahtarı Argon2id anahtarıyla değiştir
                         sifrelemeAnahtari = yeniAnahtar;
+
+                        // Yerel şifreli veriyi de yenile
+                        await lokalKaydet();
+
                         toast('🔐 Güvenlik yükseltildi: Argon2id aktif', 'basari');
                     } catch (gecisHata) {
                         console.error('Argon2id geçiş hatası:', gecisHata);
+                        // Geçiş hatası kritik değil — kullanıcı zaten giriş yaptı
                     }
-                }, 2000);
+                }, 2000); // Giriş animasyonu bittikten sonra başlat
             }
         }
 
@@ -794,30 +950,37 @@ function cikisYapildi() {
 // ══════════════════════════════════════════════════════════
 // ONLINE/OFFLINE DURUM
 // ══════════════════════════════════════════════════════════
-window.addEventListener('online', function() { baglantiDurumGuncelle(true); });
-window.addEventListener('offline', function() { baglantiDurumGuncelle(false); });
+window.addEventListener('online', function() { cevrimIciMi = true; durumGuncelle(); verileriSenkronla(); });
+window.addEventListener('offline', function() { cevrimIciMi = false; durumGuncelle(); });
 
-function baglantiDurumGuncelle(bagli) {
-    var bar = document.getElementById('status-bar');
-    if (bagli) {
-        bar.style.display = 'none';
+function durumGuncelle() {
+    var dot = document.getElementById('status-dot');
+    var metin = document.getElementById('status-metin');
+    if (cevrimIciMi) {
+        dot.className = 'status-dot online';
+        metin.textContent = 'Çevrimiçi — Firebase ile senkron';
     } else {
-        bar.style.display = 'flex';
-        document.getElementById('status-dot').className = 'status-dot offline';
-        document.getElementById('status-metin').textContent = 'Bağlantı sorunu — veriler kaydedilemeyebilir';
+        dot.className = 'status-dot offline';
+        metin.textContent = 'Çevrimdışı — Yerel veriler gösteriliyor';
     }
 }
 
-function durumGuncelle() {
-    baglantiDurumGuncelle(navigator.onLine);
-}
-
 // ══════════════════════════════════════════════════════════
-// VERİ YÖNETİMİ (Firebase)
+// VERİ YÖNETİMİ (Firebase + Şifreli localStorage)
 // ══════════════════════════════════════════════════════════
 async function verileriYukle() {
     document.getElementById('yukleniyor').style.display = 'flex';
 
+    // Önce şifreli lokalden yükle (anında göster)
+    sifreListesi = await lokalOku();
+    listeGuncelle();
+
+    if (!cevrimIciMi) {
+        document.getElementById('yukleniyor').style.display = 'none';
+        return;
+    }
+
+    // Firebase dinleyici başlat
     var ref = db.ref('passwords/' + mevcutKullanici.uid);
     if (firebaseDinleyici) ref.off('value', firebaseDinleyici);
 
@@ -826,6 +989,7 @@ async function verileriYukle() {
         var veri = snapshot.val();
         if (!veri) {
             sifreListesi = [];
+            await lokalKaydet();
             listeGuncelle();
             return;
         }
@@ -847,17 +1011,20 @@ async function verileriYukle() {
         }
         liste.sort(function(a, b) { return (b.ts || 0) - (a.ts || 0); });
         sifreListesi = liste;
+        await lokalKaydet();
         listeGuncelle();
     }, function(err) {
         document.getElementById('yukleniyor').style.display = 'none';
         console.error('Firebase okuma hatası:', err);
-        toast('Veri okunamadı, bağlantıyı kontrol edin', 'hata');
-        baglantiDurumGuncelle(false);
+        toast('Veri okunamadı, yerel veriler gösteriliyor', 'hata');
     });
 }
 
 async function verileriSenkronla() {
-    if (!mevcutKullanici) return;
+    if (!cevrimIciMi || !mevcutKullanici) {
+        toast('Çevrimdışısınız', 'hata');
+        return;
+    }
     toast('Senkronlanıyor...', 'bilgi');
     verileriYukle();
 }
@@ -884,11 +1051,36 @@ async function sifreKaydet() {
 
     var ts = Date.now();
 
+    if (!cevrimIciMi) {
+        // Offline: lokale kaydet
+        if (id) {
+            for (var i = 0; i < sifreListesi.length; i++) {
+                if (sifreListesi[i].id === id) {
+                    kayit.id = id;
+                    kayit.ts = ts;
+                    kayit.offlineYeni = true;
+                    sifreListesi[i] = kayit;
+                    break;
+                }
+            }
+        } else {
+            kayit.id = 'offline_' + ts;
+            kayit.ts = ts;
+            kayit.offlineYeni = true;
+            sifreListesi.unshift(kayit);
+        }
+        await lokalKaydet();
+        listeGuncelle();
+        modalKapat();
+        toast('Yerel olarak kaydedildi (çevrimiçi olunca senkronlanacak)', 'bilgi');
+        return;
+    }
+
     try {
         var sifreliVeri = await sifrele(JSON.stringify(kayit));
         var ref = db.ref('passwords/' + mevcutKullanici.uid);
 
-        if (id) {
+        if (id && !id.startsWith('offline_')) {
             await ref.child(id).set({ data: sifreliVeri, ts: ts });
         } else {
             await ref.push({ data: sifreliVeri, ts: ts });
@@ -905,6 +1097,15 @@ function sifreSil(id) {
     document.getElementById('modal-sil').classList.add('aktif');
     document.getElementById('sil-onayla-btn').onclick = async function() {
         document.getElementById('modal-sil').classList.remove('aktif');
+
+        if (!cevrimIciMi || id.startsWith('offline_')) {
+            sifreListesi = sifreListesi.filter(function(s) { return s.id !== id; });
+            await lokalKaydet();
+            listeGuncelle();
+            toast('Yerel olarak silindi', 'bilgi');
+            return;
+        }
+
         try {
             await db.ref('passwords/' + mevcutKullanici.uid + '/' + id).remove();
             toast('Silindi', 'basari');
@@ -1187,6 +1388,123 @@ async function gmailGonder() {
     }
 }
 
+function exportSifresizBaslat() {
+    if (sifreListesi.length === 0) {
+        toast('Dışa aktarılacak veri yok', 'hata');
+        return;
+    }
+    document.getElementById('modal-export-sifresiz').classList.add('aktif');
+    menuAcikMi = false;
+    document.getElementById('alt-menu').style.display = 'none';
+}
+
+async function gmailSifresizGonder() {
+    document.getElementById('modal-export-sifresiz').classList.remove('aktif');
+
+    if (!googleAccessToken) {
+        toast('Gmail izni gerekli. Tekrar giriş yapılıyor...', 'bilgi');
+        try {
+            var result = await auth.signInWithPopup(googleProvider);
+            var credential = result.credential;
+            if (credential) {
+                googleAccessToken = credential.accessToken;
+            }
+        } catch (e) {
+            console.error('Gmail izin hatası:', e);
+            toast('Gmail izni alınamadı', 'hata');
+            return;
+        }
+    }
+
+    if (!googleAccessToken) {
+        toast('Gmail erişim izni alınamadı', 'hata');
+        return;
+    }
+
+    var exportVeri = sifreListesi.map(function(s) {
+        return {
+            baslik: s.baslik,
+            kategori: s.kategori,
+            kullanici: s.kullanici,
+            sifre: s.sifre,
+            url: s.url,
+            not: s.not
+        };
+    });
+
+    var jsonStr = JSON.stringify(exportVeri, null, 2);
+    var dosyaAdi = 'sifrelerim_' + new Date().toISOString().slice(0, 10) + '.txt';
+    var kullaniciEmail = mevcutKullanici.email;
+    var tarih = new Date().toLocaleString('tr-TR');
+
+    var mailGovdesi =
+        'Şifre Hatırlatıcı — Şifresiz Yedek Dosyanız\n' +
+        'Tarih: ' + tarih + '\n' +
+        'Toplam: ' + exportVeri.length + ' şifre\n\n' +
+        '⚠️ UYARI: Bu dosya şifresizdir!\n' +
+        'E-posta hesabınıza erişen herkes şifrelerinizi görebilir.\n' +
+        'Dosyayı indirdikten sonra e-postayı silmenizi ve dosyayı\n' +
+        'güvenli bir yerde (şifreli klasör, USB vb.) saklamanızı öneririz.\n\n' +
+        'Geri yüklemek için uygulamada İçe Aktar özelliğini kullanın.';
+
+    var boundary = 'boundary_sifresiz_' + Date.now();
+    var mimeMessage = [
+        'From: me',
+        'To: ' + kullaniciEmail,
+        'Subject: =?UTF-8?B?' + btoa(unescape(encodeURIComponent('Şifre Yedek (Şifresiz) — ' + tarih))) + '?=',
+        'MIME-Version: 1.0',
+        'Content-Type: multipart/mixed; boundary="' + boundary + '"',
+        '',
+        '--' + boundary,
+        'Content-Type: text/plain; charset=UTF-8',
+        'Content-Transfer-Encoding: base64',
+        '',
+        btoa(unescape(encodeURIComponent(mailGovdesi))),
+        '',
+        '--' + boundary,
+        'Content-Type: text/plain; charset=UTF-8; name="' + dosyaAdi + '"',
+        'Content-Disposition: attachment; filename="' + dosyaAdi + '"',
+        'Content-Transfer-Encoding: base64',
+        '',
+        btoa(unescape(encodeURIComponent(jsonStr))),
+        '',
+        '--' + boundary + '--'
+    ].join('\r\n');
+
+    var raw = btoa(unescape(encodeURIComponent(mimeMessage)))
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=+$/, '');
+
+    toast('Gmail\'e gönderiliyor...', 'bilgi');
+
+    try {
+        var response = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + googleAccessToken,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ raw: raw })
+        });
+
+        googleAccessToken = null;
+
+        if (response.ok) {
+            toast('Şifresiz yedek Gmail\'inize gönderildi! 📄', 'basari');
+        } else if (response.status === 401) {
+            toast('Gmail oturumu süresi doldu, tekrar deneyin', 'hata');
+        } else {
+            var errData = await response.json();
+            console.error('Gmail API hatası:', errData);
+            toast('Gönderim başarısız (kod: ' + response.status + ')', 'hata');
+        }
+    } catch (e) {
+        console.error('Gmail şifresiz gönderim hatası:', e);
+        toast('Gönderim sırasında bir hata oluştu', 'hata');
+    }
+}
+
 async function txtImport(event) {
     var dosya = event.target.files[0];
     if (!dosya) return;
@@ -1242,11 +1560,23 @@ async function txtImport(event) {
                 };
 
                 var ts = Date.now() + i;
-                var sifreliVeri = await sifrele(JSON.stringify(kayit));
-                await db.ref('passwords/' + mevcutKullanici.uid).push({ data: sifreliVeri, ts: ts });
+
+                if (cevrimIciMi) {
+                    var sifreliVeri = await sifrele(JSON.stringify(kayit));
+                    await db.ref('passwords/' + mevcutKullanici.uid).push({ data: sifreliVeri, ts: ts });
+                } else {
+                    kayit.id = 'offline_' + ts;
+                    kayit.ts = ts;
+                    kayit.offlineYeni = true;
+                    sifreListesi.push(kayit);
+                }
                 eklenen++;
             }
 
+            if (!cevrimIciMi) {
+                await lokalKaydet();
+                listeGuncelle();
+            }
             toast(eklenen + ' şifre içe aktarıldı', 'basari');
         } catch (err) {
             toast('Dosya okunamadı, format geçersiz olabilir', 'hata');
@@ -1367,6 +1697,7 @@ document.addEventListener('keydown', function(e) {
         modalKapat();
         document.getElementById('modal-sil').classList.remove('aktif');
         document.getElementById('modal-export').classList.remove('aktif');
+        document.getElementById('modal-export-sifresiz').classList.remove('aktif');
     }
 });
 
@@ -1424,15 +1755,10 @@ async function passphraseeDegistir() {
 
     try {
         // Eski passphrase'ı doğrula
-        var kayitliHash = null;
-        try {
+        var kayitliHash = lokalDogrulamaOku(mevcutKullanici.uid);
+        if (!kayitliHash && cevrimIciMi) {
             var snap = await db.ref('users/' + mevcutKullanici.uid + '/dogrulamaHashi').once('value');
             if (snap.val()) kayitliHash = snap.val();
-        } catch (e) {
-            hataEl.textContent = 'Bağlantı hatası, lütfen tekrar deneyin.';
-            btn.disabled = false;
-            btn.textContent = 'Değiştir';
-            return;
         }
         var eskiHash = await dogrulamaHashiOlusturArgon2(eski, mevcutKullanici.uid, kullaniciSalt);
         if (kayitliHash && eskiHash !== kayitliHash) {
@@ -1453,38 +1779,43 @@ async function passphraseeDegistir() {
         btn.textContent = 'Veriler yeniden şifreleniyor...';
 
         // Firebase'deki tüm şifreleri eski → yeni anahtarla dönüştür
-        var ref = db.ref('passwords/' + mevcutKullanici.uid);
-        var fbSnap = await ref.once('value');
-        var fbVeri = fbSnap.val();
-        if (fbVeri) {
-            var guncellemeler = {};
-            var anahtarlar = Object.keys(fbVeri);
-            for (var i = 0; i < anahtarlar.length; i++) {
-                var k = anahtarlar[i];
-                var ham = Uint8Array.from(atob(fbVeri[k].data), function(c) { return c.charCodeAt(0); });
-                var iv = ham.slice(0, 12);
-                var veri = ham.slice(12);
-                var cozulmus = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: iv }, sifrelemeAnahtari, veri);
-                var duzMetin = new TextDecoder().decode(cozulmus);
-                var ivYeni = crypto.getRandomValues(new Uint8Array(12));
-                var sifreliYeni = await crypto.subtle.encrypt({ name: 'AES-GCM', iv: ivYeni }, yeniAnahtar, new TextEncoder().encode(duzMetin));
-                var birlesik = new Uint8Array(12 + sifreliYeni.byteLength);
-                birlesik.set(ivYeni);
-                birlesik.set(new Uint8Array(sifreliYeni), 12);
-                guncellemeler[k + '/data'] = btoa(String.fromCharCode.apply(null, birlesik));
+        if (cevrimIciMi) {
+            var ref = db.ref('passwords/' + mevcutKullanici.uid);
+            var fbSnap = await ref.once('value');
+            var fbVeri = fbSnap.val();
+            if (fbVeri) {
+                var guncellemeler = {};
+                var anahtarlar = Object.keys(fbVeri);
+                for (var i = 0; i < anahtarlar.length; i++) {
+                    var k = anahtarlar[i];
+                    var ham = Uint8Array.from(atob(fbVeri[k].data), function(c) { return c.charCodeAt(0); });
+                    var iv = ham.slice(0, 12);
+                    var veri = ham.slice(12);
+                    var cozulmus = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: iv }, sifrelemeAnahtari, veri);
+                    var duzMetin = new TextDecoder().decode(cozulmus);
+                    var ivYeni = crypto.getRandomValues(new Uint8Array(12));
+                    var sifreliYeni = await crypto.subtle.encrypt({ name: 'AES-GCM', iv: ivYeni }, yeniAnahtar, new TextEncoder().encode(duzMetin));
+                    var birlesik = new Uint8Array(12 + sifreliYeni.byteLength);
+                    birlesik.set(ivYeni);
+                    birlesik.set(new Uint8Array(sifreliYeni), 12);
+                    guncellemeler[k + '/data'] = btoa(String.fromCharCode.apply(null, birlesik));
+                }
+                await ref.update(guncellemeler);
             }
-            await ref.update(guncellemeler);
+            // Firebase'de salt + hash + kdfVersion güncelle
+            await db.ref('users/' + mevcutKullanici.uid).set({
+                salt: yeniSaltB64,
+                dogrulamaHashi: yeniDogrulamaHashi,
+                kdfVersion: 2
+            });
         }
-        // Firebase'de salt + hash + kdfVersion güncelle
-        await db.ref('users/' + mevcutKullanici.uid).set({
-            salt: yeniSaltB64,
-            dogrulamaHashi: yeniDogrulamaHashi,
-            kdfVersion: 2
-        });
 
-        // Bellek güncelle
+        // localStorage güncelle
         kullaniciSalt = yeniSalt;
         sifrelemeAnahtari = yeniAnahtar;
+        lokalSaltKaydet(mevcutKullanici.uid, yeniSaltB64);
+        lokalDogrulamaKaydet(mevcutKullanici.uid, yeniDogrulamaHashi);
+        await lokalKaydet();
 
         passphraseeDegistirModalKapat();
         toast('🔑 Güvenlik kelimesi başarıyla değiştirildi!', 'basari');
