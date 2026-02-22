@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TV Kontrol</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f4f0;
+    --bg2: #eceae4;
+    --surface: #ffffff;
+    --border: #dddbd4;
+    --text: #1a1917;
+    --text2: #6b6860;
+    --text3: #9b9890;
+    --accent: #2d6a4f;
+    --accent-light: #d8f3dc;
+    --danger: #c0392b;
+    --danger-light: #fdecea;
+    --online: #27ae60;
+    --shadow: 0 1px 3px rgba(0,0,0,.08), 0 4px 12px rgba(0,0,0,.06);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,.12);
+    --radius: 12px;
+    --font: 'DM Sans', sans-serif;
+    --mono: 'DM Mono', monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #111110;
+      --bg2: #1a1917;
+      --surface: #222220;
+      --border: #2e2d2a;
+      --text: #f0efe9;
+      --text2: #9b9890;
+      --text3: #5a5955;
+      --accent: #52b788;
+      --accent-light: #1a3a2a;
+      --danger: #e74c3c;
+      --danger-light: #2a1510;
+      --shadow: 0 1px 3px rgba(0,0,0,.3), 0 4px 12px rgba(0,0,0,.2);
+      --shadow-lg: 0 8px 32px rgba(0,0,0,.4);
+    }
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 16px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── LAYOUT SCREENS ── */
+  .screen { display: none; min-height: 100vh; }
+  .screen.active { display: flex; }
+
+  /* ── GIRIŞ EKRANI ── */
+  #screen-login {
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: var(--bg);
+  }
+  .login-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 40px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: var(--shadow-lg);
+  }
+  .login-logo {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 28px;
+  }
+  .login-logo span { color: var(--text3); font-weight: 400; }
+  .login-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+  .login-sub {
+    font-size: 14px;
+    color: var(--text2);
+    margin-bottom: 32px;
+  }
+  .form-group { margin-bottom: 16px; }
+  .form-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text2);
+    margin-bottom: 6px;
+  }
+  .form-input {
+    width: 100%;
+    padding: 11px 14px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: var(--font);
+    font-size: 15px;
+    color: var(--text);
+    outline: none;
+    transition: border-color .15s;
+  }
+  .form-input:focus { border-color: var(--accent); }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 11px 20px;
+    border: none;
+    border-radius: 8px;
+    font-family: var(--font);
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity .15s, transform .1s;
+    text-decoration: none;
+  }
+  .btn:active { transform: scale(.98); }
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+    width: 100%;
+    margin-top: 8px;
+    padding: 13px;
+  }
+  .btn-primary:hover { opacity: .88; }
+  .btn-primary:disabled { opacity: .5; cursor: not-allowed; }
+  .btn-ghost {
+    background: transparent;
+    color: var(--text2);
+    border: 1px solid var(--border);
+  }
+  .btn-ghost:hover { background: var(--bg2); }
+  .btn-danger {
+    background: var(--danger-light);
+    color: var(--danger);
+    border: 1px solid transparent;
+  }
+  .btn-danger:hover { opacity: .85; }
+  .btn-sm { font-size: 13px; padding: 7px 14px; border-radius: 6px; }
+
+  .error-msg {
+    background: var(--danger-light);
+    color: var(--danger);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    margin-top: 12px;
+    display: none;
+  }
+  .error-msg.show { display: block; }
+
+  /* ── ROL TESPIT BANNER ── */
+  #screen-role-confirm {
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .role-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 40px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: var(--shadow-lg);
+    text-align: center;
+  }
+  .role-icon {
+    font-size: 52px;
+    margin-bottom: 20px;
+    display: block;
+  }
+  .role-card h2 { font-size: 22px; font-weight: 600; margin-bottom: 8px; }
+  .role-card p { font-size: 14px; color: var(--text2); margin-bottom: 28px; }
+  .role-btns { display: flex; gap: 10px; }
+  .role-btns .btn { flex: 1; }
+
+  /* ── TV EKRANI ── */
+  #screen-tv {
+    flex-direction: column;
+    background: var(--bg);
+  }
+  .tv-topbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 20px;
+    height: 52px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    z-index: 10;
+  }
+  .tv-url {
+    flex: 1;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text2);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    background: var(--bg2);
+    padding: 5px 10px;
+    border-radius: 6px;
+    min-width: 0;
+  }
+  .tv-devices {
+    font-size: 12px;
+    color: var(--text2);
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .dot-online {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--online);
+    display: inline-block;
+    flex-shrink: 0;
+  }
+  .tv-topbar .btn-ghost { flex-shrink: 0; font-size: 13px; padding: 5px 12px; }
+  .tv-content {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+  }
+  .tv-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: none;
+  }
+  .tv-iframe.active { display: block; }
+  .tv-waiting {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    color: var(--text2);
+  }
+  .tv-waiting-icon { font-size: 56px; opacity: .4; }
+  .tv-waiting h3 { font-size: 20px; font-weight: 500; color: var(--text); }
+  .tv-waiting p { font-size: 14px; color: var(--text3); text-align: center; max-width: 280px; }
+
+  /* iframe engel uyarısı */
+  .iframe-warn {
+    display: none;
+    position: absolute;
+    inset: 0;
+    background: var(--bg);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 40px;
+    text-align: center;
+  }
+  .iframe-warn.show { display: flex; }
+  .iframe-warn-icon { font-size: 48px; }
+  .iframe-warn h3 { font-size: 18px; font-weight: 600; }
+  .iframe-warn p { font-size: 14px; color: var(--text2); max-width: 340px; }
+  .iframe-warn .url-display {
+    font-family: var(--mono);
+    font-size: 12px;
+    background: var(--bg2);
+    padding: 8px 14px;
+    border-radius: 8px;
+    max-width: 100%;
+    word-break: break-all;
+    color: var(--text2);
+  }
+
+  /* ── MOBİL EKRANI ── */
+  #screen-mobile {
+    flex-direction: column;
+    max-width: 480px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 0;
+  }
+  .mobile-header {
+    padding: 20px 20px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .mobile-header h1 { font-size: 20px; font-weight: 600; }
+  .mobile-body { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 20px; }
+
+  .section-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 10px;
+  }
+
+  /* TV Listesi */
+  .tv-list { display: flex; flex-direction: column; gap: 8px; }
+  .tv-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background .12s;
+  }
+  .tv-item:hover { background: var(--bg2); }
+  .tv-item.selected { border-color: var(--accent); background: var(--accent-light); }
+  .tv-item-icon { font-size: 22px; flex-shrink: 0; }
+  .tv-item-info { flex: 1; min-width: 0; }
+  .tv-item-name { font-size: 14px; font-weight: 500; }
+  .tv-item-status { font-size: 12px; color: var(--text3); display: flex; align-items: center; gap: 4px; margin-top: 2px; }
+  .tv-empty { font-size: 14px; color: var(--text3); text-align: center; padding: 24px 0; }
+
+  /* URL gönder */
+  .send-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .send-row { display: flex; gap: 8px; }
+  .send-row .form-input { flex: 1; }
+  .btn-send {
+    background: var(--accent);
+    color: #fff;
+    flex-shrink: 0;
+    padding: 11px 18px;
+    border-radius: 8px;
+    border: none;
+    font-family: var(--font);
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity .15s;
+  }
+  .btn-send:hover { opacity: .85; }
+  .btn-send:disabled { opacity: .45; cursor: not-allowed; }
+
+  /* Geçmiş */
+  .history-list { display: flex; flex-direction: column; gap: 6px; }
+  .history-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background .12s;
+  }
+  .history-item:hover { background: var(--bg2); }
+  .history-url {
+    flex: 1;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text2);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .history-arrow { font-size: 12px; color: var(--text3); flex-shrink: 0; }
+
+  /* Ayarlar */
+  .settings-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .settings-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .settings-row:last-child { border-bottom: none; }
+  .settings-row-label { font-size: 14px; font-weight: 500; }
+  .settings-row-desc { font-size: 12px; color: var(--text3); margin-top: 2px; }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--text);
+    color: var(--bg);
+    padding: 10px 20px;
+    border-radius: 100px;
+    font-size: 13px;
+    font-weight: 500;
+    z-index: 9999;
+    pointer-events: none;
+    transition: transform .25s cubic-bezier(.34,1.56,.64,1);
+    white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* Loader */
+  .loader {
+    display: inline-block;
+    width: 18px; height: 18px;
+    border: 2px solid rgba(255,255,255,.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin .6s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Fade-in */
+  .fade-in { animation: fadeIn .3s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+</style>
+</head>
+<body>
+
+<!-- ─── GİRİŞ EKRANI ─── -->
+<div id="screen-login" class="screen active">
+  <div class="login-card fade-in">
+    <div class="login-logo">TV Kontrol <span>/ by Firebase</span></div>
+    <h1 class="login-title">Giriş Yap</h1>
+    <p class="login-sub">Tüm cihazlarınızla aynı hesabı kullanın.</p>
+    <div class="form-group">
+      <label class="form-label" for="inp-email">E-posta</label>
+      <input class="form-input" type="email" id="inp-email" placeholder="ornek@eposta.com" autocomplete="email">
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="inp-pass">Şifre</label>
+      <input class="form-input" type="password" id="inp-pass" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="btn btn-primary" id="btn-login" onclick="doLogin()">
+      <span id="login-btn-text">Giriş Yap</span>
+    </button>
+    <div class="error-msg" id="login-error"></div>
+    <p style="margin-top:16px;font-size:13px;color:var(--text3);text-align:center;">
+      Hesabınız yok mu?
+      <a href="#" onclick="toggleRegister(event)" style="color:var(--accent);text-decoration:none;font-weight:500;">Kayıt ol</a>
+    </p>
+  </div>
+</div>
+
+<!-- ─── ROL ONAY EKRANI ─── -->
+<div id="screen-role-confirm" class="screen">
+  <div class="role-card fade-in">
+    <span class="role-icon" id="role-icon">📺</span>
+    <h2 id="role-title">TV olarak tanındınız</h2>
+    <p id="role-desc">Cihazınız TV tarayıcısı gibi görünüyor. Doğru mu?</p>
+    <div class="role-btns">
+      <button class="btn btn-ghost" onclick="confirmRole('mobile')">📱 Hayır, Mobil</button>
+      <button class="btn btn-primary" id="btn-confirm-role" onclick="confirmRole(null)">✓ Evet, Devam</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── TV EKRANI ─── -->
+<div id="screen-tv" class="screen">
+  <div class="tv-topbar">
+    <div class="tv-url" id="tv-url-bar">Bağlantı bekleniyor...</div>
+    <div class="tv-devices" id="tv-device-count">
+      <span class="dot-online"></span> <span id="tv-mobile-count">0</span> mobil
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="closeIframe()">✕ Kapat</button>
+    <button class="btn btn-ghost btn-sm" onclick="showSettings()">⚙</button>
+  </div>
+  <div class="tv-content">
+    <div class="tv-waiting" id="tv-waiting">
+      <div class="tv-waiting-icon">📡</div>
+      <h3>Bağlantı bekleniyor</h3>
+      <p>Mobil cihazınızdan bu hesaba giriş yapın ve bir URL gönderin.</p>
+    </div>
+    <iframe id="tv-iframe" class="tv-iframe" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation"></iframe>
+    <div class="iframe-warn" id="iframe-warn">
+      <div class="iframe-warn-icon">🚫</div>
+      <h3>Bu site yüklenemedi</h3>
+      <p>Site, çerçeve (iframe) içinde açılmaya izin vermiyor.</p>
+      <div class="url-display" id="iframe-warn-url"></div>
+      <button class="btn btn-primary" id="btn-open-newtab" style="margin-top:4px;">Yeni Sekmede Aç</button>
+      <button class="btn btn-ghost btn-sm" onclick="closeIframe()" style="margin-top:4px;">Kapat</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── MOBİL EKRANI ─── -->
+<div id="screen-mobile" class="screen">
+  <div class="mobile-header">
+    <h1>TV Kontrol</h1>
+    <button class="btn btn-ghost btn-sm" onclick="doLogout()">Çıkış</button>
+  </div>
+  <div class="mobile-body">
+    <!-- TV Listesi -->
+    <div>
+      <div class="section-label">Bağlı TV'ler</div>
+      <div class="tv-list" id="tv-list">
+        <div class="tv-empty">Aktif TV bulunamadı.</div>
+      </div>
+    </div>
+
+    <!-- URL Gönder -->
+    <div>
+      <div class="section-label">URL Gönder</div>
+      <div class="send-box">
+        <div class="send-row">
+          <input class="form-input" type="url" id="inp-url" placeholder="https://..." autocomplete="off">
+          <button class="btn-send" id="btn-send" onclick="sendUrl()">Gönder</button>
+        </div>
+        <div id="send-target-note" style="font-size:12px;color:var(--text3);margin-top:8px;"></div>
+      </div>
+    </div>
+
+    <!-- Geçmiş -->
+    <div id="history-section" style="display:none;">
+      <div class="section-label">Son Gönderilenler</div>
+      <div class="history-list" id="history-list"></div>
+    </div>
+
+    <!-- Ayarlar -->
+    <div>
+      <div class="section-label">Ayarlar</div>
+      <div class="settings-card">
+        <div class="settings-row">
+          <div>
+            <div class="settings-row-label">Rol</div>
+            <div class="settings-row-desc" id="role-desc-mobile">Mobil olarak giriş yapıldı</div>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="switchToTV()">TV'ye geç</button>
+        </div>
+        <div class="settings-row">
+          <div>
+            <div class="settings-row-label">Hesap</div>
+            <div class="settings-row-desc" id="mobile-email-display"></div>
+          </div>
+          <button class="btn btn-danger btn-sm" onclick="doLogout()">Çıkış</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- ─── FIREBASE SDK ─── -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+import { getFirestore, doc, setDoc, onSnapshot, collection, query, where, serverTimestamp, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+
+// ══════════════════════════════════════════
+// 🔧 FIREBASE CONFIG
+// ══════════════════════════════════════════
+const firebaseConfig = {
+  apiKey:            "AIzaSyDw5kHPVMtm9G7zD_hBlusp1HCcUbbIhv8",
+  authDomain:        "mobil-tv-e1095.firebaseapp.com",
+  projectId:         "mobil-tv-e1095",
+  storageBucket:     "mobil-tv-e1095.firebasestorage.app",
+  messagingSenderId: "397261791298",
+  appId:             "1:397261791298:web:b34161ad7656ce67a50ddb"
+};
+// ══════════════════════════════════════════
+
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+
+// ─── STATE ───
+let currentUser   = null;
+let currentRole   = null;   // "tv" | "mobile"
+let sessionId     = null;
+let sessionUnsub  = null;
+let tvListUnsub   = null;
+let selectedTvId  = null;
+let isRegisterMode = false;
+let urlHistory    = [];
+
+// ─── DEVICE ID ───
+function getDeviceId() {
+  let id = localStorage.getItem("tvctrl_device_id");
+  if (!id) {
+    id = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2);
+    localStorage.setItem("tvctrl_device_id", id);
+  }
+  return id;
+}
+
+function getDeviceName() {
+  const ua = navigator.userAgent;
+  if (/Samsung/i.test(ua)) return "Samsung TV";
+  if (/LG Smart|WebOS/i.test(ua)) return "LG TV";
+  if (/Philips/i.test(ua)) return "Philips TV";
+  if (/HbbTV/i.test(ua)) return "HbbTV";
+  if (/Android TV|AFT/i.test(ua)) return "Android TV";
+  if (/iPhone/i.test(ua)) return "iPhone";
+  if (/iPad/i.test(ua)) return "iPad";
+  if (/Android/i.test(ua)) return "Android";
+  return "Tarayıcı";
+}
+
+// ─── ROL TESPİTİ ───
+function detectRole() {
+  const ua = navigator.userAgent;
+  const tvPatterns = /SmartTV|SMART-TV|HbbTV|WebOS|Tizen|SMART_TV|BRAVIA|Viera|NetCast|DLNA|CrKey|GoogleTV|Android TV|AFT/i;
+  if (tvPatterns.test(ua)) return "tv";
+  const isTouchless = !navigator.maxTouchPoints && window.screen.width >= 1100 && window.screen.height >= 600;
+  const isLargeScreen = window.screen.width >= 1280 && window.screen.height >= 720;
+  if (isTouchless && isLargeScreen) return "tv";
+  return "mobile";
+}
+
+// ─── SCREEN YÖNETİMİ ───
+function showScreen(id) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById("screen-" + id).classList.add("active");
+}
+
+// ─── TOAST ───
+function toast(msg, dur = 2500) {
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  setTimeout(() => el.classList.remove("show"), dur);
+}
+
+// ─── GİRİŞ / KAYIT ───
+window.toggleRegister = function(e) {
+  e.preventDefault();
+  isRegisterMode = !isRegisterMode;
+  document.getElementById("login-btn-text").textContent = isRegisterMode ? "Kayıt Ol" : "Giriş Yap";
+  document.querySelector(".login-title").textContent = isRegisterMode ? "Kayıt Ol" : "Giriş Yap";
+};
+
+window.doLogin = async function() {
+  const email = document.getElementById("inp-email").value.trim();
+  const pass  = document.getElementById("inp-pass").value;
+  const errEl = document.getElementById("login-error");
+  const btn   = document.getElementById("btn-login");
+
+  if (!email || !pass) { showErr("E-posta ve şifre gerekli."); return; }
+
+  btn.innerHTML = '<span class="loader"></span>';
+  btn.disabled = true;
+  errEl.classList.remove("show");
+
+  try {
+    if (isRegisterMode) {
+      await createUserWithEmailAndPassword(auth, email, pass);
+    } else {
+      await signInWithEmailAndPassword(auth, email, pass);
+    }
+  } catch(e) {
+    const msgs = {
+      "auth/user-not-found": "Bu e-posta kayıtlı değil.",
+      "auth/wrong-password": "Şifre hatalı.",
+      "auth/email-already-in-use": "Bu e-posta zaten kayıtlı.",
+      "auth/invalid-email": "Geçersiz e-posta.",
+      "auth/weak-password": "Şifre en az 6 karakter olmalı.",
+      "auth/invalid-credential": "E-posta veya şifre hatalı."
+    };
+    showErr(msgs[e.code] || e.message);
+    btn.innerHTML = '<span id="login-btn-text">' + (isRegisterMode ? "Kayıt Ol" : "Giriş Yap") + "</span>";
+    btn.disabled = false;
+  }
+};
+
+function showErr(msg) {
+  const el = document.getElementById("login-error");
+  el.textContent = msg;
+  el.classList.add("show");
+}
+
+document.getElementById("inp-pass").addEventListener("keydown", e => {
+  if (e.key === "Enter") window.doLogin();
+});
+
+// ─── AUTH STATE ───
+onAuthStateChanged(auth, async user => {
+  if (!user) {
+    currentUser = null;
+    if (sessionUnsub) { sessionUnsub(); sessionUnsub = null; }
+    if (tvListUnsub)  { tvListUnsub(); tvListUnsub = null; }
+    showScreen("login");
+    document.getElementById("btn-login").innerHTML = '<span id="login-btn-text">Giriş Yap</span>';
+    document.getElementById("btn-login").disabled = false;
+    return;
+  }
+  currentUser = user;
+  const detected = detectRole();
+  showRoleConfirm(detected);
+});
+
+// ─── ROL ONAY ───
+function showRoleConfirm(detected) {
+  currentRole = detected;
+  const icon  = document.getElementById("role-icon");
+  const title = document.getElementById("role-title");
+  const desc  = document.getElementById("role-desc");
+  const btn   = document.getElementById("btn-confirm-role");
+  if (detected === "tv") {
+    icon.textContent = "📺";
+    title.textContent = "TV olarak tanındınız";
+    desc.textContent = "Cihazınız TV tarayıcısı gibi görünüyor. Doğru mu?";
+    btn.textContent = "✓ Evet, TV";
+    document.querySelector(".role-btns .btn-ghost").style.display = "";
+  } else {
+    icon.textContent = "📱";
+    title.textContent = "Mobil olarak tanındınız";
+    desc.textContent = "Cihazınız mobil / masaüstü tarayıcı gibi görünüyor. Doğru mu?";
+    btn.textContent = "✓ Evet, Mobil";
+    document.querySelector(".role-btns .btn-ghost").textContent = "📺 Hayır, TV";
+  }
+  showScreen("role-confirm");
+}
+
+window.confirmRole = async function(override) {
+  if (override) currentRole = override;
+  await startSession(currentRole);
+};
+
+// ─── SESSION BAŞLAT ───
+async function startSession(role) {
+  const deviceId = getDeviceId();
+  sessionId = `${currentUser.uid}_${deviceId}`;
+
+  await setDoc(doc(db, "sessions", sessionId), {
+    userId:     currentUser.uid,
+    email:      currentUser.email,
+    role:       role,
+    deviceId:   deviceId,
+    deviceName: getDeviceName(),
+    online:     true,
+    lastSeen:   serverTimestamp(),
+    command:    null
+  });
+
+  // Çevrimdışı işareti (sayfa kapanınca)
+  window.addEventListener("beforeunload", () => {
+    // navigator.sendBeacon ile online=false gönderemiyoruz Firestore için
+    // session TTL için lastSeen kullanılır
+  });
+
+  if (role === "tv") {
+    startTvScreen();
+  } else {
+    startMobileScreen();
+  }
+}
+
+// ─── TV EKRANI ───
+function startTvScreen() {
+  showScreen("tv");
+  document.getElementById("mobile-email-display");
+
+  // Kendi session'ı dinle (komut gelirse)
+  sessionUnsub = onSnapshot(doc(db, "sessions", sessionId), snap => {
+    const data = snap.data();
+    if (!data) return;
+    const cmd = data.command;
+    if (cmd && cmd.type === "navigate" && cmd.url) {
+      loadUrl(cmd.url);
+    }
+  });
+
+  // Aynı hesabın mobil cihazlarını say
+  tvListUnsub = onSnapshot(
+    query(collection(db, "sessions"),
+          where("userId", "==", currentUser.uid),
+          where("role", "==", "mobile")),
+    snap => {
+      document.getElementById("tv-mobile-count").textContent = snap.size;
+    }
+  );
+}
+
+let currentUrl = "";
+
+function loadUrl(url) {
+  currentUrl = url;
+  document.getElementById("tv-url-bar").textContent = url;
+  document.getElementById("tv-waiting").style.display = "none";
+  document.getElementById("iframe-warn").classList.remove("show");
+
+  const iframe = document.getElementById("tv-iframe");
+  iframe.classList.remove("active");
+
+  // iframe yükle, engel tespiti
+  iframe.src = url;
+  iframe.classList.add("active");
+
+  // Yükleme hatası tespiti (X-Frame-Options = load eventi gelir ama boş kalır)
+  // Basit yöntem: timeout + contentWindow erişimi
+  const checkTimer = setTimeout(() => {
+    try {
+      // Aynı origin değilse erişemeyiz ama exception da almayız
+      // Asıl kontrol: iframe yüklendi mi ama içerik boş mu
+      if (!iframe.contentWindow || !iframe.contentDocument) {
+        showIframeWarn(url);
+      }
+    } catch(e) {
+      showIframeWarn(url);
+    }
+  }, 4000);
+
+  iframe.onload = () => {
+    clearTimeout(checkTimer);
+    try {
+      // Cross-origin = SecurityError, ama iframe yüklendi demektir
+      const test = iframe.contentWindow.location.href;
+      // Eğer about:blank ise engellendi
+      if (iframe.contentWindow.location.href === "about:blank") {
+        showIframeWarn(url);
+      }
+    } catch(e) {
+      // Cross-origin — normal, iframe çalışıyor
+    }
+  };
+
+  iframe.onerror = () => {
+    clearTimeout(checkTimer);
+    showIframeWarn(url);
+  };
+}
+
+function showIframeWarn(url) {
+  document.getElementById("tv-iframe").classList.remove("active");
+  document.getElementById("iframe-warn-url").textContent = url;
+  document.getElementById("btn-open-newtab").onclick = () => window.open(url, "_blank");
+  document.getElementById("iframe-warn").classList.add("show");
+}
+
+window.closeIframe = function() {
+  currentUrl = "";
+  document.getElementById("tv-iframe").src = "about:blank";
+  document.getElementById("tv-iframe").classList.remove("active");
+  document.getElementById("iframe-warn").classList.remove("show");
+  document.getElementById("tv-waiting").style.display = "";
+  document.getElementById("tv-url-bar").textContent = "Bağlantı bekleniyor...";
+};
+
+// Ok tuşu desteği (TV kumanda)
+document.addEventListener("keydown", e => {
+  if (!document.getElementById("screen-tv").classList.contains("active")) return;
+  const iframe = document.getElementById("tv-iframe");
+  if (!iframe.classList.contains("active")) return;
+  // İframe içine event geçemiyoruz cross-origin'de; kumanda TV OS'u yönetir
+});
+
+window.showSettings = function() {
+  // TV ayarları: role değiştir
+  if (confirm("Mobil moda geçmek istiyor musunuz?")) {
+    switchRoleTo("mobile");
+  }
+};
+
+async function switchRoleTo(role) {
+  currentRole = role;
+  await setDoc(doc(db, "sessions", sessionId), { role }, { merge: true });
+  if (role === "mobile") {
+    if (sessionUnsub) { sessionUnsub(); sessionUnsub = null; }
+    if (tvListUnsub)  { tvListUnsub(); tvListUnsub = null; }
+    startMobileScreen();
+  } else {
+    startTvScreen();
+  }
+}
+
+// ─── MOBİL EKRANI ───
+function startMobileScreen() {
+  showScreen("mobile");
+  document.getElementById("mobile-email-display").textContent = currentUser.email;
+  document.getElementById("role-desc-mobile").textContent = "Şu an: Mobil";
+  loadUrlHistory();
+
+  // Aynı hesabın TV session'larını dinle
+  if (tvListUnsub) tvListUnsub();
+  tvListUnsub = onSnapshot(
+    query(collection(db, "sessions"),
+          where("userId", "==", currentUser.uid),
+          where("role", "==", "tv")),
+    snap => {
+      renderTvList(snap.docs);
+    }
+  );
+}
+
+function renderTvList(docs) {
+  const listEl = document.getElementById("tv-list");
+  if (docs.length === 0) {
+    listEl.innerHTML = '<div class="tv-empty">Aktif TV bulunamadı.</div>';
+    selectedTvId = null;
+    return;
+  }
+  listEl.innerHTML = "";
+  docs.forEach(d => {
+    const data = d.data();
+    const isSelected = d.id === selectedTvId;
+    const el = document.createElement("div");
+    el.className = "tv-item" + (isSelected ? " selected" : "");
+    el.innerHTML = `
+      <div class="tv-item-icon">📺</div>
+      <div class="tv-item-info">
+        <div class="tv-item-name">${data.deviceName || "TV"}</div>
+        <div class="tv-item-status"><span class="dot-online"></span> Çevrimiçi</div>
+      </div>
+    `;
+    el.onclick = () => {
+      selectedTvId = d.id;
+      document.querySelectorAll(".tv-item").forEach(i => i.classList.remove("selected"));
+      el.classList.add("selected");
+      updateSendNote();
+    };
+    listEl.appendChild(el);
+    if (!selectedTvId) {
+      selectedTvId = d.id;
+      el.classList.add("selected");
+    }
+  });
+  updateSendNote();
+}
+
+function updateSendNote() {
+  const note = document.getElementById("send-target-note");
+  if (!selectedTvId) {
+    note.textContent = "Göndermek için bir TV seçin.";
+  } else {
+    note.textContent = "Seçili TV'ye gönderilecek.";
+  }
+}
+
+window.sendUrl = async function() {
+  const url = document.getElementById("inp-url").value.trim();
+  if (!url) { toast("URL girin."); return; }
+  if (!selectedTvId) { toast("Önce bir TV seçin."); return; }
+  if (!url.startsWith("http://") && !url.startsWith("https://")) {
+    toast("Geçerli bir URL girin (https://...)"); return;
+  }
+  const btn = document.getElementById("btn-send");
+  btn.disabled = true;
+  btn.textContent = "...";
+  try {
+    await setDoc(doc(db, "sessions", selectedTvId), {
+      command: { type: "navigate", url, sentAt: serverTimestamp() }
+    }, { merge: true });
+    toast("Gönderildi ✓");
+    addHistory(url);
+    document.getElementById("inp-url").value = "";
+  } catch(e) {
+    toast("Hata: " + e.message);
+  }
+  btn.disabled = false;
+  btn.textContent = "Gönder";
+};
+
+// Geçmiş (localStorage)
+function loadUrlHistory() {
+  try {
+    urlHistory = JSON.parse(localStorage.getItem("tvctrl_history") || "[]");
+  } catch { urlHistory = []; }
+  renderHistory();
+}
+
+function addHistory(url) {
+  urlHistory = [url, ...urlHistory.filter(u => u !== url)].slice(0, 5);
+  localStorage.setItem("tvctrl_history", JSON.stringify(urlHistory));
+  renderHistory();
+}
+
+function renderHistory() {
+  const sec = document.getElementById("history-section");
+  const list = document.getElementById("history-list");
+  if (urlHistory.length === 0) { sec.style.display = "none"; return; }
+  sec.style.display = "";
+  list.innerHTML = "";
+  urlHistory.forEach(url => {
+    const el = document.createElement("div");
+    el.className = "history-item";
+    el.innerHTML = `<span class="history-url">${url}</span><span class="history-arrow">↗</span>`;
+    el.onclick = () => { document.getElementById("inp-url").value = url; };
+    list.appendChild(el);
+  });
+}
+
+window.switchToTV = function() {
+  if (confirm("TV moduna geçmek istiyor musunuz?")) {
+    switchRoleTo("tv");
+  }
+};
+
+// ─── ÇIKIŞ ───
+window.doLogout = async function() {
+  if (sessionId) {
+    try { await deleteDoc(doc(db, "sessions", sessionId)); } catch(_) {}
+  }
+  if (sessionUnsub) sessionUnsub();
+  if (tvListUnsub)  tvListUnsub();
+  sessionId = null;
+  await signOut(auth);
+};
+</script>
+</body>
+</html>
