@@ -193,7 +193,6 @@ select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%
       <button class="btn btn-secondary btn-sm" onclick="exportBaslat()">📧 Gmail'ime Gönder</button>
       <button class="btn btn-secondary btn-sm" onclick="document.getElementById('txt-import').click()">📥 İçe Aktar</button>
       <button class="btn btn-secondary btn-sm" onclick="verileriSenkronla()">🔄 Senkronla</button>
-      <button class="btn btn-secondary btn-sm" onclick="passphraseeDegistirModalAc()">🔑 Güvenlik Kelimesini Değiştir</button>
       <button class="btn btn-danger btn-sm" onclick="cikisYap()">🚪 Çıkış</button>
       <input type="file" id="txt-import" accept=".txt,.json" style="display:none" onchange="txtImport(event)">
     </div>
@@ -284,44 +283,6 @@ select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%
   </div>
 </div>
 
-
-<!-- GÜVENLİK KELİMESİ DEĞİŞTİR MODAL -->
-<div class="modal-overlay" id="modal-passphrase-degistir">
-  <div class="modal" style="max-width:400px">
-    <div class="modal-baslik">
-      <h3>🔑 Güvenlik Kelimesini Değiştir</h3>
-      <button class="btn-icon" onclick="passphraseeDegistirModalKapat()">✕</button>
-    </div>
-    <div class="modal-icerik">
-      <div class="form-grup">
-        <label>Mevcut Güvenlik Kelimesi</label>
-        <div class="passphrase-input-wrap" style="max-width:100%">
-          <input type="password" id="pd-eski" placeholder="Mevcut güvenlik kelimeniz..." autocomplete="off">
-          <button class="passphrase-toggle" onclick="pdGosterGizle('pd-eski')">👁</button>
-        </div>
-      </div>
-      <div class="form-grup">
-        <label>Yeni Güvenlik Kelimesi</label>
-        <div class="passphrase-input-wrap" style="max-width:100%">
-          <input type="password" id="pd-yeni" placeholder="Yeni güvenlik kelimeniz (en az 8 karakter)..." autocomplete="off">
-          <button class="passphrase-toggle" onclick="pdGosterGizle('pd-yeni')">👁</button>
-        </div>
-      </div>
-      <div class="form-grup">
-        <label>Yeni Güvenlik Kelimesi (Tekrar)</label>
-        <div class="passphrase-input-wrap" style="max-width:100%">
-          <input type="password" id="pd-yeni2" placeholder="Tekrar girin..." autocomplete="off">
-          <button class="passphrase-toggle" onclick="pdGosterGizle('pd-yeni2')">👁</button>
-        </div>
-      </div>
-      <div class="passphrase-hata" id="pd-hata"></div>
-    </div>
-    <div class="modal-alt">
-      <button class="btn btn-secondary" onclick="passphraseeDegistirModalKapat()">İptal</button>
-      <button class="btn btn-primary" id="pd-btn" onclick="passphraseeDegistir()">Değiştir</button>
-    </div>
-  </div>
-</div>
 <!-- TOAST -->
 <div class="toast-container" id="toast-container"></div>
 
@@ -1566,123 +1527,6 @@ document.querySelectorAll('.modal-overlay').forEach(function(overlay) {
 });
 
 // Başlangıç durumu
-// ══════════════════════════════════════════════════════════
-// GÜVENLİK KELİMESİ DEĞİŞTİRME
-// ══════════════════════════════════════════════════════════
-function passphraseeDegistirModalAc() {
-    document.getElementById('pd-eski').value = '';
-    document.getElementById('pd-yeni').value = '';
-    document.getElementById('pd-yeni2').value = '';
-    document.getElementById('pd-hata').textContent = '';
-    document.getElementById('pd-btn').disabled = false;
-    document.getElementById('pd-btn').textContent = 'Değiştir';
-    document.getElementById('modal-passphrase-degistir').classList.add('aktif');
-    menuAcikMi = false;
-    document.getElementById('alt-menu').style.display = 'none';
-    setTimeout(function() { document.getElementById('pd-eski').focus(); }, 100);
-}
-
-function passphraseeDegistirModalKapat() {
-    document.getElementById('modal-passphrase-degistir').classList.remove('aktif');
-}
-
-function pdGosterGizle(id) {
-    var input = document.getElementById(id);
-    input.type = input.type === 'password' ? 'text' : 'password';
-}
-
-async function passphraseeDegistir() {
-    var eski = document.getElementById('pd-eski').value;
-    var yeni = document.getElementById('pd-yeni').value;
-    var yeni2 = document.getElementById('pd-yeni2').value;
-    var hataEl = document.getElementById('pd-hata');
-    var btn = document.getElementById('pd-btn');
-
-    hataEl.textContent = '';
-
-    if (!eski) { hataEl.textContent = 'Mevcut güvenlik kelimesini girin.'; return; }
-    if (!yeni || yeni.length < 8) { hataEl.textContent = 'Yeni güvenlik kelimesi en az 8 karakter olmalıdır.'; return; }
-    if (yeni !== yeni2) { hataEl.textContent = 'Yeni güvenlik kelimeleri eşleşmiyor.'; return; }
-    if (eski === yeni) { hataEl.textContent = 'Yeni güvenlik kelimesi eskiyle aynı olamaz.'; return; }
-
-    btn.disabled = true;
-    btn.textContent = 'Doğrulanıyor...';
-
-    try {
-        // Eski passphrase'ı doğrula
-        var kayitliHash = lokalDogrulamaOku(mevcutKullanici.uid);
-        if (!kayitliHash && cevrimIciMi) {
-            var snap = await db.ref('users/' + mevcutKullanici.uid + '/dogrulamaHashi').once('value');
-            if (snap.val()) kayitliHash = snap.val();
-        }
-        var eskiHash = await dogrulamaHashiOlusturArgon2(eski, mevcutKullanici.uid, kullaniciSalt);
-        if (kayitliHash && eskiHash !== kayitliHash) {
-            hataEl.textContent = 'Mevcut güvenlik kelimesi yanlış.';
-            btn.disabled = false;
-            btn.textContent = 'Değiştir';
-            return;
-        }
-
-        btn.textContent = 'Yeni anahtar türetiliyor...';
-
-        // Yeni salt + anahtar + doğrulama hash'i
-        var yeniSalt = rastgeleSaltUret();
-        var yeniSaltB64 = saltToBase64(yeniSalt);
-        var yeniAnahtar = await anahtarTuretArgon2(yeni, mevcutKullanici.uid, yeniSalt);
-        var yeniDogrulamaHashi = await dogrulamaHashiOlusturArgon2(yeni, mevcutKullanici.uid, yeniSalt);
-
-        btn.textContent = 'Veriler yeniden şifreleniyor...';
-
-        // Firebase'deki tüm şifreleri eski → yeni anahtarla dönüştür
-        if (cevrimIciMi) {
-            var ref = db.ref('passwords/' + mevcutKullanici.uid);
-            var fbSnap = await ref.once('value');
-            var fbVeri = fbSnap.val();
-            if (fbVeri) {
-                var guncellemeler = {};
-                var anahtarlar = Object.keys(fbVeri);
-                for (var i = 0; i < anahtarlar.length; i++) {
-                    var k = anahtarlar[i];
-                    var ham = Uint8Array.from(atob(fbVeri[k].data), function(c) { return c.charCodeAt(0); });
-                    var iv = ham.slice(0, 12);
-                    var veri = ham.slice(12);
-                    var cozulmus = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: iv }, sifrelemeAnahtari, veri);
-                    var duzMetin = new TextDecoder().decode(cozulmus);
-                    var ivYeni = crypto.getRandomValues(new Uint8Array(12));
-                    var sifreliYeni = await crypto.subtle.encrypt({ name: 'AES-GCM', iv: ivYeni }, yeniAnahtar, new TextEncoder().encode(duzMetin));
-                    var birlesik = new Uint8Array(12 + sifreliYeni.byteLength);
-                    birlesik.set(ivYeni);
-                    birlesik.set(new Uint8Array(sifreliYeni), 12);
-                    guncellemeler[k + '/data'] = btoa(String.fromCharCode.apply(null, birlesik));
-                }
-                await ref.update(guncellemeler);
-            }
-            // Firebase'de salt + hash + kdfVersion güncelle
-            await db.ref('users/' + mevcutKullanici.uid).set({
-                salt: yeniSaltB64,
-                dogrulamaHashi: yeniDogrulamaHashi,
-                kdfVersion: 2
-            });
-        }
-
-        // localStorage güncelle
-        kullaniciSalt = yeniSalt;
-        sifrelemeAnahtari = yeniAnahtar;
-        lokalSaltKaydet(mevcutKullanici.uid, yeniSaltB64);
-        lokalDogrulamaKaydet(mevcutKullanici.uid, yeniDogrulamaHashi);
-        await lokalKaydet();
-
-        passphraseeDegistirModalKapat();
-        toast('🔑 Güvenlik kelimesi başarıyla değiştirildi!', 'basari');
-
-    } catch (e) {
-        console.error('Passphrase değiştirme hatası:', e);
-        hataEl.textContent = 'Bir hata oluştu, lütfen tekrar deneyin.';
-        btn.disabled = false;
-        btn.textContent = 'Değiştir';
-    }
-}
-
 durumGuncelle();
 </script>
 </body>
