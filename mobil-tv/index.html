@@ -1323,18 +1323,9 @@ function loadUrl(url) {
 
   iframe.onload = () => {
     loaded = true;
-    let blocked = false;
-    try {
-      const loc = iframe.contentWindow.location.href;
-      if (loc === "about:blank" || loc === "") blocked = true;
-    } catch(e) {
-      blocked = false;
-    }
-    if (blocked) {
-      showIframeWarn(url);
-    } else {
-      startVideoDetectPolling();
-    }
+    // Proxy üzerinden gelen yüklemelerde contentWindow.location cross-origin hatası verir.
+    // Yüklendi sinyali yeterli — direkt video polling başlat.
+    startVideoDetectPolling();
   };
 
   iframe.onerror = () => {
