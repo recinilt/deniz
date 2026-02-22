@@ -195,7 +195,7 @@ select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%
       <button class="btn btn-secondary btn-sm" onclick="verileriSenkronla()">🔄 Senkronla</button>
       <button class="btn btn-secondary btn-sm" onclick="passphraseeDegistirModalAc()">🔑 Güvenlik Kelimesini Değiştir</button>
       <button class="btn btn-danger btn-sm" onclick="cikisYap()">🚪 Çıkış</button>
-      <input type="file" id="txt-import" accept=".txt,.enc" style="display:none" onchange="txtImport(event)">
+      <input type="file" id="txt-import" accept=".txt,.json" style="display:none" onchange="txtImport(event)">
     </div>
   </div>
 </div>
@@ -281,9 +281,8 @@ select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%
     </div>
     <div class="modal-alt" style="gap:6px">
       <button class="btn btn-secondary" onclick="document.getElementById('modal-export').classList.remove('aktif')">İptal</button>
-      <button class="btn btn-primary" style="color:var(--warn);border-color:var(--warn)" onclick="encPaylas()">🔒 .enc</button>
-      <button class="btn btn-secondary" onclick="txtPaylas()">📄 .txt</button>
-      
+      <button class="btn btn-secondary" style="color:var(--warn);border-color:var(--warn)" onclick="txtPaylas()">📄 .txt</button>
+      <button class="btn btn-primary" onclick="encPaylas()">🔒 .enc</button>
     </div>
   </div>
 </div>
@@ -1153,11 +1152,18 @@ function _encIndir(blob, dosyaAdi) {
 async function txtPaylas() {
     document.getElementById('modal-export').classList.remove('aktif');
 
-    var exportVeri = sifreListesi.map(function(s) {
-        return { baslik: s.baslik, kategori: s.kategori, kullanici: s.kullanici, sifre: s.sifre, url: s.url, not: s.not };
+    var satirlar = ['Şifre Hatırlatıcı — Yedek (' + new Date().toLocaleString('tr-TR') + ')', ''];
+    sifreListesi.forEach(function(s, i) {
+        satirlar.push((i + 1) + '. ' + (s.baslik || ''));
+        if (s.kategori) satirlar.push('   Kategori : ' + s.kategori);
+        if (s.kullanici) satirlar.push('   Kullanıcı: ' + s.kullanici);
+        satirlar.push('   Şifre    : ' + (s.sifre || ''));
+        if (s.url) satirlar.push('   URL      : ' + s.url);
+        if (s.not) satirlar.push('   Not      : ' + s.not);
+        satirlar.push('');
     });
 
-    var icerik = JSON.stringify(exportVeri, null, 2);
+    var icerik = satirlar.join('\n');
     var dosyaAdi = 'sifrelerim_' + new Date().toISOString().slice(0, 10) + '.txt';
     var blob = new Blob([icerik], { type: 'text/plain;charset=utf-8' });
     var dosya = new File([blob], dosyaAdi, { type: 'text/plain' });
@@ -1202,11 +1208,24 @@ async function txtImport(event) {
             var icerik = e.target.result.trim();
             var veri;
 
-            // Uzantıya göre format belirle
-            var uzanti = dosya.name.toLowerCase().split('.').pop();
+            // Şifreli (.enc) mi yoksa eski düz metin (.txt) mi?
+            var sifreliBaşliyor = false;
+            try {
+                // AES-GCM şifreli veriler base64 olur ve JSON ile başlamaz
+                var deneme = JSON.parse(icerik);
+                if (Array.isArray(deneme)) {
+                    // Eski düz metin format
+                    veri = deneme;
+                } else {
+                    sifreliBaşliyor = true;
+                }
+            } catch (parseErr) {
+                // JSON değil → şifreli olabilir
+                sifreliBaşliyor = true;
+            }
 
-            if (uzanti === 'enc') {
-                // Şifreli dosya — doğrudan çöz
+            if (sifreliBaşliyor) {
+                // Şifreli dosyayı çöz
                 try {
                     var cozulmus = await sifrecoz(icerik);
                     veri = JSON.parse(cozulmus);
@@ -1214,27 +1233,6 @@ async function txtImport(event) {
                 } catch (cozErr) {
                     toast('Şifreli dosya çözülemedi. Passphrase doğru mu?', 'hata');
                     return;
-                }
-            } else {
-                // .txt — JSON array bekleniyor
-                try {
-                    var deneme = JSON.parse(icerik);
-                    if (Array.isArray(deneme)) {
-                        veri = deneme;
-                    } else {
-                        toast('Geçersiz format: JSON array bekleniyor', 'hata');
-                        return;
-                    }
-                } catch (parseErr) {
-                    // JSON parse başarısız, şifreli olabilir mi dene
-                    try {
-                        var cozulmus2 = await sifrecoz(icerik);
-                        veri = JSON.parse(cozulmus2);
-                        if (!Array.isArray(veri)) { toast('Geçersiz format', 'hata'); return; }
-                    } catch (cozErr2) {
-                        toast('Dosya okunamadı: geçersiz format', 'hata');
-                        return;
-                    }
                 }
             }
 
