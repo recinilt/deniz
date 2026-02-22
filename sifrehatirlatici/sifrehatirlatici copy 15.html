@@ -190,13 +190,12 @@ select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%
 
     <!-- Alt Menü -->
     <div class="alt-menu" id="alt-menu" style="display:none">
-      <button class="btn btn-secondary btn-sm" onclick="exportBaslat()">🔒 Gmail'ime Şifreli Gönder</button>
-      <button class="btn btn-secondary btn-sm" onclick="exportSifresizBaslat()">📄 Gmail'ime Şifresiz Gönder</button>
+      <button class="btn btn-secondary btn-sm" onclick="exportBaslat()">📧 Gmail'ime Gönder</button>
       <button class="btn btn-secondary btn-sm" onclick="document.getElementById('txt-import').click()">📥 İçe Aktar</button>
       <button class="btn btn-secondary btn-sm" onclick="verileriSenkronla()">🔄 Senkronla</button>
       <button class="btn btn-secondary btn-sm" onclick="passphraseeDegistirModalAc()">🔑 Güvenlik Kelimesini Değiştir</button>
       <button class="btn btn-danger btn-sm" onclick="cikisYap()">🚪 Çıkış</button>
-      <input type="file" id="txt-import" accept=".txt,.json,.enc" style="display:none" onchange="txtImport(event)">
+      <input type="file" id="txt-import" accept=".txt,.json" style="display:none" onchange="txtImport(event)">
     </div>
   </div>
 </div>
@@ -285,32 +284,6 @@ select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%
   </div>
 </div>
 
-
-<!-- ŞİFRESİZ EXPORT ONAY MODAL -->
-<div class="modal-overlay" id="modal-export-sifresiz">
-  <div class="modal" style="max-width:420px">
-    <div class="modal-baslik">
-      <h3>⚠️ Şifresiz Gönderme Uyarısı</h3>
-      <button class="btn-icon" onclick="document.getElementById('modal-export-sifresiz').classList.remove('aktif')">✕</button>
-    </div>
-    <div class="modal-icerik">
-      <p style="font-size:14px;color:var(--warn);font-weight:600;margin-bottom:10px">Bu işlem şifrelerinizi düz metin olarak gönderir!</p>
-      <p style="font-size:13px;color:var(--text2);margin-bottom:8px">Şifreleriniz <strong style="color:var(--text)">herhangi bir şifreleme olmadan</strong>, okunabilir formatta Gmail hesabınıza gönderilecektir.</p>
-      <p style="font-size:13px;color:var(--text2);margin-bottom:8px">📌 <strong style="color:var(--text)">Tehlikeler:</strong></p>
-      <ul style="font-size:13px;color:var(--text2);padding-left:18px;display:flex;flex-direction:column;gap:5px;margin-bottom:10px">
-        <li>E-posta hesabınıza erişen kişi tüm şifrelerinizi görebilir.</li>
-        <li>E-posta sağlayıcısı sunucularında şifresiz olarak saklanabilir.</li>
-        <li>İletim sırasında (nadiren de olsa) ele geçirilebilir.</li>
-        <li>E-posta iletilirse alıcı tüm şifrelerinizi okuyabilir.</li>
-      </ul>
-      <p style="font-size:13px;color:var(--text2)">✅ Bu dosya <strong style="color:var(--text)">.txt</strong> uzantılı olacak ve <strong style="color:var(--text)">İçe Aktar</strong> ile geri yüklenebilir. Güvenli bir yerde saklayın, kimseyle paylaşmayın.</p>
-    </div>
-    <div class="modal-alt">
-      <button class="btn btn-secondary" onclick="document.getElementById('modal-export-sifresiz').classList.remove('aktif')">İptal</button>
-      <button class="btn btn-danger" onclick="gmailSifresizGonder()">Anlıyorum, Gönder</button>
-    </div>
-  </div>
-</div>
 
 <!-- GÜVENLİK KELİMESİ DEĞİŞTİR MODAL -->
 <div class="modal-overlay" id="modal-passphrase-degistir">
@@ -1388,123 +1361,6 @@ async function gmailGonder() {
     }
 }
 
-function exportSifresizBaslat() {
-    if (sifreListesi.length === 0) {
-        toast('Dışa aktarılacak veri yok', 'hata');
-        return;
-    }
-    document.getElementById('modal-export-sifresiz').classList.add('aktif');
-    menuAcikMi = false;
-    document.getElementById('alt-menu').style.display = 'none';
-}
-
-async function gmailSifresizGonder() {
-    document.getElementById('modal-export-sifresiz').classList.remove('aktif');
-
-    if (!googleAccessToken) {
-        toast('Gmail izni gerekli. Tekrar giriş yapılıyor...', 'bilgi');
-        try {
-            var result = await auth.signInWithPopup(googleProvider);
-            var credential = result.credential;
-            if (credential) {
-                googleAccessToken = credential.accessToken;
-            }
-        } catch (e) {
-            console.error('Gmail izin hatası:', e);
-            toast('Gmail izni alınamadı', 'hata');
-            return;
-        }
-    }
-
-    if (!googleAccessToken) {
-        toast('Gmail erişim izni alınamadı', 'hata');
-        return;
-    }
-
-    var exportVeri = sifreListesi.map(function(s) {
-        return {
-            baslik: s.baslik,
-            kategori: s.kategori,
-            kullanici: s.kullanici,
-            sifre: s.sifre,
-            url: s.url,
-            not: s.not
-        };
-    });
-
-    var jsonStr = JSON.stringify(exportVeri, null, 2);
-    var dosyaAdi = 'sifrelerim_' + new Date().toISOString().slice(0, 10) + '.txt';
-    var kullaniciEmail = mevcutKullanici.email;
-    var tarih = new Date().toLocaleString('tr-TR');
-
-    var mailGovdesi =
-        'Şifre Hatırlatıcı — Şifresiz Yedek Dosyanız\n' +
-        'Tarih: ' + tarih + '\n' +
-        'Toplam: ' + exportVeri.length + ' şifre\n\n' +
-        '⚠️ UYARI: Bu dosya şifresizdir!\n' +
-        'E-posta hesabınıza erişen herkes şifrelerinizi görebilir.\n' +
-        'Dosyayı indirdikten sonra e-postayı silmenizi ve dosyayı\n' +
-        'güvenli bir yerde (şifreli klasör, USB vb.) saklamanızı öneririz.\n\n' +
-        'Geri yüklemek için uygulamada İçe Aktar özelliğini kullanın.';
-
-    var boundary = 'boundary_sifresiz_' + Date.now();
-    var mimeMessage = [
-        'From: me',
-        'To: ' + kullaniciEmail,
-        'Subject: =?UTF-8?B?' + btoa(unescape(encodeURIComponent('Şifre Yedek (Şifresiz) — ' + tarih))) + '?=',
-        'MIME-Version: 1.0',
-        'Content-Type: multipart/mixed; boundary="' + boundary + '"',
-        '',
-        '--' + boundary,
-        'Content-Type: text/plain; charset=UTF-8',
-        'Content-Transfer-Encoding: base64',
-        '',
-        btoa(unescape(encodeURIComponent(mailGovdesi))),
-        '',
-        '--' + boundary,
-        'Content-Type: text/plain; charset=UTF-8; name="' + dosyaAdi + '"',
-        'Content-Disposition: attachment; filename="' + dosyaAdi + '"',
-        'Content-Transfer-Encoding: base64',
-        '',
-        btoa(unescape(encodeURIComponent(jsonStr))),
-        '',
-        '--' + boundary + '--'
-    ].join('\r\n');
-
-    var raw = btoa(unescape(encodeURIComponent(mimeMessage)))
-        .replace(/\+/g, '-')
-        .replace(/\//g, '_')
-        .replace(/=+$/, '');
-
-    toast('Gmail\'e gönderiliyor...', 'bilgi');
-
-    try {
-        var response = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
-            method: 'POST',
-            headers: {
-                'Authorization': 'Bearer ' + googleAccessToken,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ raw: raw })
-        });
-
-        googleAccessToken = null;
-
-        if (response.ok) {
-            toast('Şifresiz yedek Gmail\'inize gönderildi! 📄', 'basari');
-        } else if (response.status === 401) {
-            toast('Gmail oturumu süresi doldu, tekrar deneyin', 'hata');
-        } else {
-            var errData = await response.json();
-            console.error('Gmail API hatası:', errData);
-            toast('Gönderim başarısız (kod: ' + response.status + ')', 'hata');
-        }
-    } catch (e) {
-        console.error('Gmail şifresiz gönderim hatası:', e);
-        toast('Gönderim sırasında bir hata oluştu', 'hata');
-    }
-}
-
 async function txtImport(event) {
     var dosya = event.target.files[0];
     if (!dosya) return;
@@ -1697,7 +1553,6 @@ document.addEventListener('keydown', function(e) {
         modalKapat();
         document.getElementById('modal-sil').classList.remove('aktif');
         document.getElementById('modal-export').classList.remove('aktif');
-        document.getElementById('modal-export-sifresiz').classList.remove('aktif');
     }
 });
 
