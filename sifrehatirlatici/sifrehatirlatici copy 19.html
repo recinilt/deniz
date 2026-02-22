@@ -303,7 +303,7 @@ select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%
       <div class="form-grup">
         <label>Yeni Güvenlik Kelimesi</label>
         <div class="passphrase-input-wrap" style="max-width:100%">
-          <input type="password" id="pd-yeni" placeholder="Yeni güvenlik kelimeniz (en az 5 karakter)..." autocomplete="off">
+          <input type="password" id="pd-yeni" placeholder="Yeni güvenlik kelimeniz (en az 8 karakter)..." autocomplete="off">
           <button class="passphrase-toggle" onclick="pdGosterGizle('pd-yeni')">👁</button>
         </div>
       </div>
@@ -373,7 +373,9 @@ var googleAccessToken = null; // Gmail API için OAuth access token
 var KATEGORILER = ['Tümü', 'Sosyal Medya', 'Banka', 'E-posta', 'Alışveriş', 'İş', 'Eğlence', 'Diğer'];
 var MAX_YANLIS_DENEME = 5;   // 5 yanlış denemede kilitle
 var KILIT_SURE_BASE = 5 * 60 * 1000; // 5 dakika (üstel artış: 5, 10, 20...)
-// Brute-force koruma → Firebase RTDB'de kalıcı (users/{uid}/bruteForce)
+// Brute-force koruma (bellekte, sayfa yenilenince sıfırlanır)
+var bruteYanlisSayisi = 0;
+var bruteKilitliKadar = 0;
 var PBKDF2_ITERASYON = 600000; // Eski kullanıcılar için korunuyor (kdfVersion=1)
 
 // Argon2id parametreleri (RFC 9106 önerisi)
@@ -580,7 +582,16 @@ async function ilkKullanimKontrol() {
 async function passphraseOnayla() {
     var passphrase = document.getElementById('passphrase-input').value;
     if (!passphrase || passphrase.length < 5) {
-        document.getElementById('passphrase-hata').textContent = 'Güvenlik kelimesi en az 5 karakter olmalıdır.';
+        document.getElementById('passphrase-hata').textContent = 'Güvenlik kelimesi en az 8 karakter olmalıdır.';
+        return;
+    }
+
+    // ── BRUTE-FORCE KİLİT KONTROLÜ (bellekte) ──
+    if (bruteKilitliKadar > Date.now()) {
+        var kalanSn = Math.ceil((bruteKilitliKadar - Date.now()) / 1000);
+        var kalanDk = Math.ceil(kalanSn / 60);
+        document.getElementById('passphrase-hata').textContent =
+            'Çok fazla yanlış deneme. ' + (kalanSn < 60 ? kalanSn + ' saniye' : kalanDk + ' dakika') + ' sonra tekrar deneyin.';
         return;
     }
 
@@ -594,7 +605,6 @@ async function passphraseOnayla() {
         var kayitliHash = null;
         var kdfVersion = 2;
         var ilkKullanim = false;
-        var bruteData = { failedCount: 0, lockUntil: 0, lastAttempt: 0 };
 
         try {
             var userSnap = await db.ref('users/' + mevcutKullanici.uid).once('value');
@@ -603,30 +613,12 @@ async function passphraseOnayla() {
                 saltB64 = userData.salt;
                 kdfVersion = userData.kdfVersion || 1;
                 kayitliHash = userData.dogrulamaHashi || null;
-                if (userData.bruteForce) {
-                    bruteData = {
-                        failedCount: userData.bruteForce.failedCount || 0,
-                        lockUntil: userData.bruteForce.lockUntil || 0,
-                        lastAttempt: userData.bruteForce.lastAttempt || 0
-                    };
-                }
             } else {
                 ilkKullanim = true;
             }
         } catch (e) {
             console.error('Firebase kullanıcı verisi çekme hatası:', e);
             document.getElementById('passphrase-hata').textContent = 'Bağlantı hatası, lütfen tekrar deneyin.';
-            document.getElementById('passphrase-btn').disabled = false;
-            document.getElementById('passphrase-btn').textContent = 'Kilidi Aç';
-            return;
-        }
-
-        // ── BRUTE-FORCE KİLİT KONTROLÜ (Firebase'den kalıcı) ──
-        if (bruteData.lockUntil > Date.now()) {
-            var kalanSn = Math.ceil((bruteData.lockUntil - Date.now()) / 1000);
-            var kalanDk = Math.ceil(kalanSn / 60);
-            document.getElementById('passphrase-hata').textContent =
-                'Çok fazla yanlış deneme. ' + (kalanSn < 60 ? kalanSn + ' saniye' : kalanDk + ' dakika') + ' sonra tekrar deneyin.';
             document.getElementById('passphrase-btn').disabled = false;
             document.getElementById('passphrase-btn').textContent = 'Kilidi Aç';
             return;
@@ -646,14 +638,15 @@ async function passphraseOnayla() {
                 await db.ref('users/' + mevcutKullanici.uid).set({
                     salt: yeniSaltB64,
                     dogrulamaHashi: dogrulamaHashi,
-                    kdfVersion: 2,
-                    bruteForce: { failedCount: 0, lockUntil: 0, lastAttempt: 0 }
+                    kdfVersion: 2
                 });
             } catch (e) {
                 console.error('Firebase salt kayıt hatası:', e);
             }
 
             passphraseDogrulandiMi = true;
+            bruteYanlisSayisi = 0;
+            bruteKilitliKadar = 0;
             girisYapildi();
             toast('Güvenlik kelimesi belirlendi! (Argon2id)', 'basari');
 
@@ -670,46 +663,21 @@ async function passphraseOnayla() {
             }
 
             if (kayitliHash && hesaplananHash !== kayitliHash) {
-                // ── YANLIŞ DENEME: Firebase'e yaz ──
-                var yeniFailedCount = bruteData.failedCount + 1;
-                var yeniLockUntil = 0;
-                if (yeniFailedCount >= MAX_YANLIS_DENEME) {
-                    var kilitSure = KILIT_SURE_BASE * Math.pow(2, yeniFailedCount - MAX_YANLIS_DENEME);
-                    yeniLockUntil = Date.now() + kilitSure;
-                }
-                try {
-                    await db.ref('users/' + mevcutKullanici.uid + '/bruteForce').set({
-                        failedCount: yeniFailedCount,
-                        lockUntil: yeniLockUntil,
-                        lastAttempt: Date.now()
-                    });
-                } catch (fbHata) {
-                    console.error('Brute-force yazma hatası:', fbHata);
-                }
-
-                if (yeniLockUntil > 0) {
-                    var kilitDk = Math.round((yeniLockUntil - Date.now()) / 60000);
+                bruteYanlisSayisi = (bruteYanlisSayisi || 0) + 1;
+                if (bruteYanlisSayisi >= MAX_YANLIS_DENEME) {
+                    var kilitSure = KILIT_SURE_BASE * Math.pow(2, bruteYanlisSayisi - MAX_YANLIS_DENEME);
+                    bruteKilitliKadar = Date.now() + kilitSure;
+                    var kilitDk = Math.round(kilitSure / 60000);
                     document.getElementById('passphrase-hata').textContent =
                         'Çok fazla yanlış deneme! ' + kilitDk + ' dakika kilitlendi.';
                 } else {
-                    var kalan = MAX_YANLIS_DENEME - yeniFailedCount;
+                    var kalan = MAX_YANLIS_DENEME - bruteYanlisSayisi;
                     document.getElementById('passphrase-hata').textContent =
                         'Güvenlik kelimesi yanlış! ' + kalan + ' deneme hakkınız kaldı.';
                 }
                 document.getElementById('passphrase-btn').disabled = false;
                 document.getElementById('passphrase-btn').textContent = 'Kilidi Aç';
                 return;
-            }
-
-            // ── DOĞRU GİRİŞ: Sayacı sıfırla ──
-            try {
-                await db.ref('users/' + mevcutKullanici.uid + '/bruteForce').set({
-                    failedCount: 0,
-                    lockUntil: 0,
-                    lastAttempt: 0
-                });
-            } catch (fbHata) {
-                console.error('Brute-force sıfırlama hatası:', fbHata);
             }
 
             // Anahtarı türet
@@ -720,6 +688,8 @@ async function passphraseOnayla() {
             }
 
             passphraseDogrulandiMi = true;
+            bruteYanlisSayisi = 0;
+            bruteKilitliKadar = 0;
             girisYapildi();
 
             // ── OTOMATİK GEÇİŞ: PBKDF2 → Argon2id (sessiz) ──
