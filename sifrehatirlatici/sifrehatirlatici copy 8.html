@@ -287,12 +287,12 @@ select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%
 <div class="toast-container" id="toast-container"></div>
 
 <!-- ARGON2 WASM (KDF) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/argon2-browser/1.18.0/argon2-bundled.min.js" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/argon2-browser/1.18.0/argon2-bundled.min.js"></script>
 
 <!-- FIREBASE -->
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js" crossorigin="anonymous"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js" crossorigin="anonymous"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js" crossorigin="anonymous"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 
 <script>
 // ══════════════════════════════════════════════════════════
@@ -337,9 +337,6 @@ var LOKAL_ANAHTAR = 'sifreHatirlatici_';
 var LOKAL_SALT_ANAHTAR = 'sifreHatirlatici_salt_';
 var LOKAL_DOGRULAMA_ANAHTAR = 'sifreHatirlatici_dogrulama_';
 var LOKAL_SIFRELI_VERI_ANAHTAR = 'sifreHatirlatici_enc_';
-var LOKAL_KILIT_ANAHTAR = 'sifreHatirlatici_kilit_';
-var MAX_YANLIS_DENEME = 5;   // 5 yanlış denemede kilitle
-var KILIT_SURE_BASE = 5 * 60 * 1000; // 5 dakika (üstel artış: 5, 10, 20...)
 var PBKDF2_ITERASYON = 600000; // Eski kullanıcılar için korunuyor (kdfVersion=1)
 
 // Argon2id parametreleri (RFC 9106 önerisi)
@@ -506,22 +503,6 @@ function lokalDogrulamaOku(uid) {
     return localStorage.getItem(LOKAL_DOGRULAMA_ANAHTAR + uid);
 }
 
-// Brute-force kilit yardımcıları
-function lokalKilitOku(uid) {
-    try {
-        var v = localStorage.getItem(LOKAL_KILIT_ANAHTAR + uid);
-        return v ? JSON.parse(v) : null;
-    } catch (e) { return null; }
-}
-
-function lokalKilitYaz(uid, veri) {
-    localStorage.setItem(LOKAL_KILIT_ANAHTAR + uid, JSON.stringify(veri));
-}
-
-function lokalKilitSifirla(uid) {
-    localStorage.removeItem(LOKAL_KILIT_ANAHTAR + uid);
-}
-
 // ══════════════════════════════════════════════════════════
 // AUTH İŞLEMLERİ
 // ══════════════════════════════════════════════════════════
@@ -623,18 +604,6 @@ async function passphraseOnayla() {
         return;
     }
 
-    // ── BRUTE-FORCE KİLİT KONTROLÜ ──
-    if (mevcutKullanici) {
-        var kilitVerisi = lokalKilitOku(mevcutKullanici.uid);
-        if (kilitVerisi && kilitVerisi.kilitliKadar > Date.now()) {
-            var kalanSn = Math.ceil((kilitVerisi.kilitliKadar - Date.now()) / 1000);
-            var kalanDk = Math.ceil(kalanSn / 60);
-            document.getElementById('passphrase-hata').textContent =
-                'Çok fazla yanlış deneme. ' + (kalanSn < 60 ? kalanSn + ' saniye' : kalanDk + ' dakika') + ' sonra tekrar deneyin.';
-            return;
-        }
-    }
-
     document.getElementById('passphrase-btn').disabled = true;
     document.getElementById('passphrase-hata').textContent = '';
     document.getElementById('passphrase-btn').textContent = 'Doğrulanıyor...';
@@ -728,25 +697,7 @@ async function passphraseOnayla() {
             }
 
             if (kayitliHash && hesaplananHash !== kayitliHash) {
-                // Yanlış deneme sayacını artır
-                var kilitVerisi = lokalKilitOku(mevcutKullanici.uid) || { yanlisSayisi: 0, kilitliKadar: 0 };
-                kilitVerisi.yanlisSayisi = (kilitVerisi.yanlisSayisi || 0) + 1;
-
-                if (kilitVerisi.yanlisSayisi >= MAX_YANLIS_DENEME) {
-                    // Üstel kilitleme: 5dk, 10dk, 20dk...
-                    var kilitSure = KILIT_SURE_BASE * Math.pow(2, kilitVerisi.yanlisSayisi - MAX_YANLIS_DENEME);
-                    kilitVerisi.kilitliKadar = Date.now() + kilitSure;
-                    lokalKilitYaz(mevcutKullanici.uid, kilitVerisi);
-                    var kilitDk = Math.round(kilitSure / 60000);
-                    document.getElementById('passphrase-hata').textContent =
-                        'Çok fazla yanlış deneme! ' + kilitDk + ' dakika kilitlendi.';
-                } else {
-                    lokalKilitYaz(mevcutKullanici.uid, kilitVerisi);
-                    var kalan = MAX_YANLIS_DENEME - kilitVerisi.yanlisSayisi;
-                    document.getElementById('passphrase-hata').textContent =
-                        'Güvenlik kelimesi yanlış! ' + kalan + ' deneme hakkınız kaldı.';
-                }
-
+                document.getElementById('passphrase-hata').textContent = 'Güvenlik kelimesi yanlış! Tekrar deneyin.';
                 document.getElementById('passphrase-btn').disabled = false;
                 document.getElementById('passphrase-btn').textContent = 'Kilidi Aç';
                 return;
@@ -764,7 +715,6 @@ async function passphraseOnayla() {
             }
 
             passphraseDogrulandiMi = true;
-            lokalKilitSifirla(mevcutKullanici.uid); // Başarılı giriş — sayacı sıfırla
             girisYapildi();
 
             // ── OTOMATİK GEÇİŞ: PBKDF2 → Argon2id (sessiz) ──
@@ -1126,12 +1076,10 @@ function sifreGosterGizle(id) {
     if (el) el.classList.toggle('gizli');
 }
 
-var panoClearTimeout = null;
-
 async function panoyaKopyala(metin) {
     try {
         await navigator.clipboard.writeText(metin);
-        toast('📋 Kopyalandı — 30 sn sonra temizlenecek', 'basari');
+        toast('Kopyalandı', 'basari');
     } catch (e) {
         // Fallback
         var ta = document.createElement('textarea');
@@ -1142,19 +1090,8 @@ async function panoyaKopyala(metin) {
         ta.select();
         document.execCommand('copy');
         document.body.removeChild(ta);
-        toast('📋 Kopyalandı — 30 sn sonra temizlenecek', 'basari');
+        toast('Kopyalandı', 'basari');
     }
-
-    // Önceki temizleme varsa iptal et
-    if (panoClearTimeout) clearTimeout(panoClearTimeout);
-
-    // 30 saniye sonra panoyu temizle
-    panoClearTimeout = setTimeout(async function() {
-        try {
-            await navigator.clipboard.writeText('');
-        } catch (e) { /* sessizce geç */ }
-        panoClearTimeout = null;
-    }, 30000);
 }
 
 // ══════════════════════════════════════════════════════════
