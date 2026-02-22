@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://www.gstatic.com https://www.googleapis.com https://apis.google.com https://*.google.com https://fonts.googleapis.com https://cdnjs.cloudflare.com; script-src-elem 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://www.gstatic.com https://www.googleapis.com https://apis.google.com https://*.google.com https://fonts.googleapis.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://*.firebaseio.com wss://*.firebaseio.com https://*.firebasedatabase.app wss://*.firebasedatabase.app https://*.googleapis.com https://www.gstatic.com; img-src 'self' data: https://lh3.googleusercontent.com https://*.googleusercontent.com https://www.gstatic.com; frame-src https://sifrehatirlatici-cf65d.firebaseapp.com https://accounts.google.com; object-src 'none'; base-uri 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://www.gstatic.com https://www.googleapis.com https://apis.google.com https://*.google.com https://fonts.googleapis.com https://cdnjs.cloudflare.com; script-src-elem 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://www.gstatic.com https://www.googleapis.com https://apis.google.com https://*.google.com https://fonts.googleapis.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://*.firebaseio.com wss://*.firebaseio.com https://*.firebasedatabase.app wss://*.firebasedatabase.app https://*.googleapis.com https://gmail.googleapis.com https://www.gstatic.com; img-src 'self' data: https://lh3.googleusercontent.com https://*.googleusercontent.com https://www.gstatic.com; frame-src https://sifrehatirlatici-cf65d.firebaseapp.com https://accounts.google.com; object-src 'none'; base-uri 'self';">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Şifre Hatırlatıcı</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -190,7 +190,7 @@ select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%
 
     <!-- Alt Menü -->
     <div class="alt-menu" id="alt-menu" style="display:none">
-      <button class="btn btn-secondary btn-sm" onclick="exportBaslat()">📤 Dışa Aktar</button>
+      <button class="btn btn-secondary btn-sm" onclick="exportBaslat()">📧 Gmail'ime Gönder</button>
       <button class="btn btn-secondary btn-sm" onclick="document.getElementById('txt-import').click()">📥 İçe Aktar</button>
       <button class="btn btn-secondary btn-sm" onclick="verileriSenkronla()">🔄 Senkronla</button>
       <button class="btn btn-secondary btn-sm" onclick="passphraseeDegistirModalAc()">🔑 Güvenlik Kelimesini Değiştir</button>
@@ -270,19 +270,16 @@ select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%
 <div class="modal-overlay" id="modal-export">
   <div class="modal" style="max-width:400px">
     <div class="modal-baslik">
-      <h3>📤 Dışa Aktar</h3>
+      <h3>📧 Gmail'e Gönderme Uyarısı</h3>
       <button class="btn-icon" onclick="document.getElementById('modal-export').classList.remove('aktif')">✕</button>
     </div>
     <div class="modal-icerik">
-      <p style="font-size:14px;color:var(--text2);margin-bottom:4px">İki format mevcuttur:</p>
-      <p style="font-size:13px;color:var(--text2)">🔒 <strong style="color:var(--success)">.enc (Şifreli)</strong> — AES-256-GCM ile şifreli. Geri yüklemek için passphrase gerekir. Güvenli paylaşım için önerilir.</p>
-      <p style="font-size:13px;color:var(--text2);margin-top:8px">📄 <strong style="color:var(--warn)">.txt (Şifresiz)</strong> — Tüm şifreler açık metin olarak dışa aktarılır. Yalnızca güvenli ortamlarda kullanın!</p>
-      <p style="font-size:12px;color:var(--text2);margin-top:10px;opacity:.7">Dosya indirilir; paylaşım diyaloğu varsa WhatsApp, Gmail, Telegram gibi uygulamalara gönderebilirsiniz.</p>
+      <p style="font-size:14px;color:var(--text2)">Şifreleriniz <strong style="color:var(--success)">AES-256-GCM ile şifrelenmiş</strong> olarak Gmail hesabınıza dosya eki şeklinde gönderilecektir.</p>
+      <p style="font-size:14px;color:var(--text2);margin-top:8px">Dosya uzantısı <strong>.enc</strong> olacak. Geri yüklemek için İçe Aktar özelliğini kullanın — passphrase'iniz gerekecek.</p>
     </div>
-    <div class="modal-alt" style="gap:6px">
+    <div class="modal-alt">
       <button class="btn btn-secondary" onclick="document.getElementById('modal-export').classList.remove('aktif')">İptal</button>
-      <button class="btn btn-secondary" style="color:var(--warn);border-color:var(--warn)" onclick="txtPaylas()">📄 .txt</button>
-      <button class="btn btn-primary" onclick="encPaylas()">🔒 .enc</button>
+      <button class="btn btn-primary" onclick="gmailGonder()">Evet, Gmail'ime Gönder</button>
     </div>
   </div>
 </div>
@@ -353,6 +350,7 @@ firebase.initializeApp(firebaseConfig);
 var auth = firebase.auth();
 var db = firebase.database();
 var googleProvider = new firebase.auth.GoogleAuthProvider();
+googleProvider.addScope('https://www.googleapis.com/auth/gmail.send');
 auth.languageCode = 'tr';
 
 // ══════════════════════════════════════════════════════════
@@ -370,6 +368,7 @@ var firebaseDinleyici = null;
 var menuAcikMi = false;
 var kullaniciSalt = null; // Kullanıcıya özel rastgele salt (16 byte)
 var passphraseDogrulandiMi = false;
+var googleAccessToken = null; // Gmail API için OAuth access token
 
 var KATEGORILER = ['Tümü', 'Sosyal Medya', 'Banka', 'E-posta', 'Alışveriş', 'İş', 'Eğlence', 'Diğer'];
 var MAX_YANLIS_DENEME = 5;   // 5 yanlış denemede kilitle
@@ -501,7 +500,10 @@ async function sifrecoz(b64) {
 // ══════════════════════════════════════════════════════════
 function gmailGiris() {
     auth.signInWithPopup(googleProvider).then(function(result) {
-        // Giriş başarılı
+        var credential = result.credential;
+        if (credential) {
+            googleAccessToken = credential.accessToken;
+        }
     }).catch(function(err) {
         console.error('Giriş hatası:', err);
         toast('Giriş başarısız, lütfen tekrar deneyin', 'hata');
@@ -516,6 +518,7 @@ function cikisYap() {
     sifrelemeAnahtari = null;
     kullaniciSalt = null;
     passphraseDogrulandiMi = false;
+    googleAccessToken = null;
     auth.signOut();
 }
 
@@ -1096,106 +1099,122 @@ function exportBaslat() {
     document.getElementById('modal-export').classList.add('aktif');
 }
 
-// ══════════════════════════════════════════════════════════
-// DIŞA AKTAR: ENC (ŞİFRELİ) VE TXT (ŞİFRESİZ)
-// ══════════════════════════════════════════════════════════
-async function encPaylas() {
+async function gmailGonder() {
     document.getElementById('modal-export').classList.remove('aktif');
 
+    // Access token kontrolü
+    if (!googleAccessToken) {
+        toast('Gmail izni gerekli. Tekrar giriş yapılıyor...', 'bilgi');
+        try {
+            var result = await auth.signInWithPopup(googleProvider);
+            var credential = result.credential;
+            if (credential) {
+                googleAccessToken = credential.accessToken;
+            }
+        } catch (e) {
+            console.error('Gmail izin hatası:', e);
+            toast('Gmail izni alınamadı', 'hata');
+            return;
+        }
+    }
+
+    if (!googleAccessToken) {
+        toast('Gmail erişim izni alınamadı', 'hata');
+        return;
+    }
+
     var exportVeri = sifreListesi.map(function(s) {
-        return { baslik: s.baslik, kategori: s.kategori, kullanici: s.kullanici, sifre: s.sifre, url: s.url, not: s.not };
+        return {
+            baslik: s.baslik,
+            kategori: s.kategori,
+            kullanici: s.kullanici,
+            sifre: s.sifre,
+            url: s.url,
+            not: s.not
+        };
     });
 
+    // ŞİFRELİ EXPORT: Veriler AES-GCM ile şifrelenerek gönderiliyor
     var jsonStr = JSON.stringify(exportVeri);
     var sifreliIcerik;
     try {
         sifreliIcerik = await sifrele(jsonStr);
     } catch (e) {
-        toast('Şifreleme hatası', 'hata');
+        console.error('Export şifreleme hatası:', e);
+        toast('Dışa aktarma sırasında bir hata oluştu', 'hata');
         return;
     }
 
     var dosyaAdi = 'sifrelerim_' + new Date().toISOString().slice(0, 10) + '.enc';
-    var blob = new Blob([sifreliIcerik], { type: 'application/octet-stream' });
-    var dosya = new File([blob], dosyaAdi, { type: 'application/octet-stream' });
+    var kullaniciEmail = mevcutKullanici.email;
+    var tarih = new Date().toLocaleString('tr-TR');
 
-    if (navigator.canShare && navigator.canShare({ files: [dosya] })) {
-        try {
-            await navigator.share({
-                files: [dosya],
-                title: 'Şifre Yedeği (Şifreli)',
-                text: 'Şifre Hatırlatıcı — Şifreli yedek dosyası (.enc). Geri yüklemek için passphrase gerekir.'
-            });
-            toast('Paylaşım başarılı 🔒', 'basari');
-        } catch (e) {
-            if (e.name !== 'AbortError') {
-                _encIndir(blob, dosyaAdi);
-            }
+    // MIME multipart e-posta oluştur (şifreli dosya ekli)
+    var boundary = 'boundary_' + Date.now();
+    var mailGovdesi =
+        'Şifre Hatırlatıcı — Şifreli Yedek Dosyanız\n' +
+        'Tarih: ' + tarih + '\n' +
+        'Toplam: ' + exportVeri.length + ' şifre\n\n' +
+        '⚠️ Bu dosya AES-256-GCM ile şifrelidir.\n' +
+        'Uygulamaya geri yüklemek için İçe Aktar özelliğini kullanın.\n' +
+        'Passphrase\'iniz olmadan açılamaz.';
+
+    var mimeMessage = [
+        'From: me',
+        'To: ' + kullaniciEmail,
+        'Subject: =?UTF-8?B?' + btoa(unescape(encodeURIComponent('Şifre Yedek (Şifreli) — ' + tarih))) + '?=',
+        'MIME-Version: 1.0',
+        'Content-Type: multipart/mixed; boundary="' + boundary + '"',
+        '',
+        '--' + boundary,
+        'Content-Type: text/plain; charset=UTF-8',
+        'Content-Transfer-Encoding: base64',
+        '',
+        btoa(unescape(encodeURIComponent(mailGovdesi))),
+        '',
+        '--' + boundary,
+        'Content-Type: application/octet-stream; name="' + dosyaAdi + '"',
+        'Content-Disposition: attachment; filename="' + dosyaAdi + '"',
+        'Content-Transfer-Encoding: base64',
+        '',
+        btoa(unescape(encodeURIComponent(sifreliIcerik))),
+        '',
+        '--' + boundary + '--'
+    ].join('\r\n');
+
+    // Base64url encode
+    var raw = btoa(unescape(encodeURIComponent(mimeMessage)))
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=+$/, '');
+
+    toast('Gmail\'e gönderiliyor...', 'bilgi');
+
+    try {
+        var response = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + googleAccessToken,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ raw: raw })
+        });
+
+        googleAccessToken = null; // Kullanım sonrası token'ı temizle
+
+        if (response.ok) {
+            toast('Şifreli yedek Gmail\'inize gönderildi! 📧', 'basari');
+        } else if (response.status === 401) {
+            toast('Gmail oturumu süresi doldu, tekrar deneyin', 'hata');
+        } else {
+            var errData = await response.json();
+            console.error('Gmail API hatası:', errData);
+            toast('Gönderim başarısız (kod: ' + response.status + ')', 'hata');
         }
-    } else {
-        _encIndir(blob, dosyaAdi);
+    } catch (e) {
+        console.error('Gmail gönderim hatası:', e);
+        toast('Gönderim sırasında bir hata oluştu', 'hata');
     }
-}
-
-function _encIndir(blob, dosyaAdi) {
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement('a');
-    a.href = url;
-    a.download = dosyaAdi;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
-    toast('Şifreli dosya indirildi 🔒', 'basari');
-}
-
-async function txtPaylas() {
-    document.getElementById('modal-export').classList.remove('aktif');
-
-    var satirlar = ['Şifre Hatırlatıcı — Yedek (' + new Date().toLocaleString('tr-TR') + ')', ''];
-    sifreListesi.forEach(function(s, i) {
-        satirlar.push((i + 1) + '. ' + (s.baslik || ''));
-        if (s.kategori) satirlar.push('   Kategori : ' + s.kategori);
-        if (s.kullanici) satirlar.push('   Kullanıcı: ' + s.kullanici);
-        satirlar.push('   Şifre    : ' + (s.sifre || ''));
-        if (s.url) satirlar.push('   URL      : ' + s.url);
-        if (s.not) satirlar.push('   Not      : ' + s.not);
-        satirlar.push('');
-    });
-
-    var icerik = satirlar.join('\n');
-    var dosyaAdi = 'sifrelerim_' + new Date().toISOString().slice(0, 10) + '.txt';
-    var blob = new Blob([icerik], { type: 'text/plain;charset=utf-8' });
-    var dosya = new File([blob], dosyaAdi, { type: 'text/plain' });
-
-    if (navigator.canShare && navigator.canShare({ files: [dosya] })) {
-        try {
-            await navigator.share({
-                files: [dosya],
-                title: 'Şifre Yedeği',
-                text: 'Şifre Hatırlatıcı — Açık metin yedek dosyası'
-            });
-            toast('Paylaşım başarılı', 'basari');
-        } catch (e) {
-            if (e.name !== 'AbortError') {
-                _txtIndir(blob, dosyaAdi);
-            }
-        }
-    } else {
-        _txtIndir(blob, dosyaAdi);
-    }
-}
-
-function _txtIndir(blob, dosyaAdi) {
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement('a');
-    a.href = url;
-    a.download = dosyaAdi;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
-    toast('Şifresiz dosya indirildi 📄', 'basari');
 }
 
 async function txtImport(event) {
