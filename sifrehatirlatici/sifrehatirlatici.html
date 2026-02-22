@@ -618,8 +618,8 @@ async function ilkKullanimKontrol() {
 
 async function passphraseOnayla() {
     var passphrase = document.getElementById('passphrase-input').value;
-    if (!passphrase || passphrase.length < 8) {
-        document.getElementById('passphrase-hata').textContent = 'Güvenlik kelimesi en az 8 karakter olmalıdır.';
+    if (!passphrase || passphrase.length < 5) {
+        document.getElementById('passphrase-hata').textContent = 'Güvenlik kelimesi en az 5 karakter olmalıdır.';
         return;
     }
 
