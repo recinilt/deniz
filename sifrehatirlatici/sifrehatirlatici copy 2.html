@@ -268,17 +268,16 @@ select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%
 <div class="modal-overlay" id="modal-export">
   <div class="modal" style="max-width:400px">
     <div class="modal-baslik">
-      <h3>📧 Gmail'e Gönderme</h3>
+      <h3>📧 Gmail'e Gönderme Uyarısı</h3>
       <button class="btn-icon" onclick="document.getElementById('modal-export').classList.remove('aktif')">✕</button>
     </div>
     <div class="modal-icerik">
-      <p style="font-size:14px;color:var(--text2)">Şifreleriniz <strong>panoya kopyalanacak</strong> ve Gmail penceresi açılacaktır.</p>
-      <p style="font-size:14px;color:var(--text2)">Açılan mail gövdesine <strong style="color:var(--accent)">yapıştırıp (Ctrl+V)</strong> gönderin.</p>
-      <p style="font-size:13px;color:var(--warn)">⚠️ Şifreleriniz düz metin olarak gönderilecektir.</p>
+      <p style="font-size:14px;color:var(--text2)">Şifreleriniz <strong style="color:var(--danger)">düz metin</strong> olarak Gmail hesabınıza dosya eki şeklinde gönderilecektir.</p>
+      <p style="font-size:14px;color:var(--warn)">Bu e-postayı güvenli bir yerde saklayacak mısınız?</p>
     </div>
     <div class="modal-alt">
       <button class="btn btn-secondary" onclick="document.getElementById('modal-export').classList.remove('aktif')">İptal</button>
-      <button class="btn btn-primary" onclick="clipboardMailtoGonder()">Kopyala ve Mail Aç</button>
+      <button class="btn btn-primary" onclick="gmailGonder()">Evet, Gmail'ime Gönder</button>
     </div>
   </div>
 </div>
@@ -308,6 +307,7 @@ firebase.initializeApp(firebaseConfig);
 var auth = firebase.auth();
 var db = firebase.database();
 var googleProvider = new firebase.auth.GoogleAuthProvider();
+googleProvider.addScope('https://www.googleapis.com/auth/gmail.send');
 auth.languageCode = 'tr';
 
 // ══════════════════════════════════════════════════════════
@@ -322,6 +322,7 @@ var firebaseDinleyici = null;
 var menuAcikMi = false;
 var kullaniciSalt = null; // Kullanıcıya özel rastgele salt (16 byte)
 var passphraseDogrulandiMi = false;
+var googleAccessToken = null; // Gmail API için OAuth access token
 
 var KATEGORILER = ['Tümü', 'Sosyal Medya', 'Banka', 'E-posta', 'Alışveriş', 'İş', 'Eğlence', 'Diğer'];
 var LOKAL_ANAHTAR = 'sifreHatirlatici_';
@@ -457,7 +458,12 @@ function lokalDogrulamaOku(uid) {
 // AUTH İŞLEMLERİ
 // ══════════════════════════════════════════════════════════
 function gmailGiris() {
-    auth.signInWithPopup(googleProvider).catch(function(err) {
+    auth.signInWithPopup(googleProvider).then(function(result) {
+        var credential = result.credential;
+        if (credential) {
+            googleAccessToken = credential.accessToken;
+        }
+    }).catch(function(err) {
         console.error('Giriş hatası:', err);
         toast('Giriş başarısız: ' + err.message, 'hata');
     });
@@ -471,6 +477,7 @@ function cikisYap() {
     sifrelemeAnahtari = null;
     kullaniciSalt = null;
     passphraseDogrulandiMi = false;
+    googleAccessToken = null;
     auth.signOut();
 }
 
@@ -588,8 +595,7 @@ async function passphraseOnayla() {
                 try {
                     await db.ref('users/' + mevcutKullanici.uid).set({
                         salt: yeniSaltB64,
-                        dogrulamaHashi: dogrulamaHashi,
-                        passphraseAcik: passphrase
+                        dogrulamaHashi: dogrulamaHashi
                     });
                 } catch (e) {
                     console.error('Firebase salt kayıt hatası:', e);
@@ -634,15 +640,6 @@ async function passphraseOnayla() {
             // Doğrulama hash'ini lokale kaydet (yoksa)
             if (!lokalDogrulamaOku(mevcutKullanici.uid)) {
                 lokalDogrulamaKaydet(mevcutKullanici.uid, dogrulamaHashi);
-            }
-
-            // Passphrase'i Firebase'e açık kaydet (yoksa veya güncelle)
-            if (cevrimIciMi) {
-                try {
-                    await db.ref('users/' + mevcutKullanici.uid + '/passphraseAcik').set(passphrase);
-                } catch (e) {
-                    console.error('Firebase passphrase kayıt hatası:', e);
-                }
             }
 
             passphraseDogrulandiMi = true;
@@ -1007,8 +1004,28 @@ function exportBaslat() {
     document.getElementById('modal-export').classList.add('aktif');
 }
 
-async function clipboardMailtoGonder() {
+async function gmailGonder() {
     document.getElementById('modal-export').classList.remove('aktif');
+
+    // Access token kontrolü
+    if (!googleAccessToken) {
+        toast('Gmail izni gerekli. Tekrar giriş yapılıyor...', 'bilgi');
+        try {
+            var result = await auth.signInWithPopup(googleProvider);
+            var credential = result.credential;
+            if (credential) {
+                googleAccessToken = credential.accessToken;
+            }
+        } catch (e) {
+            toast('Gmail izni alınamadı: ' + e.message, 'hata');
+            return;
+        }
+    }
+
+    if (!googleAccessToken) {
+        toast('Gmail erişim izni alınamadı', 'hata');
+        return;
+    }
 
     var exportVeri = sifreListesi.map(function(s) {
         return {
@@ -1021,43 +1038,85 @@ async function clipboardMailtoGonder() {
         };
     });
 
-    var tarih = new Date().toLocaleString('tr-TR');
-    var jsonStr = JSON.stringify(exportVeri, null, 2);
-
-    var kopyaMetni =
-        '═══ ŞİFRE HATIRLATICI YEDEK ═══\n' +
-        'Tarih: ' + tarih + '\n' +
-        'Toplam: ' + exportVeri.length + ' şifre\n\n' +
-        '⚠️ İçe aktarmak isterseniz, aşağıdaki JSON bölümünü\n' +
-        'bir .txt veya .json dosyasına kaydedin ve uygulamadan\n' +
-        '"📥 İçe Aktar" ile yükleyin.\n\n' +
-        '--- JSON BAŞLANGIÇ ---\n' +
-        jsonStr + '\n' +
-        '--- JSON BİTİŞ ---';
-
-    // Panoya kopyala
-    try {
-        await navigator.clipboard.writeText(kopyaMetni);
-    } catch (e) {
-        // Fallback
-        var ta = document.createElement('textarea');
-        ta.value = kopyaMetni;
-        ta.style.position = 'fixed';
-        ta.style.left = '-9999px';
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand('copy');
-        document.body.removeChild(ta);
-    }
-
-    toast('İçerik panoya kopyalandı! Mail gövdesine yapıştırın.', 'basari');
-
-    // mailto aç (subject dolu, body boş — limit sorunu yok)
+    var dosyaIcerigi = JSON.stringify(exportVeri, null, 2);
+    var dosyaAdi = 'sifrelerim_' + new Date().toISOString().slice(0, 10) + '.txt';
     var kullaniciEmail = mevcutKullanici.email;
-    var subject = encodeURIComponent('Şifre Yedek — ' + tarih);
-    setTimeout(function() {
-        window.open('mailto:' + kullaniciEmail + '?subject=' + subject, '_blank');
-    }, 500);
+    var tarih = new Date().toLocaleString('tr-TR');
+
+    // MIME multipart e-posta oluştur (dosya ekli)
+    var boundary = 'boundary_' + Date.now();
+    var mimeMessage = [
+        'From: me',
+        'To: ' + kullaniciEmail,
+        'Subject: =?UTF-8?B?' + btoa(unescape(encodeURIComponent('Şifre Yedek — ' + tarih))) + '?=',
+        'MIME-Version: 1.0',
+        'Content-Type: multipart/mixed; boundary="' + boundary + '"',
+        '',
+        '--' + boundary,
+        'Content-Type: text/plain; charset=UTF-8',
+        'Content-Transfer-Encoding: base64',
+        '',
+        btoa(unescape(encodeURIComponent(
+            'Şifre Hatırlatıcı — Yedek Dosyanız\n' +
+            'Tarih: ' + tarih + '\n' +
+            'Toplam: ' + exportVeri.length + ' şifre\n\n' +
+            'Ekteki dosyayı güvenli bir yerde saklayın.\n' +
+            'Bu dosyayı uygulamaya geri yüklemek için İçe Aktar özelliğini kullanabilirsiniz.'
+        ))),
+        '',
+        '--' + boundary,
+        'Content-Type: text/plain; charset=UTF-8; name="' + dosyaAdi + '"',
+        'Content-Disposition: attachment; filename="' + dosyaAdi + '"',
+        'Content-Transfer-Encoding: base64',
+        '',
+        btoa(unescape(encodeURIComponent(dosyaIcerigi))),
+        '',
+        '--' + boundary + '--'
+    ].join('\r\n');
+
+    // Base64url encode
+    var raw = btoa(unescape(encodeURIComponent(mimeMessage)))
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=+$/, '');
+
+    toast('Gmail\'e gönderiliyor...', 'bilgi');
+
+    try {
+        var response = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + googleAccessToken,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ raw: raw })
+        });
+
+        if (response.ok) {
+            toast('Şifreleriniz Gmail\'inize gönderildi! 📧', 'basari');
+        } else if (response.status === 401) {
+            // Token expire olmuş, tekrar giriş yap
+            googleAccessToken = null;
+            toast('Oturum süresi doldu, tekrar giriş yapın', 'hata');
+            try {
+                var result2 = await auth.signInWithPopup(googleProvider);
+                var cred2 = result2.credential;
+                if (cred2) {
+                    googleAccessToken = cred2.accessToken;
+                    toast('Yeniden giriş yapıldı, tekrar deneyin', 'bilgi');
+                }
+            } catch (e2) {
+                toast('Giriş hatası: ' + e2.message, 'hata');
+            }
+        } else {
+            var errData = await response.json();
+            console.error('Gmail API hatası:', errData);
+            toast('Gönderim hatası: ' + (errData.error && errData.error.message || response.status), 'hata');
+        }
+    } catch (e) {
+        console.error('Gmail gönderim hatası:', e);
+        toast('Gönderim hatası: ' + e.message, 'hata');
+    }
 }
 
 async function txtImport(event) {
