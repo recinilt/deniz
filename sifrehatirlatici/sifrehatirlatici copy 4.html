@@ -209,7 +209,7 @@ select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%
       <input type="hidden" id="form-id">
       <div class="form-grup">
         <label>Başlık *</label>
-        <input type="text" id="form-baslik" placeholder="ör: Gmail, Netflix...">
+        <input type="text" id="form-baslik" placeholder="ör: Gmail, Netflix..." autocomplete="off">
       </div>
       <div class="form-grup">
         <label>Kategori</label>
@@ -225,15 +225,15 @@ select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%
       </div>
       <div class="form-grup">
         <label>Kullanıcı Adı / E-posta</label>
-        <input type="text" id="form-kullanici" placeholder="ör: kullanici@gmail.com">
+        <input type="text" id="form-kullanici" placeholder="ör: kullanici@gmail.com" autocomplete="one-time-code" readonly onfocus="this.removeAttribute('readonly')">
       </div>
       <div class="form-grup">
         <label>Şifre *</label>
-        <input type="text" id="form-sifre" placeholder="Şifreniz">
+        <input type="text" id="form-sifre" placeholder="Şifreniz" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly')">
       </div>
       <div class="form-grup">
         <label>URL</label>
-        <input type="url" id="form-url" placeholder="https://...">
+        <input type="url" id="form-url" placeholder="https://..." autocomplete="off">
       </div>
       <div class="form-grup">
         <label>Not</label>
