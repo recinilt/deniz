@@ -274,16 +274,15 @@ select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%
       <button class="btn-icon" onclick="document.getElementById('modal-export').classList.remove('aktif')">✕</button>
     </div>
     <div class="modal-icerik">
-      <p style="font-size:14px;color:var(--text2);margin-bottom:4px">Üç format mevcuttur:</p>
-      <p style="font-size:13px;color:var(--text2)">🔒 <strong style="color:var(--success)">.txt (Şifreli)</strong> — AES-256-GCM ile şifreli, .txt uzantılı. WhatsApp, Telegram, Gmail ile paylaşılabilir. Geri yüklemek için passphrase gerekir.</p>
-      <p style="font-size:13px;color:var(--text2);margin-top:8px">🔒 <strong style="color:var(--accent)">.enc (Şifreli)</strong> — AES-256-GCM ile şifreli. Geri yüklemek için passphrase gerekir.</p>
+      <p style="font-size:14px;color:var(--text2);margin-bottom:4px">İki format mevcuttur:</p>
+      <p style="font-size:13px;color:var(--text2)">🔒 <strong style="color:var(--success)">.enc (Şifreli)</strong> — AES-256-GCM ile şifreli. Geri yüklemek için passphrase gerekir. Güvenli paylaşım için önerilir.</p>
       <p style="font-size:13px;color:var(--text2);margin-top:8px">📄 <strong style="color:var(--warn)">.txt (Şifresiz)</strong> — Tüm şifreler açık metin olarak dışa aktarılır. Yalnızca güvenli ortamlarda kullanın!</p>
+      <p style="font-size:12px;color:var(--text2);margin-top:10px;opacity:.7">Dosya indirilir; paylaşım diyaloğu varsa WhatsApp, Gmail, Telegram gibi uygulamalara gönderebilirsiniz.</p>
     </div>
-    <div class="modal-alt" style="gap:6px;flex-wrap:wrap">
+    <div class="modal-alt" style="gap:6px">
       <button class="btn btn-secondary" onclick="document.getElementById('modal-export').classList.remove('aktif')">İptal</button>
       <button class="btn btn-secondary" style="color:var(--warn);border-color:var(--warn)" onclick="txtPaylas()">📄 .txt</button>
       <button class="btn btn-primary" onclick="encPaylas()">🔒 .enc</button>
-      <button class="btn btn-primary" style="background:var(--success)" onclick="encTxtPaylas()">🔒 .txt</button>
     </div>
   </div>
 </div>
@@ -1150,46 +1149,6 @@ function _encIndir(blob, dosyaAdi) {
     toast('Şifreli dosya indirildi 🔒', 'basari');
 }
 
-async function encTxtPaylas() {
-    document.getElementById('modal-export').classList.remove('aktif');
-
-    var exportVeri = sifreListesi.map(function(s) {
-        return { baslik: s.baslik, kategori: s.kategori, kullanici: s.kullanici, sifre: s.sifre, url: s.url, not: s.not };
-    });
-
-    var jsonStr = JSON.stringify(exportVeri);
-    var sifreliIcerik;
-    try {
-        sifreliIcerik = await sifrele(jsonStr);
-    } catch (e) {
-        toast('Şifreleme hatası', 'hata');
-        return;
-    }
-
-    var dosyaAdi = 'sifrelerim_' + new Date().toISOString().slice(0, 10) + '_sifreliyedek.txt';
-    var blob = new Blob([sifreliIcerik], { type: 'text/plain;charset=utf-8' });
-    var dosya = new File([blob], dosyaAdi, { type: 'text/plain' });
-
-    if (navigator.canShare && navigator.canShare({ files: [dosya] })) {
-        try {
-            await navigator.share({
-                files: [dosya],
-                title: 'Şifre Yedeği (Şifreli)',
-                text: 'Şifre Hatırlatıcı — Şifreli yedek dosyası. Geri yüklemek için passphrase gerekir.'
-            });
-            toast('Paylaşım başarılı 🔒', 'basari');
-        } catch (e) {
-            if (e.name !== 'AbortError') {
-                _txtIndir(blob, dosyaAdi);
-                toast('Şifreli .txt dosyası indirildi 🔒', 'basari');
-            }
-        }
-    } else {
-        _txtIndir(blob, dosyaAdi);
-        toast('Şifreli .txt dosyası indirildi 🔒', 'basari');
-    }
-}
-
 async function txtPaylas() {
     document.getElementById('modal-export').classList.remove('aktif');
 
@@ -1242,9 +1201,21 @@ async function txtImport(event) {
             var icerik = e.target.result.trim();
             var veri;
 
-            // İçeriğe göre format belirle: JSON array ise şifresiz, değilse şifreli dene
-            if (icerik.startsWith('[')) {
-                // Şifresiz — JSON array
+            // Uzantıya göre format belirle
+            var uzanti = dosya.name.toLowerCase().split('.').pop();
+
+            if (uzanti === 'enc') {
+                // Şifreli dosya — doğrudan çöz
+                try {
+                    var cozulmus = await sifrecoz(icerik);
+                    veri = JSON.parse(cozulmus);
+                    if (!Array.isArray(veri)) { toast('Geçersiz şifreli format', 'hata'); return; }
+                } catch (cozErr) {
+                    toast('Şifreli dosya çözülemedi. Passphrase doğru mu?', 'hata');
+                    return;
+                }
+            } else {
+                // .txt — JSON array bekleniyor
                 try {
                     var deneme = JSON.parse(icerik);
                     if (Array.isArray(deneme)) {
@@ -1254,18 +1225,15 @@ async function txtImport(event) {
                         return;
                     }
                 } catch (parseErr) {
-                    toast('Dosya okunamadı: geçersiz JSON formatı', 'hata');
-                    return;
-                }
-            } else {
-                // Şifreli (base64 AES-GCM) — .enc veya şifreli .txt
-                try {
-                    var cozulmus = await sifrecoz(icerik);
-                    veri = JSON.parse(cozulmus);
-                    if (!Array.isArray(veri)) { toast('Geçersiz şifreli format', 'hata'); return; }
-                } catch (cozErr) {
-                    toast('Şifreli dosya çözülemedi. Passphrase doğru mu?', 'hata');
-                    return;
+                    // JSON parse başarısız, şifreli olabilir mi dene
+                    try {
+                        var cozulmus2 = await sifrecoz(icerik);
+                        veri = JSON.parse(cozulmus2);
+                        if (!Array.isArray(veri)) { toast('Geçersiz format', 'hata'); return; }
+                    } catch (cozErr2) {
+                        toast('Dosya okunamadı: geçersiz format', 'hata');
+                        return;
+                    }
                 }
             }
 
