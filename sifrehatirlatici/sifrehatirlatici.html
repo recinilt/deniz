@@ -326,12 +326,12 @@ select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%
 <div class="toast-container" id="toast-container"></div>
 
 <!-- ARGON2 WASM (KDF) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/argon2-browser/1.18.0/argon2-bundled.min.js" crossorigin="anonymous"></script>
+<script src="lib/argon2-bundled.min.js" crossorigin="anonymous"></script>
 
 <!-- FIREBASE -->
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js" crossorigin="anonymous"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js" crossorigin="anonymous"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js" crossorigin="anonymous"></script>
+<script src="lib/firebase-app-compat.js" crossorigin="anonymous"></script>
+<script src="lib/firebase-auth-compat.js" crossorigin="anonymous"></script>
+<script src="lib/firebase-database-compat.js" crossorigin="anonymous"></script>
 
 <script>
 // ══════════════════════════════════════════════════════════
@@ -657,7 +657,7 @@ async function ilkKullanimKontrol() {
 
 async function passphraseOnayla() {
     var passphrase = document.getElementById('passphrase-input').value;
-    if (!passphrase || passphrase.length < 8) {
+    if (!passphrase || passphrase.length < 5) {
         document.getElementById('passphrase-hata').textContent = 'Güvenlik kelimesi en az 8 karakter olmalıdır.';
         return;
     }
