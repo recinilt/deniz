@@ -943,11 +943,6 @@ let pendingDx       = 0;
 let pendingDy       = 0;
 let lastPointerX    = null;
 let lastPointerY    = null;
-// Scroll state
-let scrollThrottle  = null;
-let pendingScrollDy = 0;
-let activePointers  = {};   // pointerId → {x,y} — 2 parmak takibi
-let isScrollMode    = false;
 // Sanal imleç pozisyonu (TV ekran yüzdesi) — tek kaynak
 let cursorPctX      = 50;
 let cursorPctY      = 50;
@@ -1163,8 +1158,6 @@ function startTvScreen() {
       handleTypeTextCmd(cmd.text);
     } else if (cmd.type === "back") {
       handleBackCmd();
-    } else if (cmd.type === "scroll") {
-      handleScrollCmd(cmd.dy);
     }
   });
 
@@ -1289,12 +1282,6 @@ function handleBackCmd() {
   const iframe = document.getElementById("tv-iframe");
   if (!iframe.classList.contains("active")) return;
   iframe.contentWindow.postMessage({ tvctrl: true, type: "tvctrl-back" }, "*");
-}
-
-function handleScrollCmd(dy) {
-  const iframe = document.getElementById("tv-iframe");
-  if (!iframe.classList.contains("active")) return;
-  iframe.contentWindow.postMessage({ tvctrl: true, type: "tvctrl-scroll", dy }, "*");
 }
 
 // iframe'den gelen focus/click geri bildirimi → sanal imleci taşı
@@ -1536,65 +1523,29 @@ function initTouchpad() {
 
   newArea.addEventListener("pointerdown", e => {
     e.preventDefault();
-    activePointers[e.pointerId] = { x: e.clientX, y: e.clientY };
+    lastPointerX = e.clientX;
+    lastPointerY = e.clientY;
+    isMoved = false;
+    newArea.classList.add("touching");
     newArea.setPointerCapture(e.pointerId);
 
-    const pCount = Object.keys(activePointers).length;
-    if (pCount === 2) {
-      // 2 parmak → scroll moda geç, tek parmak hareketini iptal et
-      isScrollMode = true;
-      if (tapTimer) { clearTimeout(tapTimer); tapTimer = null; }
-      lastPointerX = null;
-      lastPointerY = null;
-    } else if (pCount === 1) {
-      isScrollMode = false;
-      lastPointerX = e.clientX;
-      lastPointerY = e.clientY;
-      isMoved = false;
-      newArea.classList.add("touching");
-      tapTimer = setTimeout(() => { tapTimer = null; }, 300);
-    }
+    tapTimer = setTimeout(() => { tapTimer = null; }, 300);
   }, { passive: false });
 
   newArea.addEventListener("pointermove", e => {
     e.preventDefault();
-    if (!(e.pointerId in activePointers)) return;
-
-    const prev = activePointers[e.pointerId];
-    const rawDy = e.clientY - prev.y;
-    activePointers[e.pointerId] = { x: e.clientX, y: e.clientY };
-
-    if (isScrollMode) {
-      // 2 parmak scroll — dy piksel cinsinden, sensivity ile ölçekle
-      pendingScrollDy += rawDy * (sensitivity / 3) * 8;
-      if (!scrollThrottle) {
-        scrollThrottle = setTimeout(async () => {
-          scrollThrottle = null;
-          if (!selectedTvId) return;
-          const sdy = pendingScrollDy;
-          pendingScrollDy = 0;
-          try {
-            await setDoc(doc(db, "sessions", selectedTvId), {
-              command: { type: "scroll", dy: sdy, sentAt: serverTimestamp() }
-            }, { merge: true });
-          } catch(e) { /* sessiz */ }
-        }, 80);
-      }
-      return;
-    }
-
-    // 1 parmak — cursor taşı
     if (lastPointerX === null) return;
     const rawDx = e.clientX - lastPointerX;
-    const rawDyPtr = e.clientY - lastPointerY;
+    const rawDy = e.clientY - lastPointerY;
     lastPointerX = e.clientX;
     lastPointerY = e.clientY;
 
-    if (Math.abs(rawDx) > 1 || Math.abs(rawDyPtr) > 1) isMoved = true;
+    if (Math.abs(rawDx) > 1 || Math.abs(rawDy) > 1) isMoved = true;
 
+    // Piksel delta → touchpad alanı boyutuna göre % delta + hassasiyet
     const areaRect = newArea.getBoundingClientRect();
     const dxPct = (rawDx / areaRect.width)  * 100 * (sensitivity / 3);
-    const dyPct = (rawDyPtr / areaRect.height) * 100 * (sensitivity / 3);
+    const dyPct = (rawDy / areaRect.height) * 100 * (sensitivity / 3);
 
     pendingDx += dxPct;
     pendingDy += dyPct;
@@ -1618,12 +1569,6 @@ function initTouchpad() {
 
   newArea.addEventListener("pointerup", async e => {
     e.preventDefault();
-    delete activePointers[e.pointerId];
-
-    const pCount = Object.keys(activePointers).length;
-    if (pCount < 2) isScrollMode = false;
-    if (pCount > 0) return; // hâlâ parmak var, tap kontrolü yapma
-
     newArea.classList.remove("touching");
     lastPointerX = null;
     lastPointerY = null;
@@ -1631,6 +1576,7 @@ function initTouchpad() {
     if (!isMoved && tapTimer !== null) {
       clearTimeout(tapTimer);
       tapTimer = null;
+      // Tek parmak tap = tıklama — koordinat mobil cursor'dan geliyor
       if (!selectedTvId) return;
       try {
         await setDoc(doc(db, "sessions", selectedTvId), {
@@ -1641,14 +1587,10 @@ function initTouchpad() {
     }
   }, { passive: false });
 
-  newArea.addEventListener("pointercancel", e => {
-    delete activePointers[e.pointerId];
-    if (Object.keys(activePointers).length < 2) isScrollMode = false;
-    if (Object.keys(activePointers).length === 0) {
-      newArea.classList.remove("touching");
-      lastPointerX = null;
-      lastPointerY = null;
-    }
+  newArea.addEventListener("pointercancel", () => {
+    newArea.classList.remove("touching");
+    lastPointerX = null;
+    lastPointerY = null;
   });
 }
 
