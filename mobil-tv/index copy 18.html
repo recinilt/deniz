@@ -939,6 +939,8 @@ let touchMode       = "swipe";   // "swipe" | "dpad"
 let sensitivity     = 5;
 let useProxy        = false;
 let pointerThrottle = null;
+let pendingDx       = 0;
+let pendingDy       = 0;
 let lastPointerX    = null;
 let lastPointerY    = null;
 // Scroll state
@@ -946,11 +948,6 @@ let scrollThrottle  = null;
 let pendingScrollDy = 0;
 let activePointers  = {};   // pointerId → {x,y} — 2 parmak takibi
 let isScrollMode    = false;
-// Mutlak koordinat — gesture başlangıç snapshot
-let gestureStartX   = 50;
-let gestureStartY   = 50;
-let totalDx         = 0;
-let totalDy         = 0;
 // Sanal imleç pozisyonu (TV ekran yüzdesi) — tek kaynak
 let cursorPctX      = 50;
 let cursorPctY      = 50;
@@ -1157,7 +1154,7 @@ function startTvScreen() {
     } else if (cmd.type === "videoControl") {
       handleVideoControl(cmd.action);
     } else if (cmd.type === "pointer") {
-      handlePointerCmd(cmd.x, cmd.y);
+      handlePointerCmd(cmd.dx, cmd.dy);
     } else if (cmd.type === "click") {
       handleClickCmd();
     } else if (cmd.type === "dpad") {
@@ -1219,10 +1216,10 @@ function iframeDirectDispatch(type, pctX, pctY, extraOpts) {
   } catch(e) { return false; }
 }
 
-function handlePointerCmd(x, y) {
-  // mutlak koordinat — direkt ata, delta birikimsel hatası yok
-  cursorPctX = Math.min(100, Math.max(0, x));
-  cursorPctY = Math.min(100, Math.max(0, y));
+function handlePointerCmd(dx, dy) {
+  // dx/dy artık % cinsinden geliyor — direkt ekle
+  cursorPctX = Math.min(100, Math.max(0, cursorPctX + dx));
+  cursorPctY = Math.min(100, Math.max(0, cursorPctY + dy));
   showCursor();
   // Tam proxy ve lite proxy: inject script sayfada var, postMessage kullan
   const iframe = document.getElementById("tv-iframe");
@@ -1554,11 +1551,6 @@ function initTouchpad() {
       lastPointerX = e.clientX;
       lastPointerY = e.clientY;
       isMoved = false;
-      // Gesture başlangıcında TV'nin mevcut cursor pozisyonunu snapshot al
-      gestureStartX = cursorPctX;
-      gestureStartY = cursorPctY;
-      totalDx = 0;
-      totalDy = 0;
       newArea.classList.add("touching");
       tapTimer = setTimeout(() => { tapTimer = null; }, 300);
     }
@@ -1569,12 +1561,12 @@ function initTouchpad() {
     if (!(e.pointerId in activePointers)) return;
 
     const prev = activePointers[e.pointerId];
-    const scrollRawDy = e.clientY - prev.y;
+    const rawDy = e.clientY - prev.y;
     activePointers[e.pointerId] = { x: e.clientX, y: e.clientY };
 
     if (isScrollMode) {
       // 2 parmak scroll — dy piksel cinsinden, sensivity ile ölçekle
-      pendingScrollDy += scrollRawDy * (sensitivity / 3) * 8;
+      pendingScrollDy += rawDy * (sensitivity / 3) * 8;
       if (!scrollThrottle) {
         scrollThrottle = setTimeout(async () => {
           scrollThrottle = null;
@@ -1591,32 +1583,33 @@ function initTouchpad() {
       return;
     }
 
-    // 1 parmak — cursor taşı (mutlak koordinat: pointerdown snapshot + toplam delta)
-    const rawDx = e.clientX - (lastPointerX || e.clientX);
-    const rawDy = e.clientY - (lastPointerY || e.clientY);
+    // 1 parmak — cursor taşı
+    if (lastPointerX === null) return;
+    const rawDx = e.clientX - lastPointerX;
+    const rawDyPtr = e.clientY - lastPointerY;
     lastPointerX = e.clientX;
     lastPointerY = e.clientY;
 
-    if (Math.abs(rawDx) > 1 || Math.abs(rawDy) > 1) isMoved = true;
+    if (Math.abs(rawDx) > 1 || Math.abs(rawDyPtr) > 1) isMoved = true;
 
     const areaRect = newArea.getBoundingClientRect();
-    // Toplam delta: bu gesture başından itibaren ne kadar kaydı
-    totalDx += (rawDx / areaRect.width)  * 100 * (sensitivity / 3);
-    totalDy += (rawDy / areaRect.height) * 100 * (sensitivity / 3);
+    const dxPct = (rawDx / areaRect.width)  * 100 * (sensitivity / 3);
+    const dyPct = (rawDyPtr / areaRect.height) * 100 * (sensitivity / 3);
 
-    // Mutlak hedef = pointerdown anındaki cursor pozisyonu + toplam delta
-    const targetX = Math.min(100, Math.max(0, gestureStartX + totalDx));
-    const targetY = Math.min(100, Math.max(0, gestureStartY + totalDy));
+    pendingDx += dxPct;
+    pendingDy += dyPct;
 
     if (!pointerThrottle) {
       pointerThrottle = setTimeout(async () => {
         pointerThrottle = null;
         if (!selectedTvId) return;
-        const tx = targetX;
-        const ty = targetY;
+        const sdx = pendingDx;
+        const sdy = pendingDy;
+        pendingDx = 0;
+        pendingDy = 0;
         try {
           await setDoc(doc(db, "sessions", selectedTvId), {
-            command: { type: "pointer", x: tx, y: ty, sentAt: serverTimestamp() }
+            command: { type: "pointer", dx: sdx, dy: sdy, sentAt: serverTimestamp() }
           }, { merge: true });
         } catch(e) { /* sessiz */ }
       }, 80);
