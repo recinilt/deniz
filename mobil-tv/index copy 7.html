@@ -1132,13 +1132,10 @@ function startTvScreen() {
 
   // Kendi session'ı dinle (komut gelirse)
   sessionUnsub = onSnapshot(doc(db, "sessions", sessionId), snap => {
-    if (snap.metadata.hasPendingWrites) return; // local yazma kaynaklı tetiklenme, atla
     const data = snap.data();
     if (!data) return;
     const cmd = data.command;
     if (!cmd) return;
-    // Komutu hemen null'la — sonraki snapshot'larda tekrar işlenmesin
-    setDoc(doc(db, "sessions", sessionId), { command: null }, { merge: true });
     if (cmd.type === "navigate" && cmd.url) {
       loadUrl(cmd.url);
     } else if (cmd.type === "videoControl") {
