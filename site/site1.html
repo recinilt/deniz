@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>TV Kumanda</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-primary: #0a0a0f;
+    --bg-secondary: #12121a;
+    --bg-card: #1a1a26;
+    --bg-card-hover: #22222f;
+    --bg-input: #16161f;
+    --accent: #6c5ce7;
+    --accent-glow: rgba(108, 92, 231, 0.3);
+    --accent-light: #a29bfe;
+    --text-primary: #e8e8ed;
+    --text-secondary: #8888a0;
+    --text-muted: #55556a;
+    --danger: #ff6b6b;
+    --danger-bg: rgba(255, 107, 107, 0.1);
+    --success: #51cf66;
+    --success-bg: rgba(81, 207, 102, 0.1);
+    --youtube: #ff4444;
+    --border: rgba(255, 255, 255, 0.06);
+    --border-accent: rgba(108, 92, 231, 0.3);
+    --radius: 14px;
+    --radius-sm: 10px;
+    --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
+
+  /* === LOGIN SCREEN === */
+  .login-screen {
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: radial-gradient(ellipse at 50% 0%, rgba(108,92,231,0.08) 0%, transparent 60%);
+  }
+
+  .login-logo {
+    width: 72px; height: 72px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-light));
+    border-radius: 20px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px;
+    margin-bottom: 16px;
+    box-shadow: 0 8px 32px var(--accent-glow);
+    animation: float 3s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
+
+  .login-title { font-size: 26px; font-weight: 700; margin-bottom: 4px; }
+  .login-subtitle { font-size: 14px; color: var(--text-secondary); margin-bottom: 32px; }
+
+  .login-form { width: 100%; max-width: 360px; }
+
+  .input-group {
+    position: relative;
+    margin-bottom: 14px;
+  }
+
+  .input-group label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .input-group input {
+    width: 100%;
+    padding: 14px 16px;
+    background: var(--bg-card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .input-group input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+
+  .remember-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    cursor: pointer;
+  }
+
+  .remember-row input[type="checkbox"] {
+    width: 18px; height: 18px;
+    accent-color: var(--accent);
+    cursor: pointer;
+  }
+
+  .remember-row span { font-size: 13px; color: var(--text-secondary); }
+
+  .btn-login {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, var(--accent), #7c6cf0);
+    border: none;
+    border-radius: var(--radius-sm);
+    color: #fff;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.2s;
+    box-shadow: 0 4px 16px var(--accent-glow);
+  }
+
+  .btn-login:active { transform: scale(0.97); }
+
+  .login-error {
+    margin-top: 14px;
+    padding: 12px;
+    background: var(--danger-bg);
+    border: 1px solid rgba(255,107,107,0.2);
+    border-radius: var(--radius-sm);
+    color: var(--danger);
+    font-size: 13px;
+    text-align: center;
+    display: none;
+  }
+
+  /* === MAIN APP === */
+  .app-screen { display: none; min-height: 100dvh; padding-bottom: 100px; }
+
+  .app-header {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(10,10,15,0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  .header-left { display: flex; align-items: center; gap: 10px; }
+
+  .header-icon {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-light));
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+
+  .header-title { font-size: 18px; font-weight: 700; }
+
+  .btn-logout {
+    padding: 8px 14px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-secondary);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-logout:active { background: rgba(255,255,255,0.1); }
+
+  /* === URL INPUT SECTION === */
+  .url-section {
+    padding: 20px;
+    background: radial-gradient(ellipse at 50% 100%, rgba(108,92,231,0.06) 0%, transparent 70%);
+  }
+
+  .url-input-wrapper {
+    position: relative;
+    display: flex;
+    gap: 10px;
+  }
+
+  .url-input-container {
+    flex: 1;
+    position: relative;
+  }
+
+  .url-prefix {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--text-muted);
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+
+  #urlInput {
+    width: 100%;
+    padding: 16px 14px 16px 14px;
+    background: var(--bg-card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text-primary);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  #urlInput:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+
+  #urlInput::placeholder { color: var(--text-muted); font-family: 'DM Sans', sans-serif; }
+
+  .btn-send {
+    padding: 16px 22px;
+    background: linear-gradient(135deg, var(--accent), #7c6cf0);
+    border: none;
+    border-radius: var(--radius);
+    color: #fff;
+    font-size: 20px;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.2s;
+    box-shadow: 0 4px 16px var(--accent-glow);
+    display: flex; align-items: center; justify-content: center;
+    min-width: 58px;
+  }
+
+  .btn-send:active { transform: scale(0.93); }
+  .btn-send.sent { background: linear-gradient(135deg, var(--success), #3dbb55); box-shadow: 0 4px 16px rgba(81,207,102,0.3); }
+  .btn-send.youtube-detected { background: linear-gradient(135deg, var(--youtube), #cc3333); box-shadow: 0 4px 16px rgba(255,68,68,0.3); }
+
+  .url-status {
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--text-muted);
+    min-height: 18px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .url-status.success { color: var(--success); }
+  .url-status.youtube { color: var(--youtube); }
+
+  /* === TABS === */
+  .tabs-container { padding: 0 20px; margin-top: 8px; }
+
+  .tabs {
+    display: flex;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+    padding: 3px;
+    border: 1px solid var(--border);
+  }
+
+  .tab {
+    flex: 1;
+    padding: 10px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.25s;
+    border: none;
+    background: none;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .tab.active {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+
+  .tab-badge {
+    display: inline-flex;
+    align-items: center; justify-content: center;
+    min-width: 18px; height: 18px;
+    background: var(--accent);
+    color: #fff;
+    border-radius: 9px;
+    font-size: 10px;
+    font-weight: 700;
+    margin-left: 6px;
+    padding: 0 5px;
+  }
+
+  /* === LIST SECTIONS === */
+  .list-section { padding: 16px 20px; }
+  .list-section.hidden { display: none; }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .section-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .section-action {
+    font-size: 12px;
+    color: var(--accent-light);
+    background: none;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    padding: 4px 8px;
+  }
+
+  .url-list { display: flex; flex-direction: column; gap: 8px; }
+
+  .url-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .url-item:active { background: var(--bg-card-hover); transform: scale(0.98); }
+  .url-item.youtube { border-left: 3px solid var(--youtube); }
+
+  .url-item-icon {
+    width: 38px; height: 38px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .url-item-icon.default { background: rgba(108,92,231,0.12); }
+  .url-item-icon.yt { background: rgba(255,68,68,0.12); }
+
+  .url-item-info { flex: 1; min-width: 0; }
+
+  .url-item-domain {
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .url-item-path {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 2px;
+  }
+
+  .url-item-time {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 3px;
+  }
+
+  .url-item-actions {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .btn-icon {
+    width: 34px; height: 34px;
+    border-radius: 8px;
+    border: none;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.15s;
+    background: rgba(255,255,255,0.04);
+    color: var(--text-secondary);
+  }
+
+  .btn-icon:active { transform: scale(0.9); }
+  .btn-icon.fav { color: #ffd43b; }
+  .btn-icon.del { color: var(--danger); }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-muted);
+  }
+
+  .empty-state-icon { font-size: 40px; margin-bottom: 12px; opacity: 0.5; }
+  .empty-state-text { font-size: 14px; }
+
+  /* === TOAST === */
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 500;
+    box-shadow: var(--shadow);
+    z-index: 1000;
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+  }
+
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* === ANIMATIONS === */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .animate-in { animation: fadeInUp 0.4s ease-out; }
+
+  .url-item { animation: fadeInUp 0.3s ease-out; animation-fill-mode: both; }
+  .url-item:nth-child(1) { animation-delay: 0.02s; }
+  .url-item:nth-child(2) { animation-delay: 0.04s; }
+  .url-item:nth-child(3) { animation-delay: 0.06s; }
+  .url-item:nth-child(4) { animation-delay: 0.08s; }
+  .url-item:nth-child(5) { animation-delay: 0.10s; }
+
+  /* === LOADING SPINNER === */
+  .spinner {
+    width: 20px; height: 20px;
+    border: 2px solid rgba(255,255,255,0.2);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* === CONFIRM DIALOG === */
+  .dialog-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(8px);
+    z-index: 500;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .dialog-overlay.show { display: flex; }
+
+  .dialog-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    max-width: 320px;
+    width: 100%;
+    box-shadow: var(--shadow);
+  }
+
+  .dialog-title { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+  .dialog-text { font-size: 14px; color: var(--text-secondary); margin-bottom: 20px; line-height: 1.5; }
+
+  .dialog-actions { display: flex; gap: 10px; }
+  .dialog-actions button {
+    flex: 1; padding: 12px;
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: transform 0.1s;
+  }
+  .dialog-actions button:active { transform: scale(0.96); }
+  .dialog-cancel { background: rgba(255,255,255,0.06); color: var(--text-secondary); }
+  .dialog-confirm { background: var(--danger); color: #fff; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-logo">📡</div>
+  <div class="login-title">TV Kumanda</div>
+  <div class="login-subtitle">TV'nize URL gönderin</div>
+  <div class="login-form">
+    <div class="input-group">
+      <label>E-posta</label>
+      <input type="email" id="loginEmail" placeholder="ornek@email.com" autocomplete="email">
+    </div>
+    <div class="input-group">
+      <label>Şifre</label>
+      <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <label class="remember-row">
+      <input type="checkbox" id="rememberMe" checked>
+      <span>Beni hatırla</span>
+    </label>
+    <button class="btn-login" id="btnLogin" onclick="handleLogin()">Giriş Yap</button>
+    <div class="login-error" id="loginError"></div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div class="app-screen" id="appScreen">
+  <div class="app-header">
+    <div class="header-left">
+      <div class="header-icon">📡</div>
+      <div class="header-title">TV Kumanda</div>
+    </div>
+    <button class="btn-logout" onclick="handleLogout()">Çıkış</button>
+  </div>
+
+  <!-- URL INPUT -->
+  <div class="url-section animate-in">
+    <div class="url-input-wrapper">
+      <div class="url-input-container">
+        <input type="url" id="urlInput" placeholder="URL girin veya yapıştırın..." autocomplete="off" autocapitalize="off" spellcheck="false">
+      </div>
+      <button class="btn-send" id="btnSend" onclick="sendUrl()">
+        <span id="sendIcon">➤</span>
+      </button>
+    </div>
+    <div class="url-status" id="urlStatus"></div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs-container">
+    <div class="tabs">
+      <button class="tab active" id="tabRecent" onclick="switchTab('recent')">
+        Son Kullanılanlar<span class="tab-badge" id="recentBadge">0</span>
+      </button>
+      <button class="tab" id="tabFavorites" onclick="switchTab('favorites')">
+        Favoriler<span class="tab-badge" id="favBadge">0</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- RECENT LIST -->
+  <div class="list-section" id="recentSection">
+    <div class="section-header">
+      <span class="section-title">Son Ziyaret Edilenler</span>
+      <button class="section-action" id="clearRecent" onclick="confirmClearRecent()">Temizle</button>
+    </div>
+    <div class="url-list" id="recentList"></div>
+    <div class="empty-state" id="recentEmpty" style="display:none;">
+      <div class="empty-state-icon">📭</div>
+      <div class="empty-state-text">Henüz URL göndermediniz</div>
+    </div>
+  </div>
+
+  <!-- FAVORITES LIST -->
+  <div class="list-section hidden" id="favoritesSection">
+    <div class="section-header">
+      <span class="section-title">Favori URL'ler</span>
+    </div>
+    <div class="url-list" id="favList"></div>
+    <div class="empty-state" id="favEmpty" style="display:none;">
+      <div class="empty-state-icon">⭐</div>
+      <div class="empty-state-text">Favori URL'niz yok</div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- CONFIRM DIALOG -->
+<div class="dialog-overlay" id="dialogOverlay">
+  <div class="dialog-box">
+    <div class="dialog-title" id="dialogTitle"></div>
+    <div class="dialog-text" id="dialogText"></div>
+    <div class="dialog-actions">
+      <button class="dialog-cancel" onclick="closeDialog()">İptal</button>
+      <button class="dialog-confirm" id="dialogConfirm">Sil</button>
+    </div>
+  </div>
+</div>
+
+<!-- FIREBASE -->
+<script type="module">
+  // ==========================================
+  // 🔧 FIREBASE CONFIG — KENDİ BİLGİLERİNİZİ GİRİN
+  // ==========================================
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+  import { getDatabase, ref, set, push, onValue, remove, query, orderByChild, limitToLast, get } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDw5kHPVMtm9G7zD_hBlusp1HCcUbbIhv8",
+    authDomain: "mobil-tv-e1095.firebaseapp.com",
+    databaseURL: "https://mobil-tv-e1095-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "mobil-tv-e1095",
+    storageBucket: "mobil-tv-e1095.firebasestorage.app",
+    messagingSenderId: "397261791298",
+    appId: "1:397261791298:web:3f392e3634bed79ba50ddb"
+  };
+  // ==========================================
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getDatabase(app);
+
+  let currentUser = null;
+  let recents = [];
+  let favorites = [];
+
+  // --- AUTH ---
+  window.handleLogin = async function() {
+    const email = document.getElementById('loginEmail').value.trim();
+    const pass = document.getElementById('loginPassword').value;
+    const remember = document.getElementById('rememberMe').checked;
+    const errEl = document.getElementById('loginError');
+    const btn = document.getElementById('btnLogin');
+
+    if (!email || !pass) { errEl.textContent = 'Lütfen tüm alanları doldurun'; errEl.style.display = 'block'; return; }
+
+    btn.innerHTML = '<div class="spinner" style="margin:0 auto;width:18px;height:18px;"></div>';
+    btn.disabled = true;
+
+    try {
+      await signInWithEmailAndPassword(auth, email, pass);
+      if (remember) {
+        localStorage.setItem('tv_remote_email', email);
+        localStorage.setItem('tv_remote_pass', btoa(pass));
+      }
+      errEl.style.display = 'none';
+    } catch (e) {
+      let msg = 'Giriş başarısız';
+      if (e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential') msg = 'E-posta veya şifre hatalı';
+      else if (e.code === 'auth/too-many-requests') msg = 'Çok fazla deneme. Lütfen bekleyin';
+      errEl.textContent = msg;
+      errEl.style.display = 'block';
+      btn.textContent = 'Giriş Yap';
+      btn.disabled = false;
+    }
+  };
+
+  window.handleLogout = async function() {
+    localStorage.removeItem('tv_remote_email');
+    localStorage.removeItem('tv_remote_pass');
+    await signOut(auth);
+  };
+
+  // Auto-login
+  const savedEmail = localStorage.getItem('tv_remote_email');
+  const savedPass = localStorage.getItem('tv_remote_pass');
+  if (savedEmail && savedPass) {
+    document.getElementById('loginEmail').value = savedEmail;
+    document.getElementById('loginPassword').value = atob(savedPass);
+  }
+
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      currentUser = user;
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('appScreen').style.display = 'block';
+      listenData();
+    } else {
+      currentUser = null;
+      document.getElementById('loginScreen').style.display = 'flex';
+      document.getElementById('appScreen').style.display = 'none';
+    }
+  });
+
+  // --- DATA LISTENERS ---
+  function listenData() {
+    const uid = currentUser.uid;
+
+    // Recents
+    const recentsRef = query(ref(db, `users/${uid}/recents`), orderByChild('timestamp'), limitToLast(10));
+    onValue(recentsRef, (snap) => {
+      recents = [];
+      snap.forEach(child => { recents.push({ key: child.key, ...child.val() }); });
+      recents.reverse();
+      renderRecents();
+    });
+
+    // Favorites
+    onValue(ref(db, `users/${uid}/favorites`), (snap) => {
+      favorites = [];
+      snap.forEach(child => { favorites.push({ key: child.key, ...child.val() }); });
+      favorites.reverse();
+      renderFavorites();
+    });
+  }
+
+  // --- SEND URL ---
+  window.sendUrl = async function() {
+    const input = document.getElementById('urlInput');
+    let url = input.value.trim();
+    if (!url) return;
+
+    // Auto-add https://
+    if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+
+    const btn = document.getElementById('btnSend');
+    const statusEl = document.getElementById('urlStatus');
+    const isYT = isYouTube(url);
+
+    btn.innerHTML = '<div class="spinner"></div>';
+
+    try {
+      const uid = currentUser.uid;
+
+      // Write current URL for TV
+      await set(ref(db, `users/${uid}/currentUrl`), {
+        url: url,
+        timestamp: Date.now()
+      });
+
+      // Add to recents
+      await push(ref(db, `users/${uid}/recents`), {
+        url: url,
+        timestamp: Date.now()
+      });
+
+      // Trim recents to 10
+      trimRecents(uid);
+
+      btn.classList.add('sent');
+      btn.innerHTML = '✓';
+      statusEl.className = 'url-status success';
+      statusEl.innerHTML = isYT ? '▶ YouTube videosu TV\'ye gönderildi' : '✓ URL TV\'ye gönderildi';
+      input.value = '';
+
+      setTimeout(() => {
+        btn.classList.remove('sent');
+        btn.innerHTML = '<span>➤</span>';
+        statusEl.innerHTML = '';
+        statusEl.className = 'url-status';
+      }, 2000);
+
+      showToast(isYT ? '▶ YouTube TV\'ye gönderildi!' : '✓ URL TV\'ye gönderildi!');
+
+    } catch (e) {
+      btn.innerHTML = '<span>➤</span>';
+      statusEl.className = 'url-status';
+      statusEl.textContent = '✗ Gönderilemedi';
+      showToast('Hata: URL gönderilemedi');
+    }
+  };
+
+  async function trimRecents(uid) {
+    const recentsRef = query(ref(db, `users/${uid}/recents`), orderByChild('timestamp'));
+    const snap = await get(recentsRef);
+    const items = [];
+    snap.forEach(child => items.push({ key: child.key, ts: child.val().timestamp }));
+    if (items.length > 10) {
+      items.sort((a, b) => a.ts - b.ts);
+      const toRemove = items.slice(0, items.length - 10);
+      for (const item of toRemove) {
+        await remove(ref(db, `users/${uid}/recents/${item.key}`));
+      }
+    }
+  }
+
+  // --- FAVORITES ---
+  window.toggleFavorite = async function(url) {
+    const uid = currentUser.uid;
+    const existing = favorites.find(f => f.url === url);
+    if (existing) {
+      await remove(ref(db, `users/${uid}/favorites/${existing.key}`));
+      showToast('Favorilerden çıkarıldı');
+    } else {
+      await push(ref(db, `users/${uid}/favorites`), { url: url, timestamp: Date.now() });
+      showToast('⭐ Favorilere eklendi');
+    }
+  };
+
+  window.removeFavorite = async function(key) {
+    const uid = currentUser.uid;
+    await remove(ref(db, `users/${uid}/favorites/${key}`));
+    showToast('Favoriden silindi');
+  };
+
+  window.sendExistingUrl = async function(url) {
+    document.getElementById('urlInput').value = url;
+    await window.sendUrl();
+  };
+
+  window.confirmClearRecent = function() {
+    showDialog('Geçmişi Temizle', 'Tüm son kullanılanlar silinecek. Devam etmek istiyor musunuz?', async () => {
+      const uid = currentUser.uid;
+      await remove(ref(db, `users/${uid}/recents`));
+      showToast('Geçmiş temizlendi');
+    });
+  };
+
+  window.confirmDeleteFav = function(key) {
+    showDialog('Favoriyi Sil', 'Bu URL favorilerden silinecek. Emin misiniz?', async () => {
+      await remove(ref(db, `users/${uid}/favorites/${key}`));
+      showToast('Favoriden silindi');
+    });
+  };
+
+  // --- RENDERS ---
+  function renderRecents() {
+    const list = document.getElementById('recentList');
+    const empty = document.getElementById('recentEmpty');
+    const badge = document.getElementById('recentBadge');
+    badge.textContent = recents.length;
+
+    if (recents.length === 0) {
+      list.innerHTML = '';
+      empty.style.display = 'block';
+      return;
+    }
+    empty.style.display = 'none';
+
+    list.innerHTML = recents.map((item, i) => {
+      const parsed = parseUrl(item.url);
+      const isYT = isYouTube(item.url);
+      const isFav = favorites.some(f => f.url === item.url);
+      const time = timeAgo(item.timestamp);
+
+      return `<div class="url-item ${isYT ? 'youtube' : ''}" style="animation-delay:${i * 0.03}s" onclick="sendExistingUrl('${escapeHtml(item.url)}')">
+        <div class="url-item-icon ${isYT ? 'yt' : 'default'}">${isYT ? '▶' : '🔗'}</div>
+        <div class="url-item-info">
+          <div class="url-item-domain">${escapeHtml(parsed.domain)}</div>
+          <div class="url-item-path">${escapeHtml(parsed.path)}</div>
+          <div class="url-item-time">${time}</div>
+        </div>
+        <div class="url-item-actions" onclick="event.stopPropagation()">
+          <button class="btn-icon ${isFav ? 'fav' : ''}" onclick="toggleFavorite('${escapeHtml(item.url)}')" title="${isFav ? 'Favoriden çıkar' : 'Favoriye ekle'}">
+            ${isFav ? '★' : '☆'}
+          </button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function renderFavorites() {
+    const list = document.getElementById('favList');
+    const empty = document.getElementById('favEmpty');
+    const badge = document.getElementById('favBadge');
+    badge.textContent = favorites.length;
+
+    if (favorites.length === 0) {
+      list.innerHTML = '';
+      empty.style.display = 'block';
+      return;
+    }
+    empty.style.display = 'none';
+
+    list.innerHTML = favorites.map((item, i) => {
+      const parsed = parseUrl(item.url);
+      const isYT = isYouTube(item.url);
+
+      return `<div class="url-item ${isYT ? 'youtube' : ''}" style="animation-delay:${i * 0.03}s" onclick="sendExistingUrl('${escapeHtml(item.url)}')">
+        <div class="url-item-icon ${isYT ? 'yt' : 'default'}">${isYT ? '▶' : '🔗'}</div>
+        <div class="url-item-info">
+          <div class="url-item-domain">${escapeHtml(parsed.domain)}</div>
+          <div class="url-item-path">${escapeHtml(parsed.path)}</div>
+        </div>
+        <div class="url-item-actions" onclick="event.stopPropagation()">
+          <button class="btn-icon fav" onclick="toggleFavorite('${escapeHtml(item.url)}')" title="Favoriden çıkar">★</button>
+        </div>
+      </div>`;
+    }).join('');
+
+    // also re-render recents since fav status may have changed
+    renderRecents();
+  }
+
+  // --- TABS ---
+  window.switchTab = function(tab) {
+    document.getElementById('tabRecent').classList.toggle('active', tab === 'recent');
+    document.getElementById('tabFavorites').classList.toggle('active', tab === 'favorites');
+    document.getElementById('recentSection').classList.toggle('hidden', tab !== 'recent');
+    document.getElementById('favoritesSection').classList.toggle('hidden', tab !== 'favorites');
+  };
+
+  // --- UTILS ---
+  function isYouTube(url) {
+    return /(?:youtube\.com|youtu\.be)/i.test(url);
+  }
+
+  function parseUrl(url) {
+    try {
+      const u = new URL(url);
+      return { domain: u.hostname.replace('www.', ''), path: u.pathname + u.search };
+    } catch {
+      return { domain: url, path: '' };
+    }
+  }
+
+  function timeAgo(ts) {
+    const diff = Date.now() - ts;
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'Az önce';
+    if (mins < 60) return `${mins} dk önce`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `${hours} saat önce`;
+    const days = Math.floor(hours / 24);
+    return `${days} gün önce`;
+  }
+
+  function escapeHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+  }
+
+  // --- TOAST ---
+  window.showToast = function(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+  };
+
+  // --- DIALOG ---
+  let dialogCallback = null;
+  window.showDialog = function(title, text, onConfirm) {
+    document.getElementById('dialogTitle').textContent = title;
+    document.getElementById('dialogText').textContent = text;
+    document.getElementById('dialogOverlay').classList.add('show');
+    dialogCallback = onConfirm;
+    document.getElementById('dialogConfirm').onclick = async () => {
+      if (dialogCallback) await dialogCallback();
+      closeDialog();
+    };
+  };
+
+  window.closeDialog = function() {
+    document.getElementById('dialogOverlay').classList.remove('show');
+    dialogCallback = null;
+  };
+
+  // --- YOUTUBE DETECTION ON INPUT ---
+  document.getElementById('urlInput').addEventListener('input', (e) => {
+    const val = e.target.value.trim();
+    const btn = document.getElementById('btnSend');
+    const status = document.getElementById('urlStatus');
+
+    if (isYouTube(val)) {
+      btn.classList.add('youtube-detected');
+      status.className = 'url-status youtube';
+      status.innerHTML = '▶ YouTube videosu algılandı';
+    } else {
+      btn.classList.remove('youtube-detected');
+      status.className = 'url-status';
+      status.innerHTML = '';
+    }
+  });
+
+  // Enter key support
+  document.getElementById('urlInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') window.sendUrl();
+  });
+
+  // Login enter key
+  document.getElementById('loginPassword').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') window.handleLogin();
+  });
+</script>
+</body>
+</html>
