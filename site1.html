@@ -122,6 +122,36 @@
 
   .remember-row span { font-size: 13px; color: var(--text-secondary); }
 
+  .auth-tabs {
+    display: flex;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+    padding: 3px;
+    border: 1px solid var(--border);
+    margin-bottom: 20px;
+  }
+
+  .auth-tab {
+    flex: 1;
+    padding: 10px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.25s;
+    border: none;
+    background: none;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .auth-tab.active {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+
   .btn-login {
     width: 100%;
     padding: 16px;
@@ -138,6 +168,9 @@
   }
 
   .btn-login:active { transform: scale(0.97); }
+
+  .confirm-group { display: none; }
+  .confirm-group.show { display: block; }
 
   .login-error {
     margin-top: 14px;
@@ -528,6 +561,10 @@
   <div class="login-title">TV Kumanda</div>
   <div class="login-subtitle">TV'nize URL gönderin</div>
   <div class="login-form">
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="authTabLogin" onclick="switchAuthTab('login')">Giriş Yap</button>
+      <button class="auth-tab" id="authTabRegister" onclick="switchAuthTab('register')">Kayıt Ol</button>
+    </div>
     <div class="input-group">
       <label>E-posta</label>
       <input type="email" id="loginEmail" placeholder="ornek@email.com" autocomplete="email">
@@ -536,11 +573,15 @@
       <label>Şifre</label>
       <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
     </div>
+    <div class="input-group confirm-group" id="confirmGroup">
+      <label>Şifre Tekrar</label>
+      <input type="password" id="confirmPassword" placeholder="••••••••" autocomplete="new-password">
+    </div>
     <label class="remember-row">
       <input type="checkbox" id="rememberMe" checked>
       <span>Beni hatırla</span>
     </label>
-    <button class="btn-login" id="btnLogin" onclick="handleLogin()">Giriş Yap</button>
+    <button class="btn-login" id="btnLogin" onclick="handleAuth()">Giriş Yap</button>
     <div class="login-error" id="loginError"></div>
   </div>
 </div>
@@ -627,7 +668,7 @@
   // 🔧 FIREBASE CONFIG — KENDİ BİLGİLERİNİZİ GİRİN
   // ==========================================
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
-  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+  import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
   import { getDatabase, ref, set, push, onValue, remove, query, orderByChild, limitToLast, get } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
 
   const firebaseConfig = {
@@ -650,7 +691,18 @@
   let favorites = [];
 
   // --- AUTH ---
-  window.handleLogin = async function() {
+  let authMode = 'login'; // 'login' or 'register'
+
+  window.switchAuthTab = function(mode) {
+    authMode = mode;
+    document.getElementById('authTabLogin').classList.toggle('active', mode === 'login');
+    document.getElementById('authTabRegister').classList.toggle('active', mode === 'register');
+    document.getElementById('confirmGroup').classList.toggle('show', mode === 'register');
+    document.getElementById('btnLogin').textContent = mode === 'login' ? 'Giriş Yap' : 'Kayıt Ol';
+    document.getElementById('loginError').style.display = 'none';
+  };
+
+  window.handleAuth = async function() {
     const email = document.getElementById('loginEmail').value.trim();
     const pass = document.getElementById('loginPassword').value;
     const remember = document.getElementById('rememberMe').checked;
@@ -659,23 +711,36 @@
 
     if (!email || !pass) { errEl.textContent = 'Lütfen tüm alanları doldurun'; errEl.style.display = 'block'; return; }
 
+    if (authMode === 'register') {
+      const confirm = document.getElementById('confirmPassword').value;
+      if (pass !== confirm) { errEl.textContent = 'Şifreler eşleşmiyor'; errEl.style.display = 'block'; return; }
+      if (pass.length < 6) { errEl.textContent = 'Şifre en az 6 karakter olmalı'; errEl.style.display = 'block'; return; }
+    }
+
     btn.innerHTML = '<div class="spinner" style="margin:0 auto;width:18px;height:18px;"></div>';
     btn.disabled = true;
 
     try {
-      await signInWithEmailAndPassword(auth, email, pass);
+      if (authMode === 'register') {
+        await createUserWithEmailAndPassword(auth, email, pass);
+      } else {
+        await signInWithEmailAndPassword(auth, email, pass);
+      }
       if (remember) {
         localStorage.setItem('tv_remote_email', email);
         localStorage.setItem('tv_remote_pass', btoa(pass));
       }
       errEl.style.display = 'none';
     } catch (e) {
-      let msg = 'Giriş başarısız';
+      let msg = authMode === 'register' ? 'Kayıt başarısız' : 'Giriş başarısız';
       if (e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential') msg = 'E-posta veya şifre hatalı';
+      else if (e.code === 'auth/email-already-in-use') msg = 'Bu e-posta zaten kayıtlı';
+      else if (e.code === 'auth/weak-password') msg = 'Şifre en az 6 karakter olmalı';
+      else if (e.code === 'auth/invalid-email') msg = 'Geçersiz e-posta adresi';
       else if (e.code === 'auth/too-many-requests') msg = 'Çok fazla deneme. Lütfen bekleyin';
       errEl.textContent = msg;
       errEl.style.display = 'block';
-      btn.textContent = 'Giriş Yap';
+      btn.textContent = authMode === 'login' ? 'Giriş Yap' : 'Kayıt Ol';
       btn.disabled = false;
     }
   };
@@ -994,7 +1059,7 @@
 
   // Login enter key
   document.getElementById('loginPassword').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') window.handleLogin();
+    if (e.key === 'Enter') window.handleAuth();
   });
 </script>
 </body>
