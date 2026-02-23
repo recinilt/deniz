@@ -1545,13 +1545,6 @@ function initTouchpad() {
     if (!isMoved && tapTimer !== null) {
       clearTimeout(tapTimer);
       tapTimer = null;
-      // Bekleyen pointer throttle varsa iptal et — race condition önleme
-      if (pointerThrottle) {
-        clearTimeout(pointerThrottle);
-        pointerThrottle = null;
-        pendingDx = 0;
-        pendingDy = 0;
-      }
       // Tek parmak tap = tıklama — koordinat mobil cursor'dan geliyor
       if (!selectedTvId) return;
       try {
