@@ -423,7 +423,7 @@
     overflow: hidden;
   }
   #touchpad-area::after {
-    content: "Kaydır · 2 parmak scroll · Tek tıkla";
+    content: "Kaydır · Tek parmak tıkla";
     font-size: 12px;
     color: var(--text3);
     pointer-events: none;
@@ -937,7 +937,7 @@ let urlHistory    = [];
 // ─── Touchpad state ───
 let touchMode       = "swipe";   // "swipe" | "dpad"
 let sensitivity     = 5;
-let useProxy        = true;
+let useProxy        = false;
 let pointerThrottle = null;
 let lastPointerX    = null;
 let lastPointerY    = null;
@@ -1492,8 +1492,7 @@ function startMobileScreen() {
 function loadTouchSettings() {
   touchMode   = localStorage.getItem("tvctrl_touchmode") || "swipe";
   sensitivity = parseInt(localStorage.getItem("tvctrl_sensitivity") || "5");
-  const savedProxy = localStorage.getItem("tvctrl_proxy");
-  useProxy    = savedProxy === null ? true : savedProxy === "true";
+  useProxy    = localStorage.getItem("tvctrl_proxy") === "true";
 
   document.getElementById("sensitivity-slider").value = sensitivity;
   document.getElementById("sensitivity-val").textContent = sensitivity;
@@ -1575,7 +1574,7 @@ function initTouchpad() {
 
     if (isScrollMode) {
       // 2 parmak scroll — dy piksel cinsinden, sensivity ile ölçekle
-      pendingScrollDy += (-scrollRawDy) * (sensitivity / 3) * 8;
+      pendingScrollDy += scrollRawDy * (sensitivity / 3) * 8;
       if (!scrollThrottle) {
         scrollThrottle = setTimeout(async () => {
           scrollThrottle = null;
