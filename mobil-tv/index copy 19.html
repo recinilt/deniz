@@ -1192,8 +1192,8 @@ function showCursor() {
     ? iframe.getBoundingClientRect()
     : content.getBoundingClientRect();
   el.style.display = "block";
-  el.style.left = (rect.width  * cursorPctX / 100) + "px";
-  el.style.top  = (rect.height * cursorPctY / 100) + "px";
+  el.style.left = (rect.left + rect.width  * cursorPctX / 100) + "px";
+  el.style.top  = (rect.top  + rect.height * cursorPctY / 100) + "px";
 }
 
 // Proxy'siz direkt DOM erişimi ile click/mousemove dispatch yardımcısı
