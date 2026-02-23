@@ -1215,10 +1215,16 @@ function handlePointerCmd(dx, dy) {
   cursorPctX = Math.min(100, Math.max(0, cursorPctX + dx));
   cursorPctY = Math.min(100, Math.max(0, cursorPctY + dy));
   showCursor();
-  // Tam proxy ve lite proxy: inject script sayfada var, postMessage kullan
-  const iframe = document.getElementById("tv-iframe");
-  if (iframe && iframe.classList.contains("active")) {
-    iframe.contentWindow.postMessage({ tvctrl: true, type: "tvctrl-mousemove", x: cursorPctX, y: cursorPctY }, "*");
+  if (useProxy) {
+    // Proxy: inject script üzerinden postMessage
+    const iframe = document.getElementById("tv-iframe");
+    if (iframe && iframe.classList.contains("active")) {
+      iframe.contentWindow.postMessage({ tvctrl: true, type: "tvctrl-mousemove", x: cursorPctX, y: cursorPctY }, "*");
+    }
+  } else {
+    // Proxy yok: direkt DOM mousemove + mouseover
+    iframeDirectDispatch("mousemove", cursorPctX, cursorPctY);
+    iframeDirectDispatch("mouseover", cursorPctX, cursorPctY);
   }
 }
 
@@ -1237,8 +1243,17 @@ function handleClickCmd(x, y) {
   void el.offsetWidth;
   el.classList.add("click-pulse");
   setTimeout(() => el.classList.remove("click-pulse"), 400);
-  // Tam proxy ve lite proxy: inject script sayfada var, postMessage kullan
-  iframe.contentWindow.postMessage({ tvctrl: true, type: "tvctrl-click", x: cursorPctX, y: cursorPctY }, "*");
+  if (useProxy) {
+    // Proxy: inject script üzerinden postMessage (inject script zaten sayfada var)
+    iframe.contentWindow.postMessage({ tvctrl: true, type: "tvctrl-click", x: cursorPctX, y: cursorPctY }, "*");
+  } else {
+    // Proxy yok: direkt DOM erişimi — tam mouse event zinciri
+    const clickEl = iframeDirectDispatch("mouseover", cursorPctX, cursorPctY);
+    ['mousemove', 'mousedown', 'mouseup', 'click'].forEach(type => {
+      iframeDirectDispatch(type, cursorPctX, cursorPctY);
+    });
+    if (clickEl) clickEl.focus();
+  }
 }
 
 const DPAD_STEP = 5; // ekranda % cinsinden adım
@@ -1258,8 +1273,13 @@ function handleDpadCmd(dir) {
     void el2.offsetWidth;
     el2.classList.add("click-pulse");
     setTimeout(() => el2.classList.remove("click-pulse"), 400);
-    // Tam proxy ve lite proxy: inject script sayfada var, postMessage kullan
-    iframe.contentWindow.postMessage({ tvctrl: true, type: "tvctrl-click", x: cursorPctX, y: cursorPctY }, "*");
+    if (useProxy) {
+      iframe.contentWindow.postMessage({ tvctrl: true, type: "tvctrl-click", x: cursorPctX, y: cursorPctY }, "*");
+    } else {
+      ['mouseover', 'mousemove', 'mousedown', 'mouseup', 'click'].forEach(type => {
+        iframeDirectDispatch(type, cursorPctX, cursorPctY);
+      });
+    }
     return;
   }
   // Ok tuşları: key event de gönder (site kendi focus sistemi varsa da çalışsın)
@@ -1350,12 +1370,11 @@ function startVideoDetectPolling() {
 
 let currentUrl = "";
 
-const CORS_PROXY_FULL = "https://mycors.recepyeni.workers.dev/?url=";
-const CORS_PROXY_LITE = "https://mycors.recepyeni.workers.dev/lite?url=";
+const CORS_PROXY = "https://mycors.recepyeni.workers.dev/?url=";
 
-function loadUrl(rawUrl) {
-  currentUrl = rawUrl;
-  document.getElementById("tv-url-bar").textContent = rawUrl;
+function loadUrl(url) {
+  currentUrl = url;
+  document.getElementById("tv-url-bar").textContent = url;
   document.getElementById("tv-waiting").style.display = "none";
   document.getElementById("iframe-warn").classList.remove("show");
   document.getElementById("btn-newtab").style.display = "";
@@ -1374,18 +1393,14 @@ function loadUrl(rawUrl) {
 
   iframe.onerror = () => {
     loaded = true;
-    showIframeWarn(rawUrl);
+    showIframeWarn(url);
   };
 
   setTimeout(() => {
-    if (!loaded) showIframeWarn(rawUrl);
+    if (!loaded) showIframeWarn(url);
   }, 8000);
 
-  // useProxy=true → tam proxy, useProxy=false → lite proxy (inject script var, URL rewrite yok)
-  const iframeSrc = useProxy
-    ? (CORS_PROXY_FULL + encodeURIComponent(rawUrl))
-    : (CORS_PROXY_LITE + encodeURIComponent(rawUrl));
-  iframe.src = iframeSrc;
+  iframe.src = url;
   iframe.classList.add("active");
 }
 
@@ -1731,8 +1746,7 @@ window.sendUrl = async function() {
   if (!rawUrl.startsWith("http://") && !rawUrl.startsWith("https://")) {
     toast("Geçerli bir URL girin (https://...)"); return;
   }
-  // Her zaman ham URL gönder — proxy/lite kararı TV tarafı loadUrl() içinde yapılır
-  const url = rawUrl;
+  const url = useProxy ? (CORS_PROXY + encodeURIComponent(rawUrl)) : rawUrl;
   const btn = document.getElementById("btn-send");
   btn.disabled = true;
   btn.textContent = "...";
