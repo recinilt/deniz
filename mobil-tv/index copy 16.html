@@ -943,11 +943,12 @@ let pendingDx       = 0;
 let pendingDy       = 0;
 let lastPointerX    = null;
 let lastPointerY    = null;
-// Sanal imleç pozisyonu (TV ekran yüzdesi) — tek kaynak
+// Sanal imleç pozisyonu (TV ekran yüzdesi)
 let cursorPctX      = 50;
 let cursorPctY      = 50;
-// Click sırasında tvctrl-focus override'ını engelle
-let clickInProgress = false;
+// Mobil tarafı cursor takibi (race condition önlemek için)
+let mobileCursorX   = 50;
+let mobileCursorY   = 50;
 
 // ─── DEVICE ID ───
 function getDeviceId() {
@@ -1151,7 +1152,7 @@ function startTvScreen() {
     } else if (cmd.type === "pointer") {
       handlePointerCmd(cmd.dx, cmd.dy);
     } else if (cmd.type === "click") {
-      handleClickCmd();
+      handleClickCmd(cmd.x, cmd.y);
     } else if (cmd.type === "dpad") {
       handleDpadCmd(cmd.dir);
     } else if (cmd.type === "typeText") {
@@ -1221,19 +1222,22 @@ function handlePointerCmd(dx, dy) {
   }
 }
 
-function handleClickCmd() {
+function handleClickCmd(x, y) {
   const iframe = document.getElementById("tv-iframe");
   if (!iframe.classList.contains("active")) return;
+  // Gelen koordinat varsa önce cursor'u oraya taşı (race condition önleme)
+  if (typeof x === "number" && typeof y === "number") {
+    cursorPctX = x;
+    cursorPctY = y;
+    showCursor();
+  }
   // Pulse animasyonu
   const el = document.getElementById("virtual-cursor");
   el.classList.remove("click-pulse");
   void el.offsetWidth;
   el.classList.add("click-pulse");
   setTimeout(() => el.classList.remove("click-pulse"), 400);
-  // Click sırasında tvctrl-focus override'ını 600ms engelle
-  clickInProgress = true;
-  setTimeout(() => { clickInProgress = false; }, 600);
-  // TV'nin kendi cursorPctX/Y'si — tek kaynak
+  // Tam proxy ve lite proxy: inject script sayfada var, postMessage kullan
   iframe.contentWindow.postMessage({ tvctrl: true, type: "tvctrl-click", x: cursorPctX, y: cursorPctY }, "*");
 }
 
@@ -1254,9 +1258,6 @@ function handleDpadCmd(dir) {
     void el2.offsetWidth;
     el2.classList.add("click-pulse");
     setTimeout(() => el2.classList.remove("click-pulse"), 400);
-    // Click sırasında tvctrl-focus override'ını 600ms engelle
-    clickInProgress = true;
-    setTimeout(() => { clickInProgress = false; }, 600);
     // Tam proxy ve lite proxy: inject script sayfada var, postMessage kullan
     iframe.contentWindow.postMessage({ tvctrl: true, type: "tvctrl-click", x: cursorPctX, y: cursorPctY }, "*");
     return;
@@ -1289,7 +1290,6 @@ window.addEventListener("message", function(e) {
   const d = e.data;
   if (!d || !d.tvctrl) return;
   if (d.type === "tvctrl-focus" && typeof d.cx === "number" && typeof d.cy === "number") {
-    if (clickInProgress) return; // click sonrası focus geri beslemesini yoksay
     cursorPctX = d.cx;
     cursorPctY = d.cy;
     showCursor();
@@ -1549,6 +1549,9 @@ function initTouchpad() {
 
     pendingDx += dxPct;
     pendingDy += dyPct;
+    // Mobil tarafı cursor pozisyonunu da güncelle (click'te koordinat taşımak için)
+    mobileCursorX = Math.min(100, Math.max(0, mobileCursorX + dxPct));
+    mobileCursorY = Math.min(100, Math.max(0, mobileCursorY + dyPct));
 
     if (!pointerThrottle) {
       pointerThrottle = setTimeout(async () => {
@@ -1580,7 +1583,7 @@ function initTouchpad() {
       if (!selectedTvId) return;
       try {
         await setDoc(doc(db, "sessions", selectedTvId), {
-          command: { type: "click", sentAt: serverTimestamp() }
+          command: { type: "click", x: mobileCursorX, y: mobileCursorY, sentAt: serverTimestamp() }
         }, { merge: true });
         toast("Tık ✓");
       } catch(e) { /* */ }
