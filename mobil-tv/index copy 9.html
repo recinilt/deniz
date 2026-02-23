@@ -1168,25 +1168,20 @@ function startTvScreen() {
 // ─── TV: Sanal İmleç ───
 function showCursor() {
   const el = document.getElementById("virtual-cursor");
-  const iframe = document.getElementById("tv-iframe");
   const content = document.querySelector(".tv-content");
   if (!content) return;
-  const rect = (iframe && iframe.classList.contains("active"))
-    ? iframe.getBoundingClientRect()
-    : content.getBoundingClientRect();
+  const rect = content.getBoundingClientRect();
   el.style.display = "block";
   el.style.left = (rect.left + rect.width  * cursorPctX / 100) + "px";
   el.style.top  = (rect.top  + rect.height * cursorPctY / 100) + "px";
 }
 
 function handlePointerCmd(dx, dy) {
-  const iframe = document.getElementById("tv-iframe");
   const content = document.querySelector(".tv-content");
-  const base = (iframe && iframe.classList.contains("active"))
-    ? iframe.getBoundingClientRect()
-    : content.getBoundingClientRect();
-  cursorPctX = Math.min(100, Math.max(0, cursorPctX + (dx / base.width)  * 100));
-  cursorPctY = Math.min(100, Math.max(0, cursorPctY + (dy / base.height) * 100));
+  if (!content) return;
+  const rect = content.getBoundingClientRect();
+  cursorPctX = Math.min(100, Math.max(0, cursorPctX + (dx / rect.width)  * 100));
+  cursorPctY = Math.min(100, Math.max(0, cursorPctY + (dy / rect.height) * 100));
   showCursor();
 }
 
@@ -1203,35 +1198,19 @@ function handleClickCmd() {
   iframe.contentWindow.postMessage({ tvctrl: true, type: "tvctrl-click", x: cursorPctX, y: cursorPctY }, "*");
 }
 
-const DPAD_STEP = 5; // ekranda % cinsinden adım
 function handleDpadCmd(dir) {
   const iframe = document.getElementById("tv-iframe");
   if (!iframe.classList.contains("active")) return;
-  // Cursor'u görsel olarak hareket ettir
-  if (dir === "up")    cursorPctY = Math.max(0,   cursorPctY - DPAD_STEP);
-  if (dir === "down")  cursorPctY = Math.min(100, cursorPctY + DPAD_STEP);
-  if (dir === "left")  cursorPctX = Math.max(0,   cursorPctX - DPAD_STEP);
-  if (dir === "right") cursorPctX = Math.min(100, cursorPctX + DPAD_STEP);
-  showCursor();
-  // Enter = cursor pozisyonuna tıklama
-  if (dir === "enter") {
-    const el2 = document.getElementById("virtual-cursor");
-    el2.classList.remove("click-pulse");
-    void el2.offsetWidth;
-    el2.classList.add("click-pulse");
-    setTimeout(() => el2.classList.remove("click-pulse"), 400);
-    iframe.contentWindow.postMessage({ tvctrl: true, type: "tvctrl-click", x: cursorPctX, y: cursorPctY }, "*");
-    return;
-  }
-  // Ok tuşları: key event de gönder (site kendi focus sistemi varsa da çalışsın)
   const keyMap = {
     up:    { key: "ArrowUp",    keyCode: 38 },
     down:  { key: "ArrowDown",  keyCode: 40 },
     left:  { key: "ArrowLeft",  keyCode: 37 },
-    right: { key: "ArrowRight", keyCode: 39 }
+    right: { key: "ArrowRight", keyCode: 39 },
+    enter: { key: "Enter",      keyCode: 13 }
   };
   const k = keyMap[dir];
-  if (k) iframe.contentWindow.postMessage({ tvctrl: true, type: "tvctrl-key", key: k.key, keyCode: k.keyCode }, "*");
+  if (!k) return;
+  iframe.contentWindow.postMessage({ tvctrl: true, type: "tvctrl-key", key: k.key, keyCode: k.keyCode }, "*");
 }
 
 function handleTypeTextCmd(text) {
