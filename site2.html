@@ -2,518 +2,321 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=1920">
 <title>TV Alıcı</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg-primary: #07070c;
-    --bg-secondary: #0e0e16;
-    --bg-card: #151520;
-    --accent: #6c5ce7;
-    --accent-glow: rgba(108, 92, 231, 0.25);
-    --accent-light: #a29bfe;
-    --text-primary: #e8e8ed;
-    --text-secondary: #7777a0;
-    --text-muted: #44445a;
-    --success: #51cf66;
-    --youtube: #ff4444;
-    --border: rgba(255,255,255,0.05);
-    --radius: 16px;
-  }
-
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--bg-primary);
-    color: var(--text-primary);
-    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0a0a0f;
+    color: #e0e0e8;
+    height: 100vh;
     overflow: hidden;
   }
 
-  /* === LOGIN SCREEN === */
+  /* === LOGIN === */
   .login-screen {
-    min-height: 100vh;
+    height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: radial-gradient(ellipse at 50% 40%, rgba(108,92,231,0.06) 0%, transparent 60%);
   }
 
-  .login-logo-tv {
-    width: 100px; height: 100px;
-    background: linear-gradient(135deg, var(--accent), var(--accent-light));
-    border-radius: 28px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 48px;
-    margin-bottom: 24px;
-    box-shadow: 0 12px 48px var(--accent-glow);
-  }
+  .login-icon { font-size: 64px; margin-bottom: 20px; }
+  .login-title { font-size: 42px; font-weight: 700; margin-bottom: 6px; }
+  .login-subtitle { font-size: 22px; color: #888; margin-bottom: 40px; }
 
-  .login-title-tv { font-size: 36px; font-weight: 700; margin-bottom: 8px; }
-  .login-subtitle-tv { font-size: 18px; color: var(--text-secondary); margin-bottom: 48px; }
-
-  .login-form-tv {
-    width: 100%;
-    max-width: 440px;
-    padding: 0 24px;
-  }
-
-  .input-group-tv {
-    margin-bottom: 18px;
-  }
-
-  .input-group-tv label {
-    display: block;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    margin-bottom: 8px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-
-  .input-group-tv input {
-    width: 100%;
-    padding: 18px 20px;
-    background: var(--bg-card);
-    border: 2px solid var(--border);
-    border-radius: 14px;
-    color: var(--text-primary);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 18px;
-    outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
-  }
-
-  .input-group-tv input:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 4px var(--accent-glow);
-  }
-
-  .remember-row-tv {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 28px;
-    cursor: pointer;
-  }
-
-  .remember-row-tv input[type="checkbox"] {
-    width: 22px; height: 22px;
-    accent-color: var(--accent);
-    cursor: pointer;
-  }
-
-  .remember-row-tv span { font-size: 16px; color: var(--text-secondary); }
+  .login-form { width: 480px; }
 
   .auth-tabs-tv {
     display: flex;
-    background: var(--bg-secondary);
+    background: #151520;
     border-radius: 12px;
-    padding: 3px;
-    border: 1px solid var(--border);
+    padding: 4px;
     margin-bottom: 24px;
   }
 
   .auth-tab-tv {
     flex: 1;
-    padding: 12px;
+    padding: 14px;
     text-align: center;
-    font-size: 16px;
+    font-size: 20px;
     font-weight: 600;
-    color: var(--text-secondary);
+    color: #666;
     border-radius: 10px;
     cursor: pointer;
-    transition: all 0.25s;
     border: none;
     background: none;
-    font-family: 'DM Sans', sans-serif;
+    font-family: inherit;
   }
 
   .auth-tab-tv.active {
-    background: var(--bg-card);
-    color: var(--text-primary);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    background: #1e1e2e;
+    color: #e0e0e8;
   }
 
-  .confirm-group-tv { display: none; }
-  .confirm-group-tv.show { display: block; }
+  .field { margin-bottom: 16px; }
 
-  .btn-login-tv {
+  .field label {
+    display: block;
+    font-size: 16px;
+    font-weight: 600;
+    color: #888;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .field input {
+    width: 100%;
+    padding: 18px 20px;
+    background: #151520;
+    border: 2px solid #252530;
+    border-radius: 12px;
+    color: #e0e0e8;
+    font-family: inherit;
+    font-size: 22px;
+    outline: none;
+  }
+
+  .field input:focus { border-color: #6c5ce7; }
+
+  .confirm-field { display: none; }
+  .confirm-field.show { display: block; }
+
+  .remember-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .remember-row input[type="checkbox"] {
+    width: 24px; height: 24px;
+    accent-color: #6c5ce7;
+  }
+
+  .remember-row span { font-size: 18px; color: #888; }
+
+  .btn-login {
     width: 100%;
     padding: 20px;
-    background: linear-gradient(135deg, var(--accent), #7c6cf0);
+    background: #6c5ce7;
     border: none;
-    border-radius: 14px;
+    border-radius: 12px;
     color: #fff;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 20px;
-    font-weight: 600;
+    font-family: inherit;
+    font-size: 22px;
+    font-weight: 700;
     cursor: pointer;
-    box-shadow: 0 8px 32px var(--accent-glow);
-    transition: transform 0.15s;
   }
 
-  .btn-login-tv:hover { transform: scale(1.02); }
+  .btn-login:focus { outline: 3px solid #a29bfe; outline-offset: 2px; }
 
-  .login-error-tv {
-    margin-top: 18px;
+  .login-error {
+    margin-top: 16px;
     padding: 14px;
-    background: rgba(255,107,107,0.1);
-    border: 1px solid rgba(255,107,107,0.2);
-    border-radius: 12px;
+    background: #2a1515;
+    border: 1px solid #442222;
+    border-radius: 10px;
     color: #ff6b6b;
-    font-size: 16px;
+    font-size: 18px;
     text-align: center;
     display: none;
   }
 
-  /* === WAITING SCREEN === */
+  /* === WAITING === */
   .waiting-screen {
     display: none;
-    min-height: 100vh;
+    height: 100vh;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    position: relative;
-    background: radial-gradient(ellipse at 50% 50%, rgba(108,92,231,0.04) 0%, transparent 50%);
   }
 
-  /* Ambient glow effect */
-  .ambient-glow {
-    position: absolute;
-    width: 500px; height: 500px;
-    background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
-    border-radius: 50%;
-    animation: pulse-glow 4s ease-in-out infinite;
-    pointer-events: none;
-  }
-
-  @keyframes pulse-glow {
-    0%, 100% { transform: scale(0.8); opacity: 0.3; }
-    50% { transform: scale(1.2); opacity: 0.6; }
-  }
-
-  .waiting-content {
-    position: relative;
-    z-index: 1;
-    text-align: center;
-  }
-
-  /* Animated radar icon */
-  .radar-container {
-    width: 140px; height: 140px;
-    position: relative;
-    margin: 0 auto 40px;
-  }
-
-  .radar-ring {
-    position: absolute;
-    inset: 0;
-    border: 2px solid var(--accent);
-    border-radius: 50%;
-    opacity: 0;
-    animation: radar-expand 3s ease-out infinite;
-  }
-
-  .radar-ring:nth-child(2) { animation-delay: 1s; }
-  .radar-ring:nth-child(3) { animation-delay: 2s; }
-
-  @keyframes radar-expand {
-    0% { transform: scale(0.3); opacity: 0.8; }
-    100% { transform: scale(1.5); opacity: 0; }
-  }
-
-  .radar-center {
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    width: 60px; height: 60px;
-    background: linear-gradient(135deg, var(--accent), var(--accent-light));
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 28px;
-    box-shadow: 0 0 40px var(--accent-glow);
-  }
-
-  .waiting-title {
-    font-size: 32px;
-    font-weight: 700;
-    margin-bottom: 12px;
-  }
-
-  .waiting-subtitle {
-    font-size: 18px;
-    color: var(--text-secondary);
-    margin-bottom: 8px;
-  }
-
-  .waiting-hint {
-    font-size: 14px;
-    color: var(--text-muted);
-    font-family: 'JetBrains Mono', monospace;
-  }
-
-  .dot-pulse::after {
-    content: '';
-    animation: dots 1.5s steps(4, end) infinite;
-  }
-
-  @keyframes dots {
-    0% { content: ''; }
-    25% { content: '.'; }
-    50% { content: '..'; }
-    75% { content: '...'; }
-  }
-
-  /* Connection status bar */
   .status-bar {
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    padding: 12px 24px;
+    top: 0; left: 0; right: 0;
+    padding: 16px 32px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    z-index: 100;
-    background: rgba(7,7,12,0.8);
-    backdrop-filter: blur(12px);
+    background: #0e0e16;
+    border-bottom: 1px solid #1a1a28;
   }
 
   .status-left {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
   }
 
   .status-dot {
-    width: 10px; height: 10px;
+    width: 12px; height: 12px;
     border-radius: 50%;
-    background: var(--success);
-    box-shadow: 0 0 8px rgba(81,207,102,0.5);
-    animation: blink 2s ease-in-out infinite;
+    background: #51cf66;
   }
 
-  @keyframes blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
-  }
+  .status-text { font-size: 18px; color: #888; }
 
-  .status-text { font-size: 14px; color: var(--text-secondary); }
-
-  .btn-logout-tv {
-    padding: 10px 20px;
-    background: rgba(255,255,255,0.06);
-    border: 1px solid var(--border);
+  .btn-logout {
+    padding: 12px 24px;
+    background: #1a1a28;
+    border: 1px solid #252530;
     border-radius: 10px;
-    color: var(--text-secondary);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
+    color: #888;
+    font-family: inherit;
+    font-size: 16px;
     cursor: pointer;
-    transition: all 0.2s;
   }
 
-  .btn-logout-tv:hover { background: rgba(255,255,255,0.1); }
+  .btn-logout:focus { outline: 3px solid #6c5ce7; outline-offset: 2px; }
 
-  /* === REDIRECTING OVERLAY === */
-  .redirect-overlay {
+  .waiting-icon { font-size: 80px; margin-bottom: 32px; }
+  .waiting-title { font-size: 40px; font-weight: 700; margin-bottom: 12px; }
+  .waiting-subtitle { font-size: 24px; color: #888; margin-bottom: 8px; }
+  .waiting-email { font-size: 18px; color: #555; }
+
+  .last-url {
+    position: fixed;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 12px 24px;
+    background: #151520;
+    border: 1px solid #252530;
+    border-radius: 10px;
+    font-size: 16px;
+    color: #555;
+    max-width: 80vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: none;
+  }
+
+  .last-url.show { display: block; }
+
+  /* === REDIRECT === */
+  .redirect-screen {
     position: fixed; inset: 0;
-    background: var(--bg-primary);
+    background: #0a0a0f;
     display: none;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    z-index: 200;
+    z-index: 100;
   }
 
-  .redirect-overlay.show { display: flex; }
+  .redirect-screen.show { display: flex; }
 
-  .redirect-icon {
-    font-size: 64px;
-    margin-bottom: 24px;
-    animation: bounce 0.6s ease-in-out;
-  }
-
-  @keyframes bounce {
-    0% { transform: scale(0.5); opacity: 0; }
-    60% { transform: scale(1.1); }
-    100% { transform: scale(1); opacity: 1; }
-  }
-
-  .redirect-title {
-    font-size: 28px;
-    font-weight: 700;
-    margin-bottom: 8px;
-  }
+  .redirect-icon { font-size: 72px; margin-bottom: 24px; }
+  .redirect-title { font-size: 36px; font-weight: 700; margin-bottom: 12px; }
 
   .redirect-url {
-    font-size: 16px;
-    color: var(--accent-light);
-    font-family: 'JetBrains Mono', monospace;
+    font-size: 22px;
+    color: #a29bfe;
     max-width: 80vw;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    margin-bottom: 20px;
+    margin-bottom: 32px;
   }
 
-  .redirect-progress {
-    width: 200px;
-    height: 4px;
-    background: rgba(255,255,255,0.1);
-    border-radius: 2px;
+  .progress-bar {
+    width: 240px;
+    height: 6px;
+    background: #1a1a28;
+    border-radius: 3px;
     overflow: hidden;
     margin-bottom: 32px;
   }
 
-  .redirect-progress-bar {
+  .progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, var(--accent), var(--accent-light));
-    border-radius: 2px;
-    animation: progress 2s ease-in-out forwards;
-  }
-
-  @keyframes progress {
-    0% { width: 0; }
-    100% { width: 100%; }
+    background: #6c5ce7;
+    border-radius: 3px;
+    width: 0%;
+    transition: width 2s linear;
   }
 
   .btn-back {
-    padding: 14px 32px;
-    background: rgba(255,255,255,0.06);
-    border: 1px solid var(--border);
+    padding: 16px 36px;
+    background: #1a1a28;
+    border: 1px solid #252530;
     border-radius: 12px;
-    color: var(--text-secondary);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 16px;
+    color: #888;
+    font-family: inherit;
+    font-size: 20px;
     cursor: pointer;
-    transition: all 0.2s;
-    margin-top: 16px;
     display: none;
   }
 
-  .btn-back:hover { background: rgba(255,255,255,0.1); border-color: var(--accent); color: var(--text-primary); }
-  .btn-back.visible { display: block; }
-
-  /* === LAST RECEIVED INFO === */
-  .last-received {
-    position: fixed;
-    bottom: 24px;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 10px 20px;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    font-size: 13px;
-    color: var(--text-muted);
-    font-family: 'JetBrains Mono', monospace;
-    max-width: 80vw;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    display: none;
-    z-index: 10;
-  }
-
-  .last-received.show { display: block; }
-
-  /* Spinner */
-  .spinner-tv {
-    width: 24px; height: 24px;
-    border: 3px solid rgba(255,255,255,0.2);
-    border-top-color: #fff;
-    border-radius: 50%;
-    animation: spin 0.6s linear infinite;
-    margin: 0 auto;
-  }
-
-  @keyframes spin { to { transform: rotate(360deg); } }
+  .btn-back:focus { outline: 3px solid #6c5ce7; outline-offset: 2px; }
+  .btn-back.show { display: block; }
 </style>
 </head>
 <body>
 
-<!-- LOGIN SCREEN -->
+<!-- LOGIN -->
 <div class="login-screen" id="loginScreen">
-  <div class="login-logo-tv">📺</div>
-  <div class="login-title-tv">TV Alıcı</div>
-  <div class="login-subtitle-tv">Telefonunuzdan URL alın</div>
-  <div class="login-form-tv">
+  <div class="login-icon">📺</div>
+  <div class="login-title">TV Alıcı</div>
+  <div class="login-subtitle">Telefonunuzdan URL alın</div>
+  <div class="login-form">
     <div class="auth-tabs-tv">
       <button class="auth-tab-tv active" id="authTabLogin" onclick="switchAuthTab('login')">Giriş Yap</button>
       <button class="auth-tab-tv" id="authTabRegister" onclick="switchAuthTab('register')">Kayıt Ol</button>
     </div>
-    <div class="input-group-tv">
+    <div class="field">
       <label>E-posta</label>
       <input type="email" id="loginEmail" placeholder="ornek@email.com" autocomplete="email">
     </div>
-    <div class="input-group-tv">
+    <div class="field">
       <label>Şifre</label>
       <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
     </div>
-    <div class="input-group-tv confirm-group-tv" id="confirmGroup">
+    <div class="field confirm-field" id="confirmGroup">
       <label>Şifre Tekrar</label>
       <input type="password" id="confirmPassword" placeholder="••••••••" autocomplete="new-password">
     </div>
-    <label class="remember-row-tv">
+    <label class="remember-row">
       <input type="checkbox" id="rememberMe" checked>
       <span>Beni hatırla</span>
     </label>
-    <button class="btn-login-tv" id="btnLogin" onclick="handleAuth()">Giriş Yap</button>
-    <div class="login-error-tv" id="loginError"></div>
+    <button class="btn-login" id="btnLogin" onclick="handleAuth()">Giriş Yap</button>
+    <div class="login-error" id="loginError"></div>
   </div>
 </div>
 
-<!-- WAITING SCREEN -->
+<!-- WAITING -->
 <div class="waiting-screen" id="waitingScreen">
-  <!-- Status Bar -->
   <div class="status-bar">
     <div class="status-left">
       <div class="status-dot"></div>
       <span class="status-text">Bağlı — URL bekleniyor</span>
     </div>
-    <button class="btn-logout-tv" onclick="handleLogout()">Çıkış</button>
+    <button class="btn-logout" onclick="handleLogout()">Çıkış</button>
   </div>
-
-  <!-- Ambient Glow -->
-  <div class="ambient-glow"></div>
-
-  <!-- Radar Animation -->
-  <div class="waiting-content">
-    <div class="radar-container">
-      <div class="radar-ring"></div>
-      <div class="radar-ring"></div>
-      <div class="radar-ring"></div>
-      <div class="radar-center">📡</div>
-    </div>
-    <div class="waiting-title">URL Bekleniyor<span class="dot-pulse"></span></div>
-    <div class="waiting-subtitle">Telefonunuzdan bir URL gönderin</div>
-    <div class="waiting-hint" id="userEmail"></div>
-  </div>
-
-  <!-- Last Received -->
-  <div class="last-received" id="lastReceived"></div>
+  <div class="waiting-icon">📡</div>
+  <div class="waiting-title">URL Bekleniyor...</div>
+  <div class="waiting-subtitle">Telefonunuzdan bir URL gönderin</div>
+  <div class="waiting-email" id="userEmail"></div>
+  <div class="last-url" id="lastUrl"></div>
 </div>
 
-<!-- REDIRECT OVERLAY -->
-<div class="redirect-overlay" id="redirectOverlay">
+<!-- REDIRECT -->
+<div class="redirect-screen" id="redirectScreen">
   <div class="redirect-icon" id="redirectIcon">🚀</div>
   <div class="redirect-title">Yönlendiriliyor</div>
   <div class="redirect-url" id="redirectUrl"></div>
-  <div class="redirect-progress"><div class="redirect-progress-bar"></div></div>
-  <button class="btn-back" id="btnBack" onclick="cancelRedirect()">← TV'ye Dön</button>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  <button class="btn-back show" id="btnBack" onclick="cancelRedirect()">← TV'ye Dön</button>
 </div>
 
-<!-- FIREBASE -->
 <script type="module">
-  // ==========================================
-  // 🔧 FIREBASE CONFIG — KENDİ BİLGİLERİNİZİ GİRİN
-  // ==========================================
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
   import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
   import { getDatabase, ref, onValue, remove } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
@@ -527,7 +330,6 @@
     messagingSenderId: "397261791298",
     appId: "1:397261791298:web:3f392e3634bed79ba50ddb"
   };
-  // ==========================================
 
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
@@ -537,10 +339,9 @@
   let lastProcessedTimestamp = 0;
   let redirectTimeout = null;
   let isRedirecting = false;
-
-  // --- AUTH ---
   let authMode = 'login';
 
+  // --- AUTH TABS ---
   window.switchAuthTab = function(mode) {
     authMode = mode;
     document.getElementById('authTabLogin').classList.toggle('active', mode === 'login');
@@ -550,22 +351,27 @@
     document.getElementById('loginError').style.display = 'none';
   };
 
+  // --- AUTH ---
   window.handleAuth = async function() {
-    const email = document.getElementById('loginEmail').value.trim();
-    const pass = document.getElementById('loginPassword').value;
-    const remember = document.getElementById('rememberMe').checked;
-    const errEl = document.getElementById('loginError');
-    const btn = document.getElementById('btnLogin');
+    var email = document.getElementById('loginEmail').value.trim();
+    var pass = document.getElementById('loginPassword').value;
+    var remember = document.getElementById('rememberMe').checked;
+    var errEl = document.getElementById('loginError');
+    var btn = document.getElementById('btnLogin');
 
-    if (!email || !pass) { errEl.textContent = 'Lütfen tüm alanları doldurun'; errEl.style.display = 'block'; return; }
+    if (!email || !pass) {
+      errEl.textContent = 'Lütfen tüm alanları doldurun';
+      errEl.style.display = 'block';
+      return;
+    }
 
     if (authMode === 'register') {
-      const confirm = document.getElementById('confirmPassword').value;
+      var confirm = document.getElementById('confirmPassword').value;
       if (pass !== confirm) { errEl.textContent = 'Şifreler eşleşmiyor'; errEl.style.display = 'block'; return; }
       if (pass.length < 6) { errEl.textContent = 'Şifre en az 6 karakter olmalı'; errEl.style.display = 'block'; return; }
     }
 
-    btn.innerHTML = '<div class="spinner-tv"></div>';
+    btn.textContent = 'Bağlanıyor...';
     btn.disabled = true;
 
     try {
@@ -580,7 +386,7 @@
       }
       errEl.style.display = 'none';
     } catch (e) {
-      let msg = authMode === 'register' ? 'Kayıt başarısız' : 'Giriş başarısız';
+      var msg = authMode === 'register' ? 'Kayıt başarısız' : 'Giriş başarısız';
       if (e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential') msg = 'E-posta veya şifre hatalı';
       else if (e.code === 'auth/email-already-in-use') msg = 'Bu e-posta zaten kayıtlı';
       else if (e.code === 'auth/weak-password') msg = 'Şifre en az 6 karakter olmalı';
@@ -599,15 +405,34 @@
     await signOut(auth);
   };
 
-  // Auto-login
-  const savedEmail = localStorage.getItem('tv_receiver_email');
-  const savedPass = localStorage.getItem('tv_receiver_pass');
+  // --- AUTO LOGIN from localStorage ---
+  var savedEmail = localStorage.getItem('tv_receiver_email');
+  var savedPass = localStorage.getItem('tv_receiver_pass');
   if (savedEmail && savedPass) {
     document.getElementById('loginEmail').value = savedEmail;
     document.getElementById('loginPassword').value = atob(savedPass);
+    setTimeout(function() { window.handleAuth(); }, 500);
   }
 
-  onAuthStateChanged(auth, (user) => {
+  // --- AUTO SUBMIT on password blur (TV keyboard "done") ---
+  document.getElementById('loginPassword').addEventListener('blur', function() {
+    var email = document.getElementById('loginEmail').value.trim();
+    var pass = this.value;
+    if (email && pass && authMode === 'login') {
+      setTimeout(function() { window.handleAuth(); }, 300);
+    }
+  });
+
+  // Enter key support
+  document.getElementById('loginPassword').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') window.handleAuth();
+  });
+  document.getElementById('confirmPassword').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') window.handleAuth();
+  });
+
+  // --- AUTH STATE ---
+  onAuthStateChanged(auth, function(user) {
     if (user) {
       currentUser = user;
       document.getElementById('loginScreen').style.display = 'none';
@@ -619,58 +444,55 @@
       currentUser = null;
       document.getElementById('loginScreen').style.display = 'flex';
       document.getElementById('waitingScreen').style.display = 'none';
+      var btn = document.getElementById('btnLogin');
+      btn.textContent = authMode === 'login' ? 'Giriş Yap' : 'Kayıt Ol';
+      btn.disabled = false;
     }
   });
 
-  // --- LISTEN FOR URLs ---
+  // --- LISTEN ---
   function listenForUrls() {
-    const uid = currentUser.uid;
-    const urlRef = ref(db, `users/${uid}/currentUrl`);
+    var uid = currentUser.uid;
+    var urlRef = ref(db, 'users/' + uid + '/currentUrl');
 
-    onValue(urlRef, (snap) => {
+    onValue(urlRef, function(snap) {
       if (!snap.exists() || isRedirecting) return;
 
-      const data = snap.val();
-      const { url, timestamp } = data;
+      var data = snap.val();
+      var url = data.url;
+      var timestamp = data.timestamp;
 
-      // Only process new URLs (after login)
       if (timestamp <= lastProcessedTimestamp) return;
       lastProcessedTimestamp = timestamp;
 
-      // Show redirect overlay
       showRedirect(url);
-
-      // Clear the currentUrl from Firebase
       remove(urlRef);
 
-      // Redirect after showing animation
-      redirectTimeout = setTimeout(() => {
+      redirectTimeout = setTimeout(function() {
         window.location.href = url;
-      }, 2000);
+      }, 2500);
     });
   }
 
   function showRedirect(url) {
     isRedirecting = true;
-    const overlay = document.getElementById('redirectOverlay');
-    const urlEl = document.getElementById('redirectUrl');
-    const iconEl = document.getElementById('redirectIcon');
-    const btnBack = document.getElementById('btnBack');
+    var screen = document.getElementById('redirectScreen');
+    var urlEl = document.getElementById('redirectUrl');
+    var iconEl = document.getElementById('redirectIcon');
+    var fill = document.getElementById('progressFill');
 
-    const isYT = /(?:youtube\.com|youtu\.be)/i.test(url);
+    var isYT = /(?:youtube\.com|youtu\.be)/i.test(url);
+    iconEl.textContent = isYT ? '▶' : '🚀';
 
     try {
-      const u = new URL(url);
+      var u = new URL(url);
       urlEl.textContent = u.hostname.replace('www.', '') + u.pathname;
-    } catch {
+    } catch (e) {
       urlEl.textContent = url;
     }
 
-    iconEl.textContent = isYT ? '▶' : '🚀';
-    overlay.classList.add('show');
-
-    // Show back button after a moment
-    setTimeout(() => { btnBack.classList.add('visible'); }, 800);
+    screen.classList.add('show');
+    setTimeout(function() { fill.style.width = '100%'; }, 50);
   }
 
   window.cancelRedirect = function() {
@@ -679,14 +501,9 @@
       redirectTimeout = null;
     }
     isRedirecting = false;
-    document.getElementById('redirectOverlay').classList.remove('show');
-    document.getElementById('btnBack').classList.remove('visible');
+    document.getElementById('redirectScreen').classList.remove('show');
+    document.getElementById('progressFill').style.width = '0%';
   };
-
-  // Login enter key
-  document.getElementById('loginPassword').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') window.handleAuth();
-  });
 </script>
 </body>
 </html>
