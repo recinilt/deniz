@@ -6,7 +6,6 @@
 <title>TV Alici</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-
   body {
     font-family: -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
     background: #0a0a0f;
@@ -14,514 +13,403 @@
     height: 100vh;
     overflow: hidden;
   }
-
-  .login-screen {
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-  }
-
+  .screen { display: none; height: 100vh; flex-direction: column; align-items: center; justify-content: center; }
+  .screen.active { display: flex; }
   .login-icon { font-size: 64px; margin-bottom: 20px; }
   .login-title { font-size: 42px; font-weight: 700; margin-bottom: 6px; }
   .login-subtitle { font-size: 22px; color: #888; margin-bottom: 40px; }
   .login-form { width: 480px; }
-
-  .auth-tabs {
-    display: flex;
-    background: #151520;
-    border-radius: 12px;
-    padding: 4px;
-    margin-bottom: 24px;
-  }
-
-  .auth-tab {
-    flex: 1;
-    padding: 14px;
-    text-align: center;
-    font-size: 20px;
-    font-weight: 600;
-    color: #666;
-    border-radius: 10px;
-    cursor: pointer;
-    border: none;
-    background: none;
-    font-family: inherit;
-  }
-
-  .auth-tab.active {
-    background: #1e1e2e;
-    color: #e0e0e8;
-  }
-
+  .auth-tabs { display: flex; background: #151520; border-radius: 12px; padding: 4px; margin-bottom: 24px; }
+  .auth-tab { flex: 1; padding: 14px; text-align: center; font-size: 20px; font-weight: 600; color: #666; border-radius: 10px; cursor: pointer; border: none; background: none; font-family: inherit; }
+  .auth-tab.active { background: #1e1e2e; color: #e0e0e8; }
   .field { margin-bottom: 16px; }
-
-  .field label {
-    display: block;
-    font-size: 16px;
-    font-weight: 600;
-    color: #888;
-    margin-bottom: 8px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-
-  .field input {
-    width: 100%;
-    padding: 18px 20px;
-    background: #151520;
-    border: 2px solid #252530;
-    border-radius: 12px;
-    color: #e0e0e8;
-    font-family: inherit;
-    font-size: 22px;
-    outline: none;
-  }
-
+  .field label { display: block; font-size: 16px; font-weight: 600; color: #888; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .field input { width: 100%; padding: 18px 20px; background: #151520; border: 2px solid #252530; border-radius: 12px; color: #e0e0e8; font-family: inherit; font-size: 22px; outline: none; }
   .field input:focus { border-color: #6c5ce7; }
-
   .confirm-field { display: none; }
-
-  .remember-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 24px;
-  }
-
-  .remember-row input[type="checkbox"] {
-    width: 24px; height: 24px;
-    accent-color: #6c5ce7;
-  }
-
+  .remember-row { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+  .remember-row input[type="checkbox"] { width: 24px; height: 24px; }
   .remember-row span { font-size: 18px; color: #888; }
-
-  .btn-login {
-    width: 100%;
-    padding: 20px;
-    background: #6c5ce7;
-    border: none;
-    border-radius: 12px;
-    color: #fff;
-    font-family: inherit;
-    font-size: 22px;
-    font-weight: 700;
-    cursor: pointer;
-  }
-
-  .btn-login:focus { outline: 3px solid #a29bfe; outline-offset: 2px; }
-
-  .login-error {
-    margin-top: 16px;
-    padding: 14px;
-    background: #2a1515;
-    border: 1px solid #442222;
-    border-radius: 10px;
-    color: #ff6b6b;
-    font-size: 18px;
-    text-align: center;
-    display: none;
-  }
-
-  .waiting-screen {
-    display: none;
-    height: 100vh;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .status-bar {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    padding: 16px 32px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: #0e0e16;
-    border-bottom: 1px solid #1a1a28;
-  }
-
-  .status-left {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .status-dot {
-    width: 12px; height: 12px;
-    border-radius: 50%;
-    background: #51cf66;
-  }
-
+  .btn { width: 100%; padding: 20px; background: #6c5ce7; border: none; border-radius: 12px; color: #fff; font-family: inherit; font-size: 22px; font-weight: 700; cursor: pointer; }
+  .btn:focus { outline: 3px solid #a29bfe; outline-offset: 2px; }
+  .login-error { margin-top: 16px; padding: 14px; background: #2a1515; border: 1px solid #442222; border-radius: 10px; color: #ff6b6b; font-size: 18px; text-align: center; display: none; }
+  .status-bar { position: fixed; top: 0; left: 0; right: 0; padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; background: #0e0e16; border-bottom: 1px solid #1a1a28; }
+  .status-left { display: flex; align-items: center; gap: 12px; }
+  .status-dot { width: 12px; height: 12px; border-radius: 50%; background: #51cf66; }
   .status-text { font-size: 18px; color: #888; }
-
-  .btn-logout {
-    padding: 12px 24px;
-    background: #1a1a28;
-    border: 1px solid #252530;
-    border-radius: 10px;
-    color: #888;
-    font-family: inherit;
-    font-size: 16px;
-    cursor: pointer;
-  }
-
-  .btn-logout:focus { outline: 3px solid #6c5ce7; outline-offset: 2px; }
-
+  .btn-small { padding: 12px 24px; background: #1a1a28; border: 1px solid #252530; border-radius: 10px; color: #888; font-family: inherit; font-size: 16px; cursor: pointer; }
+  .btn-small:focus { outline: 3px solid #6c5ce7; outline-offset: 2px; }
   .waiting-icon { font-size: 80px; margin-bottom: 32px; }
   .waiting-title { font-size: 40px; font-weight: 700; margin-bottom: 12px; }
   .waiting-subtitle { font-size: 24px; color: #888; margin-bottom: 8px; }
   .waiting-email { font-size: 18px; color: #555; }
-
-  .redirect-screen {
-    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background: #0a0a0f;
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    z-index: 100;
-  }
-
+  .redirect-screen { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #0a0a0f; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 100; }
   .redirect-screen.show { display: flex; }
-
   .redirect-icon { font-size: 72px; margin-bottom: 24px; }
   .redirect-title { font-size: 36px; font-weight: 700; margin-bottom: 12px; }
-
-  .redirect-url {
-    font-size: 22px;
-    color: #a29bfe;
-    max-width: 80%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    margin-bottom: 32px;
-  }
-
-  .progress-bar {
-    width: 240px;
-    height: 6px;
-    background: #1a1a28;
-    border-radius: 3px;
-    overflow: hidden;
-    margin-bottom: 32px;
-  }
-
-  .progress-fill {
-    height: 100%;
-    background: #6c5ce7;
-    border-radius: 3px;
-    width: 0;
-  }
-
-  .btn-back {
-    padding: 16px 36px;
-    background: #1a1a28;
-    border: 1px solid #252530;
-    border-radius: 12px;
-    color: #888;
-    font-family: inherit;
-    font-size: 20px;
-    cursor: pointer;
-  }
-
+  .redirect-url { font-size: 22px; color: #a29bfe; max-width: 80%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-bottom: 32px; }
+  .btn-back { padding: 16px 36px; background: #1a1a28; border: 1px solid #252530; border-radius: 12px; color: #888; font-family: inherit; font-size: 20px; cursor: pointer; }
   .btn-back:focus { outline: 3px solid #6c5ce7; outline-offset: 2px; }
 </style>
 </head>
 <body>
 
 <!-- LOGIN -->
-<div class="login-screen" id="loginScreen">
+<div class="screen active" id="loginScreen">
   <div class="login-icon">&#128250;</div>
   <div class="login-title">TV Alici</div>
   <div class="login-subtitle">Telefonunuzdan URL alin</div>
   <div class="login-form">
     <div class="auth-tabs">
-      <button class="auth-tab active" id="authTabLogin" onclick="switchAuthTab('login')">Giris Yap</button>
-      <button class="auth-tab" id="authTabRegister" onclick="switchAuthTab('register')">Kayit Ol</button>
+      <button class="auth-tab active" id="tabLogin" onclick="switchTab('login')">Giris Yap</button>
+      <button class="auth-tab" id="tabRegister" onclick="switchTab('register')">Kayit Ol</button>
     </div>
     <div class="field">
       <label>E-posta</label>
-      <input type="email" id="loginEmail" placeholder="ornek@email.com" autocomplete="email">
+      <input type="email" id="inputEmail" placeholder="ornek@email.com">
     </div>
     <div class="field">
       <label>Sifre</label>
-      <input type="password" id="loginPassword" placeholder="********" autocomplete="current-password">
+      <input type="password" id="inputPass" placeholder="********">
     </div>
     <div class="field confirm-field" id="confirmGroup">
       <label>Sifre Tekrar</label>
-      <input type="password" id="confirmPassword" placeholder="********" autocomplete="new-password">
+      <input type="password" id="inputConfirm" placeholder="********">
     </div>
     <label class="remember-row">
       <input type="checkbox" id="rememberMe" checked>
       <span>Beni hatirla</span>
     </label>
-    <button class="btn-login" id="btnLogin" onclick="handleAuth()">Giris Yap</button>
-    <div class="login-error" id="loginError"></div>
+    <button class="btn" id="btnAuth" onclick="doAuth()">Giris Yap</button>
+    <div class="login-error" id="errorBox"></div>
   </div>
 </div>
 
 <!-- WAITING -->
-<div class="waiting-screen" id="waitingScreen">
+<div class="screen" id="waitScreen">
   <div class="status-bar">
     <div class="status-left">
       <div class="status-dot"></div>
       <span class="status-text">Bagli - URL bekleniyor</span>
     </div>
-    <button class="btn-logout" onclick="handleLogout()">Cikis</button>
+    <button class="btn-small" onclick="doLogout()">Cikis</button>
   </div>
   <div class="waiting-icon">&#128225;</div>
   <div class="waiting-title">URL Bekleniyor...</div>
   <div class="waiting-subtitle">Telefonunuzdan bir URL gonderin</div>
-  <div class="waiting-email" id="userEmail"></div>
+  <div class="waiting-email" id="showEmail"></div>
 </div>
 
 <!-- REDIRECT -->
 <div class="redirect-screen" id="redirectScreen">
-  <div class="redirect-icon" id="redirectIcon">&#128640;</div>
-  <div class="redirect-title">Yonlendiriliyor</div>
-  <div class="redirect-url" id="redirectUrl"></div>
-  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
-  <button class="btn-back" id="btnBack" onclick="cancelRedirect()">TV'ye Don</button>
+  <div class="redirect-icon" id="rdIcon">&#128640;</div>
+  <div class="redirect-title">Yonlendiriliyor...</div>
+  <div class="redirect-url" id="rdUrl"></div>
+  <button class="btn-back" onclick="cancelRedirect()">TV'ye Don</button>
 </div>
 
-<!-- FIREBASE COMPAT SDK - klasik script tagleri, ES modules GEREKMEZ -->
-<script src="firebase-lib/firebase-app-compat.js"></script>
-<script src="firebase-lib/firebase-auth-compat.js"></script>
-<script src="firebase-lib/firebase-database-compat.js"></script>
-
 <script>
-  // === FIREBASE CONFIG ===
-  var firebaseConfig = {
-    apiKey: "AIzaSyDw5kHPVMtm9G7zD_hBlusp1HCcUbbIhv8",
-    authDomain: "mobil-tv-e1095.firebaseapp.com",
-    databaseURL: "https://mobil-tv-e1095-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "mobil-tv-e1095",
-    storageBucket: "mobil-tv-e1095.firebasestorage.app",
-    messagingSenderId: "397261791298",
-    appId: "1:397261791298:web:3f392e3634bed79ba50ddb"
-  };
+  // =============================================
+  //  SIFIR KUTUPHANE - SADECE XMLHttpRequest
+  //  ES5 uyumlu - eski TV tarayicilari icin
+  // =============================================
 
-  firebase.initializeApp(firebaseConfig);
+  var API_KEY = "AIzaSyDw5kHPVMtm9G7zD_hBlusp1HCcUbbIhv8";
+  var DB_URL = "https://mobil-tv-e1095-default-rtdb.europe-west1.firebasedatabase.app";
 
-  var auth = firebase.auth();
-  var db = firebase.database();
+  var AUTH_SIGNIN = "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=" + API_KEY;
+  var AUTH_SIGNUP = "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=" + API_KEY;
 
-  var currentUser = null;
-  var lastProcessedTimestamp = 0;
-  var redirectTimeout = null;
-  var isRedirecting = false;
+  var idToken = "";
+  var localId = "";
+  var pollTimer = null;
+  var redirectTimer = null;
   var authMode = "login";
 
-  // === AUTH TABS ===
-  function switchAuthTab(mode) {
-    authMode = mode;
-    var tabLogin = document.getElementById("authTabLogin");
-    var tabRegister = document.getElementById("authTabRegister");
-    var confirmGroup = document.getElementById("confirmGroup");
-    var btn = document.getElementById("btnLogin");
-    var errEl = document.getElementById("loginError");
-
-    if (mode === "login") {
-      tabLogin.className = "auth-tab active";
-      tabRegister.className = "auth-tab";
-      confirmGroup.style.display = "none";
-      btn.textContent = "Giris Yap";
-    } else {
-      tabLogin.className = "auth-tab";
-      tabRegister.className = "auth-tab active";
-      confirmGroup.style.display = "block";
-      btn.textContent = "Kayit Ol";
-    }
-    errEl.style.display = "none";
+  // === HELPER: XMLHttpRequest ===
+  function xhrPost(url, data, onSuccess, onError) {
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", url, true);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4) {
+        if (xhr.status === 200) {
+          try {
+            var resp = JSON.parse(xhr.responseText);
+            onSuccess(resp);
+          } catch (e) {
+            onError("Yanit okunamadi");
+          }
+        } else {
+          try {
+            var err = JSON.parse(xhr.responseText);
+            var msg = err.error && err.error.message ? err.error.message : "Hata";
+            onError(msg);
+          } catch (e) {
+            onError("Baglanti hatasi (kod: " + xhr.status + ")");
+          }
+        }
+      }
+    };
+    xhr.onerror = function() {
+      onError("Ag hatasi - internet baglantinizi kontrol edin");
+    };
+    xhr.send(JSON.stringify(data));
   }
 
-  // === AUTH ===
-  function handleAuth() {
-    var email = document.getElementById("loginEmail").value.trim();
-    var pass = document.getElementById("loginPassword").value;
-    var remember = document.getElementById("rememberMe").checked;
-    var errEl = document.getElementById("loginError");
-    var btn = document.getElementById("btnLogin");
+  function xhrGet(url, onSuccess, onError) {
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", url, true);
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4) {
+        if (xhr.status === 200) {
+          try {
+            var resp = JSON.parse(xhr.responseText);
+            onSuccess(resp);
+          } catch (e) {
+            onSuccess(null);
+          }
+        } else {
+          if (onError) onError(xhr.status);
+        }
+      }
+    };
+    xhr.onerror = function() {
+      if (onError) onError(0);
+    };
+    xhr.send();
+  }
+
+  function xhrDelete(url) {
+    var xhr = new XMLHttpRequest();
+    xhr.open("DELETE", url, true);
+    xhr.send();
+  }
+
+  // === AUTH TABS ===
+  function switchTab(mode) {
+    authMode = mode;
+    var tl = document.getElementById("tabLogin");
+    var tr = document.getElementById("tabRegister");
+    var cg = document.getElementById("confirmGroup");
+    var btn = document.getElementById("btnAuth");
+    var err = document.getElementById("errorBox");
+
+    if (mode === "login") {
+      tl.className = "auth-tab active";
+      tr.className = "auth-tab";
+      cg.style.display = "none";
+      btn.textContent = "Giris Yap";
+    } else {
+      tl.className = "auth-tab";
+      tr.className = "auth-tab active";
+      cg.style.display = "block";
+      btn.textContent = "Kayit Ol";
+    }
+    err.style.display = "none";
+  }
+
+  // === LOGIN / REGISTER ===
+  function doAuth() {
+    var email = document.getElementById("inputEmail").value;
+    var pass = document.getElementById("inputPass").value;
+    var errBox = document.getElementById("errorBox");
+    var btn = document.getElementById("btnAuth");
 
     if (!email || !pass) {
-      errEl.textContent = "Lutfen tum alanlari doldurun";
-      errEl.style.display = "block";
+      errBox.textContent = "Lutfen tum alanlari doldurun";
+      errBox.style.display = "block";
       return;
     }
 
     if (authMode === "register") {
-      var confirmPass = document.getElementById("confirmPassword").value;
-      if (pass !== confirmPass) {
-        errEl.textContent = "Sifreler eslesmiyor";
-        errEl.style.display = "block";
+      var confirm = document.getElementById("inputConfirm").value;
+      if (pass !== confirm) {
+        errBox.textContent = "Sifreler eslesmiyor";
+        errBox.style.display = "block";
         return;
       }
       if (pass.length < 6) {
-        errEl.textContent = "Sifre en az 6 karakter olmali";
-        errEl.style.display = "block";
+        errBox.textContent = "Sifre en az 6 karakter olmali";
+        errBox.style.display = "block";
         return;
       }
     }
 
     btn.textContent = "Baglaniyor...";
     btn.disabled = true;
+    errBox.style.display = "none";
 
-    var authPromise;
-    if (authMode === "register") {
-      authPromise = auth.createUserWithEmailAndPassword(email, pass);
-    } else {
-      authPromise = auth.signInWithEmailAndPassword(email, pass);
-    }
+    var url = authMode === "register" ? AUTH_SIGNUP : AUTH_SIGNIN;
+    var body = {
+      email: email,
+      password: pass,
+      returnSecureToken: true
+    };
 
-    authPromise.then(function() {
-      if (remember) {
+    xhrPost(url, body, function(resp) {
+      // Basarili
+      idToken = resp.idToken;
+      localId = resp.localId;
+
+      // Hatirla
+      if (document.getElementById("rememberMe").checked) {
         try {
-          localStorage.setItem("tv_receiver_email", email);
-          localStorage.setItem("tv_receiver_pass", btoa(pass));
+          localStorage.setItem("tv_email", email);
+          localStorage.setItem("tv_pass", btoa(pass));
         } catch (e) {}
       }
-      errEl.style.display = "none";
-    }).catch(function(e) {
-      var msg = authMode === "register" ? "Kayit basarisiz" : "Giris basarisiz";
-      var code = e.code || "";
-      if (code === "auth/user-not-found" || code === "auth/wrong-password" || code === "auth/invalid-credential") {
+
+      showWaiting(email);
+    }, function(errMsg) {
+      // Hata
+      var msg = "Giris basarisiz";
+      if (errMsg === "EMAIL_NOT_FOUND" || errMsg === "INVALID_PASSWORD" || errMsg === "INVALID_LOGIN_CREDENTIALS") {
         msg = "E-posta veya sifre hatali";
-      } else if (code === "auth/email-already-in-use") {
+      } else if (errMsg === "EMAIL_EXISTS") {
         msg = "Bu e-posta zaten kayitli";
-      } else if (code === "auth/weak-password") {
+      } else if (errMsg === "WEAK_PASSWORD : Password should be at least 6 characters") {
         msg = "Sifre en az 6 karakter olmali";
-      } else if (code === "auth/invalid-email") {
+      } else if (errMsg === "INVALID_EMAIL") {
         msg = "Gecersiz e-posta adresi";
-      } else if (code === "auth/too-many-requests") {
+      } else if (errMsg === "TOO_MANY_ATTEMPTS_TRY_LATER") {
         msg = "Cok fazla deneme. Lutfen bekleyin";
+      } else if (errMsg.indexOf("Ag hatasi") > -1 || errMsg.indexOf("Baglanti") > -1) {
+        msg = errMsg;
       }
-      errEl.textContent = msg;
-      errEl.style.display = "block";
+      errBox.textContent = msg;
+      errBox.style.display = "block";
       btn.textContent = authMode === "login" ? "Giris Yap" : "Kayit Ol";
       btn.disabled = false;
     });
   }
 
-  function handleLogout() {
+  // === SHOW WAITING SCREEN ===
+  function showWaiting(email) {
+    document.getElementById("loginScreen").className = "screen";
+    document.getElementById("waitScreen").className = "screen active";
+    document.getElementById("showEmail").textContent = email;
+    startPolling();
+  }
+
+  // === LOGOUT ===
+  function doLogout() {
+    stopPolling();
+    idToken = "";
+    localId = "";
     try {
-      localStorage.removeItem("tv_receiver_email");
-      localStorage.removeItem("tv_receiver_pass");
+      localStorage.removeItem("tv_email");
+      localStorage.removeItem("tv_pass");
     } catch (e) {}
-    auth.signOut();
+    document.getElementById("waitScreen").className = "screen";
+    document.getElementById("loginScreen").className = "screen active";
+    var btn = document.getElementById("btnAuth");
+    btn.textContent = authMode === "login" ? "Giris Yap" : "Kayit Ol";
+    btn.disabled = false;
   }
 
-  // === AUTO LOGIN ===
-  try {
-    var savedEmail = localStorage.getItem("tv_receiver_email");
-    var savedPass = localStorage.getItem("tv_receiver_pass");
-    if (savedEmail && savedPass) {
-      document.getElementById("loginEmail").value = savedEmail;
-      document.getElementById("loginPassword").value = atob(savedPass);
-      setTimeout(function() { handleAuth(); }, 600);
+  // === POLLING ===
+  function startPolling() {
+    stopPolling();
+    pollTimer = setInterval(function() {
+      checkForUrl();
+    }, 3000);
+    // Ilk kontrol hemen
+    checkForUrl();
+  }
+
+  function stopPolling() {
+    if (pollTimer) {
+      clearInterval(pollTimer);
+      pollTimer = null;
     }
-  } catch (e) {}
+  }
 
-  // === PASSWORD BLUR => AUTO SUBMIT ===
-  document.getElementById("loginPassword").addEventListener("blur", function() {
-    var email = document.getElementById("loginEmail").value.trim();
-    var pass = document.getElementById("loginPassword").value;
-    if (email && pass && authMode === "login") {
-      setTimeout(function() { handleAuth(); }, 400);
-    }
-  });
+  function checkForUrl() {
+    if (!idToken || !localId) return;
 
-  // === ENTER KEY ===
-  document.getElementById("loginPassword").addEventListener("keydown", function(e) {
-    if (e.key === "Enter" || e.keyCode === 13) { handleAuth(); }
-  });
-  document.getElementById("confirmPassword").addEventListener("keydown", function(e) {
-    if (e.key === "Enter" || e.keyCode === 13) { handleAuth(); }
-  });
+    var url = DB_URL + "/users/" + localId + "/currentUrl.json?auth=" + idToken;
 
-  // === AUTH STATE ===
-  auth.onAuthStateChanged(function(user) {
-    if (user) {
-      currentUser = user;
-      document.getElementById("loginScreen").style.display = "none";
-      document.getElementById("waitingScreen").style.display = "flex";
-      document.getElementById("userEmail").textContent = user.email;
-      lastProcessedTimestamp = Date.now();
-      listenForUrls();
-    } else {
-      currentUser = null;
-      document.getElementById("loginScreen").style.display = "flex";
-      document.getElementById("waitingScreen").style.display = "none";
-      var btn = document.getElementById("btnLogin");
-      btn.textContent = authMode === "login" ? "Giris Yap" : "Kayit Ol";
-      btn.disabled = false;
-    }
-  });
+    xhrGet(url, function(data) {
+      if (data && data.url) {
+        stopPolling();
+        showRedirect(data.url);
 
-  // === LISTEN FOR URLS ===
-  function listenForUrls() {
-    var uid = currentUser.uid;
-    var urlRef = db.ref("users/" + uid + "/currentUrl");
+        // Firebase'den sil
+        xhrDelete(DB_URL + "/users/" + localId + "/currentUrl.json?auth=" + idToken);
 
-    urlRef.on("value", function(snap) {
-      if (!snap.exists() || isRedirecting) return;
-
-      var data = snap.val();
-      var url = data.url;
-      var timestamp = data.timestamp;
-
-      if (timestamp <= lastProcessedTimestamp) return;
-      lastProcessedTimestamp = timestamp;
-
-      showRedirect(url);
-      urlRef.remove();
-
-      redirectTimeout = setTimeout(function() {
-        window.location.href = url;
-      }, 2500);
+        // 2.5sn sonra yonlendir
+        redirectTimer = setTimeout(function() {
+          window.location.href = data.url;
+        }, 2500);
+      }
+    }, function(status) {
+      // 401 = token expired, tekrar giris gerekir
+      if (status === 401) {
+        doLogout();
+      }
     });
   }
 
+  // === REDIRECT SCREEN ===
   function showRedirect(url) {
-    isRedirecting = true;
     var screen = document.getElementById("redirectScreen");
-    var urlEl = document.getElementById("redirectUrl");
-    var iconEl = document.getElementById("redirectIcon");
-    var fill = document.getElementById("progressFill");
+    var urlEl = document.getElementById("rdUrl");
+    var iconEl = document.getElementById("rdIcon");
 
-    var isYT = /(?:youtube\.com|youtu\.be)/i.test(url);
+    var isYT = url.indexOf("youtube.com") > -1 || url.indexOf("youtu.be") > -1;
     iconEl.innerHTML = isYT ? "&#9654;" : "&#128640;";
 
+    // Domain goster
     try {
-      var u = new URL(url);
-      urlEl.textContent = u.hostname.replace("www.", "") + u.pathname;
+      var a = document.createElement("a");
+      a.href = url;
+      urlEl.textContent = a.hostname.replace("www.", "") + a.pathname;
     } catch (e) {
       urlEl.textContent = url;
     }
 
     screen.className = "redirect-screen show";
-
-    // Animate progress bar
-    fill.style.width = "0";
-    setTimeout(function() {
-      fill.style.transition = "width 2s linear";
-      fill.style.width = "100%";
-    }, 50);
   }
 
   function cancelRedirect() {
-    if (redirectTimeout) {
-      clearTimeout(redirectTimeout);
-      redirectTimeout = null;
+    if (redirectTimer) {
+      clearTimeout(redirectTimer);
+      redirectTimer = null;
     }
-    isRedirecting = false;
     document.getElementById("redirectScreen").className = "redirect-screen";
-    var fill = document.getElementById("progressFill");
-    fill.style.transition = "none";
-    fill.style.width = "0";
+    startPolling();
   }
+
+  // === AUTO LOGIN ===
+  try {
+    var savedE = localStorage.getItem("tv_email");
+    var savedP = localStorage.getItem("tv_pass");
+    if (savedE && savedP) {
+      document.getElementById("inputEmail").value = savedE;
+      document.getElementById("inputPass").value = atob(savedP);
+      setTimeout(function() { doAuth(); }, 500);
+    }
+  } catch (e) {}
+
+  // === PASSWORD BLUR => AUTO SUBMIT ===
+  document.getElementById("inputPass").onblur = function() {
+    var email = document.getElementById("inputEmail").value;
+    var pass = document.getElementById("inputPass").value;
+    if (email && pass && authMode === "login") {
+      setTimeout(function() { doAuth(); }, 400);
+    }
+  };
+
+  // === ENTER KEY ===
+  document.getElementById("inputPass").onkeydown = function(e) {
+    var key = e.key || e.keyCode;
+    if (key === "Enter" || key === 13) { doAuth(); }
+  };
+  document.getElementById("inputConfirm").onkeydown = function(e) {
+    var key = e.key || e.keyCode;
+    if (key === "Enter" || key === 13) { doAuth(); }
+  };
 </script>
 </body>
 </html>
