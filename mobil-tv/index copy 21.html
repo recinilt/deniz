@@ -423,7 +423,7 @@
     overflow: hidden;
   }
   #touchpad-area::after {
-    content: "Kaydır · Tek parmak tıkla";
+    content: "Kaydır · 2 parmak scroll · Tek tıkla";
     font-size: 12px;
     color: var(--text3);
     pointer-events: none;
@@ -1574,7 +1574,7 @@ function initTouchpad() {
 
     if (isScrollMode) {
       // 2 parmak scroll — dy piksel cinsinden, sensivity ile ölçekle
-      pendingScrollDy += scrollRawDy * (sensitivity / 3) * 8;
+      pendingScrollDy += (-scrollRawDy) * (sensitivity / 3) * 8;
       if (!scrollThrottle) {
         scrollThrottle = setTimeout(async () => {
           scrollThrottle = null;
