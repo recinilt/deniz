@@ -423,7 +423,7 @@
     overflow: hidden;
   }
   #touchpad-area::after {
-    content: "Kaydır · 2p scroll · 2p tap=sağ tık · Tek tıkla";
+    content: "Kaydır · 2 parmak scroll · Tek tıkla";
     font-size: 12px;
     color: var(--text3);
     pointer-events: none;
@@ -946,8 +946,6 @@ let scrollThrottle  = null;
 let pendingScrollDy = 0;
 let activePointers  = {};   // pointerId → {x,y} — 2 parmak takibi
 let isScrollMode    = false;
-let twoFingerStarted  = false;
-let twoFingerScrolled = false;
 // Mutlak koordinat — gesture başlangıç snapshot
 let gestureStartX   = 50;
 let gestureStartY   = 50;
@@ -1170,8 +1168,6 @@ function startTvScreen() {
       handleBackCmd();
     } else if (cmd.type === "scroll") {
       handleScrollCmd(cmd.dy);
-    } else if (cmd.type === "rightclick") {
-      handleRightClickCmd();
     }
   });
 
@@ -1249,20 +1245,6 @@ function handleClickCmd() {
   setTimeout(() => { clickInProgress = false; }, 600);
   // TV'nin kendi cursorPctX/Y'si — tek kaynak
   iframe.contentWindow.postMessage({ tvctrl: true, type: "tvctrl-click", x: cursorPctX, y: cursorPctY }, "*");
-}
-
-function handleRightClickCmd() {
-  const iframe = document.getElementById("tv-iframe");
-  if (!iframe.classList.contains("active")) return;
-  // Pulse animasyonu (farklı renk efekti)
-  const el = document.getElementById("virtual-cursor");
-  el.classList.remove("click-pulse");
-  void el.offsetWidth;
-  el.classList.add("click-pulse");
-  setTimeout(() => el.classList.remove("click-pulse"), 400);
-  clickInProgress = true;
-  setTimeout(() => { clickInProgress = false; }, 600);
-  iframe.contentWindow.postMessage({ tvctrl: true, type: "tvctrl-rightclick", x: cursorPctX, y: cursorPctY }, "*");
 }
 
 const DPAD_STEP = 5; // ekranda % cinsinden adım
@@ -1565,8 +1547,6 @@ function initTouchpad() {
     if (pCount === 2) {
       // 2 parmak → scroll moda geç, tek parmak hareketini iptal et
       isScrollMode = true;
-      twoFingerStarted = true;
-      twoFingerScrolled = false;
       if (tapTimer) { clearTimeout(tapTimer); tapTimer = null; }
       lastPointerX = null;
       lastPointerY = null;
@@ -1595,7 +1575,6 @@ function initTouchpad() {
 
     if (isScrollMode) {
       // 2 parmak scroll — dy piksel cinsinden, sensivity ile ölçekle
-      if (Math.abs(scrollRawDy) > 3) twoFingerScrolled = true;
       pendingScrollDy += (-scrollRawDy) * (sensitivity / 3) * 8;
       if (!scrollThrottle) {
         scrollThrottle = setTimeout(async () => {
@@ -1656,20 +1635,6 @@ function initTouchpad() {
     newArea.classList.remove("touching");
     lastPointerX = null;
     lastPointerY = null;
-
-    // 2 parmak tap → sağ tıklama
-    if (twoFingerStarted && !twoFingerScrolled) {
-      twoFingerStarted = false;
-      if (!selectedTvId) return;
-      try {
-        await setDoc(doc(db, "sessions", selectedTvId), {
-          command: { type: "rightclick", sentAt: serverTimestamp() }
-        }, { merge: true });
-        toast("Sağ tık ✓");
-      } catch(e) { /* */ }
-      return;
-    }
-    twoFingerStarted = false;
 
     if (!isMoved && tapTimer !== null) {
       clearTimeout(tapTimer);
