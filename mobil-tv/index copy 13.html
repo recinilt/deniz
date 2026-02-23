@@ -1192,11 +1192,6 @@ function handlePointerCmd(dx, dy) {
   cursorPctX = Math.min(100, Math.max(0, cursorPctX + dx));
   cursorPctY = Math.min(100, Math.max(0, cursorPctY + dy));
   showCursor();
-  // inject script'e mousemove gönder — site hover state'ini güncelledirir
-  const iframe = document.getElementById("tv-iframe");
-  if (iframe && iframe.classList.contains("active")) {
-    iframe.contentWindow.postMessage({ tvctrl: true, type: "tvctrl-mousemove", x: cursorPctX, y: cursorPctY }, "*");
-  }
 }
 
 function handleClickCmd(x, y) {
@@ -1228,10 +1223,6 @@ function handleDpadCmd(dir) {
   if (dir === "left")  cursorPctX = Math.max(0,   cursorPctX - DPAD_STEP);
   if (dir === "right") cursorPctX = Math.min(100, cursorPctX + DPAD_STEP);
   showCursor();
-  // inject script'e mousemove gönder — hover state güncel kalsın
-  if (dir !== "enter") {
-    iframe.contentWindow.postMessage({ tvctrl: true, type: "tvctrl-mousemove", x: cursorPctX, y: cursorPctY }, "*");
-  }
   // Enter = cursor pozisyonuna tıklama
   if (dir === "enter") {
     const el2 = document.getElementById("virtual-cursor");
@@ -1554,6 +1545,13 @@ function initTouchpad() {
     if (!isMoved && tapTimer !== null) {
       clearTimeout(tapTimer);
       tapTimer = null;
+      // Bekleyen pointer throttle varsa iptal et — race condition önleme
+      if (pointerThrottle) {
+        clearTimeout(pointerThrottle);
+        pointerThrottle = null;
+        pendingDx = 0;
+        pendingDy = 0;
+      }
       // Tek parmak tap = tıklama — koordinat mobil cursor'dan geliyor
       if (!selectedTvId) return;
       try {
@@ -1585,21 +1583,6 @@ window.sendBackCmd = async function() {
 // ─── D-Pad gönder ───
 window.sendDpad = async function(dir) {
   if (!selectedTvId) { toast("TV seçili değil."); return; }
-  // Mobil tarafı cursor pozisyonunu da güncelle — D-Pad tap sonrası koordinat senkron kalır
-  const STEP = 5;
-  if (dir === "up")    mobileCursorY = Math.max(0,   mobileCursorY - STEP);
-  if (dir === "down")  mobileCursorY = Math.min(100, mobileCursorY + STEP);
-  if (dir === "left")  mobileCursorX = Math.max(0,   mobileCursorX - STEP);
-  if (dir === "right") mobileCursorX = Math.min(100, mobileCursorX + STEP);
-  // enter için click gönder (x/y ile)
-  if (dir === "enter") {
-    try {
-      await setDoc(doc(db, "sessions", selectedTvId), {
-        command: { type: "click", x: mobileCursorX, y: mobileCursorY, sentAt: serverTimestamp() }
-      }, { merge: true });
-    } catch(e) { toast("Hata: " + e.message); }
-    return;
-  }
   try {
     await setDoc(doc(db, "sessions", selectedTvId), {
       command: { type: "dpad", dir, sentAt: serverTimestamp() }
