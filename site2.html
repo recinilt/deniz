@@ -3,19 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=1920">
-<title>TV Alıcı</title>
+<title>TV Alici</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
     background: #0a0a0f;
     color: #e0e0e8;
     height: 100vh;
     overflow: hidden;
   }
 
-  /* === LOGIN === */
   .login-screen {
     height: 100vh;
     display: flex;
@@ -27,10 +26,9 @@
   .login-icon { font-size: 64px; margin-bottom: 20px; }
   .login-title { font-size: 42px; font-weight: 700; margin-bottom: 6px; }
   .login-subtitle { font-size: 22px; color: #888; margin-bottom: 40px; }
-
   .login-form { width: 480px; }
 
-  .auth-tabs-tv {
+  .auth-tabs {
     display: flex;
     background: #151520;
     border-radius: 12px;
@@ -38,7 +36,7 @@
     margin-bottom: 24px;
   }
 
-  .auth-tab-tv {
+  .auth-tab {
     flex: 1;
     padding: 14px;
     text-align: center;
@@ -52,7 +50,7 @@
     font-family: inherit;
   }
 
-  .auth-tab-tv.active {
+  .auth-tab.active {
     background: #1e1e2e;
     color: #e0e0e8;
   }
@@ -84,7 +82,6 @@
   .field input:focus { border-color: #6c5ce7; }
 
   .confirm-field { display: none; }
-  .confirm-field.show { display: block; }
 
   .remember-row {
     display: flex;
@@ -127,7 +124,6 @@
     display: none;
   }
 
-  /* === WAITING === */
   .waiting-screen {
     display: none;
     height: 100vh;
@@ -179,29 +175,8 @@
   .waiting-subtitle { font-size: 24px; color: #888; margin-bottom: 8px; }
   .waiting-email { font-size: 18px; color: #555; }
 
-  .last-url {
-    position: fixed;
-    bottom: 32px;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 12px 24px;
-    background: #151520;
-    border: 1px solid #252530;
-    border-radius: 10px;
-    font-size: 16px;
-    color: #555;
-    max-width: 80vw;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    display: none;
-  }
-
-  .last-url.show { display: block; }
-
-  /* === REDIRECT === */
   .redirect-screen {
-    position: fixed; inset: 0;
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
     background: #0a0a0f;
     display: none;
     flex-direction: column;
@@ -218,7 +193,7 @@
   .redirect-url {
     font-size: 22px;
     color: #a29bfe;
-    max-width: 80vw;
+    max-width: 80%;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -238,8 +213,7 @@
     height: 100%;
     background: #6c5ce7;
     border-radius: 3px;
-    width: 0%;
-    transition: width 2s linear;
+    width: 0;
   }
 
   .btn-back {
@@ -251,42 +225,40 @@
     font-family: inherit;
     font-size: 20px;
     cursor: pointer;
-    display: none;
   }
 
   .btn-back:focus { outline: 3px solid #6c5ce7; outline-offset: 2px; }
-  .btn-back.show { display: block; }
 </style>
 </head>
 <body>
 
 <!-- LOGIN -->
 <div class="login-screen" id="loginScreen">
-  <div class="login-icon">📺</div>
-  <div class="login-title">TV Alıcı</div>
-  <div class="login-subtitle">Telefonunuzdan URL alın</div>
+  <div class="login-icon">&#128250;</div>
+  <div class="login-title">TV Alici</div>
+  <div class="login-subtitle">Telefonunuzdan URL alin</div>
   <div class="login-form">
-    <div class="auth-tabs-tv">
-      <button class="auth-tab-tv active" id="authTabLogin" onclick="switchAuthTab('login')">Giriş Yap</button>
-      <button class="auth-tab-tv" id="authTabRegister" onclick="switchAuthTab('register')">Kayıt Ol</button>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="authTabLogin" onclick="switchAuthTab('login')">Giris Yap</button>
+      <button class="auth-tab" id="authTabRegister" onclick="switchAuthTab('register')">Kayit Ol</button>
     </div>
     <div class="field">
       <label>E-posta</label>
       <input type="email" id="loginEmail" placeholder="ornek@email.com" autocomplete="email">
     </div>
     <div class="field">
-      <label>Şifre</label>
-      <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
+      <label>Sifre</label>
+      <input type="password" id="loginPassword" placeholder="********" autocomplete="current-password">
     </div>
     <div class="field confirm-field" id="confirmGroup">
-      <label>Şifre Tekrar</label>
-      <input type="password" id="confirmPassword" placeholder="••••••••" autocomplete="new-password">
+      <label>Sifre Tekrar</label>
+      <input type="password" id="confirmPassword" placeholder="********" autocomplete="new-password">
     </div>
     <label class="remember-row">
       <input type="checkbox" id="rememberMe" checked>
-      <span>Beni hatırla</span>
+      <span>Beni hatirla</span>
     </label>
-    <button class="btn-login" id="btnLogin" onclick="handleAuth()">Giriş Yap</button>
+    <button class="btn-login" id="btnLogin" onclick="handleAuth()">Giris Yap</button>
     <div class="login-error" id="loginError"></div>
   </div>
 </div>
@@ -296,32 +268,33 @@
   <div class="status-bar">
     <div class="status-left">
       <div class="status-dot"></div>
-      <span class="status-text">Bağlı — URL bekleniyor</span>
+      <span class="status-text">Bagli - URL bekleniyor</span>
     </div>
-    <button class="btn-logout" onclick="handleLogout()">Çıkış</button>
+    <button class="btn-logout" onclick="handleLogout()">Cikis</button>
   </div>
-  <div class="waiting-icon">📡</div>
+  <div class="waiting-icon">&#128225;</div>
   <div class="waiting-title">URL Bekleniyor...</div>
-  <div class="waiting-subtitle">Telefonunuzdan bir URL gönderin</div>
+  <div class="waiting-subtitle">Telefonunuzdan bir URL gonderin</div>
   <div class="waiting-email" id="userEmail"></div>
-  <div class="last-url" id="lastUrl"></div>
 </div>
 
 <!-- REDIRECT -->
 <div class="redirect-screen" id="redirectScreen">
-  <div class="redirect-icon" id="redirectIcon">🚀</div>
-  <div class="redirect-title">Yönlendiriliyor</div>
+  <div class="redirect-icon" id="redirectIcon">&#128640;</div>
+  <div class="redirect-title">Yonlendiriliyor</div>
   <div class="redirect-url" id="redirectUrl"></div>
   <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
-  <button class="btn-back show" id="btnBack" onclick="cancelRedirect()">← TV'ye Dön</button>
+  <button class="btn-back" id="btnBack" onclick="cancelRedirect()">TV'ye Don</button>
 </div>
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
-  import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-  import { getDatabase, ref, onValue, remove } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
+<!-- FIREBASE COMPAT SDK - klasik script tagleri, ES modules GEREKMEZ -->
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
 
-  const firebaseConfig = {
+<script>
+  // === FIREBASE CONFIG ===
+  var firebaseConfig = {
     apiKey: "AIzaSyDw5kHPVMtm9G7zD_hBlusp1HCcUbbIhv8",
     authDomain: "mobil-tv-e1095.firebaseapp.com",
     databaseURL: "https://mobil-tv-e1095-default-rtdb.europe-west1.firebasedatabase.app",
@@ -331,131 +304,168 @@
     appId: "1:397261791298:web:3f392e3634bed79ba50ddb"
   };
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getDatabase(app);
+  firebase.initializeApp(firebaseConfig);
 
-  let currentUser = null;
-  let lastProcessedTimestamp = 0;
-  let redirectTimeout = null;
-  let isRedirecting = false;
-  let authMode = 'login';
+  var auth = firebase.auth();
+  var db = firebase.database();
 
-  // --- AUTH TABS ---
-  window.switchAuthTab = function(mode) {
+  var currentUser = null;
+  var lastProcessedTimestamp = 0;
+  var redirectTimeout = null;
+  var isRedirecting = false;
+  var authMode = "login";
+
+  // === AUTH TABS ===
+  function switchAuthTab(mode) {
     authMode = mode;
-    document.getElementById('authTabLogin').classList.toggle('active', mode === 'login');
-    document.getElementById('authTabRegister').classList.toggle('active', mode === 'register');
-    document.getElementById('confirmGroup').classList.toggle('show', mode === 'register');
-    document.getElementById('btnLogin').textContent = mode === 'login' ? 'Giriş Yap' : 'Kayıt Ol';
-    document.getElementById('loginError').style.display = 'none';
-  };
+    var tabLogin = document.getElementById("authTabLogin");
+    var tabRegister = document.getElementById("authTabRegister");
+    var confirmGroup = document.getElementById("confirmGroup");
+    var btn = document.getElementById("btnLogin");
+    var errEl = document.getElementById("loginError");
 
-  // --- AUTH ---
-  window.handleAuth = async function() {
-    var email = document.getElementById('loginEmail').value.trim();
-    var pass = document.getElementById('loginPassword').value;
-    var remember = document.getElementById('rememberMe').checked;
-    var errEl = document.getElementById('loginError');
-    var btn = document.getElementById('btnLogin');
+    if (mode === "login") {
+      tabLogin.className = "auth-tab active";
+      tabRegister.className = "auth-tab";
+      confirmGroup.style.display = "none";
+      btn.textContent = "Giris Yap";
+    } else {
+      tabLogin.className = "auth-tab";
+      tabRegister.className = "auth-tab active";
+      confirmGroup.style.display = "block";
+      btn.textContent = "Kayit Ol";
+    }
+    errEl.style.display = "none";
+  }
+
+  // === AUTH ===
+  function handleAuth() {
+    var email = document.getElementById("loginEmail").value.trim();
+    var pass = document.getElementById("loginPassword").value;
+    var remember = document.getElementById("rememberMe").checked;
+    var errEl = document.getElementById("loginError");
+    var btn = document.getElementById("btnLogin");
 
     if (!email || !pass) {
-      errEl.textContent = 'Lütfen tüm alanları doldurun';
-      errEl.style.display = 'block';
+      errEl.textContent = "Lutfen tum alanlari doldurun";
+      errEl.style.display = "block";
       return;
     }
 
-    if (authMode === 'register') {
-      var confirm = document.getElementById('confirmPassword').value;
-      if (pass !== confirm) { errEl.textContent = 'Şifreler eşleşmiyor'; errEl.style.display = 'block'; return; }
-      if (pass.length < 6) { errEl.textContent = 'Şifre en az 6 karakter olmalı'; errEl.style.display = 'block'; return; }
+    if (authMode === "register") {
+      var confirmPass = document.getElementById("confirmPassword").value;
+      if (pass !== confirmPass) {
+        errEl.textContent = "Sifreler eslesmiyor";
+        errEl.style.display = "block";
+        return;
+      }
+      if (pass.length < 6) {
+        errEl.textContent = "Sifre en az 6 karakter olmali";
+        errEl.style.display = "block";
+        return;
+      }
     }
 
-    btn.textContent = 'Bağlanıyor...';
+    btn.textContent = "Baglaniyor...";
     btn.disabled = true;
 
-    try {
-      if (authMode === 'register') {
-        await createUserWithEmailAndPassword(auth, email, pass);
-      } else {
-        await signInWithEmailAndPassword(auth, email, pass);
-      }
-      if (remember) {
-        localStorage.setItem('tv_receiver_email', email);
-        localStorage.setItem('tv_receiver_pass', btoa(pass));
-      }
-      errEl.style.display = 'none';
-    } catch (e) {
-      var msg = authMode === 'register' ? 'Kayıt başarısız' : 'Giriş başarısız';
-      if (e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential') msg = 'E-posta veya şifre hatalı';
-      else if (e.code === 'auth/email-already-in-use') msg = 'Bu e-posta zaten kayıtlı';
-      else if (e.code === 'auth/weak-password') msg = 'Şifre en az 6 karakter olmalı';
-      else if (e.code === 'auth/invalid-email') msg = 'Geçersiz e-posta adresi';
-      else if (e.code === 'auth/too-many-requests') msg = 'Çok fazla deneme. Lütfen bekleyin';
-      errEl.textContent = msg;
-      errEl.style.display = 'block';
-      btn.textContent = authMode === 'login' ? 'Giriş Yap' : 'Kayıt Ol';
-      btn.disabled = false;
+    var authPromise;
+    if (authMode === "register") {
+      authPromise = auth.createUserWithEmailAndPassword(email, pass);
+    } else {
+      authPromise = auth.signInWithEmailAndPassword(email, pass);
     }
-  };
 
-  window.handleLogout = async function() {
-    localStorage.removeItem('tv_receiver_email');
-    localStorage.removeItem('tv_receiver_pass');
-    await signOut(auth);
-  };
-
-  // --- AUTO LOGIN from localStorage ---
-  var savedEmail = localStorage.getItem('tv_receiver_email');
-  var savedPass = localStorage.getItem('tv_receiver_pass');
-  if (savedEmail && savedPass) {
-    document.getElementById('loginEmail').value = savedEmail;
-    document.getElementById('loginPassword').value = atob(savedPass);
-    setTimeout(function() { window.handleAuth(); }, 500);
+    authPromise.then(function() {
+      if (remember) {
+        try {
+          localStorage.setItem("tv_receiver_email", email);
+          localStorage.setItem("tv_receiver_pass", btoa(pass));
+        } catch (e) {}
+      }
+      errEl.style.display = "none";
+    }).catch(function(e) {
+      var msg = authMode === "register" ? "Kayit basarisiz" : "Giris basarisiz";
+      var code = e.code || "";
+      if (code === "auth/user-not-found" || code === "auth/wrong-password" || code === "auth/invalid-credential") {
+        msg = "E-posta veya sifre hatali";
+      } else if (code === "auth/email-already-in-use") {
+        msg = "Bu e-posta zaten kayitli";
+      } else if (code === "auth/weak-password") {
+        msg = "Sifre en az 6 karakter olmali";
+      } else if (code === "auth/invalid-email") {
+        msg = "Gecersiz e-posta adresi";
+      } else if (code === "auth/too-many-requests") {
+        msg = "Cok fazla deneme. Lutfen bekleyin";
+      }
+      errEl.textContent = msg;
+      errEl.style.display = "block";
+      btn.textContent = authMode === "login" ? "Giris Yap" : "Kayit Ol";
+      btn.disabled = false;
+    });
   }
 
-  // --- AUTO SUBMIT on password blur (TV keyboard "done") ---
-  document.getElementById('loginPassword').addEventListener('blur', function() {
-    var email = document.getElementById('loginEmail').value.trim();
-    var pass = this.value;
-    if (email && pass && authMode === 'login') {
-      setTimeout(function() { window.handleAuth(); }, 300);
+  function handleLogout() {
+    try {
+      localStorage.removeItem("tv_receiver_email");
+      localStorage.removeItem("tv_receiver_pass");
+    } catch (e) {}
+    auth.signOut();
+  }
+
+  // === AUTO LOGIN ===
+  try {
+    var savedEmail = localStorage.getItem("tv_receiver_email");
+    var savedPass = localStorage.getItem("tv_receiver_pass");
+    if (savedEmail && savedPass) {
+      document.getElementById("loginEmail").value = savedEmail;
+      document.getElementById("loginPassword").value = atob(savedPass);
+      setTimeout(function() { handleAuth(); }, 600);
+    }
+  } catch (e) {}
+
+  // === PASSWORD BLUR => AUTO SUBMIT ===
+  document.getElementById("loginPassword").addEventListener("blur", function() {
+    var email = document.getElementById("loginEmail").value.trim();
+    var pass = document.getElementById("loginPassword").value;
+    if (email && pass && authMode === "login") {
+      setTimeout(function() { handleAuth(); }, 400);
     }
   });
 
-  // Enter key support
-  document.getElementById('loginPassword').addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') window.handleAuth();
+  // === ENTER KEY ===
+  document.getElementById("loginPassword").addEventListener("keydown", function(e) {
+    if (e.key === "Enter" || e.keyCode === 13) { handleAuth(); }
   });
-  document.getElementById('confirmPassword').addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') window.handleAuth();
+  document.getElementById("confirmPassword").addEventListener("keydown", function(e) {
+    if (e.key === "Enter" || e.keyCode === 13) { handleAuth(); }
   });
 
-  // --- AUTH STATE ---
-  onAuthStateChanged(auth, function(user) {
+  // === AUTH STATE ===
+  auth.onAuthStateChanged(function(user) {
     if (user) {
       currentUser = user;
-      document.getElementById('loginScreen').style.display = 'none';
-      document.getElementById('waitingScreen').style.display = 'flex';
-      document.getElementById('userEmail').textContent = user.email;
+      document.getElementById("loginScreen").style.display = "none";
+      document.getElementById("waitingScreen").style.display = "flex";
+      document.getElementById("userEmail").textContent = user.email;
       lastProcessedTimestamp = Date.now();
       listenForUrls();
     } else {
       currentUser = null;
-      document.getElementById('loginScreen').style.display = 'flex';
-      document.getElementById('waitingScreen').style.display = 'none';
-      var btn = document.getElementById('btnLogin');
-      btn.textContent = authMode === 'login' ? 'Giriş Yap' : 'Kayıt Ol';
+      document.getElementById("loginScreen").style.display = "flex";
+      document.getElementById("waitingScreen").style.display = "none";
+      var btn = document.getElementById("btnLogin");
+      btn.textContent = authMode === "login" ? "Giris Yap" : "Kayit Ol";
       btn.disabled = false;
     }
   });
 
-  // --- LISTEN ---
+  // === LISTEN FOR URLS ===
   function listenForUrls() {
     var uid = currentUser.uid;
-    var urlRef = ref(db, 'users/' + uid + '/currentUrl');
+    var urlRef = db.ref("users/" + uid + "/currentUrl");
 
-    onValue(urlRef, function(snap) {
+    urlRef.on("value", function(snap) {
       if (!snap.exists() || isRedirecting) return;
 
       var data = snap.val();
@@ -466,7 +476,7 @@
       lastProcessedTimestamp = timestamp;
 
       showRedirect(url);
-      remove(urlRef);
+      urlRef.remove();
 
       redirectTimeout = setTimeout(function() {
         window.location.href = url;
@@ -476,34 +486,42 @@
 
   function showRedirect(url) {
     isRedirecting = true;
-    var screen = document.getElementById('redirectScreen');
-    var urlEl = document.getElementById('redirectUrl');
-    var iconEl = document.getElementById('redirectIcon');
-    var fill = document.getElementById('progressFill');
+    var screen = document.getElementById("redirectScreen");
+    var urlEl = document.getElementById("redirectUrl");
+    var iconEl = document.getElementById("redirectIcon");
+    var fill = document.getElementById("progressFill");
 
     var isYT = /(?:youtube\.com|youtu\.be)/i.test(url);
-    iconEl.textContent = isYT ? '▶' : '🚀';
+    iconEl.innerHTML = isYT ? "&#9654;" : "&#128640;";
 
     try {
       var u = new URL(url);
-      urlEl.textContent = u.hostname.replace('www.', '') + u.pathname;
+      urlEl.textContent = u.hostname.replace("www.", "") + u.pathname;
     } catch (e) {
       urlEl.textContent = url;
     }
 
-    screen.classList.add('show');
-    setTimeout(function() { fill.style.width = '100%'; }, 50);
+    screen.className = "redirect-screen show";
+
+    // Animate progress bar
+    fill.style.width = "0";
+    setTimeout(function() {
+      fill.style.transition = "width 2s linear";
+      fill.style.width = "100%";
+    }, 50);
   }
 
-  window.cancelRedirect = function() {
+  function cancelRedirect() {
     if (redirectTimeout) {
       clearTimeout(redirectTimeout);
       redirectTimeout = null;
     }
     isRedirecting = false;
-    document.getElementById('redirectScreen').classList.remove('show');
-    document.getElementById('progressFill').style.width = '0%';
-  };
+    document.getElementById("redirectScreen").className = "redirect-screen";
+    var fill = document.getElementById("progressFill");
+    fill.style.transition = "none";
+    fill.style.width = "0";
+  }
 </script>
 </body>
 </html>
