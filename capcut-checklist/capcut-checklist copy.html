@@ -81,7 +81,6 @@ padding:10px 20px;transition:box-shadow .3s;
 .s-hook .section-header{background:rgba(255,77,109,0.2)}
 .s-audio .section-header{background:rgba(177,74,237,0.2)}
 .s-color .section-header{background:rgba(255,140,66,0.2)}
-.s-filter .section-header{background:rgba(255,209,102,0.2)}
 .s-stabilize .section-header{background:rgba(0,180,216,0.2)}
 .s-subtitle .section-header{background:rgba(6,214,160,0.2)}
 .s-safezone .section-header{background:rgba(0,229,255,0.2)}
@@ -94,54 +93,7 @@ padding:10px 20px;transition:box-shadow .3s;
 .s-final .section-header{background:rgba(255,77,109,0.2)}
 .s-analytics .section-header{background:rgba(67,97,238,0.2)}
 .s-repurpose .section-header{background:rgba(177,74,237,0.2)}
-
-/* Filter guide accordion */
-.filter-detail{overflow:hidden;max-height:0;transition:max-height .35s ease}
-.filter-detail.open{max-height:2000px}
-.filter-toggle{
-display:flex;align-items:center;gap:6px;
-padding:6px 16px 6px 48px;cursor:pointer;
-font-size:12.5px;color:var(--yellow);font-weight:600;
-user-select:none;transition:opacity .2s;
-}
-.filter-toggle:hover{opacity:0.8}
-.filter-toggle .arrow{transition:transform .3s;font-size:10px}
-.filter-toggle .arrow.open{transform:rotate(90deg)}
-.filter-card{
-margin:4px 16px 4px 48px;padding:10px 14px;
-background:rgba(255,255,255,0.03);border-radius:8px;
-border-left:3px solid var(--yellow);
-font-size:12px;color:var(--text2);line-height:1.7;
-}
-.filter-card b{color:var(--cyan);font-weight:600}
-.filter-card .tag{
-display:inline-block;padding:1px 7px;border-radius:4px;
-font-size:10px;font-weight:600;margin:0 2px;
-}
-.tag-vlog{background:rgba(6,214,160,0.2);color:var(--green)}
-.tag-sinematik{background:rgba(177,74,237,0.2);color:var(--purple)}
-.tag-egitim{background:rgba(67,97,238,0.2);color:var(--blue)}
-.tag-selfie{background:rgba(224,64,251,0.2);color:var(--pink)}
-.tag-seyahat{background:rgba(255,140,66,0.2);color:var(--orange)}
-.tag-nostalji{background:rgba(255,209,102,0.2);color:var(--yellow)}
-.tag-eglence{background:rgba(255,77,109,0.2);color:var(--red)}
-.tag-viral{background:rgba(0,229,255,0.2);color:var(--cyan)}
-
-/* Step badges */
-.step-badge{
-display:inline-flex;align-items:center;justify-content:center;
-width:20px;height:20px;border-radius:50%;
-background:var(--cyan);color:#0a0a12;
-font-size:11px;font-weight:800;margin-right:4px;flex-shrink:0;
-}
-
-@media(max-width:480px){
-.item{padding:8px 12px;gap:10px}
-.section-header{padding:10px 12px}
-.note{padding-left:42px}
-.filter-toggle{padding-left:42px}
-.filter-card{margin-left:42px;margin-right:12px}
-}
+@media(max-width:480px){.item{padding:8px 12px;gap:10px}.section-header{padding:10px 12px}.note{padding-left:42px}}
 </style>
 </head>
 <body>
@@ -222,147 +174,17 @@ font-size:11px;font-weight:800;margin-right:4px;flex-shrink:0;
     <label class="item"><span class="cb"></span><span class="item-text"><b>HSL</b> → Ton, Doygunluk, Parlaklık detay ayarı</span></label>
     <label class="item"><span class="cb"></span><span class="item-text"><b>Eğri</b> (Curves) → S-eğrisi ile kontrast ekle</span></label>
     <label class="item"><span class="cb"></span><span class="item-text"><b>Keskinlik</b> (Sharpness) → hafif artır (aşırı yapma!)</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text"><b>Filtreler</b> sekmesi → tutarlı filtre seç → <b>Tümüne Uygula</b></span></label>
     <label class="item"><span class="cb"></span><span class="item-text">LUT kullanıyorsan tüm kliplerde aynı LUT</span></label>
     <label class="item"><span class="cb"></span><span class="item-text">Tüm kliplerde tutarlı renk tonlaması</span></label>
-    <div class="note">💡 Önce Color Correction (düzeltme), sonra Color Grading (stil) — sıra önemli!</div>
+    <div class="note">💡 Önce Color Correction (düzeltme), sonra Color Grading (stil)</div>
   </div>
 </div>
 
-<!-- S5: FİLTRE & RENK GRADİNG REHBERİ (YENİ) -->
-<div class="section s-filter" id="s5">
+<!-- S5: STABİLİZASYON & RÖTUŞ & BG -->
+<div class="section s-stabilize" id="s5">
   <div class="section-header" onclick="toggleSection('s5')">
-    <span class="emoji">🎞️</span><span class="title">Filtre & Renk Grading Rehberi (3 Adım)</span><span class="count" data-section="s5"></span><span class="chevron">▾</span>
-  </div>
-  <div class="section-body">
-
-    <!-- ADIM 1 -->
-    <div class="note" style="color:var(--cyan);font-style:normal;font-weight:700;padding-top:8px">
-      <span class="step-badge">1</span> ADIM: CORRECTION (Önce düzelt — Sağ panel → Ayarlama)
-    </div>
-    <label class="item"><span class="cb"></span><span class="item-text"><b>Parlaklık</b> → görüntü karanlıksa artır, parlaksa azalt</span></label>
-    <label class="item"><span class="cb"></span><span class="item-text"><b>Kontrast</b> → hafif artır (+10-20) — düz görüntüye derinlik ver</span></label>
-    <label class="item"><span class="cb"></span><span class="item-text"><b>Beyaz Dengesi / Sıcaklık</b> → beyazlar mavi mi? sağa kaydır (sıcak). Sarı mı? sola (soğuk)</span></label>
-    <label class="item"><span class="cb"></span><span class="item-text"><b>Gölgeler</b> → karanlık alanları aç (+10-15), detay koru</span></label>
-    <label class="item"><span class="cb"></span><span class="item-text"><b>Parlak Noktalar</b> → parlak alanları düşür (-10-15), yanık önle</span></label>
-    <label class="item"><span class="cb"></span><span class="item-text">Cilt tonu doğal mı? → turuncu veya gri görünmemeli</span></label>
-    <div class="note">💡 Bu adımı ASLA atlama — filtre düzeltilmemiş görüntüye yanlış renk ekler!</div>
-
-    <!-- ADIM 2 -->
-    <div class="note" style="color:var(--cyan);font-style:normal;font-weight:700;padding-top:12px">
-      <span class="step-badge">2</span> ADIM: FİLTRE UYGULA (Üst menü → Filtreler)
-    </div>
-    <label class="item"><span class="cb"></span><span class="item-text"><b>Filtreler</b> sekmesine git (üst menüde, Efektler'in yanı)</span></label>
-    <label class="item"><span class="cb"></span><span class="item-text">İçerik türüne göre kategori seç (▼ aşağıda detay var)</span></label>
-    <label class="item"><span class="cb"></span><span class="item-text">Filtreyi klibe sürükle → zaman çizelgesine ekle</span></label>
-    <label class="item"><span class="cb"></span><span class="item-text"><b>Yoğunluğu %40-70 arası ayarla</b> → %100 amatör görünür!</span></label>
-    <label class="item"><span class="cb"></span><span class="item-text">Filtreyi tüm kliplere uygula → kenarından sürükle VEYA kopyala-yapıştır</span></label>
-    <label class="item"><span class="cb"></span><span class="item-text">Her klipte AYNI filtre + AYNI yoğunluk → tutarlılık = marka kimliği</span></label>
-
-    <!-- DETAY: İçerik Türüne Göre Filtre Tablosu -->
-    <div class="filter-toggle" onclick="toggleFilterDetail('fd1')">
-      <span class="arrow" id="fd1arrow">▶</span> İçerik türüne göre hangi filtre? (tıkla)
-    </div>
-    <div class="filter-detail" id="fd1">
-      <div class="filter-card">
-        <b>🎤 Vlog / Günlük hayat</b> <span class="tag tag-vlog">Hayat</span><br>
-        Kategori: <b>Hayat</b> → sıcak, doğal, hafif. Yoğunluk: <b>%50-60</b><br>
-        Önerilen filtreler: Saf Neşe, Dupduru, VHS<br>
-        Amaç: doğal ve samimi görünüm, aşırı işlenmiş hissi vermeden
-      </div>
-      <div class="filter-card" style="margin-top:6px">
-        <b>🎬 Sinematik / Hikaye anlatımı</b> <span class="tag tag-sinematik">Filmler</span><br>
-        Kategori: <b>Filmler</b> → zengin renkler, dramatik tonlar. Yoğunluk: <b>%50-70</b><br>
-        Önerilen filtreler: Manga, sinematik tonlar (teal & orange)<br>
-        Amaç: film gibi derinlik, kontrast, dramatik aydınlatma hissi
-      </div>
-      <div class="filter-card" style="margin-top:6px">
-        <b>📚 Eğitim / Tutorial / Ürün tanıtım</b> <span class="tag tag-egitim">Öne Çıkan</span><br>
-        Kategori: <b>Öne Çıkan → 4K / 8K</b> → temiz, net, kalite artırıcı. Yoğunluk: <b>%30-50</b><br>
-        Önerilen filtreler: 4K, 8K, Dupduru<br>
-        Amaç: içerik okunabilir, profesyonel, temiz görünüm
-      </div>
-      <div class="filter-card" style="margin-top:6px">
-        <b>🤳 Selfie / Konuşan kafa / Yüz içerikli</b> <span class="tag tag-selfie">Portre</span><br>
-        Kategori: <b>Portre</b> + Öne Çıkan'dan <b>Dupduru / Cilt Güzelleştirme</b>. Yoğunluk: <b>%40-60</b><br>
-        Önerilen filtreler: Cilt Güzelleştirme, Nazik Kızıl, Portre filtreleri<br>
-        Amaç: cilt tonu düzgün, yüz ön plana çıksın, doğal güzel
-      </div>
-      <div class="filter-card" style="margin-top:6px">
-        <b>✈️ Seyahat / Doğa / Outdoor</b> <span class="tag tag-seyahat">Yatay + Hayat</span><br>
-        Kategori: <b>Yatay</b> veya <b>Hayat</b> → canlı gökyüzü, doygun yeşiller. Yoğunluk: <b>%50-65</b><br>
-        Önerilen filtreler: Açık Yeşil, Evrens...Batımı, Canlılık artıranlar<br>
-        Amaç: renkler canlı ama doğal, manzara vurgulu
-      </div>
-      <div class="filter-card" style="margin-top:6px">
-        <b>📼 Nostalji / Retro</b> <span class="tag tag-nostalji">Mono / Retro</span><br>
-        Kategori: <b>Mono</b> (siyah-beyaz) veya Retro filtreler. Yoğunluk: <b>%60-80</b><br>
-        Önerilen filtreler: VHS, Mono filtreler, soluk tonlar<br>
-        Amaç: eski film hissi, grain, vinyet, nostalji
-      </div>
-      <div class="filter-card" style="margin-top:6px">
-        <b>😂 Eğlence / Komedi</b> <span class="tag tag-eglence">Fotoğraf Kabini</span><br>
-        Kategori: <b>Fotoğraf Kabini</b> → karikatür, AR, eğlenceli efektler. Yoğunluk: <b>%70-100</b><br>
-        Önerilen filtreler: Cartoon, AR yüz filtreleri<br>
-        Amaç: abartılı, komik, dikkat çekici
-      </div>
-      <div class="filter-card" style="margin-top:6px">
-        <b>🔥 Viral / Trending</b> <span class="tag tag-viral">Hit Şarkılar + YENİ</span><br>
-        Kategori: <b>Hit Şarkılar</b> (en popüler) + <b>YENİ</b> (en güncel). Yoğunluk: <b>%50-70</b><br>
-        Önerilen filtreler: Fresh Lime, Vivid Verse, Bulanıklık efektleri<br>
-        Amaç: trend yakalamak, modern görünüm, paylaşılabilir
-      </div>
-    </div>
-
-    <!-- ADIM 3 -->
-    <div class="note" style="color:var(--cyan);font-style:normal;font-weight:700;padding-top:12px">
-      <span class="step-badge">3</span> ADIM: İNCE AYAR (Filtre sonrası — Sağ panel → Ayarlama)
-    </div>
-    <label class="item"><span class="cb"></span><span class="item-text"><b>Sıcaklık</b> → filtre uyguladıktan sonra yeniden kontrol et (cilt tonu doğal mı?)</span></label>
-    <label class="item"><span class="cb"></span><span class="item-text"><b>Doygunluk</b> → filtre aşırı doygun yaptıysa biraz düşür (-5-10)</span></label>
-    <label class="item"><span class="cb"></span><span class="item-text"><b>Canlılık</b> (Vibrance) → sadece soluk renkleri canlandırır, cilt tonuna dokunmaz</span></label>
-    <label class="item"><span class="cb"></span><span class="item-text"><b>HSL</b> → ten rengi (turuncu/sarı bandı) çok bozuldu mu? → Ton kaydırıcısıyla düzelt</span></label>
-    <label class="item"><span class="cb"></span><span class="item-text"><b>Keskinlik</b> → hafif artır (+15-25), aşırı yapma (gürültü çıkar)</span></label>
-    <label class="item"><span class="cb"></span><span class="item-text">Telefonda önizle → renk monitörde farklı, telefonda farklı görünür</span></label>
-
-    <!-- DETAY: Sıra neden önemli? -->
-    <div class="filter-toggle" onclick="toggleFilterDetail('fd2')">
-      <span class="arrow" id="fd2arrow">▶</span> Neden bu sıra? (Correction → Filtre → İnce Ayar)
-    </div>
-    <div class="filter-detail" id="fd2">
-      <div class="filter-card">
-        <b>Yanlış sıra:</b> Filtre → Correction = filtrenin renkleri bozulur, çift düzeltme olur, doğal görünmez<br><br>
-        <b>Doğru sıra (endüstri standardı):</b><br>
-        <span class="step-badge">1</span> <b>Correction</b> → çiğ görüntüyü "doğal" hale getir (pozlama, beyaz dengesi)<br>
-        <span class="step-badge">2</span> <b>Filtre/LUT</b> → temiz tabana "stil" ekle (%40-70 yoğunluk)<br>
-        <span class="step-badge">3</span> <b>İnce Ayar</b> → filtrenin bozduğu şeyleri düzelt (cilt tonu, doygunluk)<br><br>
-        Bu yöntem Hollywood'dan YouTube'a kadar standarttır — profesyonel ile amatör farkını yaratır.
-      </div>
-    </div>
-
-    <!-- DETAY: Öne Çıkan Filtreler (4K, 8K, Dupduru vb.) -->
-    <div class="filter-toggle" onclick="toggleFilterDetail('fd3')">
-      <span class="arrow" id="fd3arrow">▶</span> Öne Çıkan filtreler ne yapar? (4K, 8K, Dupduru, Cilt G.)
-    </div>
-    <div class="filter-detail" id="fd3">
-      <div class="filter-card">
-        <b>4K / 8K filtresi:</b> Gerçek çözünürlük artırıcı değil. AI keskinlik + kontrast + netlik artırıcı. Düşük kalite kaynağı "temizler". Her videoda ilk adım olarak uygulayabilirsin.<br><br>
-        <b>Dupduru:</b> Cilt pürüzsüzleştirme + hafif aydınlatma + doğal güzelleştirme. Portre/selfie içeriklerin vazgeçilmezi.<br><br>
-        <b>Cilt Güzelleştirme (Cilt G.):</b> Dupduru'nun daha agresif versiyonu. Leke/sivilce gizler. Yoğunluğu %40-50'de tut, yoksa plastik görünür.<br><br>
-        <b>Evrens...Batımı:</b> Sıcak gün batımı tonları. Altın saat çekimi olmasa da altın saat hissi verir.<br><br>
-        <b>Bulanıklık:</b> Hafif bokeh / blur efekti. Arka planı yumuşatıp konuyu vurgular.<br><br>
-        <b>Açık Yeşil / Nazik Kızıl / Saf Neşe:</b> Her biri farklı sıcaklık ve mood. Denemek en iyisi — klibe göre değişir.
-      </div>
-    </div>
-
-    <div class="note" style="padding-top:6px">💡 ALTIN KURAL: Filtre yoğunluğunu her zaman düşür. %100 = amatör, %40-70 = profesyonel</div>
-    <div class="note">⚠️ YAPMA: Her klipte farklı filtre kullanma → tutarsız görünür, marka kimliğini bozar</div>
-  </div>
-</div>
-
-<!-- S6: STABİLİZASYON & RÖTUŞ & BG -->
-<div class="section s-stabilize" id="s6">
-  <div class="section-header" onclick="toggleSection('s6')">
-    <span class="emoji">📹</span><span class="title">Stabilizasyon & Rötuş & Arka Plan</span><span class="count" data-section="s6"></span><span class="chevron">▾</span>
+    <span class="emoji">📹</span><span class="title">Stabilizasyon & Rötuş & Arka Plan</span><span class="count" data-section="s5"></span><span class="chevron">▾</span>
   </div>
   <div class="section-body">
     <label class="item"><span class="cb"></span><span class="item-text"><b>Stabilize Et</b> → Video → Temel → Stabilize Et → aç (Önerilen / En Kararlı)</span></label>
@@ -376,10 +198,10 @@ font-size:11px;font-weight:800;margin-right:4px;flex-shrink:0;
   </div>
 </div>
 
-<!-- S7: ALTYAZI -->
-<div class="section s-subtitle" id="s7">
-  <div class="section-header" onclick="toggleSection('s7')">
-    <span class="emoji">📝</span><span class="title">Altyazı (Sol panel → Altyazılar)</span><span class="count" data-section="s7"></span><span class="chevron">▾</span>
+<!-- S6: ALTYAZI -->
+<div class="section s-subtitle" id="s6">
+  <div class="section-header" onclick="toggleSection('s6')">
+    <span class="emoji">📝</span><span class="title">Altyazı (Sol panel → Altyazılar)</span><span class="count" data-section="s6"></span><span class="chevron">▾</span>
   </div>
   <div class="section-body">
     <label class="item"><span class="cb"></span><span class="item-text"><b>Otomatik altyazılar</b> → tıkla, dil: <b>Türkçe</b> seç → <b>Oluştur</b></span></label>
@@ -394,10 +216,10 @@ font-size:11px;font-weight:800;margin-right:4px;flex-shrink:0;
   </div>
 </div>
 
-<!-- S8: SAFE ZONE -->
-<div class="section s-safezone" id="s8">
-  <div class="section-header" onclick="toggleSection('s8')">
-    <span class="emoji">📐</span><span class="title">Safe Zone (Güvenli Alan)</span><span class="count" data-section="s8"></span><span class="chevron">▾</span>
+<!-- S7: SAFE ZONE -->
+<div class="section s-safezone" id="s7">
+  <div class="section-header" onclick="toggleSection('s7')">
+    <span class="emoji">📐</span><span class="title">Safe Zone (Güvenli Alan)</span><span class="count" data-section="s7"></span><span class="chevron">▾</span>
   </div>
   <div class="section-body">
     <label class="item"><span class="cb"></span><span class="item-text">Üstten <b>~288px</b> boş bırak (başlık / kanal adı alanı)</span></label>
@@ -413,10 +235,10 @@ font-size:11px;font-weight:800;margin-right:4px;flex-shrink:0;
   </div>
 </div>
 
-<!-- S9: KURGU & TEMPO -->
-<div class="section s-edit" id="s9">
-  <div class="section-header" onclick="toggleSection('s9')">
-    <span class="emoji">✂️</span><span class="title">Kurgu & Tempo (Zaman çizelgesi)</span><span class="count" data-section="s9"></span><span class="chevron">▾</span>
+<!-- S8: KURGU & TEMPO -->
+<div class="section s-edit" id="s8">
+  <div class="section-header" onclick="toggleSection('s8')">
+    <span class="emoji">✂️</span><span class="title">Kurgu & Tempo (Zaman çizelgesi)</span><span class="count" data-section="s8"></span><span class="chevron">▾</span>
   </div>
   <div class="section-body">
     <label class="item"><span class="cb"></span><span class="item-text">Her <b>2-3 saniyede</b> bir kesme veya geçiş (dikkat kaybını önle)</span></label>
@@ -430,10 +252,10 @@ font-size:11px;font-weight:800;margin-right:4px;flex-shrink:0;
   </div>
 </div>
 
-<!-- S10: MÜZİK & SFX -->
-<div class="section s-music" id="s10">
-  <div class="section-header" onclick="toggleSection('s10')">
-    <span class="emoji">🎵</span><span class="title">Müzik & SFX (Sol panel → Ses)</span><span class="count" data-section="s10"></span><span class="chevron">▾</span>
+<!-- S9: MÜZİK & SFX -->
+<div class="section s-music" id="s9">
+  <div class="section-header" onclick="toggleSection('s9')">
+    <span class="emoji">🎵</span><span class="title">Müzik & SFX (Sol panel → Ses)</span><span class="count" data-section="s9"></span><span class="chevron">▾</span>
   </div>
   <div class="section-body">
     <label class="item"><span class="cb"></span><span class="item-text">Telifsiz müzik seç: CapCut <b>Ses</b> kütüphanesi veya YouTube Audio Library</span></label>
@@ -445,10 +267,10 @@ font-size:11px;font-weight:800;margin-right:4px;flex-shrink:0;
   </div>
 </div>
 
-<!-- S11: BRANDING -->
-<div class="section s-brand" id="s11">
-  <div class="section-header" onclick="toggleSection('s11')">
-    <span class="emoji">🏷️</span><span class="title">Marka Kimliği & Tutarlılık</span><span class="count" data-section="s11"></span><span class="chevron">▾</span>
+<!-- S10: BRANDING -->
+<div class="section s-brand" id="s10">
+  <div class="section-header" onclick="toggleSection('s10')">
+    <span class="emoji">🏷️</span><span class="title">Marka Kimliği & Tutarlılık</span><span class="count" data-section="s10"></span><span class="chevron">▾</span>
   </div>
   <div class="section-body">
     <label class="item"><span class="cb"></span><span class="item-text">Tutarlı <b>renk paleti</b> belirle → tüm videolarda aynı renkler</span></label>
@@ -461,10 +283,10 @@ font-size:11px;font-weight:800;margin-right:4px;flex-shrink:0;
   </div>
 </div>
 
-<!-- S12: DIŞA AKTARMA -->
-<div class="section s-export" id="s12">
-  <div class="section-header" onclick="toggleSection('s12')">
-    <span class="emoji">📤</span><span class="title">Dışa Aktarma (Sağ üst → Dışa Aktar)</span><span class="count" data-section="s12"></span><span class="chevron">▾</span>
+<!-- S11: DIŞA AKTARMA -->
+<div class="section s-export" id="s11">
+  <div class="section-header" onclick="toggleSection('s11')">
+    <span class="emoji">📤</span><span class="title">Dışa Aktarma (Sağ üst → Dışa Aktar)</span><span class="count" data-section="s11"></span><span class="chevron">▾</span>
   </div>
   <div class="section-body">
     <label class="item"><span class="cb"></span><span class="item-text"><b>Çözünürlük</b>: 1080×1920 (minimum)</span></label>
@@ -478,10 +300,10 @@ font-size:11px;font-weight:800;margin-right:4px;flex-shrink:0;
   </div>
 </div>
 
-<!-- S13: THUMBNAIL -->
-<div class="section s-thumbnail" id="s13">
-  <div class="section-header" onclick="toggleSection('s13')">
-    <span class="emoji">🖼️</span><span class="title">Thumbnail Stratejisi (2026)</span><span class="count" data-section="s13"></span><span class="chevron">▾</span>
+<!-- S12: THUMBNAIL -->
+<div class="section s-thumbnail" id="s12">
+  <div class="section-header" onclick="toggleSection('s12')">
+    <span class="emoji">🖼️</span><span class="title">Thumbnail Stratejisi (2026)</span><span class="count" data-section="s12"></span><span class="chevron">▾</span>
   </div>
   <div class="section-body">
     <label class="item"><span class="cb"></span><span class="item-text">Mobilde: yükleme sırasında en dikkat çekici kareyi thumbnail seç</span></label>
@@ -494,10 +316,10 @@ font-size:11px;font-weight:800;margin-right:4px;flex-shrink:0;
   </div>
 </div>
 
-<!-- S14: YOUTUBE YÜKLEME -->
-<div class="section s-upload" id="s14">
-  <div class="section-header" onclick="toggleSection('s14')">
-    <span class="emoji">📱</span><span class="title">YouTube Yükleme Optimizasyonu</span><span class="count" data-section="s14"></span><span class="chevron">▾</span>
+<!-- S13: YOUTUBE YÜKLEME -->
+<div class="section s-upload" id="s13">
+  <div class="section-header" onclick="toggleSection('s13')">
+    <span class="emoji">📱</span><span class="title">YouTube Yükleme Optimizasyonu</span><span class="count" data-section="s13"></span><span class="chevron">▾</span>
   </div>
   <div class="section-body">
     <label class="item"><span class="cb"></span><span class="item-text">Başlık: anahtar kelime + kısa (max <b>~40 karakter</b> ideal)</span></label>
@@ -513,10 +335,10 @@ font-size:11px;font-weight:800;margin-right:4px;flex-shrink:0;
   </div>
 </div>
 
-<!-- S15: SON KONTROL -->
-<div class="section s-final" id="s15">
-  <div class="section-header" onclick="toggleSection('s15')">
-    <span class="emoji">🔄</span><span class="title">Son Kontrol (Yayın Öncesi)</span><span class="count" data-section="s15"></span><span class="chevron">▾</span>
+<!-- S14: SON KONTROL -->
+<div class="section s-final" id="s14">
+  <div class="section-header" onclick="toggleSection('s14')">
+    <span class="emoji">🔄</span><span class="title">Son Kontrol (Yayın Öncesi)</span><span class="count" data-section="s14"></span><span class="chevron">▾</span>
   </div>
   <div class="section-body">
     <label class="item"><span class="cb"></span><span class="item-text">Telefonda önizle — safe zone, okunabilirlik, ses testi</span></label>
@@ -530,10 +352,10 @@ font-size:11px;font-weight:800;margin-right:4px;flex-shrink:0;
   </div>
 </div>
 
-<!-- S16: ANALİTİK -->
-<div class="section s-analytics" id="s16">
-  <div class="section-header" onclick="toggleSection('s16')">
-    <span class="emoji">📊</span><span class="title">Yayın Sonrası Analitik (24-72 saat)</span><span class="count" data-section="s16"></span><span class="chevron">▾</span>
+<!-- S15: ANALİTİK -->
+<div class="section s-analytics" id="s15">
+  <div class="section-header" onclick="toggleSection('s15')">
+    <span class="emoji">📊</span><span class="title">Yayın Sonrası Analitik (24-72 saat)</span><span class="count" data-section="s15"></span><span class="chevron">▾</span>
   </div>
   <div class="section-body">
     <label class="item"><span class="cb"></span><span class="item-text">YouTube Studio → <b>Retention grafiği</b> kontrol et (drop-off noktalarını bul)</span></label>
@@ -547,10 +369,10 @@ font-size:11px;font-weight:800;margin-right:4px;flex-shrink:0;
   </div>
 </div>
 
-<!-- S17: CROSS-PLATFORM REPURPOSE -->
-<div class="section s-repurpose" id="s17">
-  <div class="section-header" onclick="toggleSection('s17')">
-    <span class="emoji">🔁</span><span class="title">Cross-Platform Repurpose</span><span class="count" data-section="s17"></span><span class="chevron">▾</span>
+<!-- S16: CROSS-PLATFORM REPURPOSE -->
+<div class="section s-repurpose" id="s16">
+  <div class="section-header" onclick="toggleSection('s16')">
+    <span class="emoji">🔁</span><span class="title">Cross-Platform Repurpose</span><span class="count" data-section="s16"></span><span class="chevron">▾</span>
   </div>
   <div class="section-body">
     <label class="item"><span class="cb"></span><span class="item-text">TikTok'a yükle: watermark OLMADAN dışa aktar → farklı caption/hashtag yaz</span></label>
@@ -587,7 +409,7 @@ const progressFill=document.getElementById('progressFill');
 const progressCounts=document.getElementById('progressCounts');
 const progressBar=document.getElementById('progressBar');
 const celebration=document.getElementById('celebration');
-const STORAGE_KEY='capcut_checklist_v3';
+const STORAGE_KEY='capcut_checklist_v2';
 
 function getTotal(){return items.length}
 function getChecked(){let c=0;items.forEach(i=>{if(i.classList.contains('checked'))c++});return c}
@@ -620,13 +442,6 @@ function loadState(){
 
 function resetAll(){if(!confirm('Tüm tick\'leri sıfırlamak istediğine emin misin?'))return;items.forEach(i=>i.classList.remove('checked'));updateProgress()}
 function toggleSection(id){document.getElementById(id).classList.toggle('collapsed')}
-
-function toggleFilterDetail(id){
-  const el=document.getElementById(id);
-  const arrow=document.getElementById(id+'arrow');
-  el.classList.toggle('open');
-  arrow.classList.toggle('open');
-}
 
 items.forEach(item=>{item.addEventListener('click',e=>{e.preventDefault();item.classList.toggle('checked');updateProgress()})});
 window.addEventListener('scroll',()=>{progressBar.classList.toggle('scrolled',window.scrollY>10)});
