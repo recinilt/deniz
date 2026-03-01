@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CapCut — YouTube Shorts Checklist 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+--bg:#0a0a12;--bg2:#12121f;--card:#181830;--card-hover:#1e1e3a;
+--cyan:#00e5ff;--purple:#b14aed;--green:#06d6a0;--orange:#ff8c42;
+--red:#ff4d6d;--yellow:#ffd166;--pink:#e040fb;--blue:#4361ee;
+--text:#e8e8f0;--text2:#9898b0;--text3:#6a6a88;
+--check-off:#252545;--check-on:#00e5ff;
+--radius:10px;
+}
+html{scroll-behavior:smooth}
+body{
+font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);
+min-height:100vh;padding:0;overflow-x:hidden;
+}
+body::before{
+content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+background:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+}
+.progress-bar-container{
+position:fixed;top:0;left:0;right:0;z-index:1000;
+background:rgba(10,10,18,0.95);backdrop-filter:blur(20px);
+border-bottom:1px solid rgba(255,255,255,0.05);
+padding:10px 20px;transition:box-shadow .3s;
+}
+.progress-bar-container.scrolled{box-shadow:0 4px 30px rgba(0,0,0,0.5)}
+.progress-top{display:flex;align-items:center;justify-content:space-between;max-width:720px;margin:0 auto}
+.progress-label{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--text2);display:flex;align-items:center;gap:8px}
+.progress-pct{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--cyan);min-width:62px;text-align:right;transition:color .4s}
+.progress-pct.mid{color:var(--yellow)}.progress-pct.done{color:var(--green)}
+.progress-track{max-width:720px;margin:6px auto 0;height:5px;background:var(--check-off);border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;width:0%;border-radius:3px;background:linear-gradient(90deg,var(--cyan),var(--purple));transition:width .4s cubic-bezier(.22,1,.36,1)}
+.progress-counts{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3)}
+.container{max-width:720px;margin:0 auto;padding:90px 16px 60px;position:relative;z-index:1}
+.header{text-align:center;margin-bottom:36px}
+.header h1{font-size:clamp(28px,5vw,42px);font-weight:800;background:linear-gradient(135deg,var(--cyan),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.2}
+.header .sub{font-size:15px;color:var(--text2);margin-top:6px;font-weight:300;letter-spacing:0.5px}
+.header .badge{display:inline-block;margin-top:12px;padding:4px 14px;border:1px solid var(--cyan);border-radius:20px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cyan)}
+.section{margin-bottom:20px}
+.section-header{display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:var(--radius) var(--radius) 0 0;cursor:pointer;user-select:none;position:relative;overflow:hidden;transition:all .2s}
+.section-header::before{content:'';position:absolute;inset:0;opacity:0.15;border-radius:inherit}
+.section-header:hover{filter:brightness(1.15)}
+.section-header .emoji{font-size:20px;flex-shrink:0}
+.section-header .title{font-weight:700;font-size:14px;letter-spacing:0.5px;text-transform:uppercase;flex:1}
+.section-header .count{font-family:'JetBrains Mono',monospace;font-size:11px;background:rgba(255,255,255,0.1);padding:2px 8px;border-radius:10px;color:var(--text2)}
+.section-header .chevron{font-size:18px;transition:transform .3s;color:var(--text3)}
+.section.collapsed .chevron{transform:rotate(-90deg)}
+.section.collapsed .section-body{display:none}
+.section-body{background:var(--card);border-radius:0 0 var(--radius) var(--radius);padding:6px 0;border:1px solid rgba(255,255,255,0.04);border-top:none}
+.item{display:flex;align-items:flex-start;gap:12px;padding:9px 16px;cursor:pointer;transition:background .15s;position:relative}
+.item:hover{background:var(--card-hover)}
+.item.checked .item-text{color:var(--text3);text-decoration:line-through;text-decoration-color:var(--text3)}
+.item.checked .cb{background:var(--check-on);border-color:var(--check-on)}
+.item.checked .cb::after{opacity:1;transform:scale(1) rotate(45deg)}
+.cb{width:20px;height:20px;min-width:20px;border-radius:5px;border:2px solid var(--text3);background:var(--check-off);position:relative;margin-top:1px;transition:all .2s cubic-bezier(.22,1,.36,1)}
+.cb::after{content:'';position:absolute;left:6px;top:2px;width:5px;height:10px;border:solid #0a0a12;border-width:0 2.5px 2.5px 0;opacity:0;transform:scale(0.5) rotate(45deg);transition:all .2s cubic-bezier(.22,1,.36,1)}
+.item-text{font-size:13.5px;line-height:1.5;color:var(--text);transition:all .3s;flex:1}
+.item-text b{color:var(--cyan);font-weight:600}
+.item-text a{color:var(--cyan);text-decoration:none;border-bottom:1px dashed var(--cyan);transition:opacity .2s}
+.item-text a:hover{opacity:0.7}
+.note{padding:4px 16px 4px 48px;font-size:12px;color:var(--text3);font-style:italic;line-height:1.5}
+.note.link{color:var(--cyan);font-style:normal;font-family:'JetBrains Mono',monospace;font-size:11px}
+.info-box{background:linear-gradient(135deg,rgba(67,97,238,0.15),rgba(177,74,237,0.1));border:1px solid rgba(67,97,238,0.2);border-radius:var(--radius);padding:18px 20px;margin-top:24px}
+.info-box h3{font-size:14px;color:var(--cyan);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.info-box ol{padding-left:18px;font-size:12.5px;color:var(--text2);line-height:2}
+.info-box ol b{color:var(--yellow);font-weight:600}
+.reset-btn{display:block;margin:30px auto 0;padding:10px 28px;border:1px solid var(--red);background:transparent;color:var(--red);border-radius:8px;font-family:'Outfit',sans-serif;font-size:13px;cursor:pointer;transition:all .2s}
+.reset-btn:hover{background:var(--red);color:white}
+.celebration{position:fixed;inset:0;z-index:9999;pointer-events:none;display:none;justify-content:center;align-items:center}
+.celebration.show{display:flex}
+.celebration .msg{font-size:clamp(32px,6vw,56px);font-weight:800;background:linear-gradient(135deg,var(--green),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:popIn .6s cubic-bezier(.22,1,.36,1);text-align:center}
+@keyframes popIn{0%{transform:scale(0);opacity:0}50%{transform:scale(1.2)}100%{transform:scale(1);opacity:1}}
+.s-project .section-header{background:rgba(67,97,238,0.2)}
+.s-hook .section-header{background:rgba(255,77,109,0.2)}
+.s-audio .section-header{background:rgba(177,74,237,0.2)}
+.s-color .section-header{background:rgba(255,140,66,0.2)}
+.s-stabilize .section-header{background:rgba(0,180,216,0.2)}
+.s-subtitle .section-header{background:rgba(6,214,160,0.2)}
+.s-safezone .section-header{background:rgba(0,229,255,0.2)}
+.s-edit .section-header{background:rgba(255,209,102,0.2)}
+.s-music .section-header{background:rgba(224,64,251,0.2)}
+.s-brand .section-header{background:rgba(255,140,66,0.2)}
+.s-export .section-header{background:rgba(67,97,238,0.2)}
+.s-thumbnail .section-header{background:rgba(224,64,251,0.2)}
+.s-upload .section-header{background:rgba(6,214,160,0.2)}
+.s-final .section-header{background:rgba(255,77,109,0.2)}
+.s-analytics .section-header{background:rgba(67,97,238,0.2)}
+.s-repurpose .section-header{background:rgba(177,74,237,0.2)}
+@media(max-width:480px){.item{padding:8px 12px;gap:10px}.section-header{padding:10px 12px}.note{padding-left:42px}}
+</style>
+</head>
+<body>
+<div class="progress-bar-container" id="progressBar">
+  <div class="progress-top">
+    <span class="progress-label">📋 Tamamlanan</span>
+    <div style="display:flex;align-items:baseline;gap:8px">
+      <span class="progress-counts" id="progressCounts">0 / 0</span>
+      <span class="progress-pct" id="progressPct">%0</span>
+    </div>
+  </div>
+  <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+</div>
+<div class="celebration" id="celebration"><div class="msg">🎉 Tamamlandı!</div></div>
+<div class="container">
+<div class="header">
+  <h1>CapCut Shorts Checklist</h1>
+  <div class="sub">Türkçe CapCut · YouTube Shorts · 2026 Endüstri Standardı</div>
+  <div class="badge">Her video öncesi kontrol et ✓</div>
+</div>
+
+<!-- S1: PROJE BAŞLANGIÇ -->
+<div class="section s-project" id="s1">
+  <div class="section-header" onclick="toggleSection('s1')">
+    <span class="emoji">🎬</span><span class="title">Proje Başlangıç</span><span class="count" data-section="s1"></span><span class="chevron">▾</span>
+  </div>
+  <div class="section-body">
+    <label class="item"><span class="cb"></span><span class="item-text"><b>Yeni Proje</b> → En boy oranı: <b>9:16</b> (1080×1920)</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">Kare hızı: <b>30fps</b> veya <b>60fps</b></span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">Süre: max <b>3 dakika</b> (ideal: <b>20-45sn</b> — retention sweet spot)</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">Yatay kaynak varsa → <b>Otomatik Yeniden Çerçevele</b> ile 9:16'ya çevir (yüz takibi)</span></label>
+    <div class="note">💡 3dk'ya kadar yüklenebilir ama 20-45sn arası en yüksek tamamlanma oranı verir</div>
+  </div>
+</div>
+
+<!-- S2: HOOK -->
+<div class="section s-hook" id="s2">
+  <div class="section-header" onclick="toggleSection('s2')">
+    <span class="emoji">🎣</span><span class="title">İlk 3 Saniye (Hook)</span><span class="count" data-section="s2"></span><span class="chevron">▾</span>
+  </div>
+  <div class="section-body">
+    <label class="item"><span class="cb"></span><span class="item-text">Hareket, kalın metin veya merak sorusu ile aç</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">Statik/durağan açılış YAPMA — anında dikkat çek</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">Yüz yakın plan veya şaşırtıcı görsel ile başla</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">İlk kare = potansiyel thumbnail — dikkat çekici kare seç</span></label>
+    <div class="note">💡 Retention grafiği ilk 2-3sn'de uçurum gibi düşüyorsa → hook'u değiştir!</div>
+  </div>
+</div>
+
+<!-- S3: SES -->
+<div class="section s-audio" id="s3">
+  <div class="section-header" onclick="toggleSection('s3')">
+    <span class="emoji">🔇</span><span class="title">Ses İyileştirme (Sağ panel → Ses)</span><span class="count" data-section="s3"></span><span class="chevron">▾</span>
+  </div>
+  <div class="section-body">
+    <label class="item"><span class="cb"></span><span class="item-text"><b>Gürültüyü Azalt</b> → aç (Ses → Temel → Gürültüyü Azalt)</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text"><b>Sesi İyileştir</b> → işaretle, Yoğunluk kaydırıcısını ayarla (0-100)</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text"><b>Gürültüyü Normalleştir</b> (Ses yüksekliğini normalleştir) → aç</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">Ses seviyesi: peak <b>-3 ile -6 dB</b> arası</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">Müzik varsa → konuşma sırasında müzik sesini keyframe ile düşür</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text"><b>Yavaşça açılma / kapanma</b> (Fade in/out) → gerekirse uygula</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">Dolgu sesleri (ım, ee, şey) → kes / sil</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text"><b>Transkript Düzenleme</b>: konuşmayı metin olarak görüntüle → gereksiz kelime/boşluk sil</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">Ses-görüntü senkronizasyonunu kontrol et</span></label>
+    <div class="note">💡 Sessiz ortamda kayıt → Gürültüyü Azalt daha temiz çalışır</div>
+  </div>
+</div>
+
+<!-- S4: RENK -->
+<div class="section s-color" id="s4">
+  <div class="section-header" onclick="toggleSection('s4')">
+    <span class="emoji">🎨</span><span class="title">Renk & Görüntü (Sağ panel → Ayarlama)</span><span class="count" data-section="s4"></span><span class="chevron">▾</span>
+  </div>
+  <div class="section-body">
+    <label class="item"><span class="cb"></span><span class="item-text"><b>Ayarlama</b> → Parlaklık, Kontrast, Beyaz Dengesi ayarla</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text"><b>Doygunluk</b>, <b>Canlılık</b>, <b>Sıcaklık</b>, <b>Ton</b> ince ayar</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text"><b>Renk Düzeltme / Renk Eşleştirme</b> → uygula (varsa Akıllı)</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text"><b>HSL</b> → Ton, Doygunluk, Parlaklık detay ayarı</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text"><b>Eğri</b> (Curves) → S-eğrisi ile kontrast ekle</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text"><b>Keskinlik</b> (Sharpness) → hafif artır (aşırı yapma!)</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text"><b>Filtreler</b> sekmesi → tutarlı filtre seç → <b>Tümüne Uygula</b></span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">LUT kullanıyorsan tüm kliplerde aynı LUT</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">Tüm kliplerde tutarlı renk tonlaması</span></label>
+    <div class="note">💡 Önce Color Correction (düzeltme), sonra Color Grading (stil)</div>
+  </div>
+</div>
+
+<!-- S5: STABİLİZASYON & RÖTUŞ & BG -->
+<div class="section s-stabilize" id="s5">
+  <div class="section-header" onclick="toggleSection('s5')">
+    <span class="emoji">📹</span><span class="title">Stabilizasyon & Rötuş & Arka Plan</span><span class="count" data-section="s5"></span><span class="chevron">▾</span>
+  </div>
+  <div class="section-body">
+    <label class="item"><span class="cb"></span><span class="item-text"><b>Stabilize Et</b> → Video → Temel → Stabilize Et → aç (Önerilen / En Kararlı)</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">Stabilizasyon seviyesi: Minimum Kesim / Önerilen / En Kararlı seç</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">Elden çekim / vlog → stabilizasyon <b>zorunlu</b></span></label>
+    <label class="item"><span class="cb"></span><span class="item-text"><b>Rötuş</b> → Akıllı Araçlar → Rötuş (yüz pürüzsüzlük, diş beyazlatma vb.)</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">Rötuş abartma — doğal görünüm koru</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text"><b>BG'yi Kaldır</b> → Otomatik Kaldırma / Özel Kaldırma / Renk Anahtarı (Chroma Key)</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">Green screen varsa → <b>Renk Anahtarı</b> ile arka planı değiştir</span></label>
+    <div class="note">💡 Stabilize = hafif kırpma yapar → safe zone'u tekrar kontrol et</div>
+  </div>
+</div>
+
+<!-- S6: ALTYAZI -->
+<div class="section s-subtitle" id="s6">
+  <div class="section-header" onclick="toggleSection('s6')">
+    <span class="emoji">📝</span><span class="title">Altyazı (Sol panel → Altyazılar)</span><span class="count" data-section="s6"></span><span class="chevron">▾</span>
+  </div>
+  <div class="section-body">
+    <label class="item"><span class="cb"></span><span class="item-text"><b>Otomatik altyazılar</b> → tıkla, dil: <b>Türkçe</b> seç → <b>Oluştur</b></span></label>
+    <label class="item"><span class="cb"></span><span class="item-text"><b>Anahtar Kelimeleri Otomatik Vurgula</b> → aç</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">Altyazı pozisyonu: ekranın <b>orta 1/3'ü</b> (center safe zone)</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">Üst %20 ve alt %25 alanına metin KOYMA</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">Font: okunabilir, yüksek kontrast (arka plan gölge/kutu ekle)</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">Hatalı transkripsiyon → <b>Altyazıları Düzenle</b> ile düzelt</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">Yazı tipi, stil, animasyon → tüm videolarda tutarlı tut</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">WCAG: %99 doğruluk, sesle 0.5sn içinde senkron</span></label>
+    <div class="note">💡 İzleyicilerin %80+'ı sessiz izliyor — altyazı ZORUNLU!</div>
+  </div>
+</div>
+
+<!-- S7: SAFE ZONE -->
+<div class="section s-safezone" id="s7">
+  <div class="section-header" onclick="toggleSection('s7')">
+    <span class="emoji">📐</span><span class="title">Safe Zone (Güvenli Alan)</span><span class="count" data-section="s7"></span><span class="chevron">▾</span>
+  </div>
+  <div class="section-body">
+    <label class="item"><span class="cb"></span><span class="item-text">Üstten <b>~288px</b> boş bırak (başlık / kanal adı alanı)</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">Alttan <b>~672px</b> boş bırak (like/comment/share butonları)</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">Sağdan <b>~192px</b>, soldan <b>~48px</b> boş bırak</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">Önemli metin / yüz / CTA → <b>ekran merkezi</b></span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">Safe zone checker ile kontrol et (linkler aşağıda)</span></label>
+    <div class="note link">→ <a href="https://postplanify.com/tools/youtube-shorts-safe-zone-checker" target="_blank">postplanify.com/tools/youtube-shorts-safe-zone-checker</a></div>
+    <div class="note link">→ <a href="https://kreatli.com/guides/youtube-shorts-safe-zone" target="_blank">kreatli.com/guides/youtube-shorts-safe-zone</a></div>
+    <div class="note link">→ <a href="https://dominatetools.com/tools/safe-zone/" target="_blank">dominatetools.com/tools/safe-zone</a> (TikTok / Reels / Shorts hepsi)</div>
+    <label class="item"><span class="cb"></span><span class="item-text">Overlay PNG indir → CapCut'ta rehber katman olarak kullan</span></label>
+    <div class="note">💡 YouTube kanal sayfasında Shorts 1:1 kare kırpılır — yüzü ortala!</div>
+  </div>
+</div>
+
+<!-- S8: KURGU & TEMPO -->
+<div class="section s-edit" id="s8">
+  <div class="section-header" onclick="toggleSection('s8')">
+    <span class="emoji">✂️</span><span class="title">Kurgu & Tempo (Zaman çizelgesi)</span><span class="count" data-section="s8"></span><span class="chevron">▾</span>
+  </div>
+  <div class="section-body">
+    <label class="item"><span class="cb"></span><span class="item-text">Her <b>2-3 saniyede</b> bir kesme veya geçiş (dikkat kaybını önle)</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">Boşlukları kes → <b>Böl</b> ile gereksiz kısımları sil</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text"><b>Geçişler</b> → kliplerin arasına tutarlı geçiş ekle (abartma)</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">Loop düşün: son kare → ilk kareye bağlansın (replay artırır)</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text"><b>Hız Eğrisi</b> (Speed Curve) → Hız → Eğri seç → keyframe bazlı hız rampaları</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">Vurgu anlarında yavaş çekim (Optical Flow ile akıcı), geçişlerde hızlandır</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text"><b>Keyframe Animasyon</b> → zoom in/out, pozisyon, ölçek, döndürme efektleri</span></label>
+    <div class="note">💡 Watch-through rate en önemli metrik — sıkıcı an bırakma!</div>
+  </div>
+</div>
+
+<!-- S9: MÜZİK & SFX -->
+<div class="section s-music" id="s9">
+  <div class="section-header" onclick="toggleSection('s9')">
+    <span class="emoji">🎵</span><span class="title">Müzik & SFX (Sol panel → Ses)</span><span class="count" data-section="s9"></span><span class="chevron">▾</span>
+  </div>
+  <div class="section-body">
+    <label class="item"><span class="cb"></span><span class="item-text">Telifsiz müzik seç: CapCut <b>Ses</b> kütüphanesi veya YouTube Audio Library</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">Trending ses/müzik kullan (algoritma ödüllendiriyor)</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">Ses efektlerini ayrı parçaya ekle, kısa ve kontrollü tut</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">SFX'e <b>Yavaşça açılma / kapanma</b> uygula (tıklama sesi olmasın)</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">Müzik ile konuşma çakışıyorsa keyframe ile ducking yap</span></label>
+    <div class="note">💡 Geçiş anlarına 'whoosh', vurgu anlarına 'pop' SFX ekle</div>
+  </div>
+</div>
+
+<!-- S10: BRANDING -->
+<div class="section s-brand" id="s10">
+  <div class="section-header" onclick="toggleSection('s10')">
+    <span class="emoji">🏷️</span><span class="title">Marka Kimliği & Tutarlılık</span><span class="count" data-section="s10"></span><span class="chevron">▾</span>
+  </div>
+  <div class="section-body">
+    <label class="item"><span class="cb"></span><span class="item-text">Tutarlı <b>renk paleti</b> belirle → tüm videolarda aynı renkler</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">Tutarlı <b>font ailesi</b> → başlık + altyazı fontu sabit tut</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text"><b>Intro stinger</b> (0.5-1sn) → kısa marka tanıtımı (opsiyonel)</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text"><b>Outro stinger</b> → CTA + kanal adı (son 1-2sn)</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text"><b>Logo/watermark</b> → safe zone içinde, küçük ve şeffaf yerleştir</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">Altyazı stili → her videoda aynı animasyon, font, renk</span></label>
+    <div class="note">💡 İzleyici 3-4 Short'unuzu gördüğünde sizi tanımalı — tutarlılık güven oluşturur</div>
+  </div>
+</div>
+
+<!-- S11: DIŞA AKTARMA -->
+<div class="section s-export" id="s11">
+  <div class="section-header" onclick="toggleSection('s11')">
+    <span class="emoji">📤</span><span class="title">Dışa Aktarma (Sağ üst → Dışa Aktar)</span><span class="count" data-section="s11"></span><span class="chevron">▾</span>
+  </div>
+  <div class="section-body">
+    <label class="item"><span class="cb"></span><span class="item-text"><b>Çözünürlük</b>: 1080×1920 (minimum)</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text"><b>Format</b>: MP4</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text"><b>Kodek</b>: H.264</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text"><b>Kare Hızı</b>: kaynak ile aynı (<b>30</b> veya <b>60fps</b>)</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text"><b>Kalite</b>: Yüksek / Önerilen</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text"><b>Bit Hızı</b>: Yüksek</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text"><b>Telif hakkı kontrolü</b> → Dışa Aktar öncesi mutlaka çalıştır!</span></label>
+    <div class="note">💡 4K dışa aktarma gereksiz — YouTube Shorts 1080p yeterli</div>
+  </div>
+</div>
+
+<!-- S12: THUMBNAIL -->
+<div class="section s-thumbnail" id="s12">
+  <div class="section-header" onclick="toggleSection('s12')">
+    <span class="emoji">🖼️</span><span class="title">Thumbnail Stratejisi (2026)</span><span class="count" data-section="s12"></span><span class="chevron">▾</span>
+  </div>
+  <div class="section-body">
+    <label class="item"><span class="cb"></span><span class="item-text">Mobilde: yükleme sırasında en dikkat çekici kareyi thumbnail seç</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">Masaüstünde: YouTube Studio → <b>custom thumbnail</b> yükle (<b>1280×720</b>, max 2MB)</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">Yüz close-up + güçlü duygu ifadesi (şaşkınlık, sevinç) → CTR artırır</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">Metin: max <b>3-5 kelime</b>, kalın, yüksek kontrast, mobilde okunabilir</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">Posta pulu testi: thumbnail'i çok küçük boyutta kontrol et — okunuyor mu?</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text"><b>Test & Compare</b> (A/B test): YouTube Studio'da 2-3 thumbnail varyantı test et</span></label>
+    <div class="note">💡 Ocak 2026 güncellemesi: arama filtresi Shorts'u ayrı gösteriyor → thumbnail artık çok önemli!</div>
+  </div>
+</div>
+
+<!-- S13: YOUTUBE YÜKLEME -->
+<div class="section s-upload" id="s13">
+  <div class="section-header" onclick="toggleSection('s13')">
+    <span class="emoji">📱</span><span class="title">YouTube Yükleme Optimizasyonu</span><span class="count" data-section="s13"></span><span class="chevron">▾</span>
+  </div>
+  <div class="section-body">
+    <label class="item"><span class="cb"></span><span class="item-text">Başlık: anahtar kelime + kısa (max <b>~40 karakter</b> ideal)</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">Açıklama: anahtar kelimeler + CTA + link</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">Hashtag: <b>#Shorts</b> + 2-3 niş hashtag + 1 trending hashtag</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">Hashtag araçları: <a href="https://seostudio.tools" target="_blank">SEOStudio</a>, <a href="https://ritetag.com" target="_blank">RiteTag</a>, <a href="https://www.all-hashtag.com" target="_blank">All Hashtag</a></span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">Kitle ayarı: doğru seç (çocuklar için yapılmadı vb.)</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">Tutarlı yayın takvimi: günde <b>1-3 Short</b> (optimal: 2-3/gün)</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">İlk 48 saat yenilik boost'u var — zamanlamayı iyi ayarla</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">Pinned comment ile CTA veya affiliate link ekle</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">Long-form videoya yönlendiren soft CTA ekle ("tam video kanalımda")</span></label>
+    <div class="note">💡 Batch üretim: haftada 1 gün oturup tüm haftanın Short'larını çek + düzenle</div>
+  </div>
+</div>
+
+<!-- S14: SON KONTROL -->
+<div class="section s-final" id="s14">
+  <div class="section-header" onclick="toggleSection('s14')">
+    <span class="emoji">🔄</span><span class="title">Son Kontrol (Yayın Öncesi)</span><span class="count" data-section="s14"></span><span class="chevron">▾</span>
+  </div>
+  <div class="section-body">
+    <label class="item"><span class="cb"></span><span class="item-text">Telefonda önizle — safe zone, okunabilirlik, ses testi</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">Ses KAPALI izle — altyazısız anlaşılıyor mu?</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">İlk 3 saniye testi: kendine sor <b>"Kaydırır mıydım?"</b></span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">Telif taraması temiz mi? (CapCut + YouTube kontrolü)</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">Safe zone checker'da son kez kontrol et</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">Tüm kliplerde renk / font / stil tutarlılığı OK mi?</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">Video loop yapıyor mu? (son → ilk kare akıcı mı?)</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">Açıklama, hashtag, CTA, thumbnail yazıldı/seçildi mi?</span></label>
+  </div>
+</div>
+
+<!-- S15: ANALİTİK -->
+<div class="section s-analytics" id="s15">
+  <div class="section-header" onclick="toggleSection('s15')">
+    <span class="emoji">📊</span><span class="title">Yayın Sonrası Analitik (24-72 saat)</span><span class="count" data-section="s15"></span><span class="chevron">▾</span>
+  </div>
+  <div class="section-body">
+    <label class="item"><span class="cb"></span><span class="item-text">YouTube Studio → <b>Retention grafiği</b> kontrol et (drop-off noktalarını bul)</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text"><b>Swipe-away rate</b> kontrol et (düşük = iyi)</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text"><b>Average percentage viewed</b> kontrol et (yüksek = iyi)</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">İlk 48 saat performansını not al → sonraki Short'ta iyileştir</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">Aylık top 5 Short'u belirle → ortak öğeleri not et (hook, konu, süre, müzik)</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">A/B test: aynı konuda farklı hook veya editing stili dene → 48 saat sonra karşılaştır</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">Short → long-form tıklama oranını (conversion) takip et</span></label>
+    <div class="note">💡 Veri-odaklı döngü: fikir → Short → analiz → iyileştirilmiş Short → tekrar</div>
+  </div>
+</div>
+
+<!-- S16: CROSS-PLATFORM REPURPOSE -->
+<div class="section s-repurpose" id="s16">
+  <div class="section-header" onclick="toggleSection('s16')">
+    <span class="emoji">🔁</span><span class="title">Cross-Platform Repurpose</span><span class="count" data-section="s16"></span><span class="chevron">▾</span>
+  </div>
+  <div class="section-body">
+    <label class="item"><span class="cb"></span><span class="item-text">TikTok'a yükle: watermark OLMADAN dışa aktar → farklı caption/hashtag yaz</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">Instagram Reels'e yükle: 5-10 hashtag, daha uzun açıklama</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">Platform bazlı safe zone farkını kontrol et (TikTok'un butonları farklı yerde)</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">Long-form videodan Short çıkar: retention spike'larını kes + hook ekle</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text"><b>Otomatik Yeniden Çerçevele</b> → yatay video'yu dikeye çevirirken yüz takipli kırp</span></label>
+    <label class="item"><span class="cb"></span><span class="item-text">Başka platformun watermark'ı → YouTube'da cezalandırılır, kesinlikle kaldır!</span></label>
+    <div class="note">💡 Her platformda underperform eden Short, diğerinde viral olabilir — her yere yükle!</div>
+  </div>
+</div>
+
+<!-- Algorithm info box -->
+<div class="info-box">
+  <h3>📊 YouTube Shorts Algoritma Sinyalleri (2026)</h3>
+  <ol>
+    <li><b>Swipe-away rate</b> → İzleyici ne kadar hızlı geçiyor? (düşük = iyi)</li>
+    <li><b>Watch-through rate</b> → Videonun yüzde kaçı izleniyor? (yüksek = iyi)</li>
+    <li><b>Engagement rate</b> → Like / yorum / paylaşım oranı</li>
+    <li><b>Replay rate</b> → Tekrar izlenme sayısı (loop = güçlü sinyal)</li>
+    <li><b>Session time</b> → Short'undan sonra izlemeye devam ediyor mu?</li>
+    <li><b>Viewer satisfaction</b> → YouTube anket puanı (uzun vadeli dağıtım etkiler)</li>
+  </ol>
+</div>
+
+<button class="reset-btn" onclick="resetAll()">🗑️ Tümünü Sıfırla</button>
+
+</div>
+
+<script>
+const items=document.querySelectorAll('.item');
+const progressPct=document.getElementById('progressPct');
+const progressFill=document.getElementById('progressFill');
+const progressCounts=document.getElementById('progressCounts');
+const progressBar=document.getElementById('progressBar');
+const celebration=document.getElementById('celebration');
+const STORAGE_KEY='capcut_checklist_v2';
+
+function getTotal(){return items.length}
+function getChecked(){let c=0;items.forEach(i=>{if(i.classList.contains('checked'))c++});return c}
+
+function updateProgress(){
+  const total=getTotal(),checked=getChecked();
+  const pct=total?Math.round(checked/total*100):0;
+  progressPct.textContent=`%${pct}`;
+  progressFill.style.width=`${pct}%`;
+  progressCounts.textContent=`${checked} / ${total}`;
+  progressPct.classList.remove('mid','done');
+  if(pct>=100)progressPct.classList.add('done');
+  else if(pct>=50)progressPct.classList.add('mid');
+  document.querySelectorAll('.section').forEach(sec=>{
+    const secItems=sec.querySelectorAll('.item');
+    const secChecked=sec.querySelectorAll('.item.checked').length;
+    const badge=sec.querySelector('.count');
+    if(badge)badge.textContent=`${secChecked}/${secItems.length}`;
+  });
+  if(pct>=100){celebration.classList.add('show');setTimeout(()=>celebration.classList.remove('show'),2500)}
+  saveState();
+}
+
+function saveState(){const state=[];items.forEach(i=>state.push(i.classList.contains('checked')));try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state))}catch(e){}}
+
+function loadState(){
+  try{const s=localStorage.getItem(STORAGE_KEY);if(!s)return;const state=JSON.parse(s);items.forEach((item,i)=>{if(state[i])item.classList.add('checked')})}catch(e){}
+  updateProgress();
+}
+
+function resetAll(){if(!confirm('Tüm tick\'leri sıfırlamak istediğine emin misin?'))return;items.forEach(i=>i.classList.remove('checked'));updateProgress()}
+function toggleSection(id){document.getElementById(id).classList.toggle('collapsed')}
+
+items.forEach(item=>{item.addEventListener('click',e=>{e.preventDefault();item.classList.toggle('checked');updateProgress()})});
+window.addEventListener('scroll',()=>{progressBar.classList.toggle('scrolled',window.scrollY>10)});
+loadState();
+</script>
+</body>
+</html>
