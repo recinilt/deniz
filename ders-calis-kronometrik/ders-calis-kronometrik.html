@@ -25,11 +25,7 @@
             --radius: 12px;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: 'DM Sans', sans-serif;
@@ -39,7 +35,6 @@
             overflow-x: hidden;
         }
 
-        /* Subtle grid background */
         body::before {
             content: '';
             position: fixed;
@@ -60,7 +55,6 @@
             padding: 20px;
         }
 
-        /* Header */
         .app-header {
             text-align: center;
             padding: 30px 0 20px;
@@ -81,29 +75,16 @@
         }
 
         /* Ekranlar */
-        .screen {
-            display: none;
-        }
-
-        .screen.active {
-            display: block;
-            animation: fadeIn 0.3s ease;
-        }
+        .screen { display: none; }
+        .screen.active { display: block; animation: fadeIn 0.3s ease; }
 
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Ders Listesi */
-        .ders-ekle-bar {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .ders-ekle-bar input {
-            flex: 1;
+        /* Genel input */
+        .g-input {
             background: var(--bg-card);
             border: 1px solid var(--border);
             color: var(--text-primary);
@@ -113,16 +94,16 @@
             font-family: 'DM Sans', sans-serif;
             outline: none;
             transition: border-color 0.2s;
+            width: 100%;
         }
+        .g-input:focus { border-color: var(--accent); }
+        .g-input::placeholder { color: var(--text-muted); }
 
-        .ders-ekle-bar input:focus {
-            border-color: var(--accent);
-        }
+        /* Ders ekle bar */
+        .ders-ekle-bar { display: flex; gap: 10px; margin-bottom: 20px; }
+        .ders-ekle-bar input { flex: 1; }
 
-        .ders-ekle-bar input::placeholder {
-            color: var(--text-muted);
-        }
-
+        /* Butonlar */
         .btn {
             padding: 12px 20px;
             border: none;
@@ -136,64 +117,20 @@
             align-items: center;
             gap: 6px;
         }
+        .btn:active { transform: scale(0.97); }
+        .btn-accent { background: var(--accent); color: var(--bg-primary); }
+        .btn-accent:hover { background: #06b6d4; box-shadow: 0 0 20px var(--accent-glow); }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-danger:hover { background: #e11d48; }
+        .btn-ghost { background: transparent; color: var(--text-secondary); border: 1px solid var(--border); }
+        .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+        .btn-success { background: var(--success); color: white; }
+        .btn-success:hover { background: #059669; }
+        .btn-warning { background: var(--warning); color: var(--bg-primary); }
+        .btn-sm { padding: 8px 14px; font-size: 13px; }
 
-        .btn:active {
-            transform: scale(0.97);
-        }
-
-        .btn-accent {
-            background: var(--accent);
-            color: var(--bg-primary);
-        }
-
-        .btn-accent:hover {
-            background: #06b6d4;
-            box-shadow: 0 0 20px var(--accent-glow);
-        }
-
-        .btn-danger {
-            background: var(--danger);
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background: #e11d48;
-        }
-
-        .btn-ghost {
-            background: transparent;
-            color: var(--text-secondary);
-            border: 1px solid var(--border);
-        }
-
-        .btn-ghost:hover {
-            border-color: var(--accent);
-            color: var(--accent);
-        }
-
-        .btn-success {
-            background: var(--success);
-            color: white;
-        }
-
-        .btn-success:hover {
-            background: #059669;
-        }
-
-        .btn-warning {
-            background: var(--warning);
-            color: var(--bg-primary);
-        }
-
-        .btn-sm {
-            padding: 8px 14px;
-            font-size: 13px;
-        }
-
-        .ders-listesi {
-            display: grid;
-            gap: 10px;
-        }
+        /* Ders Listesi */
+        .ders-listesi { display: grid; gap: 10px; }
 
         .ders-item {
             background: var(--bg-card);
@@ -206,455 +143,375 @@
             cursor: pointer;
             transition: all 0.2s;
         }
-
         .ders-item:hover {
             background: var(--bg-card-hover);
             border-color: var(--accent-dim);
             transform: translateX(4px);
         }
 
-        .ders-item-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+        .ders-item-left { display: flex; align-items: center; gap: 12px; }
 
         .ders-item-icon {
-            width: 40px;
-            height: 40px;
+            width: 40px; height: 40px;
             border-radius: 10px;
             background: var(--accent-glow);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            display: flex; align-items: center; justify-content: center;
             font-size: 18px;
         }
 
-        .ders-item-name {
-            font-weight: 700;
-            font-size: 16px;
-        }
+        .ders-item-name { font-weight: 700; font-size: 16px; }
+        .ders-item-stats { color: var(--text-secondary); font-size: 13px; margin-top: 2px; }
 
-        .ders-item-stats {
-            color: var(--text-secondary);
-            font-size: 13px;
-            margin-top: 2px;
-        }
-
-        .ders-item-right {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+        .ders-item-right { display: flex; align-items: center; gap: 8px; }
 
         .ders-sil-btn {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            cursor: pointer;
-            padding: 6px;
-            border-radius: 6px;
-            transition: all 0.2s;
-            font-size: 16px;
+            background: none; border: none; color: var(--text-muted);
+            cursor: pointer; padding: 6px; border-radius: 6px;
+            transition: all 0.2s; font-size: 16px;
         }
+        .ders-sil-btn:hover { color: var(--danger); background: rgba(244, 63, 94, 0.1); }
 
-        .ders-sil-btn:hover {
-            color: var(--danger);
-            background: rgba(244, 63, 94, 0.1);
+        .ders-arrow { color: var(--text-muted); font-size: 20px; }
+
+        /* Hedef input */
+        .hedef-bar {
+            display: flex; gap: 10px; align-items: center;
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 12px 16px; margin-bottom: 20px;
         }
-
-        .ders-arrow {
-            color: var(--text-muted);
-            font-size: 20px;
+        .hedef-bar label { color: var(--text-secondary); font-size: 14px; white-space: nowrap; }
+        .hedef-bar input {
+            width: 70px; background: var(--bg-secondary); border: 1px solid var(--border);
+            color: var(--accent); padding: 6px 10px; border-radius: 8px; font-size: 14px;
+            font-family: 'Space Mono', monospace; text-align: center; outline: none;
         }
+        .hedef-bar input:focus { border-color: var(--accent); }
+        .hedef-bar span { color: var(--text-muted); font-size: 13px; }
 
-        /* Takvim Ekranı */
+        /* Takvim */
         .takvim-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
+            display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;
         }
-
         .takvim-header h2 {
-            font-family: 'Space Mono', monospace;
-            font-size: 1.3em;
-            color: var(--accent);
+            font-family: 'Space Mono', monospace; font-size: 1.3em; color: var(--accent);
         }
-
-        .takvim-nav {
-            display: flex;
-            gap: 8px;
-        }
-
+        .takvim-nav { display: flex; gap: 8px; }
         .takvim-nav button {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            color: var(--text-secondary);
-            width: 36px;
-            height: 36px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
+            background: var(--bg-card); border: 1px solid var(--border); color: var(--text-secondary);
+            width: 36px; height: 36px; border-radius: 8px; cursor: pointer; font-size: 16px;
+            display: flex; align-items: center; justify-content: center; transition: all 0.2s;
         }
-
-        .takvim-nav button:hover {
-            border-color: var(--accent);
-            color: var(--accent);
-        }
-
-        .takvim-ders-adi {
-            font-size: 1em;
-            color: var(--text-secondary);
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+        .takvim-nav button:hover { border-color: var(--accent); color: var(--accent); }
 
         .takvim-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 6px;
+            display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px;
         }
-
         .takvim-gun-adi {
-            text-align: center;
-            color: var(--text-muted);
-            font-size: 12px;
-            font-weight: 700;
-            padding: 8px 0;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            text-align: center; color: var(--text-muted); font-size: 12px;
+            font-weight: 700; padding: 8px 0; text-transform: uppercase; letter-spacing: 1px;
         }
-
         .takvim-gun {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 8px 6px;
-            min-height: 80px;
-            cursor: pointer;
-            transition: all 0.2s;
+            background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px;
+            padding: 8px 6px; min-height: 70px; cursor: pointer; transition: all 0.2s;
             position: relative;
         }
-
-        .takvim-gun:hover {
-            border-color: var(--accent-dim);
-            background: var(--bg-card-hover);
-        }
-
-        .takvim-gun.bos {
-            background: transparent;
-            border-color: transparent;
-            cursor: default;
-        }
-
-        .takvim-gun.bugun {
-            border-color: var(--accent);
-            box-shadow: 0 0 15px var(--accent-glow);
-        }
+        .takvim-gun:hover { border-color: var(--accent-dim); background: var(--bg-card-hover); }
+        .takvim-gun.bos { background: transparent; border-color: transparent; cursor: default; }
+        .takvim-gun.bugun { border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); }
+        .takvim-gun.hedef-ok { border-color: var(--success); }
+        .takvim-gun.hedef-fail { border-color: var(--danger); border-style: dashed; }
 
         .takvim-gun-num {
-            font-family: 'Space Mono', monospace;
-            font-size: 14px;
-            font-weight: 700;
-            color: var(--text-secondary);
-            margin-bottom: 4px;
+            font-family: 'Space Mono', monospace; font-size: 14px; font-weight: 700;
+            color: var(--text-secondary); margin-bottom: 2px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .takvim-gun.bugun .takvim-gun-num { color: var(--accent); }
+
+        .oturum-badge {
+            background: var(--accent-dim); color: var(--accent); font-size: 9px;
+            padding: 1px 5px; border-radius: 6px; font-weight: 700;
         }
 
-        .takvim-gun.bugun .takvim-gun-num {
-            color: var(--accent);
+        .takvim-gun-mini {
+            font-size: 10px; line-height: 1.3; margin-top: 2px;
         }
+        .takvim-gun-mini .c-mini { color: var(--success); }
 
-        .takvim-gun-data {
-            font-size: 10px;
-            line-height: 1.4;
+        /* Takvim Tooltip */
+        .takvim-tooltip {
+            display: none; position: absolute; bottom: calc(100% + 8px); left: 50%;
+            transform: translateX(-50%); background: var(--bg-secondary);
+            border: 1px solid var(--accent-dim); border-radius: 10px;
+            padding: 12px 14px; min-width: 200px; z-index: 100;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6); pointer-events: none;
         }
-
-        .takvim-gun-data .calisma {
-            color: var(--success);
+        .takvim-gun:hover .takvim-tooltip { display: block; }
+        .takvim-tooltip::after {
+            content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+            border: 6px solid transparent; border-top-color: var(--accent-dim);
         }
-
-        .takvim-gun-data .mola {
-            color: var(--break-color);
+        .takvim-tooltip h4 {
+            font-family: 'Space Mono', monospace; font-size: 12px; color: var(--accent);
+            margin-bottom: 8px; white-space: nowrap;
         }
-
-        /* Kronometre Ekranı */
-        .kronometre-screen {
-            text-align: center;
+        .tooltip-row {
+            display: flex; justify-content: space-between; font-size: 11px;
+            padding: 2px 0; gap: 12px;
         }
-
-        .kronometre-bilgi {
-            color: var(--text-secondary);
-            font-size: 14px;
-            margin-bottom: 10px;
+        .tooltip-row .t-label { color: var(--text-muted); }
+        .tooltip-row .t-val { font-weight: 700; font-family: 'Space Mono', monospace; }
+        .tooltip-row .t-val.tc { color: var(--success); }
+        .tooltip-row .t-val.tm { color: var(--break-color); }
+        .tooltip-konular { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border); }
+        .tooltip-konu-item {
+            font-size: 10px; color: var(--text-secondary); padding: 1px 0;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px;
         }
+        .tooltip-konu-item span { color: var(--accent); }
 
-        .kronometre-bilgi span {
-            color: var(--accent);
-            font-weight: 700;
+        /* Kronometre */
+        .kronometre-screen { text-align: center; }
+        .kronometre-bilgi { color: var(--text-secondary); font-size: 14px; margin-bottom: 10px; }
+        .kronometre-bilgi span { color: var(--accent); font-weight: 700; }
+
+        .konu-input-wrap {
+            max-width: 350px; margin: 0 auto 15px;
         }
 
         .kronometre-display {
-            font-family: 'Space Mono', monospace;
-            font-size: 4em;
-            color: var(--text-primary);
-            padding: 30px 0;
-            letter-spacing: 2px;
-            text-shadow: 0 0 40px rgba(255,255,255,0.05);
+            font-family: 'Space Mono', monospace; font-size: 4em; color: var(--text-primary);
+            padding: 30px 0; letter-spacing: 2px; text-shadow: 0 0 40px rgba(255,255,255,0.05);
         }
-
-        .kronometre-display.calisiyor {
-            color: var(--success);
-            text-shadow: 0 0 40px rgba(16, 185, 129, 0.2);
-        }
-
-        .kronometre-display.molada {
-            color: var(--break-color);
-            text-shadow: 0 0 40px rgba(167, 139, 250, 0.2);
-        }
+        .kronometre-display.calisiyor { color: var(--success); text-shadow: 0 0 40px rgba(16, 185, 129, 0.2); }
+        .kronometre-display.molada { color: var(--break-color); text-shadow: 0 0 40px rgba(167, 139, 250, 0.2); }
 
         .kronometre-label {
-            font-size: 14px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            margin-bottom: 10px;
-            min-height: 20px;
+            font-size: 14px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 3px; margin-bottom: 10px; min-height: 20px;
         }
-
-        .kronometre-label.calisma-label {
-            color: var(--success);
-        }
-
-        .kronometre-label.mola-label {
-            color: var(--break-color);
-        }
+        .kronometre-label.calisma-label { color: var(--success); }
+        .kronometre-label.mola-label { color: var(--break-color); }
 
         .mola-display {
-            font-family: 'Space Mono', monospace;
-            font-size: 1.5em;
-            color: var(--break-color);
-            margin-bottom: 10px;
-            min-height: 30px;
+            font-family: 'Space Mono', monospace; font-size: 1.5em;
+            color: var(--break-color); margin-bottom: 10px; min-height: 30px;
         }
 
         .kronometre-butonlar {
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-            margin-top: 20px;
-            flex-wrap: wrap;
+            display: flex; justify-content: center; gap: 12px; margin-top: 20px; flex-wrap: wrap;
         }
-
         .kronometre-butonlar .btn {
-            min-width: 120px;
-            justify-content: center;
-            padding: 14px 28px;
-            font-size: 15px;
+            min-width: 120px; justify-content: center; padding: 14px 28px; font-size: 15px;
         }
 
-        /* İstatistik Paneli */
+        /* İstatistik */
         .istatistik-panel {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 20px;
-            margin-top: 25px;
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 20px; margin-top: 25px;
         }
-
         .istatistik-panel h3 {
-            color: var(--accent);
-            font-family: 'Space Mono', monospace;
-            font-size: 14px;
-            margin-bottom: 15px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
+            color: var(--accent); font-family: 'Space Mono', monospace;
+            font-size: 14px; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 2px;
         }
-
         .istatistik-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 12px;
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px;
         }
-
         .istatistik-item {
-            background: var(--bg-secondary);
-            border-radius: 10px;
-            padding: 14px;
-            text-align: center;
+            background: var(--bg-secondary); border-radius: 10px; padding: 14px; text-align: center;
         }
-
         .istatistik-item .value {
-            font-family: 'Space Mono', monospace;
-            font-size: 1.4em;
-            font-weight: 700;
-            display: block;
+            font-family: 'Space Mono', monospace; font-size: 1.4em; font-weight: 700; display: block;
         }
-
-        .istatistik-item .label {
-            color: var(--text-muted);
-            font-size: 12px;
-            margin-top: 4px;
-        }
-
+        .istatistik-item .label { color: var(--text-muted); font-size: 12px; margin-top: 4px; }
         .istatistik-item.calisma .value { color: var(--success); }
         .istatistik-item.mola .value { color: var(--break-color); }
         .istatistik-item.oturum .value { color: var(--warning); }
 
-        /* Kaydet Bar */
-        .kaydet-bar {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 20px;
-            flex-wrap: wrap;
+        /* Haftalık grafik */
+        .haftalik-grafik {
+            margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border);
         }
-
-        /* Breadcrumb Nav */
-        .breadcrumb {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
+        .haftalik-grafik h4 {
+            font-size: 12px; color: var(--text-muted); margin-bottom: 10px;
+            text-transform: uppercase; letter-spacing: 1px;
         }
-
-        .breadcrumb-item {
-            color: var(--text-secondary);
-            font-size: 14px;
-            cursor: pointer;
-            transition: color 0.2s;
+        .grafik-container {
+            display: flex; align-items: flex-end; gap: 4px; height: 100px;
         }
-
-        .breadcrumb-item:hover {
-            color: var(--accent);
+        .grafik-bar-wrap {
+            flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;
         }
-
-        .breadcrumb-sep {
-            color: var(--text-muted);
-            font-size: 12px;
+        .grafik-bar {
+            width: 100%; min-height: 2px; border-radius: 4px 4px 0 0;
+            background: var(--success); transition: height 0.3s;
+            position: relative;
         }
-
-        .breadcrumb-item.aktif {
-            color: var(--text-primary);
-            font-weight: 700;
-            cursor: default;
+        .grafik-bar.hedef-ok { background: var(--success); }
+        .grafik-bar.hedef-fail { background: var(--danger); opacity: 0.7; }
+        .grafik-bar.hedef-none { background: var(--accent-dim); }
+        .grafik-gun-label {
+            font-size: 9px; color: var(--text-muted); font-family: 'Space Mono', monospace;
         }
-
-        /* Notification */
-        .bildirim {
-            position: fixed;
-            top: -80px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--bg-card);
-            border: 1px solid var(--accent);
-            color: var(--text-primary);
-            padding: 12px 24px;
-            border-radius: var(--radius);
-            font-weight: 700;
-            z-index: 9999;
-            transition: top 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        .grafik-sure-label {
+            font-size: 8px; color: var(--text-secondary); font-family: 'Space Mono', monospace;
             white-space: nowrap;
         }
 
-        .bildirim.show {
-            top: 20px;
+        /* Kaydet Bar */
+        .kaydet-bar {
+            display: flex; justify-content: center; gap: 10px; margin-top: 20px; flex-wrap: wrap;
         }
+
+        /* Breadcrumb */
+        .breadcrumb { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+        .breadcrumb-item { color: var(--text-secondary); font-size: 14px; cursor: pointer; transition: color 0.2s; }
+        .breadcrumb-item:hover { color: var(--accent); }
+        .breadcrumb-sep { color: var(--text-muted); font-size: 12px; }
+        .breadcrumb-item.aktif { color: var(--text-primary); font-weight: 700; cursor: default; }
+
+        /* Bildirim */
+        .bildirim {
+            position: fixed; top: -80px; left: 50%; transform: translateX(-50%);
+            background: var(--bg-card); border: 1px solid var(--accent); color: var(--text-primary);
+            padding: 12px 24px; border-radius: var(--radius); font-weight: 700;
+            z-index: 9999; transition: top 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5); white-space: nowrap; max-width: 90vw;
+            overflow: hidden; text-overflow: ellipsis;
+        }
+        .bildirim.show { top: 20px; }
 
         /* Boş durum */
-        .bos-durum {
-            text-align: center;
-            padding: 60px 20px;
-            color: var(--text-muted);
-        }
+        .bos-durum { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+        .bos-durum-icon { font-size: 48px; margin-bottom: 15px; }
 
-        .bos-durum-icon {
-            font-size: 48px;
-            margin-bottom: 15px;
-        }
-
-        /* Günün oturumları */
-        .oturum-listesi {
-            margin-top: 15px;
-        }
-
+        /* Oturum listesi */
+        .oturum-listesi { margin-top: 15px; }
         .oturum-item {
-            background: var(--bg-secondary);
-            border-radius: 8px;
-            padding: 10px 14px;
-            margin-bottom: 6px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 13px;
+            background: var(--bg-secondary); border-radius: 8px; padding: 10px 14px;
+            margin-bottom: 6px; display: flex; justify-content: space-between;
+            align-items: center; font-size: 13px; flex-wrap: wrap; gap: 4px;
         }
-
-        .oturum-item .saat {
-            color: var(--text-muted);
-            font-family: 'Space Mono', monospace;
+        .oturum-item .saat { color: var(--text-muted); font-family: 'Space Mono', monospace; }
+        .oturum-item .konu-tag {
+            color: var(--accent); font-size: 12px; font-weight: 500;
+            background: var(--accent-glow); padding: 2px 8px; border-radius: 6px;
         }
-
-        .oturum-item .sure {
-            font-weight: 700;
-        }
-
+        .oturum-item .sure { font-weight: 700; }
         .oturum-item .sure.c { color: var(--success); }
         .oturum-item .sure.m { color: var(--break-color); }
+
+        /* Ayarlar Toggle */
+        .ayar-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 10px 0; border-bottom: 1px solid var(--border);
+        }
+        .ayar-row:last-child { border-bottom: none; }
+        .ayar-row label { color: var(--text-secondary); font-size: 14px; }
+        .toggle {
+            width: 44px; height: 24px; background: var(--border); border-radius: 12px;
+            position: relative; cursor: pointer; transition: background 0.2s; border: none;
+        }
+        .toggle.on { background: var(--success); }
+        .toggle::after {
+            content: ''; position: absolute; top: 3px; left: 3px;
+            width: 18px; height: 18px; background: white; border-radius: 50%;
+            transition: transform 0.2s;
+        }
+        .toggle.on::after { transform: translateX(20px); }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 8000;
+            display: none; justify-content: center; align-items: center;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-box {
+            background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px;
+            padding: 30px; max-width: 500px; width: 90%; max-height: 85vh; overflow-y: auto;
+        }
+        .modal-box h2 {
+            font-family: 'Space Mono', monospace; color: var(--accent);
+            text-align: center; margin-bottom: 20px; font-size: 1.3em;
+        }
+        .modal-box p { color: var(--text-secondary); font-size: 14px; text-align: center; margin-bottom: 20px; }
+
+        .storage-options { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
+        .storage-opt {
+            flex: 1; min-width: 180px; padding: 20px; border: 2px solid var(--border);
+            border-radius: 12px; cursor: pointer; text-align: center; transition: all 0.3s;
+        }
+        .storage-opt:hover { border-color: var(--accent-dim); transform: translateY(-3px); }
+        .storage-opt.selected { border-color: var(--accent); background: var(--accent-glow); }
+        .storage-opt h3 { color: var(--text-primary); margin-bottom: 6px; }
+        .storage-opt p { color: var(--text-muted); font-size: 12px; margin: 0; }
+
+        .login-form { display: none; margin-top: 15px; }
+        .login-form.active { display: block; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; color: var(--text-secondary); font-size: 13px; margin-bottom: 4px; font-weight: 700; }
+
+        .modal-buttons { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+
+        /* Storage info */
+        .storage-info {
+            position: fixed; top: 15px; right: 15px; background: var(--bg-card);
+            border: 1px solid var(--border); padding: 8px 14px; border-radius: 20px;
+            font-size: 12px; font-weight: 700; z-index: 1000; color: var(--text-secondary);
+            cursor: pointer; transition: all 0.2s;
+        }
+        .storage-info:hover { border-color: var(--accent); color: var(--accent); }
 
         /* Responsive */
         @media (max-width: 600px) {
             .app-container { padding: 12px; }
             .app-header h1 { font-size: 1.4em; }
             .kronometre-display { font-size: 2.8em; }
-            .takvim-gun { min-height: 60px; padding: 6px 4px; }
+            .takvim-gun { min-height: 55px; padding: 5px 4px; }
             .takvim-gun-num { font-size: 12px; }
-            .takvim-gun-data { font-size: 9px; }
+            .takvim-gun-mini { font-size: 8px; }
             .kronometre-butonlar .btn { min-width: 100px; padding: 12px 20px; font-size: 14px; }
-        }
-
-        /* Gün detay modal */
-        .gun-detay-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.7);
-            z-index: 5000;
-            display: none;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .gun-detay-overlay.active {
-            display: flex;
-        }
-
-        .gun-detay-modal {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 24px;
-            max-width: 400px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-
-        .gun-detay-modal h3 {
-            font-family: 'Space Mono', monospace;
-            color: var(--accent);
-            margin-bottom: 15px;
+            .takvim-tooltip { min-width: 160px; padding: 10px; }
+            .storage-info { top: 8px; right: 8px; font-size: 11px; padding: 6px 10px; }
+            .hedef-bar { flex-wrap: wrap; }
+            .grafik-container { height: 70px; }
         }
     </style>
 </head>
 <body>
     <div class="bildirim" id="bildirim"></div>
+    <div class="storage-info" id="storageInfo" onclick="depolamaModalAc()">💻 Yerel</div>
+
+    <!-- GİRİŞ MODALI -->
+    <div class="modal-overlay" id="girisModal">
+        <div class="modal-box">
+            <h2>📚 Hoş Geldin!</h2>
+            <p>Verilerini nerede saklayalım?</p>
+            <div class="storage-options">
+                <div class="storage-opt" id="optYerel" onclick="depolamaSecimi('yerel')">
+                    <h3>💻 Yerel</h3>
+                    <p>Bu tarayıcıda sakla</p>
+                </div>
+                <div class="storage-opt" id="optGithub" onclick="depolamaSecimi('github')">
+                    <h3>☁️ GitHub</h3>
+                    <p>Cihazlar arası senkron</p>
+                </div>
+            </div>
+            <div class="login-form" id="githubLoginForm">
+                <div class="form-group">
+                    <label>Kullanıcı Adı</label>
+                    <input type="text" class="g-input" id="loginUsername" placeholder="GitHub kullanıcı adı">
+                </div>
+                <div class="form-group">
+                    <label>Şifre (hesap doğrulama)</label>
+                    <input type="password" class="g-input" id="loginPassword" placeholder="Şifre (en az 4 karakter)">
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-accent" onclick="girisOnayla()">Devam →</button>
+            </div>
+        </div>
+    </div>
 
     <div class="app-container">
         <div class="app-header">
@@ -665,13 +522,37 @@
         <!-- EKRAN 1: Ders Listesi -->
         <div class="screen active" id="ekranDersler">
             <div class="ders-ekle-bar">
-                <input type="text" id="yeniDersInput" placeholder="Yeni ders adı..." maxlength="50">
+                <input type="text" class="g-input" id="yeniDersInput" placeholder="Yeni ders adı..." maxlength="50">
                 <button class="btn btn-accent" onclick="dersEkle()">+ Ekle</button>
             </div>
+
+            <!-- Hedef süre -->
+            <div class="hedef-bar">
+                <label>🎯 Günlük Hedef:</label>
+                <input type="number" id="hedefSaatInput" min="0" max="24" value="0" onchange="hedefKaydet()">
+                <span>saat</span>
+                <input type="number" id="hedefDakikaInput" min="0" max="59" value="0" onchange="hedefKaydet()">
+                <span>dakika</span>
+            </div>
+
+            <!-- Ayarlar -->
+            <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:20px;">
+                <div class="ayar-row">
+                    <label>🔔 Ses Bildirimi</label>
+                    <button class="toggle" id="toggleSes" onclick="sesBildirimToggle()"></button>
+                </div>
+                <div class="ayar-row">
+                    <label>☁️ Otomatik GitHub Kayıt</label>
+                    <button class="toggle" id="toggleOtoKayit" onclick="otoKayitToggle()"></button>
+                </div>
+            </div>
+
             <div class="ders-listesi" id="dersListesi"></div>
+
             <div class="kaydet-bar" style="margin-top:20px;">
                 <button class="btn btn-success btn-sm" onclick="githubKaydet()">💾 GitHub'a Kaydet</button>
                 <button class="btn btn-ghost btn-sm" onclick="githubYukle()">📥 GitHub'dan Yükle</button>
+                <button class="btn btn-ghost btn-sm" onclick="jsonDisaAktar()">📤 JSON İndir</button>
             </div>
         </div>
 
@@ -683,18 +564,15 @@
                 <span class="breadcrumb-item aktif" id="breadcrumbDers"></span>
             </div>
             <div class="takvim-header">
-                <div class="takvim-nav">
-                    <button onclick="ayDegistir(-1)">◀</button>
-                </div>
+                <div class="takvim-nav"><button onclick="ayDegistir(-1)">◀</button></div>
                 <h2 id="takvimBaslik"></h2>
-                <div class="takvim-nav">
-                    <button onclick="ayDegistir(1)">▶</button>
-                </div>
+                <div class="takvim-nav"><button onclick="ayDegistir(1)">▶</button></div>
             </div>
             <div class="takvim-grid" id="takvimGrid"></div>
             <div class="istatistik-panel" style="margin-top:20px;">
                 <h3>📊 Aylık Özet</h3>
                 <div class="istatistik-grid" id="aylikOzet"></div>
+                <div class="haftalik-grafik" id="haftalikGrafik"></div>
             </div>
         </div>
 
@@ -711,6 +589,9 @@
                 <div class="kronometre-bilgi">
                     <span id="kronoDersAdi"></span> — <span id="kronoTarih"></span>
                 </div>
+                <div class="konu-input-wrap">
+                    <input type="text" class="g-input" id="konuInput" placeholder="📝 Konu gir (opsiyonel)..." maxlength="60">
+                </div>
                 <div class="kronometre-label" id="kronoLabel"></div>
                 <div class="kronometre-display" id="kronoDisplay">00:00:00</div>
                 <div class="mola-display" id="molaDisplay"></div>
@@ -723,16 +604,11 @@
             </div>
 
             <div class="istatistik-panel" id="gunIstatistik" style="display:none;">
-                <h3>📊 Bugünün Oturumları</h3>
+                <h3>📊 Günün Oturumları</h3>
                 <div class="istatistik-grid" id="gunOzet"></div>
                 <div class="oturum-listesi" id="oturumListesi"></div>
             </div>
         </div>
-    </div>
-
-    <!-- Gün Detay Modal -->
-    <div class="gun-detay-overlay" id="gunDetayOverlay" onclick="gunDetayKapat(event)">
-        <div class="gun-detay-modal" id="gunDetayModal"></div>
     </div>
 
     <script src="ders-calis-kronometrik-gh.js"></script>
@@ -746,33 +622,67 @@
         // ===== Veri Yapısı =====
         let appData = {
             dersler: [],
-            // dersler: [ { id, ad, kayitlar: { "2026-03-04": [ { baslangic, bitis, calisma, mola } ] } } ]
+            ayarlar: {
+                hedefMs: 0,         // günlük hedef (ms)
+                sesBildirimi: true,
+                otoGithubKayit: false
+            }
         };
+
+        // ===== Depolama / Kullanıcı =====
+        let storageMethod = 'yerel'; // 'yerel' veya 'github'
+        let currentUser = null;
+        let userDatabase = {};
 
         // ===== Durum =====
         let aktifDersId = null;
         let takvimYil = new Date().getFullYear();
         let takvimAy = new Date().getMonth();
-        let aktifGun = null; // "2026-03-04"
+        let aktifGun = null;
 
-        // Kronometre durumu
-        let kronoState = 'idle'; // idle, running, paused
+        // Kronometre
+        let kronoState = 'idle';
         let kronoStartTime = null;
         let kronoElapsed = 0;
         let kronoInterval = null;
         let molaStartTime = null;
         let molaElapsed = 0;
         let molaInterval = null;
-        let toplamMolaSure = 0; // Bu oturumdaki toplam mola (ms)
+        let toplamMolaSure = 0;
 
-        // ===== Yardımcı Fonksiyonlar =====
+        // ===== SES =====
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
+
+        function sesCalBip(freq, dur) {
+            if (!appData.ayarlar.sesBildirimi) return;
+            try {
+                if (!audioCtx) audioCtx = new AudioCtx();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.frequency.value = freq;
+                osc.type = 'sine';
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + dur);
+                osc.start();
+                osc.stop(audioCtx.currentTime + dur);
+            } catch (e) { }
+        }
+
+        function sesMolaBasla() { sesCalBip(440, 0.3); setTimeout(() => sesCalBip(330, 0.3), 350); }
+        function sesMolaBitir() { sesCalBip(523, 0.2); setTimeout(() => sesCalBip(659, 0.2), 250); setTimeout(() => sesCalBip(784, 0.3), 500); }
+        function sesKaydet() { sesCalBip(880, 0.15); setTimeout(() => sesCalBip(1100, 0.2), 200); }
+
+        // ===== Yardımcı =====
         function msToStr(ms) {
             if (!ms || ms < 0) ms = 0;
-            const totalSec = Math.floor(ms / 1000);
-            const h = Math.floor(totalSec / 3600);
-            const m = Math.floor((totalSec % 3600) / 60);
-            const s = totalSec % 60;
-            return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+            const t = Math.floor(ms / 1000);
+            const h = Math.floor(t / 3600);
+            const m = Math.floor((t % 3600) / 60);
+            const s = t % 60;
+            return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
         }
 
         function msToKisa(ms) {
@@ -786,7 +696,7 @@
 
         function bugunStr() {
             const d = new Date();
-            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+            return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
         }
 
         function tarihFormat(str) {
@@ -805,6 +715,12 @@
             return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
         }
 
+        function escHtml(s) {
+            const d = document.createElement('div');
+            d.textContent = s;
+            return d.innerHTML;
+        }
+
         // ===== LocalStorage =====
         function yerelKaydet() {
             localStorage.setItem('ders-calis-data', JSON.stringify(appData));
@@ -813,22 +729,242 @@
         function yerelYukle() {
             const d = localStorage.getItem('ders-calis-data');
             if (d) {
-                try { appData = JSON.parse(d); } catch (e) { }
+                try {
+                    const parsed = JSON.parse(d);
+                    appData.dersler = parsed.dersler || [];
+                    appData.ayarlar = Object.assign(appData.ayarlar, parsed.ayarlar || {});
+                } catch (e) { }
             }
         }
 
-        // ===== Ekran Yönetimi =====
+        // ===== GİRİŞ / DEPOLAMA =====
+        function depolamaSecimi(tip) {
+            document.querySelectorAll('.storage-opt').forEach(o => o.classList.remove('selected'));
+            if (tip === 'yerel') {
+                document.getElementById('optYerel').classList.add('selected');
+                document.getElementById('githubLoginForm').classList.remove('active');
+            } else {
+                document.getElementById('optGithub').classList.add('selected');
+                document.getElementById('githubLoginForm').classList.add('active');
+            }
+            storageMethod = tip;
+        }
+
+        async function girisOnayla() {
+            if (storageMethod === 'github') {
+                const username = document.getElementById('loginUsername').value.trim();
+                const password = document.getElementById('loginPassword').value.trim();
+                if (!username) { bildirimGoster('⚠️ Kullanıcı adı gerekli!'); return; }
+                if (password.length < 4) { bildirimGoster('⚠️ Şifre en az 4 karakter!'); return; }
+
+                bildirimGoster('⏳ GitHub kontrol ediliyor...');
+                try {
+                    await loadUserDatabase();
+
+                    if (userDatabase[username]) {
+                        // Mevcut kullanıcı - şifre kontrol
+                        if (userDatabase[username].password !== password) {
+                            bildirimGoster('❌ Yanlış şifre!');
+                            return;
+                        }
+                        currentUser = username;
+                        if (userDatabase[username].appData) {
+                            appData.dersler = userDatabase[username].appData.dersler || [];
+                            appData.ayarlar = Object.assign(appData.ayarlar, userDatabase[username].appData.ayarlar || {});
+                        }
+                        bildirimGoster('✅ Hoş geldin ' + username + '!');
+                    } else {
+                        // Yeni kayıt
+                        currentUser = username;
+                        userDatabase[username] = {
+                            password: password,
+                            appData: appData,
+                            createdAt: new Date().toISOString()
+                        };
+                        await saveUserDatabase();
+                        bildirimGoster('🎉 Yeni hesap oluşturuldu! Hoş geldin ' + username + '!');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    bildirimGoster('⚠️ GitHub bağlantı hatası! Yerel kayıt kullanılıyor.');
+                    storageMethod = 'yerel';
+                }
+            }
+
+            const settings = { method: storageMethod, username: currentUser };
+            localStorage.setItem('ders-calis-settings', JSON.stringify(settings));
+
+            document.getElementById('girisModal').classList.remove('active');
+            updateStorageInfo();
+            yerelKaydet();
+            ayarlariUygula();
+            dersListesiRender();
+        }
+
+        function depolamaModalAc() {
+            localStorage.removeItem('ders-calis-settings');
+            document.querySelectorAll('.storage-opt').forEach(o => o.classList.remove('selected'));
+            document.getElementById('githubLoginForm').classList.remove('active');
+            document.getElementById('loginUsername').value = '';
+            document.getElementById('loginPassword').value = '';
+            storageMethod = 'yerel';
+            document.getElementById('girisModal').classList.add('active');
+        }
+
+        function checkStorageSettings() {
+            const saved = localStorage.getItem('ders-calis-settings');
+            if (saved) {
+                const s = JSON.parse(saved);
+                storageMethod = s.method;
+                currentUser = s.username || null;
+                updateStorageInfo();
+                return true;
+            }
+            return false;
+        }
+
+        function updateStorageInfo() {
+            const el = document.getElementById('storageInfo');
+            if (storageMethod === 'github') {
+                el.textContent = `☁️ GitHub${currentUser ? ` (${currentUser})` : ''}`;
+            } else {
+                el.textContent = '💻 Yerel';
+            }
+        }
+
+        async function loadUserDatabase() {
+            try {
+                const resp = await fetch(`https://api.github.com/repos/${kullaniciAdi}/${repoAdi}/contents/${dosyaAdi}`, {
+                    headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' }
+                });
+                if (resp.ok) {
+                    const data = await resp.json();
+                    const decoded = decodeURIComponent(escape(atob(data.content)));
+                    userDatabase = JSON.parse(decoded);
+                } else {
+                    userDatabase = {};
+                }
+            } catch (e) { userDatabase = {}; throw e; }
+        }
+
+        async function saveUserDatabase() {
+            let sha = null;
+            try {
+                const resp = await fetch(`https://api.github.com/repos/${kullaniciAdi}/${repoAdi}/contents/${dosyaAdi}`, {
+                    headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' }
+                });
+                if (resp.ok) { sha = (await resp.json()).sha; }
+            } catch (e) { }
+
+            const jsonStr = JSON.stringify(userDatabase, null, 2);
+            const utf8 = unescape(encodeURIComponent(jsonStr));
+            const base64 = btoa(utf8);
+
+            const body = { message: 'Ders çalışma güncellendi - ' + new Date().toLocaleString('tr-TR'), content: base64 };
+            if (sha) body.sha = sha;
+
+            const updateResp = await fetch(`https://api.github.com/repos/${kullaniciAdi}/${repoAdi}/contents/${dosyaAdi}`, {
+                method: 'PUT',
+                headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' },
+                body: JSON.stringify(body)
+            });
+            if (!updateResp.ok) throw new Error('GitHub güncelleme hatası: ' + updateResp.status);
+        }
+
+        // ===== GITHUB KAYDET / YÜKLE =====
+        async function githubKaydet() {
+            if (storageMethod !== 'github' || !currentUser) {
+                bildirimGoster('⚠️ Önce GitHub ile giriş yap!');
+                return;
+            }
+            bildirimGoster('⏳ GitHub\'a kaydediliyor...');
+            try {
+                await loadUserDatabase();
+                userDatabase[currentUser].appData = appData;
+                userDatabase[currentUser].lastUpdated = new Date().toISOString();
+                await saveUserDatabase();
+                sesKaydet();
+                bildirimGoster('✅ GitHub\'a kaydedildi!');
+            } catch (err) {
+                console.error(err);
+                bildirimGoster('❌ GitHub kayıt hatası: ' + err.message);
+            }
+        }
+
+        async function githubYukle() {
+            if (storageMethod !== 'github' || !currentUser) {
+                bildirimGoster('⚠️ Önce GitHub ile giriş yap!');
+                return;
+            }
+            bildirimGoster('⏳ GitHub\'dan yükleniyor...');
+            try {
+                await loadUserDatabase();
+                if (userDatabase[currentUser] && userDatabase[currentUser].appData) {
+                    appData.dersler = userDatabase[currentUser].appData.dersler || [];
+                    appData.ayarlar = Object.assign(appData.ayarlar, userDatabase[currentUser].appData.ayarlar || {});
+                    yerelKaydet();
+                    ayarlariUygula();
+                    dersListesiRender();
+                    bildirimGoster('✅ GitHub\'dan yüklendi!');
+                } else {
+                    bildirimGoster('⚠️ GitHub\'da veri bulunamadı!');
+                }
+            } catch (err) {
+                console.error(err);
+                bildirimGoster('❌ GitHub yükleme hatası: ' + err.message);
+            }
+        }
+
+        // ===== JSON DIŞA AKTAR =====
+        function jsonDisaAktar() {
+            const blob = new Blob([JSON.stringify(appData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'ders-calis-yedek-' + bugunStr() + '.json';
+            a.click();
+            URL.revokeObjectURL(url);
+            bildirimGoster('📤 JSON dosyası indirildi!');
+        }
+
+        // ===== EKRAN YÖNETİMİ =====
         function ekranGoster(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
+            if (id === 'ekranDersler') dersListesiRender();
+            else if (id === 'ekranTakvim') takvimRender();
+            else if (id === 'ekranKronometre') gunIstatistikRender();
+        }
 
-            if (id === 'ekranDersler') {
-                dersListesiRender();
-            } else if (id === 'ekranTakvim') {
-                takvimRender();
-            } else if (id === 'ekranKronometre') {
-                gunIstatistikRender();
-            }
+        // ===== AYARLAR =====
+        function ayarlariUygula() {
+            const hedefMs = appData.ayarlar.hedefMs || 0;
+            document.getElementById('hedefSaatInput').value = Math.floor(hedefMs / 3600000);
+            document.getElementById('hedefDakikaInput').value = Math.floor((hedefMs % 3600000) / 60000);
+
+            document.getElementById('toggleSes').className = 'toggle' + (appData.ayarlar.sesBildirimi ? ' on' : '');
+            document.getElementById('toggleOtoKayit').className = 'toggle' + (appData.ayarlar.otoGithubKayit ? ' on' : '');
+        }
+
+        function hedefKaydet() {
+            const s = parseInt(document.getElementById('hedefSaatInput').value) || 0;
+            const d = parseInt(document.getElementById('hedefDakikaInput').value) || 0;
+            appData.ayarlar.hedefMs = (s * 3600000) + (d * 60000);
+            yerelKaydet();
+            bildirimGoster('🎯 Hedef kaydedildi: ' + s + 's ' + d + 'd');
+        }
+
+        function sesBildirimToggle() {
+            appData.ayarlar.sesBildirimi = !appData.ayarlar.sesBildirimi;
+            document.getElementById('toggleSes').className = 'toggle' + (appData.ayarlar.sesBildirimi ? ' on' : '');
+            yerelKaydet();
+            if (appData.ayarlar.sesBildirimi) sesCalBip(660, 0.2);
+        }
+
+        function otoKayitToggle() {
+            appData.ayarlar.otoGithubKayit = !appData.ayarlar.otoGithubKayit;
+            document.getElementById('toggleOtoKayit').className = 'toggle' + (appData.ayarlar.otoGithubKayit ? ' on' : '');
+            yerelKaydet();
         }
 
         // ===== DERS İŞLEMLERİ =====
@@ -869,29 +1005,19 @@
         function dersListesiRender() {
             const container = document.getElementById('dersListesi');
             if (appData.dersler.length === 0) {
-                container.innerHTML = `<div class="bos-durum">
-                    <div class="bos-durum-icon">📖</div>
-                    <p>Henüz ders eklenmedi.<br>Yukarıdan yeni ders ekle!</p>
-                </div>`;
+                container.innerHTML = `<div class="bos-durum"><div class="bos-durum-icon">📖</div><p>Henüz ders eklenmedi.<br>Yukarıdan yeni ders ekle!</p></div>`;
                 return;
             }
-
             container.innerHTML = appData.dersler.map(ders => {
-                // Toplam çalışma hesapla
-                let toplamCalisma = 0;
-                let toplamOturum = 0;
-                Object.values(ders.kayitlar || {}).forEach(gunKayitlari => {
-                    gunKayitlari.forEach(k => {
-                        toplamCalisma += (k.calisma || 0);
-                        toplamOturum++;
-                    });
+                let toplamCalisma = 0, toplamOturum = 0;
+                Object.values(ders.kayitlar || {}).forEach(gk => {
+                    gk.forEach(k => { toplamCalisma += (k.calisma || 0); toplamOturum++; });
                 });
-
                 return `<div class="ders-item" onclick="dersSec('${ders.id}')">
                     <div class="ders-item-left">
                         <div class="ders-item-icon">📘</div>
                         <div>
-                            <div class="ders-item-name">${ders.ad}</div>
+                            <div class="ders-item-name">${escHtml(ders.ad)}</div>
                             <div class="ders-item-stats">${toplamOturum} oturum · ${msToKisa(toplamCalisma)} toplam</div>
                         </div>
                     </div>
@@ -904,12 +1030,11 @@
         }
 
         // ===== TAKVİM =====
-        const ayAdlari = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
-            'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
-        const gunAdlari = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
+        const ayAdlari = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+        const gunAdlari = ['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'];
 
-        function ayDegistir(yön) {
-            takvimAy += yön;
+        function ayDegistir(y) {
+            takvimAy += y;
             if (takvimAy < 0) { takvimAy = 11; takvimYil--; }
             if (takvimAy > 11) { takvimAy = 0; takvimYil++; }
             takvimRender();
@@ -920,93 +1045,131 @@
             if (!ders) return;
 
             document.getElementById('takvimBaslik').textContent = `${ayAdlari[takvimAy]} ${takvimYil}`;
-
             const grid = document.getElementById('takvimGrid');
             let html = gunAdlari.map(g => `<div class="takvim-gun-adi">${g}</div>`).join('');
 
             const ilkGun = new Date(takvimYil, takvimAy, 1);
-            let baslangicGunu = ilkGun.getDay(); // 0=Paz
-            baslangicGunu = baslangicGunu === 0 ? 6 : baslangicGunu - 1; // Pzt=0
-
+            let bg = ilkGun.getDay();
+            bg = bg === 0 ? 6 : bg - 1;
             const gunSayisi = new Date(takvimYil, takvimAy + 1, 0).getDate();
             const bugunKey = bugunStr();
+            const hedef = appData.ayarlar.hedefMs || 0;
 
-            // Boş günler
-            for (let i = 0; i < baslangicGunu; i++) {
-                html += `<div class="takvim-gun bos"></div>`;
-            }
+            for (let i = 0; i < bg; i++) html += `<div class="takvim-gun bos"></div>`;
 
-            // Ayın günleri
-            let aylikToplamCalisma = 0;
-            let aylikToplamMola = 0;
-            let aylikToplamOturum = 0;
+            let ayToplam = { calisma: 0, mola: 0, oturum: 0 };
+            let gunlukData = []; // grafik için
 
             for (let g = 1; g <= gunSayisi; g++) {
-                const gunKey = `${takvimYil}-${String(takvimAy + 1).padStart(2, '0')}-${String(g).padStart(2, '0')}`;
-                const kayitlar = ders.kayitlar[gunKey] || [];
-                const bugunMu = gunKey === bugunKey;
+                const gk = `${takvimYil}-${String(takvimAy+1).padStart(2,'0')}-${String(g).padStart(2,'0')}`;
+                const kayitlar = ders.kayitlar[gk] || [];
+                const bugunMu = gk === bugunKey;
 
-                let gunCalisma = 0;
-                let gunMola = 0;
+                let gc = 0, gm = 0;
+                const konular = [];
                 kayitlar.forEach(k => {
-                    gunCalisma += (k.calisma || 0);
-                    gunMola += (k.mola || 0);
+                    gc += (k.calisma || 0);
+                    gm += (k.mola || 0);
+                    if (k.konu) konular.push(k.konu);
                 });
+                ayToplam.calisma += gc;
+                ayToplam.mola += gm;
+                ayToplam.oturum += kayitlar.length;
+                gunlukData.push({ gun: g, calisma: gc, oturum: kayitlar.length });
 
-                aylikToplamCalisma += gunCalisma;
-                aylikToplamMola += gunMola;
-                aylikToplamOturum += kayitlar.length;
+                // Hedef durumu
+                let hedefClass = '';
+                if (kayitlar.length > 0 && hedef > 0) {
+                    hedefClass = gc >= hedef ? ' hedef-ok' : ' hedef-fail';
+                }
 
-                let dataHtml = '';
+                // Mini bilgi (sadece oturum sayısı)
+                let miniHtml = '';
                 if (kayitlar.length > 0) {
-                    dataHtml = `<div class="takvim-gun-data">
-                        <div class="calisma">✅ ${msToKisa(gunCalisma)}</div>
-                        <div class="mola">☕ ${msToKisa(gunMola)}</div>
+                    miniHtml = `<div class="takvim-gun-mini"><span class="c-mini">${msToKisa(gc)}</span></div>`;
+                }
+
+                // Badge
+                let badgeHtml = kayitlar.length > 0 ? `<span class="oturum-badge">${kayitlar.length}</span>` : '';
+
+                // Tooltip
+                let tooltipHtml = '';
+                if (kayitlar.length > 0) {
+                    let konuListHtml = '';
+                    if (konular.length > 0) {
+                        const uniq = [...new Set(konular)];
+                        konuListHtml = `<div class="tooltip-konular">${uniq.slice(0, 5).map(k =>
+                            `<div class="tooltip-konu-item"><span>📝</span> ${escHtml(k)}</div>`
+                        ).join('')}${uniq.length > 5 ? `<div class="tooltip-konu-item" style="color:var(--text-muted)">+${uniq.length - 5} konu daha</div>` : ''}</div>`;
+                    }
+                    tooltipHtml = `<div class="takvim-tooltip">
+                        <h4>${tarihFormat(gk)}</h4>
+                        <div class="tooltip-row"><span class="t-label">Çalışma</span><span class="t-val tc">${msToStr(gc)}</span></div>
+                        <div class="tooltip-row"><span class="t-label">Mola</span><span class="t-val tm">${msToStr(gm)}</span></div>
+                        <div class="tooltip-row"><span class="t-label">Oturum</span><span class="t-val" style="color:var(--warning)">${kayitlar.length}</span></div>
+                        ${hedef > 0 ? `<div class="tooltip-row"><span class="t-label">Hedef</span><span class="t-val" style="color:${gc >= hedef ? 'var(--success)' : 'var(--danger)'}">${gc >= hedef ? '✅ Tamamlandı' : `❌ ${msToKisa(hedef - gc)} kaldı`}</span></div>` : ''}
+                        ${konuListHtml}
                     </div>`;
                 }
 
-                html += `<div class="takvim-gun${bugunMu ? ' bugun' : ''}" onclick="gunSec('${gunKey}')">
-                    <div class="takvim-gun-num">${g}</div>
-                    ${dataHtml}
+                html += `<div class="takvim-gun${bugunMu ? ' bugun' : ''}${hedefClass}" onclick="gunSec('${gk}')">
+                    <div class="takvim-gun-num">${g}${badgeHtml}</div>
+                    ${miniHtml}
+                    ${tooltipHtml}
                 </div>`;
             }
 
             grid.innerHTML = html;
 
             // Aylık özet
-            const gunSayisiAktif = Object.keys(ders.kayitlar).filter(k => {
+            const aktifGunSayisi = Object.keys(ders.kayitlar).filter(k => {
                 const [y, m] = k.split('-');
                 return parseInt(y) === takvimYil && parseInt(m) === takvimAy + 1;
             }).filter(k => (ders.kayitlar[k] || []).length > 0).length;
 
             document.getElementById('aylikOzet').innerHTML = `
-                <div class="istatistik-item calisma">
-                    <span class="value">${msToKisa(aylikToplamCalisma)}</span>
-                    <span class="label">Toplam Çalışma</span>
-                </div>
-                <div class="istatistik-item mola">
-                    <span class="value">${msToKisa(aylikToplamMola)}</span>
-                    <span class="label">Toplam Mola</span>
-                </div>
-                <div class="istatistik-item oturum">
-                    <span class="value">${aylikToplamOturum}</span>
-                    <span class="label">Oturum Sayısı</span>
-                </div>
-                <div class="istatistik-item">
-                    <span class="value" style="color:var(--accent)">${gunSayisiAktif}</span>
-                    <span class="label">Aktif Gün</span>
-                </div>
+                <div class="istatistik-item calisma"><span class="value">${msToKisa(ayToplam.calisma)}</span><span class="label">Toplam Çalışma</span></div>
+                <div class="istatistik-item mola"><span class="value">${msToKisa(ayToplam.mola)}</span><span class="label">Toplam Mola</span></div>
+                <div class="istatistik-item oturum"><span class="value">${ayToplam.oturum}</span><span class="label">Oturum</span></div>
+                <div class="istatistik-item"><span class="value" style="color:var(--accent)">${aktifGunSayisi}</span><span class="label">Aktif Gün</span></div>
+                ${hedef > 0 ? `<div class="istatistik-item"><span class="value" style="color:var(--success)">${gunlukData.filter(d => d.calisma >= hedef).length}</span><span class="label">Hedef Tamamlanan</span></div>` : ''}
             `;
+
+            // Grafik
+            grafikRender(gunlukData, hedef);
         }
 
-        function gunSec(gunKey) {
-            aktifGun = gunKey;
+        function grafikRender(data, hedef) {
+            const container = document.getElementById('haftalikGrafik');
+            if (data.length === 0) { container.innerHTML = ''; return; }
+
+            const maxVal = Math.max(...data.map(d => d.calisma), hedef || 1, 1);
+
+            let barsHtml = data.map(d => {
+                const h = Math.max(2, (d.calisma / maxVal) * 100);
+                let barClass = 'hedef-none';
+                if (d.oturum > 0 && hedef > 0) {
+                    barClass = d.calisma >= hedef ? 'hedef-ok' : 'hedef-fail';
+                }
+                const sureLabel = d.calisma > 0 ? msToKisa(d.calisma) : '';
+                return `<div class="grafik-bar-wrap">
+                    ${sureLabel ? `<div class="grafik-sure-label">${sureLabel}</div>` : ''}
+                    <div class="grafik-bar ${barClass}" style="height:${d.calisma > 0 ? h : 2}%"></div>
+                    <div class="grafik-gun-label">${d.gun}</div>
+                </div>`;
+            }).join('');
+
+            container.innerHTML = `<h4>📈 Günlük Çalışma</h4><div class="grafik-container">${barsHtml}</div>`;
+        }
+
+        // ===== GÜN SEÇ =====
+        function gunSec(gk) {
+            aktifGun = gk;
             const ders = appData.dersler.find(d => d.id === aktifDersId);
             document.getElementById('kronoDersAdi').textContent = ders.ad;
-            document.getElementById('kronoTarih').textContent = tarihFormat(gunKey);
-            document.getElementById('breadcrumbGun').textContent = tarihFormat(gunKey);
-
-            // Kronometre sıfırla
+            document.getElementById('kronoTarih').textContent = tarihFormat(gk);
+            document.getElementById('breadcrumbGun').textContent = tarihFormat(gk);
+            document.getElementById('konuInput').value = '';
             kronometreReset();
             ekranGoster('ekranKronometre');
         }
@@ -1022,6 +1185,7 @@
             document.getElementById('btnDuraklat').style.display = '';
             document.getElementById('btnDurdur').style.display = '';
             document.getElementById('btnDevam').style.display = 'none';
+            document.getElementById('konuInput').disabled = true;
 
             document.getElementById('kronoLabel').textContent = '📖 ÇALIŞIYOR';
             document.getElementById('kronoLabel').className = 'kronometre-label calisma-label';
@@ -1032,19 +1196,15 @@
         }
 
         function kronoGuncelle() {
-            const now = Date.now();
-            const elapsed = now - kronoStartTime + kronoElapsed;
+            const elapsed = Date.now() - kronoStartTime + kronoElapsed;
             document.getElementById('kronoDisplay').textContent = msToStr(elapsed);
         }
 
         function kronometreDuraklat() {
-            // Çalışma süresini kaydet
             kronoElapsed += Date.now() - kronoStartTime;
             clearInterval(kronoInterval);
-
             kronoState = 'paused';
 
-            // Mola başlat
             molaStartTime = Date.now();
             molaElapsed = 0;
             molaInterval = setInterval(molaGuncelle, 100);
@@ -1055,16 +1215,16 @@
             document.getElementById('kronoLabel').textContent = '☕ MOLA';
             document.getElementById('kronoLabel').className = 'kronometre-label mola-label';
             document.getElementById('kronoDisplay').className = 'kronometre-display molada';
+
+            sesMolaBasla();
         }
 
         function molaGuncelle() {
-            const now = Date.now();
-            const elapsed = now - molaStartTime + molaElapsed;
+            const elapsed = Date.now() - molaStartTime + molaElapsed;
             document.getElementById('molaDisplay').textContent = '☕ Mola: ' + msToStr(elapsed);
         }
 
         function kronometreDevam() {
-            // Mola süresini kaydet
             molaElapsed += Date.now() - molaStartTime;
             toplamMolaSure += molaElapsed;
             clearInterval(molaInterval);
@@ -1082,10 +1242,10 @@
             document.getElementById('molaDisplay').textContent = '';
 
             kronoInterval = setInterval(kronoGuncelle, 100);
+            sesMolaBitir();
         }
 
         function kronometreDurdur() {
-            // Son çalışma / mola süresini topla
             if (kronoState === 'running') {
                 kronoElapsed += Date.now() - kronoStartTime;
                 clearInterval(kronoInterval);
@@ -1109,23 +1269,33 @@
             if (!ders.kayitlar[aktifGun]) ders.kayitlar[aktifGun] = [];
 
             const simdi = new Date();
-            ders.kayitlar[aktifGun].push({
-                saat: `${String(simdi.getHours()).padStart(2, '0')}:${String(simdi.getMinutes()).padStart(2, '0')}`,
+            const konu = document.getElementById('konuInput').value.trim();
+
+            const kayit = {
+                saat: `${String(simdi.getHours()).padStart(2,'0')}:${String(simdi.getMinutes()).padStart(2,'0')}`,
                 calisma: calismaSuresi,
                 mola: molaSuresi
-            });
+            };
+            if (konu) kayit.konu = konu;
+
+            ders.kayitlar[aktifGun].push(kayit);
 
             yerelKaydet();
+            sesKaydet();
             kronometreReset();
             gunIstatistikRender();
 
-            bildirimGoster(`✅ Kaydedildi! Çalışma: ${msToStr(calismaSuresi)} · Mola: ${msToStr(molaSuresi)}`);
+            bildirimGoster(`✅ Kaydedildi! ${konu ? konu + ' · ' : ''}${msToStr(calismaSuresi)}`);
+
+            // Otomatik GitHub kayıt
+            if (appData.ayarlar.otoGithubKayit && storageMethod === 'github' && currentUser) {
+                setTimeout(() => githubKaydet(), 500);
+            }
         }
 
         function kronometreReset() {
             clearInterval(kronoInterval);
             clearInterval(molaInterval);
-
             kronoState = 'idle';
             kronoStartTime = null;
             kronoElapsed = 0;
@@ -1143,6 +1313,7 @@
             document.getElementById('btnDuraklat').style.display = 'none';
             document.getElementById('btnDurdur').style.display = 'none';
             document.getElementById('btnDevam').style.display = 'none';
+            document.getElementById('konuInput').disabled = false;
         }
 
         function gunIstatistikRender() {
@@ -1152,38 +1323,33 @@
             const kayitlar = ders.kayitlar[aktifGun] || [];
             const panel = document.getElementById('gunIstatistik');
 
-            if (kayitlar.length === 0) {
-                panel.style.display = 'none';
-                return;
-            }
-
+            if (kayitlar.length === 0) { panel.style.display = 'none'; return; }
             panel.style.display = '';
 
-            let topCalisma = 0;
-            let topMola = 0;
-            kayitlar.forEach(k => {
-                topCalisma += (k.calisma || 0);
-                topMola += (k.mola || 0);
-            });
+            let topC = 0, topM = 0;
+            kayitlar.forEach(k => { topC += (k.calisma || 0); topM += (k.mola || 0); });
+
+            const hedef = appData.ayarlar.hedefMs || 0;
+            let hedefHtml = '';
+            if (hedef > 0) {
+                const oran = Math.min(100, Math.round((topC / hedef) * 100));
+                const renk = oran >= 100 ? 'var(--success)' : 'var(--warning)';
+                hedefHtml = `<div class="istatistik-item"><span class="value" style="color:${renk}">%${oran}</span><span class="label">Hedef</span></div>`;
+            }
 
             document.getElementById('gunOzet').innerHTML = `
-                <div class="istatistik-item calisma">
-                    <span class="value">${msToStr(topCalisma)}</span>
-                    <span class="label">Toplam Çalışma</span>
-                </div>
-                <div class="istatistik-item mola">
-                    <span class="value">${msToStr(topMola)}</span>
-                    <span class="label">Toplam Mola</span>
-                </div>
-                <div class="istatistik-item oturum">
-                    <span class="value">${kayitlar.length}</span>
-                    <span class="label">Oturum</span>
-                </div>
+                <div class="istatistik-item calisma"><span class="value">${msToStr(topC)}</span><span class="label">Toplam Çalışma</span></div>
+                <div class="istatistik-item mola"><span class="value">${msToStr(topM)}</span><span class="label">Toplam Mola</span></div>
+                <div class="istatistik-item oturum"><span class="value">${kayitlar.length}</span><span class="label">Oturum</span></div>
+                ${hedefHtml}
             `;
 
             document.getElementById('oturumListesi').innerHTML = kayitlar.map((k, i) => `
                 <div class="oturum-item">
-                    <span class="saat">#${i + 1} · ${k.saat || '--:--'}</span>
+                    <div>
+                        <span class="saat">#${i + 1} · ${k.saat || '--:--'}</span>
+                        ${k.konu ? `<span class="konu-tag">${escHtml(k.konu)}</span>` : ''}
+                    </div>
                     <div>
                         <span class="sure c">${msToStr(k.calisma)}</span>
                         <span style="color:var(--text-muted);margin:0 4px;">·</span>
@@ -1193,90 +1359,31 @@
             `).join('');
         }
 
-        // ===== GÜN DETAY MODAL =====
-        function gunDetayKapat(e) {
-            if (e.target === document.getElementById('gunDetayOverlay')) {
-                document.getElementById('gunDetayOverlay').classList.remove('active');
-            }
-        }
-
-        // ===== GITHUB İŞLEMLERİ =====
-        async function githubKaydet() {
-            bildirimGoster('⏳ GitHub\'a kaydediliyor...');
-            try {
-                let sha = null;
-                try {
-                    const resp = await fetch(`https://api.github.com/repos/${kullaniciAdi}/${repoAdi}/contents/${dosyaAdi}`, {
-                        headers: {
-                            'Authorization': `token ${token}`,
-                            'Accept': 'application/vnd.github.v3+json'
-                        }
-                    });
-                    if (resp.ok) {
-                        const fileData = await resp.json();
-                        sha = fileData.sha;
-                    }
-                } catch (e) { }
-
-                const jsonStr = JSON.stringify(appData, null, 2);
-                const utf8 = unescape(encodeURIComponent(jsonStr));
-                const base64 = btoa(utf8);
-
-                const body = {
-                    message: 'Ders çalışma verisi güncellendi - ' + new Date().toLocaleString('tr-TR'),
-                    content: base64
-                };
-                if (sha) body.sha = sha;
-
-                const updateResp = await fetch(`https://api.github.com/repos/${kullaniciAdi}/${repoAdi}/contents/${dosyaAdi}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': `token ${token}`,
-                        'Accept': 'application/vnd.github.v3+json'
-                    },
-                    body: JSON.stringify(body)
-                });
-
-                if (!updateResp.ok) throw new Error('GitHub güncelleme hatası: ' + updateResp.status);
-                bildirimGoster('✅ GitHub\'a kaydedildi!');
-            } catch (err) {
-                console.error(err);
-                bildirimGoster('❌ GitHub kayıt hatası: ' + err.message);
-            }
-        }
-
-        async function githubYukle() {
-            bildirimGoster('⏳ GitHub\'dan yükleniyor...');
-            try {
-                const resp = await fetch(`https://api.github.com/repos/${kullaniciAdi}/${repoAdi}/contents/${dosyaAdi}`, {
-                    headers: {
-                        'Authorization': `token ${token}`,
-                        'Accept': 'application/vnd.github.v3+json'
-                    }
-                });
-
-                if (!resp.ok) {
-                    bildirimGoster('⚠️ GitHub\'da veri bulunamadı!');
-                    return;
-                }
-
-                const data = await resp.json();
-                const decoded = decodeURIComponent(escape(atob(data.content)));
-                const parsed = JSON.parse(decoded);
-
-                appData = parsed;
-                yerelKaydet();
-                dersListesiRender();
-                bildirimGoster('✅ GitHub\'dan yüklendi!');
-            } catch (err) {
-                console.error(err);
-                bildirimGoster('❌ GitHub yükleme hatası: ' + err.message);
-            }
-        }
-
         // ===== BAŞLANGIÇ =====
         yerelYukle();
-        dersListesiRender();
+        ayarlariUygula();
+
+        if (!checkStorageSettings()) {
+            document.getElementById('girisModal').classList.add('active');
+        } else {
+            if (storageMethod === 'github' && currentUser) {
+                // GitHub'dan otomatik yükle
+                (async () => {
+                    try {
+                        await loadUserDatabase();
+                        if (userDatabase[currentUser] && userDatabase[currentUser].appData) {
+                            appData.dersler = userDatabase[currentUser].appData.dersler || [];
+                            appData.ayarlar = Object.assign(appData.ayarlar, userDatabase[currentUser].appData.ayarlar || {});
+                            yerelKaydet();
+                            ayarlariUygula();
+                        }
+                    } catch (e) { console.log('GitHub oto-yükleme hatası, yerel veri kullanılıyor'); }
+                    dersListesiRender();
+                })();
+            } else {
+                dersListesiRender();
+            }
+        }
     </script>
 </body>
 </html>
