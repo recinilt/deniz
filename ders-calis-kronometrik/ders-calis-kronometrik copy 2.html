@@ -462,79 +462,6 @@
         }
         .storage-info:hover { border-color: var(--accent); color: var(--accent); }
 
-        /* Müzik Paneli */
-        .muzik-panel {
-            background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
-            padding: 14px 16px; margin-bottom: 15px; max-width: 420px; margin-left: auto; margin-right: auto;
-        }
-        .muzik-header {
-            display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;
-        }
-        .muzik-header-left { display: flex; align-items: center; gap: 8px; }
-        .muzik-header-left span { font-size: 13px; font-weight: 700; color: var(--text-secondary); }
-        .muzik-toggle {
-            width: 40px; height: 22px; background: var(--border); border-radius: 11px;
-            position: relative; cursor: pointer; transition: background 0.2s; border: none;
-        }
-        .muzik-toggle.on { background: var(--success); }
-        .muzik-toggle::after {
-            content: ''; position: absolute; top: 2px; left: 2px;
-            width: 18px; height: 18px; background: white; border-radius: 50%;
-            transition: transform 0.2s;
-        }
-        .muzik-toggle.on::after { transform: translateX(18px); }
-
-        .muzik-body { display: none; }
-        .muzik-body.active { display: block; }
-
-        .muzik-select {
-            width: 100%; background: var(--bg-secondary); border: 1px solid var(--border);
-            color: var(--text-primary); padding: 8px 12px; border-radius: 8px;
-            font-family: 'DM Sans', sans-serif; font-size: 13px; outline: none;
-            cursor: pointer; margin-bottom: 8px; appearance: none;
-            -webkit-appearance: none; -moz-appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2394a3b8' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
-            background-repeat: no-repeat; background-position: right 10px center;
-        }
-        .muzik-select:focus { border-color: var(--accent); }
-
-        .muzik-ses-row {
-            display: flex; align-items: center; gap: 8px;
-        }
-        .muzik-ses-row span { font-size: 14px; }
-        .muzik-ses-row input[type="range"] {
-            flex: 1; -webkit-appearance: none; appearance: none; height: 4px;
-            background: var(--border); border-radius: 2px; outline: none;
-        }
-        .muzik-ses-row input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none; width: 16px; height: 16px;
-            background: var(--accent); border-radius: 50%; cursor: pointer;
-        }
-        .muzik-ses-row input[type="range"]::-moz-range-thumb {
-            width: 16px; height: 16px; background: var(--accent);
-            border-radius: 50%; cursor: pointer; border: none;
-        }
-        .muzik-durum {
-            font-size: 11px; color: var(--text-muted); margin-top: 6px;
-            text-align: center; min-height: 16px;
-        }
-        .muzik-durum.caliyor { color: var(--success); }
-        .muzik-eq {
-            display: inline-flex; gap: 2px; vertical-align: middle; margin-right: 4px;
-        }
-        .muzik-eq span {
-            display: inline-block; width: 3px; background: var(--success);
-            border-radius: 1px; animation: eqBounce 0.8s ease-in-out infinite alternate;
-        }
-        .muzik-eq span:nth-child(1) { height: 8px; animation-delay: 0s; }
-        .muzik-eq span:nth-child(2) { height: 12px; animation-delay: 0.2s; }
-        .muzik-eq span:nth-child(3) { height: 6px; animation-delay: 0.4s; }
-        .muzik-eq span:nth-child(4) { height: 10px; animation-delay: 0.1s; }
-        @keyframes eqBounce {
-            0% { transform: scaleY(0.3); }
-            100% { transform: scaleY(1); }
-        }
-
         /* Responsive */
         @media (max-width: 600px) {
             .app-container { padding: 12px; }
@@ -664,36 +591,6 @@
                 </div>
                 <div class="konu-input-wrap">
                     <input type="text" class="g-input" id="konuInput" placeholder="📝 Konu gir (opsiyonel)..." maxlength="60">
-                </div>
-
-                <!-- MÜZİK PANELİ -->
-                <div class="muzik-panel">
-                    <div class="muzik-header">
-                        <div class="muzik-header-left">
-                            <span>🎵 Çalışma Müziği</span>
-                        </div>
-                        <button class="muzik-toggle" id="muzikToggle" onclick="muzikToggle()"></button>
-                    </div>
-                    <div class="muzik-body" id="muzikBody">
-                        <select class="muzik-select" id="muzikSelect" onchange="muzikKanalDegistir()">
-                            <option value="0">🎧 Lofi Hip Hop - Chillhop</option>
-                            <option value="1">🌧️ Ambient Chill - Rainy Mood</option>
-                            <option value="2">🎹 Piano Chill - Instrumental</option>
-                            <option value="3">🌿 Nature Sounds - Focus</option>
-                            <option value="4">🎷 Jazz Lounge - Smooth</option>
-                            <option value="5">🌌 Space Ambient - Deep</option>
-                            <option value="6">☕ Café Lounge - Acoustic</option>
-                            <option value="7">🎵 Chillstep - Electronic</option>
-                            <option value="8">📚 Classical Focus - Study</option>
-                            <option value="9">🌊 Ocean Waves - Relax</option>
-                        </select>
-                        <div class="muzik-ses-row">
-                            <span>🔈</span>
-                            <input type="range" id="muzikVolume" min="0" max="100" value="40" oninput="muzikSesAyarla()">
-                            <span>🔊</span>
-                        </div>
-                        <div class="muzik-durum" id="muzikDurum"></div>
-                    </div>
                 </div>
                 <div class="kronometre-label" id="kronoLabel"></div>
                 <div class="kronometre-display" id="kronoDisplay">00:00:00</div>
@@ -1030,132 +927,6 @@
             bildirimGoster('📤 JSON dosyası indirildi!');
         }
 
-        // ===== MÜZİK / RADYO =====
-        const radioKanallari = [
-            { ad: 'Lofi Hip Hop', url: 'https://stream.zeno.fm/f3wvbbqmdg8uv' },
-            { ad: 'Ambient Chill', url: 'https://stream.zeno.fm/0r0xa792kwzuv' },
-            { ad: 'Piano Chill', url: 'https://stream.zeno.fm/ngkre7b0qq8uv' },
-            { ad: 'Nature Sounds', url: 'https://stream.zeno.fm/4d02m9c24c8uv' },
-            { ad: 'Jazz Lounge', url: 'https://stream.zeno.fm/fyn8eh3h5f8uv' },
-            { ad: 'Space Ambient', url: 'https://stream.zeno.fm/0dpy2pf53p8uv' },
-            { ad: 'Café Lounge', url: 'https://stream.zeno.fm/pz9f3ne25f8uv' },
-            { ad: 'Chillstep', url: 'https://stream.zeno.fm/twrmf8cpzk8uv' },
-            { ad: 'Classical Focus', url: 'https://stream.zeno.fm/63zafdc0qu8uv' },
-            { ad: 'Ocean Waves', url: 'https://stream.zeno.fm/7y0wmqp5048uv' }
-        ];
-
-        // Yedek kanallar (SomaFM - güvenilir HTTPS)
-        const yedekKanallari = [
-            { ad: 'Lofi Hip Hop', url: 'https://ice2.somafm.com/lush-128-mp3' },
-            { ad: 'Ambient Chill', url: 'https://ice2.somafm.com/dronezone-128-mp3' },
-            { ad: 'Piano Chill', url: 'https://ice2.somafm.com/illinois-128-mp3' },
-            { ad: 'Nature Sounds', url: 'https://ice2.somafm.com/deepspaceone-128-mp3' },
-            { ad: 'Jazz Lounge', url: 'https://ice2.somafm.com/sonicuniverse-128-mp3' },
-            { ad: 'Space Ambient', url: 'https://ice2.somafm.com/spacestation-128-mp3' },
-            { ad: 'Café Lounge', url: 'https://ice2.somafm.com/bootliquor-128-mp3' },
-            { ad: 'Chillstep', url: 'https://ice2.somafm.com/vaporwaves-128-mp3' },
-            { ad: 'Classical Focus', url: 'https://ice2.somafm.com/live-128-mp3' },
-            { ad: 'Ocean Waves', url: 'https://ice2.somafm.com/seventies-128-mp3' }
-        ];
-
-        let muzikAcik = false;
-        let muzikAudio = null;
-        let muzikCaliyor = false;
-        let seciliKanal = 0;
-
-        function muzikToggle() {
-            muzikAcik = !muzikAcik;
-            document.getElementById('muzikToggle').className = 'muzik-toggle' + (muzikAcik ? ' on' : '');
-            document.getElementById('muzikBody').className = 'muzik-body' + (muzikAcik ? ' active' : '');
-
-            if (!muzikAcik && muzikCaliyor) {
-                muzikDurdur();
-            }
-        }
-
-        function muzikOlustur() {
-            if (muzikAudio) {
-                muzikAudio.pause();
-                muzikAudio.src = '';
-                muzikAudio = null;
-            }
-            muzikAudio = new Audio();
-            muzikAudio.crossOrigin = 'anonymous';
-            muzikAudio.volume = (parseInt(document.getElementById('muzikVolume').value) || 40) / 100;
-
-            muzikAudio.addEventListener('error', function() {
-                // Ana kanal hata verdi, yedek dene
-                console.log('Ana kanal hata, yedek deneniyor...');
-                const yedek = yedekKanallari[seciliKanal];
-                if (yedek && muzikAudio.src !== yedek.url) {
-                    muzikAudio.src = yedek.url;
-                    muzikAudio.play().catch(() => {
-                        document.getElementById('muzikDurum').textContent = '⚠️ Kanal yüklenemedi, başka dene';
-                        document.getElementById('muzikDurum').className = 'muzik-durum';
-                        muzikCaliyor = false;
-                    });
-                } else {
-                    document.getElementById('muzikDurum').textContent = '⚠️ Kanal yüklenemedi, başka dene';
-                    document.getElementById('muzikDurum').className = 'muzik-durum';
-                    muzikCaliyor = false;
-                }
-            });
-
-            muzikAudio.addEventListener('playing', function() {
-                document.getElementById('muzikDurum').innerHTML = '<span class="muzik-eq"><span></span><span></span><span></span><span></span></span> Çalıyor: ' + radioKanallari[seciliKanal].ad;
-                document.getElementById('muzikDurum').className = 'muzik-durum caliyor';
-                muzikCaliyor = true;
-            });
-        }
-
-        function muzikBaslat() {
-            if (!muzikAcik) return;
-            muzikOlustur();
-            const kanal = radioKanallari[seciliKanal];
-            muzikAudio.src = kanal.url;
-            document.getElementById('muzikDurum').textContent = '⏳ Bağlanıyor...';
-            document.getElementById('muzikDurum').className = 'muzik-durum';
-            muzikAudio.play().catch(() => {
-                // Hata handler zaten var, yedek deneyecek
-            });
-        }
-
-        function muzikDurdur() {
-            if (muzikAudio) {
-                muzikAudio.pause();
-                muzikAudio.src = '';
-            }
-            muzikCaliyor = false;
-            document.getElementById('muzikDurum').textContent = '';
-            document.getElementById('muzikDurum').className = 'muzik-durum';
-        }
-
-        function muzikDuraklat() {
-            if (muzikAudio && muzikCaliyor) {
-                muzikAudio.pause();
-                document.getElementById('muzikDurum').textContent = '⏸️ Duraklatıldı';
-                document.getElementById('muzikDurum').className = 'muzik-durum';
-            }
-        }
-
-        function muzikDevam() {
-            if (muzikAudio && muzikAcik) {
-                muzikAudio.play().catch(() => {});
-            }
-        }
-
-        function muzikSesAyarla() {
-            const vol = parseInt(document.getElementById('muzikVolume').value) / 100;
-            if (muzikAudio) muzikAudio.volume = vol;
-        }
-
-        function muzikKanalDegistir() {
-            seciliKanal = parseInt(document.getElementById('muzikSelect').value);
-            if (muzikCaliyor) {
-                muzikBaslat();
-            }
-        }
-
         // ===== EKRAN YÖNETİMİ =====
         function ekranGoster(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -1422,7 +1193,6 @@
             document.getElementById('molaDisplay').textContent = '';
 
             kronoInterval = setInterval(kronoGuncelle, 100);
-            muzikBaslat();
         }
 
         function kronoGuncelle() {
@@ -1447,7 +1217,6 @@
             document.getElementById('kronoDisplay').className = 'kronometre-display molada';
 
             sesMolaBasla();
-            muzikDuraklat();
         }
 
         function molaGuncelle() {
@@ -1474,7 +1243,6 @@
 
             kronoInterval = setInterval(kronoGuncelle, 100);
             sesMolaBitir();
-            muzikDevam();
         }
 
         function kronometreDurdur() {
@@ -1528,7 +1296,6 @@
         function kronometreReset() {
             clearInterval(kronoInterval);
             clearInterval(molaInterval);
-            muzikDurdur();
             kronoState = 'idle';
             kronoStartTime = null;
             kronoElapsed = 0;
