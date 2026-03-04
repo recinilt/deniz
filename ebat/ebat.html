@@ -12,14 +12,16 @@
     color: #eee;
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
     min-height: 100vh;
+    padding: 32px 16px;
   }
   .container {
     background: #16213e;
     border-radius: 16px;
     padding: 32px;
-    width: 360px;
+    width: 720px;
+    max-width: 100%;
     box-shadow: 0 8px 32px rgba(0,0,0,0.4);
   }
   h1 {
@@ -118,6 +120,60 @@
     color: #666;
     margin-top: 8px;
   }
+  .formats-section {
+    margin-top: 32px;
+    border-top: 1px solid #333;
+    padding-top: 24px;
+  }
+  .formats-section h2 {
+    font-size: 1rem;
+    color: #00d2ff;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  .format-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+  }
+  .format-table thead th {
+    background: #0f3460;
+    color: #00d2ff;
+    padding: 8px 6px;
+    text-align: left;
+    position: sticky;
+    top: 0;
+    font-weight: 600;
+  }
+  .format-table tbody tr {
+    border-bottom: 1px solid #1a2a4a;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .format-table tbody tr:hover {
+    background: rgba(0,210,255,0.08);
+  }
+  .format-table td {
+    padding: 7px 6px;
+  }
+  .format-table .cat-row td {
+    background: #0d1b36;
+    color: #f0a500;
+    font-weight: bold;
+    font-size: 0.85rem;
+    padding: 10px 6px 6px;
+    cursor: default;
+  }
+  .format-table .cat-row:hover { background: #0d1b36; }
+  .dim { color: #aaa; }
+  .ratio-tag {
+    display: inline-block;
+    background: rgba(0,210,255,0.12);
+    color: #5ec4d4;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+  }
 </style>
 </head>
 <body>
@@ -141,6 +197,86 @@
   </div>
 
   <p class="info">Seçili oran: <span id="currentRatio">—</span></p>
+
+  <div class="formats-section">
+    <h2>📺 Bilinen Video / Ekran Formatları</h2>
+    <table class="format-table">
+      <thead>
+        <tr>
+          <th>Format Adı</th>
+          <th>Çözünürlük (px)</th>
+          <th>Oran</th>
+          <th>Toplam Piksel</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- SD -->
+        <tr class="cat-row"><td colspan="4">SD — Standart Tanımlı</td></tr>
+        <tr><td>QVGA</td><td class="dim">320 × 240</td><td><span class="ratio-tag">4:3</span></td><td>76.8 K</td></tr>
+        <tr><td>VGA (480p)</td><td class="dim">640 × 480</td><td><span class="ratio-tag">4:3</span></td><td>307 K</td></tr>
+        <tr><td>SVGA</td><td class="dim">800 × 600</td><td><span class="ratio-tag">4:3</span></td><td>480 K</td></tr>
+        <tr><td>WVGA</td><td class="dim">854 × 480</td><td><span class="ratio-tag">16:9</span></td><td>410 K</td></tr>
+        <tr><td>PAL</td><td class="dim">720 × 576</td><td><span class="ratio-tag">4:3</span></td><td>415 K</td></tr>
+        <tr><td>NTSC</td><td class="dim">720 × 480</td><td><span class="ratio-tag">4:3</span></td><td>346 K</td></tr>
+        <!-- HD -->
+        <tr class="cat-row"><td colspan="4">HD — Yüksek Tanımlı</td></tr>
+        <tr><td>HD Ready (720p)</td><td class="dim">1280 × 720</td><td><span class="ratio-tag">16:9</span></td><td>921 K</td></tr>
+        <tr><td>HD+ (900p)</td><td class="dim">1600 × 900</td><td><span class="ratio-tag">16:9</span></td><td>1.44 M</td></tr>
+        <tr><td>XGA</td><td class="dim">1024 × 768</td><td><span class="ratio-tag">4:3</span></td><td>786 K</td></tr>
+        <tr><td>WXGA</td><td class="dim">1280 × 800</td><td><span class="ratio-tag">16:10</span></td><td>1.02 M</td></tr>
+        <tr><td>SXGA</td><td class="dim">1280 × 1024</td><td><span class="ratio-tag">5:4</span></td><td>1.31 M</td></tr>
+        <!-- Full HD -->
+        <tr class="cat-row"><td colspan="4">Full HD</td></tr>
+        <tr><td>Full HD (1080p)</td><td class="dim">1920 × 1080</td><td><span class="ratio-tag">16:9</span></td><td>2.07 M</td></tr>
+        <tr><td>WUXGA</td><td class="dim">1920 × 1200</td><td><span class="ratio-tag">16:10</span></td><td>2.30 M</td></tr>
+        <tr><td>Full HD+ (1080×2400)</td><td class="dim">1080 × 2400</td><td><span class="ratio-tag">9:20</span></td><td>2.59 M</td></tr>
+        <tr><td>UW-FHD (Ultrawide)</td><td class="dim">2560 × 1080</td><td><span class="ratio-tag">21:9</span></td><td>2.76 M</td></tr>
+        <!-- QHD / 2K -->
+        <tr class="cat-row"><td colspan="4">QHD / 2K</td></tr>
+        <tr><td>QHD / WQHD (1440p)</td><td class="dim">2560 × 1440</td><td><span class="ratio-tag">16:9</span></td><td>3.69 M</td></tr>
+        <tr><td>WQXGA</td><td class="dim">2560 × 1600</td><td><span class="ratio-tag">16:10</span></td><td>4.10 M</td></tr>
+        <tr><td>UW-QHD (Ultrawide)</td><td class="dim">3440 × 1440</td><td><span class="ratio-tag">21:9</span></td><td>4.95 M</td></tr>
+        <tr><td>Cinema 2K (DCI)</td><td class="dim">2048 × 1080</td><td><span class="ratio-tag">1.9:1</span></td><td>2.21 M</td></tr>
+        <!-- 4K -->
+        <tr class="cat-row"><td colspan="4">4K / Ultra HD</td></tr>
+        <tr><td>4K UHD</td><td class="dim">3840 × 2160</td><td><span class="ratio-tag">16:9</span></td><td>8.29 M</td></tr>
+        <tr><td>Cinema 4K (DCI)</td><td class="dim">4096 × 2160</td><td><span class="ratio-tag">1.9:1</span></td><td>8.85 M</td></tr>
+        <tr><td>UW-4K</td><td class="dim">3840 × 1600</td><td><span class="ratio-tag">21:9</span></td><td>6.14 M</td></tr>
+        <!-- 5K -->
+        <tr class="cat-row"><td colspan="4">5K</td></tr>
+        <tr><td>5K (iMac Retina)</td><td class="dim">5120 × 2880</td><td><span class="ratio-tag">16:9</span></td><td>14.75 M</td></tr>
+        <tr><td>5K Ultrawide</td><td class="dim">5120 × 2160</td><td><span class="ratio-tag">21:9</span></td><td>11.06 M</td></tr>
+        <!-- 6K -->
+        <tr class="cat-row"><td colspan="4">6K</td></tr>
+        <tr><td>6K (Pro Display XDR)</td><td class="dim">6016 × 3384</td><td><span class="ratio-tag">16:9</span></td><td>20.36 M</td></tr>
+        <tr><td>6K Cinema</td><td class="dim">6144 × 3240</td><td><span class="ratio-tag">1.9:1</span></td><td>19.91 M</td></tr>
+        <!-- 8K -->
+        <tr class="cat-row"><td colspan="4">8K / Full Ultra HD</td></tr>
+        <tr><td>8K UHD</td><td class="dim">7680 × 4320</td><td><span class="ratio-tag">16:9</span></td><td>33.18 M</td></tr>
+        <tr><td>Cinema 8K (DCI)</td><td class="dim">8192 × 4320</td><td><span class="ratio-tag">1.9:1</span></td><td>35.39 M</td></tr>
+        <tr><td>DUHD (Dual UHD)</td><td class="dim">7680 × 2160</td><td><span class="ratio-tag">32:9</span></td><td>16.59 M</td></tr>
+        <!-- 16K -->
+        <tr class="cat-row"><td colspan="4">16K (Deneysel)</td></tr>
+        <tr><td>16K UHD</td><td class="dim">15360 × 8640</td><td><span class="ratio-tag">16:9</span></td><td>132.71 M</td></tr>
+        <!-- Mobil -->
+        <tr class="cat-row"><td colspan="4">📱 Mobil Yaygın Formatlar</td></tr>
+        <tr><td>iPhone SE</td><td class="dim">750 × 1334</td><td><span class="ratio-tag">9:16</span></td><td>1.00 M</td></tr>
+        <tr><td>iPhone 15 / 16</td><td class="dim">1179 × 2556</td><td><span class="ratio-tag">9:19.5</span></td><td>3.01 M</td></tr>
+        <tr><td>iPhone 15 Pro Max</td><td class="dim">1290 × 2796</td><td><span class="ratio-tag">9:19.5</span></td><td>3.61 M</td></tr>
+        <tr><td>Samsung Galaxy S24</td><td class="dim">1080 × 2340</td><td><span class="ratio-tag">9:19.5</span></td><td>2.53 M</td></tr>
+        <tr><td>Samsung Galaxy S24 Ultra</td><td class="dim">1440 × 3088</td><td><span class="ratio-tag">9:19.3</span></td><td>4.45 M</td></tr>
+        <!-- Sinema -->
+        <tr class="cat-row"><td colspan="4">🎬 Sinema Formatları</td></tr>
+        <tr><td>Academy (Klasik)</td><td class="dim">—</td><td><span class="ratio-tag">1.375:1</span></td><td>—</td></tr>
+        <tr><td>Anamorphic Scope</td><td class="dim">—</td><td><span class="ratio-tag">2.39:1</span></td><td>—</td></tr>
+        <tr><td>IMAX</td><td class="dim">—</td><td><span class="ratio-tag">1.43:1</span></td><td>—</td></tr>
+        <tr><td>IMAX Digital</td><td class="dim">—</td><td><span class="ratio-tag">1.9:1</span></td><td>—</td></tr>
+        <tr><td>VistaVision / Flat</td><td class="dim">—</td><td><span class="ratio-tag">1.85:1</span></td><td>—</td></tr>
+        <tr><td>70mm Film</td><td class="dim">—</td><td><span class="ratio-tag">2.2:1</span></td><td>—</td></tr>
+        <tr><td>Univisium</td><td class="dim">—</td><td><span class="ratio-tag">2:1</span></td><td>—</td></tr>
+      </tbody>
+    </table>
+  </div>
 </div>
 
 <script>

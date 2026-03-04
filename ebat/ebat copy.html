@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Oran Hesaplayıcı</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #1a1a2e;
+    color: #eee;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+  }
+  .container {
+    background: #16213e;
+    border-radius: 16px;
+    padding: 32px;
+    width: 360px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+  h1 {
+    font-size: 1.2rem;
+    text-align: center;
+    margin-bottom: 24px;
+    color: #00d2ff;
+  }
+  .ratios {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 24px;
+    justify-content: center;
+  }
+  .ratios button {
+    padding: 8px 14px;
+    border: 2px solid #333;
+    border-radius: 8px;
+    background: transparent;
+    color: #ccc;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+  }
+  .ratios button:hover { border-color: #00d2ff; color: #fff; }
+  .ratios button.active {
+    border-color: #00d2ff;
+    background: rgba(0,210,255,0.15);
+    color: #00d2ff;
+    font-weight: bold;
+  }
+  .calc-area {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    justify-content: center;
+    margin-bottom: 16px;
+  }
+  .field {
+    text-align: center;
+  }
+  .field label {
+    display: block;
+    font-size: 0.75rem;
+    color: #888;
+    margin-bottom: 4px;
+  }
+  .field input {
+    width: 100px;
+    padding: 10px;
+    border: 2px solid #333;
+    border-radius: 8px;
+    background: #0f3460;
+    color: #fff;
+    font-size: 1.1rem;
+    text-align: center;
+    outline: none;
+  }
+  .field input:focus { border-color: #00d2ff; }
+  .field .result {
+    width: 100px;
+    padding: 10px;
+    border: 2px solid #00d2ff;
+    border-radius: 8px;
+    background: rgba(0,210,255,0.1);
+    color: #00d2ff;
+    font-size: 1.1rem;
+    text-align: center;
+    font-weight: bold;
+    min-height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .sep {
+    font-size: 1.5rem;
+    color: #555;
+    margin-top: 16px;
+  }
+  .swap-btn {
+    display: block;
+    margin: 0 auto 16px;
+    padding: 8px 20px;
+    border: 1px solid #444;
+    border-radius: 8px;
+    background: transparent;
+    color: #aaa;
+    cursor: pointer;
+    font-size: 0.85rem;
+  }
+  .swap-btn:hover { border-color: #00d2ff; color: #fff; }
+  .info {
+    text-align: center;
+    font-size: 0.8rem;
+    color: #666;
+    margin-top: 8px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>📐 Oran Hesaplayıcı</h1>
+
+  <div class="ratios" id="ratioButtons"></div>
+
+  <button class="swap-btn" id="swapBtn" title="Genişlik/Yükseklik değiştir">⇄ Giriş tarafını değiştir</button>
+
+  <div class="calc-area">
+    <div class="field">
+      <label id="inputLabel">Genişlik</label>
+      <input type="number" id="inputVal" placeholder="örn: 1920" min="1">
+    </div>
+    <span class="sep">:</span>
+    <div class="field">
+      <label id="outputLabel">Yükseklik</label>
+      <div class="result" id="outputVal">—</div>
+    </div>
+  </div>
+
+  <p class="info">Seçili oran: <span id="currentRatio">—</span></p>
+</div>
+
+<script>
+const ratios = [
+  { label: '16:9', w: 16, h: 9 },
+  { label: '4:3', w: 4, h: 3 },
+  { label: '2.35:1', w: 2.35, h: 1 },
+  { label: '2:1', w: 2, h: 1 },
+  { label: '1.85:1', w: 1.85, h: 1 },
+  { label: '9:16', w: 9, h: 16 },
+  { label: '3:4', w: 3, h: 4 },
+  { label: '5,8 inç', w: 5.8, h: 1 },
+  { label: '1:1', w: 1, h: 1 },
+];
+
+let selected = null;
+let inputIsWidth = true;
+
+const btnContainer = document.getElementById('ratioButtons');
+const inputVal = document.getElementById('inputVal');
+const outputVal = document.getElementById('outputVal');
+const currentRatio = document.getElementById('currentRatio');
+const inputLabel = document.getElementById('inputLabel');
+const outputLabel = document.getElementById('outputLabel');
+const swapBtn = document.getElementById('swapBtn');
+
+ratios.forEach((r, i) => {
+  const btn = document.createElement('button');
+  btn.textContent = r.label;
+  btn.dataset.index = i;
+  btn.addEventListener('click', () => selectRatio(i));
+  btnContainer.appendChild(btn);
+});
+
+function selectRatio(i) {
+  selected = ratios[i];
+  document.querySelectorAll('.ratios button').forEach(b => b.classList.remove('active'));
+  btnContainer.children[i].classList.add('active');
+  currentRatio.textContent = selected.label;
+  calculate();
+}
+
+function calculate() {
+  const val = parseFloat(inputVal.value);
+  if (!selected || !val || val <= 0) {
+    outputVal.textContent = '—';
+    return;
+  }
+  let result;
+  if (inputIsWidth) {
+    result = val * selected.h / selected.w;
+  } else {
+    result = val * selected.w / selected.h;
+  }
+  outputVal.textContent = Math.round(result);
+}
+
+inputVal.addEventListener('input', calculate);
+
+swapBtn.addEventListener('click', () => {
+  inputIsWidth = !inputIsWidth;
+  inputLabel.textContent = inputIsWidth ? 'Genişlik' : 'Yükseklik';
+  outputLabel.textContent = inputIsWidth ? 'Yükseklik' : 'Genişlik';
+  calculate();
+});
+</script>
+</body>
+</html>
