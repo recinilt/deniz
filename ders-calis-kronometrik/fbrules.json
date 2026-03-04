@@ -1,0 +1,117 @@
+{
+  "rules": {
+    "users": {
+      "$uid": {
+        ".read": "auth != null",
+        ".write": "auth != null && auth.uid == $uid",
+        "displayName": { ".validate": "newData.isString() && newData.val().length >= 2 && newData.val().length <= 20" },
+        "email": { ".validate": "newData.isString()" },
+        "avatar": { ".validate": "newData.isString() && newData.val().length <= 10" },
+        "hedef": { ".validate": "newData.isString() && newData.val().length <= 20" },
+        "age": { ".validate": "newData.isNumber() || newData.val() === 0" },
+        "city": { ".validate": "newData.isString() && newData.val().length <= 30" },
+        "bio": { ".validate": "newData.isString() && newData.val().length <= 100" },
+        "createdAt": { ".validate": "newData.isNumber()" },
+        "lastSeen": { ".validate": "newData.isNumber()" },
+        "stats": {
+          ".validate": true,
+          "todayMinutes": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1440" },
+          "weekMinutes": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+          "totalMinutes": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+          "lastActive": { ".validate": "newData.isString()" }
+        },
+        "dailyGoal": {
+          ".validate": true,
+          "hours": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 24" },
+          "minutes": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 59" }
+        },
+        "folders": {
+          "$folderId": {
+            ".validate": "newData.hasChildren(['name','createdAt'])",
+            "name": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 30" },
+            "parentId": { ".validate": "newData.isString() && newData.val().length <= 50" },
+            "color": { ".validate": "newData.isString() && newData.val().length <= 20" },
+            "createdAt": { ".validate": "newData.isNumber()" }
+          }
+        },
+        "sessions": {
+          "$sessionId": {
+            ".write": "auth != null && auth.uid == $uid",
+            ".validate": "newData.hasChildren(['calismaMs','tarih','timestamp'])",
+            "calismaMs": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+            "molaMs": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+            "roomId": { ".validate": "newData.isString()" },
+            "roomName": { ".validate": "newData.isString() && newData.val().length <= 50" },
+            "konu": { ".validate": "newData.isString() && newData.val().length <= 60" },
+            "tarih": { ".validate": "newData.isString()" },
+            "saat": { ".validate": "newData.isString()" },
+            "timestamp": { ".validate": "newData.isNumber()" },
+            "folderId": { ".validate": "newData.isString() && newData.val().length <= 50" }
+          }
+        }
+      }
+    },
+    "studyRooms": {
+      ".read": "auth != null",
+      ".indexOn": ["category", "createdAt"],
+      "$roomId": {
+        ".write": "auth != null && (!data.exists() || data.child('ownerId').val() == auth.uid || data.child('adminId').val() == auth.uid || (data.child('memberCount').val() == 0))",
+        "name": { ".validate": "newData.isString() && newData.val().length >= 2 && newData.val().length <= 40" },
+        "desc": { ".validate": "newData.isString() && newData.val().length <= 80" },
+        "category": { ".validate": "newData.isString() && newData.val().length <= 20" },
+        "maxMembers": { ".validate": "newData.isNumber() && newData.val() >= 2 && newData.val() <= 30" },
+        "memberCount": {
+          ".write": "auth != null",
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 30"
+        },
+        "members": {
+          "$uid": {
+            ".write": "auth != null && (auth.uid == $uid || root.child('studyRooms/' + $roomId + '/adminId').val() == auth.uid)",
+            ".validate": "newData.hasChildren(['displayName','avatar','joinedAt'])",
+            "displayName": { ".validate": "newData.isString() && newData.val().length <= 20" },
+            "avatar": { ".validate": "newData.isString() && newData.val().length <= 10" },
+            "konu": { ".validate": "newData.isString() && newData.val().length <= 60" },
+            "timerState": { ".validate": "newData.isString() && (newData.val() == 'idle' || newData.val() == 'running' || newData.val() == 'paused')" },
+            "timerElapsed": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+            "molaTotal": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+            "joinedAt": { ".validate": "newData.val() == now || newData.isNumber()" },
+            "lastHeartbeat": { ".validate": "newData.val() == now || newData.isNumber()" }
+          }
+        },
+        "messages": {
+          ".indexOn": ["ts"],
+          "$msgId": {
+            ".write": "auth != null && root.child('studyRooms/' + $roomId + '/members/' + auth.uid).exists()",
+            ".validate": "newData.hasChildren(['uid','text','ts'])",
+            "uid": { ".validate": "newData.isString() && (newData.val() == auth.uid || newData.val() == 'sistem')" },
+            "displayName": { ".validate": "newData.isString() && newData.val().length <= 20" },
+            "avatar": { ".validate": "newData.isString() && newData.val().length <= 10" },
+            "text": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 300" },
+            "ts": { ".validate": "newData.val() == now || newData.isNumber()" },
+            "sistem": { ".validate": "newData.isBoolean()" }
+          }
+        },
+        "music": { ".validate": "newData.isString()" },
+        "hasPassword": { ".validate": "newData.isBoolean()" },
+        "passwordHash": { ".validate": "newData.isString()" },
+        "ownerId": { ".validate": "newData.isString()" },
+        "adminId": {
+          ".write": "auth != null && (root.child('studyRooms/' + $roomId + '/adminId').val() == auth.uid || root.child('studyRooms/' + $roomId + '/ownerId').val() == auth.uid)",
+          ".validate": "newData.isString()"
+        },
+        "createdAt": { ".validate": "newData.isNumber()" }
+      }
+    },
+    "leaderboard": {
+      ".read": "auth != null",
+      ".indexOn": ["weekMinutes"],
+      "$uid": {
+        ".write": "auth != null && auth.uid == $uid",
+        ".validate": "newData.hasChildren(['displayName','weekMinutes'])",
+        "displayName": { ".validate": "newData.isString() && newData.val().length <= 20" },
+        "avatar": { ".validate": "newData.isString() && newData.val().length <= 10" },
+        "weekMinutes": { ".validate": "newData.isNumber() && newData.val() >= 0" }
+      }
+    }
+  }
+}
