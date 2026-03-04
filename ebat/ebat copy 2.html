@@ -82,6 +82,38 @@
     outline: none;
   }
   .field input:focus { border-color: #00d2ff; }
+  .field .result {
+    width: 100px;
+    padding: 10px;
+    border: 2px solid #00d2ff;
+    border-radius: 8px;
+    background: rgba(0,210,255,0.1);
+    color: #00d2ff;
+    font-size: 1.1rem;
+    text-align: center;
+    font-weight: bold;
+    min-height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .sep {
+    font-size: 1.5rem;
+    color: #555;
+    margin-top: 16px;
+  }
+  .swap-btn {
+    display: block;
+    margin: 0 auto 16px;
+    padding: 8px 20px;
+    border: 1px solid #444;
+    border-radius: 8px;
+    background: transparent;
+    color: #aaa;
+    cursor: pointer;
+    font-size: 0.85rem;
+  }
+  .swap-btn:hover { border-color: #00d2ff; color: #fff; }
   .info {
     text-align: center;
     font-size: 0.8rem;
@@ -150,15 +182,17 @@
 
   <div class="ratios" id="ratioButtons"></div>
 
+  <button class="swap-btn" id="swapBtn" title="Genişlik/Yükseklik değiştir">⇄ Giriş tarafını değiştir</button>
+
   <div class="calc-area">
     <div class="field">
-      <label>Genişlik</label>
-      <input type="number" id="widthVal" placeholder="örn: 1920" min="1">
+      <label id="inputLabel">Genişlik</label>
+      <input type="number" id="inputVal" placeholder="örn: 1920" min="1">
     </div>
     <span class="sep">:</span>
     <div class="field">
-      <label>Yükseklik</label>
-      <input type="number" id="heightVal" placeholder="örn: 1080" min="1">
+      <label id="outputLabel">Yükseklik</label>
+      <div class="result" id="outputVal">—</div>
     </div>
   </div>
 
@@ -259,12 +293,15 @@ const ratios = [
 ];
 
 let selected = null;
-let lastEdited = null;
+let inputIsWidth = true;
 
 const btnContainer = document.getElementById('ratioButtons');
-const widthVal = document.getElementById('widthVal');
-const heightVal = document.getElementById('heightVal');
+const inputVal = document.getElementById('inputVal');
+const outputVal = document.getElementById('outputVal');
 const currentRatio = document.getElementById('currentRatio');
+const inputLabel = document.getElementById('inputLabel');
+const outputLabel = document.getElementById('outputLabel');
+const swapBtn = document.getElementById('swapBtn');
 
 ratios.forEach((r, i) => {
   const btn = document.createElement('button');
@@ -283,31 +320,26 @@ function selectRatio(i) {
 }
 
 function calculate() {
-  if (!selected) return;
-  if (lastEdited === 'width') {
-    const w = parseFloat(widthVal.value);
-    if (w > 0) {
-      heightVal.value = Math.round(w * selected.h / selected.w);
-    } else {
-      heightVal.value = '';
-    }
-  } else if (lastEdited === 'height') {
-    const h = parseFloat(heightVal.value);
-    if (h > 0) {
-      widthVal.value = Math.round(h * selected.w / selected.h);
-    } else {
-      widthVal.value = '';
-    }
+  const val = parseFloat(inputVal.value);
+  if (!selected || !val || val <= 0) {
+    outputVal.textContent = '—';
+    return;
   }
+  let result;
+  if (inputIsWidth) {
+    result = val * selected.h / selected.w;
+  } else {
+    result = val * selected.w / selected.h;
+  }
+  outputVal.textContent = Math.round(result);
 }
 
-widthVal.addEventListener('input', () => {
-  lastEdited = 'width';
-  calculate();
-});
+inputVal.addEventListener('input', calculate);
 
-heightVal.addEventListener('input', () => {
-  lastEdited = 'height';
+swapBtn.addEventListener('click', () => {
+  inputIsWidth = !inputIsWidth;
+  inputLabel.textContent = inputIsWidth ? 'Genişlik' : 'Yükseklik';
+  outputLabel.textContent = inputIsWidth ? 'Yükseklik' : 'Genişlik';
   calculate();
 });
 </script>
