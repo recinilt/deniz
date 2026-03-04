@@ -1068,7 +1068,7 @@
             document.getElementById('muzikToggle').className = 'muzik-toggle' + (muzikAcik ? ' on' : '');
             document.getElementById('muzikBody').className = 'muzik-body' + (muzikAcik ? ' active' : '');
 
-            if (!muzikAcik) {
+            if (!muzikAcik && muzikCaliyor) {
                 muzikDurdur();
             }
         }
@@ -1076,8 +1076,7 @@
         function muzikOlustur() {
             if (muzikAudio) {
                 muzikAudio.pause();
-                muzikAudio.removeAttribute('src');
-                muzikAudio.load();
+                muzikAudio.src = '';
                 muzikAudio = null;
             }
             muzikAudio = new Audio();
@@ -1124,9 +1123,7 @@
         function muzikDurdur() {
             if (muzikAudio) {
                 muzikAudio.pause();
-                muzikAudio.removeAttribute('src');
-                muzikAudio.load();
-                muzikAudio = null;
+                muzikAudio.src = '';
             }
             muzikCaliyor = false;
             document.getElementById('muzikDurum').textContent = '';
