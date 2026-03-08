@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0a0e17">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>📅 Takvim</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📅</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0e17; --bg2: #111827; --card: #1a2332; --card-h: #1f2b3d;
+            --accent: #6366f1; --accent-g: rgba(99,102,241,0.15); --accent-d: #4338ca;
+            --text: #f1f5f9; --text2: #94a3b8; --text3: #475569; --text4: #334155;
+            --red: #f43f5e; --green: #10b981; --yellow: #f59e0b; --purple: #a78bfa;
+            --blue: #3b82f6; --cyan: #22d3ee; --orange: #f97316; --pink: #ec4899;
+            --border: #1e293b; --r: 12px;
+        }
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;padding-bottom:70px;}
+        body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(circle at 20% 50%,rgba(99,102,241,0.03) 0%,transparent 50%),radial-gradient(circle at 80% 50%,rgba(99,102,241,0.02) 0%,transparent 50%);pointer-events:none;z-index:0;}
+        .ekran{display:none!important;position:relative;z-index:1;}.ekran.aktif{display:block!important;animation:fadeUp .3s ease;}
+        @keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+        .gizli{display:none!important;}
+
+        /* INPUT & BUTTON */
+        .input{background:var(--card);border:1px solid var(--border);color:var(--text);padding:12px 14px;border-radius:var(--r);font-size:15px;font-family:'DM Sans',sans-serif;outline:none;width:100%;transition:border .2s;}
+        .input:focus{border-color:var(--accent);}
+        .input::placeholder{color:var(--text3);}
+        select.input{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2394a3b8' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;}
+        textarea.input{resize:vertical;min-height:60px;font-family:'DM Sans',sans-serif;}
+        .btn{padding:12px 20px;border:none;border-radius:var(--r);font-family:'DM Sans',sans-serif;font-weight:700;font-size:14px;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;justify-content:center;gap:6px;}
+        .btn:active{transform:scale(.97);}
+        .btn-primary{background:var(--accent);color:#fff;}
+        .btn-primary:hover{background:var(--accent-d);box-shadow:0 0 20px var(--accent-g);}
+        .btn-danger{background:var(--red);color:#fff;}
+        .btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border);}
+        .btn-ghost:hover{border-color:var(--accent);color:var(--accent);}
+        .btn-block{width:100%;}
+        .btn-sm{padding:6px 12px;font-size:12px;}
+        .form-group{margin-bottom:14px;}
+        .form-label{display:block;color:var(--text2);font-size:13px;font-weight:600;margin-bottom:5px;}
+        .uyari-kirmizi{color:var(--red);font-size:12px;font-weight:700;margin-top:4px;}
+
+        /* GİRİŞ */
+        .giris-wrapper{max-width:400px;margin:0 auto;padding:40px 20px;text-align:center;}
+        .giris-logo{font-size:60px;margin-bottom:10px;}
+        .giris-baslik{font-family:'Space Mono',monospace;font-size:1.6em;color:var(--accent);letter-spacing:-1px;}
+        .giris-aciklama{color:var(--text2);font-size:.9em;margin:6px 0 24px;}
+        .giris-sekmeler{display:flex;background:var(--bg2);border-radius:var(--r);padding:4px;margin-bottom:20px;}
+        .giris-sekme{flex:1;padding:10px;border:none;background:transparent;color:var(--text2);font-weight:600;cursor:pointer;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;transition:all .2s;}
+        .giris-sekme.aktif{background:var(--accent);color:#fff;}
+        .giris-form-alan{text-align:left;}
+
+        /* TAKVIM ANA EKRAN */
+        .tak-wrapper{max-width:600px;margin:0 auto;padding:16px;}
+        .tak-main-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+        .tak-main-header h1{font-family:'Space Mono',monospace;font-size:1.2em;color:var(--accent);}
+        .tak-fab{position:fixed;bottom:80px;right:20px;width:56px;height:56px;border-radius:28px;background:var(--accent);color:#fff;border:none;font-size:28px;cursor:pointer;box-shadow:0 4px 20px rgba(99,102,241,0.4);z-index:50;transition:all .2s;display:flex;align-items:center;justify-content:center;}
+        .tak-fab:hover{transform:scale(1.08);box-shadow:0 6px 28px rgba(99,102,241,0.5);}
+        .tak-fab:active{transform:scale(.95);}
+
+        /* YAKLAŞAN/GEÇMİŞ ETKİNLİKLER */
+        .etk-liste-wrap{margin-bottom:16px;}
+        .etk-liste-baslik{font-family:'Space Mono',monospace;font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;display:flex;align-items:center;gap:6px;}
+        .etk-gun-grup{margin-bottom:8px;}
+        .etk-gun-label{font-size:11px;color:var(--accent);font-weight:700;margin-bottom:4px;padding-left:4px;}
+        .etk-item{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--card);border:1px solid var(--border);border-radius:8px;margin-bottom:4px;cursor:pointer;transition:all .2s;}
+        .etk-item:hover{border-color:var(--accent);background:var(--card-h);}
+        .etk-renk-bar{width:4px;height:32px;border-radius:2px;flex-shrink:0;}
+        .etk-icerik{flex:1;min-width:0;}
+        .etk-baslik{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .etk-detay{font-size:10px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .etk-saat{font-family:'Space Mono',monospace;font-size:11px;color:var(--text2);white-space:nowrap;}
+        .etk-bos{color:var(--text3);font-size:12px;text-align:center;padding:12px;}
+
+        /* GÖRÜNÜM SEKMELERİ */
+        .gorunum-sekmeler{display:flex;background:var(--bg2);border-radius:var(--r);padding:3px;margin-bottom:14px;}
+        .gorunum-sekme{flex:1;padding:8px;border:none;background:transparent;color:var(--text3);font-weight:600;cursor:pointer;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:12px;transition:all .2s;}
+        .gorunum-sekme.aktif{background:var(--accent);color:#fff;}
+
+        /* AY GÖRÜNÜMÜ */
+        .ay-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+        .ay-header h2{font-family:'Space Mono',monospace;font-size:16px;color:var(--text);}
+        .ay-nav{display:flex;gap:6px;}
+        .ay-nav button{background:var(--bg2);border:1px solid var(--border);color:var(--text2);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+        .ay-nav button:hover{border-color:var(--accent);color:var(--accent);}
+        .ay-bugun-btn{background:var(--accent)!important;color:#fff!important;border-color:var(--accent)!important;font-size:11px!important;width:auto!important;padding:0 10px!important;font-weight:700;font-family:'DM Sans',sans-serif;}
+        .ay-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+        .ay-gun-adi{text-align:center;color:var(--text3);font-size:10px;font-weight:700;padding:6px 0;text-transform:uppercase;letter-spacing:1px;}
+        .ay-gun{background:var(--bg2);border:1px solid transparent;border-radius:8px;padding:3px;min-height:52px;cursor:pointer;transition:all .2s;position:relative;}
+        .ay-gun:hover{border-color:var(--accent-d);background:var(--card-h);}
+        .ay-gun.bos{background:transparent;cursor:default;border:none;}
+        .ay-gun.bos:hover{background:transparent;}
+        .ay-gun.bugun{border-color:var(--accent);box-shadow:0 0 12px var(--accent-g);}
+        .ay-gun.secili{background:var(--accent-g);}
+        .ay-gun-num{font-family:'Space Mono',monospace;font-size:11px;font-weight:700;color:var(--text3);text-align:center;line-height:1;}
+        .ay-gun.bugun .ay-gun-num{color:var(--accent);background:var(--accent-g);border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;margin:0 auto;}
+        .ay-gun-dots{display:flex;gap:2px;justify-content:center;margin-top:2px;flex-wrap:wrap;}
+        .ay-gun-dot{width:5px;height:5px;border-radius:50%;}
+
+        /* HAFTA GÖRÜNÜMÜ */
+        .hafta-grid{display:grid;grid-template-columns:50px repeat(7,1fr);gap:1px;background:var(--border);border-radius:var(--r);overflow:hidden;}
+        .hafta-saat-label{background:var(--bg2);padding:2px 4px;font-family:'Space Mono',monospace;font-size:9px;color:var(--text3);text-align:right;min-height:40px;display:flex;align-items:flex-start;justify-content:flex-end;}
+        .hafta-cell{background:var(--bg2);min-height:40px;position:relative;cursor:pointer;transition:background .15s;}
+        .hafta-cell:hover{background:var(--card-h);}
+        .hafta-cell.bugun-col{background:rgba(99,102,241,0.05);}
+        .hafta-gun-header{background:var(--card);padding:6px 4px;text-align:center;font-size:10px;font-weight:700;color:var(--text2);}
+        .hafta-gun-header.bugun-col{color:var(--accent);}
+        .hafta-etk{position:absolute;left:1px;right:1px;background:var(--accent);border-radius:3px;padding:1px 3px;font-size:8px;color:#fff;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;cursor:pointer;z-index:2;}
+
+        /* GÜN GÖRÜNÜMÜ */
+        .gun-wrapper{max-height:60vh;overflow-y:auto;}
+        .gun-saat-row{display:flex;border-bottom:1px solid var(--border);min-height:48px;}
+        .gun-saat-label{width:50px;font-family:'Space Mono',monospace;font-size:10px;color:var(--text3);padding:4px;text-align:right;flex-shrink:0;}
+        .gun-saat-alan{flex:1;position:relative;cursor:pointer;transition:background .15s;padding:2px;}
+        .gun-saat-alan:hover{background:var(--card-h);}
+        .gun-etk{background:var(--accent);border-radius:4px;padding:4px 6px;margin-bottom:2px;font-size:11px;color:#fff;cursor:pointer;transition:all .15s;}
+        .gun-etk:hover{opacity:.85;}
+
+        /* TAKVİM KATMANLARI */
+        .katman-wrap{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+        .katman-chip{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--border);transition:all .2s;background:var(--card);}
+        .katman-chip.aktif{border-color:currentColor;background:rgba(255,255,255,0.05);}
+        .katman-dot{width:8px;height:8px;border-radius:50%;}
+
+        /* AYARLAR */
+        .ayar-wrapper{max-width:500px;margin:0 auto;padding:20px 16px;}
+        .ayar-baslik{font-family:'Space Mono',monospace;color:var(--accent);font-size:1.2em;margin-bottom:16px;}
+        .ayar-panel{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:14px;}
+        .ayar-panel h3{font-family:'Space Mono',monospace;font-size:12px;color:var(--accent);margin-bottom:12px;text-transform:uppercase;letter-spacing:1px;}
+        .ayar-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);}
+        .ayar-row:last-child{border-bottom:none;}
+        .ayar-row label{color:var(--text2);font-size:13px;font-weight:500;}
+        .ayar-row input[type=number]{width:60px;background:var(--bg2);border:1px solid var(--border);color:var(--accent);padding:6px 8px;border-radius:8px;font-size:13px;font-family:'Space Mono',monospace;text-align:center;outline:none;}
+        .ayar-row input[type=number]:focus{border-color:var(--accent);}
+        .ayar-kategori{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);}
+        .ayar-kategori:last-child{border-bottom:none;}
+        .ayar-kat-renk{width:24px;height:24px;border-radius:6px;border:none;cursor:pointer;padding:0;}
+        .ayar-kat-ad{flex:1;color:var(--text2);font-size:13px;}
+        .ayar-kat-sil{background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;padding:4px;}
+        .ayar-kat-sil:hover{color:var(--red);}
+
+        /* ALT MENÜ */
+        nav#alt-menu{position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--border);display:flex;z-index:100;padding:4px 0;max-width:100%;}
+        nav#alt-menu button{flex:1;background:none;border:none;color:var(--text3);font-size:11px;font-weight:600;padding:8px 0;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;font-family:'DM Sans',sans-serif;transition:color .2s;}
+        nav#alt-menu button.aktif{color:var(--accent);}
+        nav#alt-menu button .m-ikon{font-size:20px;}
+
+        /* BİLDİRİM */
+        #bildirim{position:fixed;top:-60px;left:50%;transform:translateX(-50%);padding:10px 20px;border-radius:var(--r);font-size:13px;font-weight:600;z-index:9999;transition:top .4s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis;box-shadow:0 8px 30px rgba(0,0,0,.5);}
+        #bildirim.goster{top:16px;}
+        #bildirim.basari{background:var(--green);color:#fff;}
+        #bildirim.hata{background:var(--red);color:#fff;}
+        #bildirim.uyari{background:var(--yellow);color:var(--bg);}
+        #bildirim.bilgi{background:var(--card);color:var(--text);border:1px solid var(--accent);}
+
+        /* MODAL */
+        #modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:800;display:flex;justify-content:center;align-items:center;padding:20px;}
+        #modal-icerik{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;max-width:480px;width:100%;max-height:85vh;overflow-y:auto;position:relative;}
+        .modal-kapat{position:absolute;top:10px;right:14px;background:none;border:none;color:var(--text3);font-size:20px;cursor:pointer;}
+        .modal-baslik{font-family:'Space Mono',monospace;font-size:1em;color:var(--accent);margin-bottom:16px;}
+
+        /* RENK SEÇİCİ */
+        .renk-grid{display:flex;flex-wrap:wrap;gap:6px;}
+        .renk-item{width:28px;height:28px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .2s;}
+        .renk-item:hover{transform:scale(1.15);}
+        .renk-item.aktif{border-color:#fff;box-shadow:0 0 8px rgba(255,255,255,0.3);}
+
+        /* TEKRAR SEÇENEKLERİ */
+        .tekrar-ozet{display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:13px;color:var(--text2);transition:border .2s;}
+        .tekrar-ozet:hover{border-color:var(--accent);}
+
+        /* TÜM GÜN TOGGLE */
+        .toggle-wrap{display:flex;align-items:center;gap:10px;}
+        .toggle{width:44px;height:24px;background:var(--border);border-radius:12px;position:relative;cursor:pointer;transition:background .2s;}
+        .toggle.aktif{background:var(--accent);}
+        .toggle::after{content:'';position:absolute;top:2px;left:2px;width:20px;height:20px;background:#fff;border-radius:50%;transition:transform .2s;}
+        .toggle.aktif::after{transform:translateX(20px);}
+
+        /* YÜKLEME */
+        #yukleme-overlay{position:fixed;inset:0;background:rgba(10,14,23,.9);z-index:900;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:12px;}
+        .spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;}
+        @keyframes spin{to{transform:rotate(360deg);}}
+        .yukleme-metin{color:var(--text2);font-size:14px;}
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar{width:4px;}
+        ::-webkit-scrollbar-track{background:transparent;}
+        ::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+
+        /* RESPONSIVE */
+        @media(max-width:600px){
+            .giris-wrapper{padding:30px 16px;}
+            .tak-wrapper{padding:12px;}
+            .ay-gun{min-height:40px;padding:2px;}
+            .ay-gun-num{font-size:9px;}
+            .ay-gun.bugun .ay-gun-num{width:18px;height:18px;font-size:9px;}
+            .ay-gun-dot{width:4px;height:4px;}
+            .hafta-saat-label{font-size:8px;padding:1px 2px;}
+            .etk-item{padding:6px 8px;}
+            .tak-fab{bottom:76px;right:14px;width:48px;height:48px;font-size:24px;}
+        }
+    </style>
+</head>
+<body>
+
+<div id="bildirim"></div>
+
+<!-- GİRİŞ/KAYIT -->
+<div id="ekran-giris" class="ekran">
+    <div class="giris-wrapper">
+        <div class="giris-logo">📅</div>
+        <h1 class="giris-baslik">Takvim</h1>
+        <p class="giris-aciklama">Etkinliklerini planla, organize ol!</p>
+        <div class="giris-sekmeler">
+            <button class="giris-sekme aktif" id="sekme-giris-btn" onclick="sekmeDegistir('giris')">Giriş Yap</button>
+            <button class="giris-sekme" id="sekme-kayit-btn" onclick="sekmeDegistir('kayit')">Kayıt Ol</button>
+        </div>
+        <div id="form-giris" class="giris-form-alan">
+            <div class="form-group"><label class="form-label">Kullanıcı Adı</label><input type="text" id="g-user" class="input" placeholder="Kullanıcı adınız"></div>
+            <div class="form-group"><label class="form-label">Şifre</label><input type="password" id="g-sifre" class="input" placeholder="Şifreniz" onkeydown="if(event.key==='Enter')girisYap()"></div>
+            <button class="btn btn-primary btn-block" onclick="girisYap()">📅 Giriş Yap</button>
+        </div>
+        <div id="form-kayit" class="giris-form-alan gizli">
+            <div class="form-group"><label class="form-label">Kullanıcı Adı</label><input type="text" id="k-user" class="input" placeholder="Kullanıcı adınız"></div>
+            <div class="form-group"><label class="form-label">Şifre</label><input type="password" id="k-sifre" class="input" placeholder="En az 4 karakter"></div>
+            <div class="form-group"><label class="form-label">Şifre Tekrar</label><input type="password" id="k-sifre2" class="input" placeholder="Tekrar girin" onkeydown="if(event.key==='Enter')kayitOl()"></div>
+            <p class="uyari-kirmizi">⚠️ Basit bir şifre belirleyin, e-posta şifrenizi GİRMEYİNİZ!</p>
+            <button class="btn btn-primary btn-block" onclick="kayitOl()" style="margin-top:10px;">📅 Kayıt Ol</button>
+        </div>
+    </div>
+</div>
+
+<!-- TAKVİM ANA EKRAN -->
+<div id="ekran-takvim" class="ekran">
+    <div class="tak-wrapper">
+        <div class="tak-main-header">
+            <h1>📅 Takvim</h1>
+            <div style="display:flex;gap:6px;">
+                <button class="btn btn-ghost btn-sm" onclick="bugununTarihineGit()">Bugün</button>
+            </div>
+        </div>
+
+        <!-- Takvim Katmanları -->
+        <div class="katman-wrap" id="katman-wrap"></div>
+
+        <!-- Yaklaşan/Geçmiş Etkinlikler -->
+        <div class="etk-liste-wrap" id="etk-gecmis-wrap"></div>
+        <div class="etk-liste-wrap" id="etk-yaklasan-wrap"></div>
+
+        <!-- Görünüm Sekmeleri -->
+        <div class="gorunum-sekmeler">
+            <button class="gorunum-sekme aktif" id="gs-ay" onclick="gorunumDegistir('ay')">Ay</button>
+            <button class="gorunum-sekme" id="gs-hafta" onclick="gorunumDegistir('hafta')">Hafta</button>
+            <button class="gorunum-sekme" id="gs-gun" onclick="gorunumDegistir('gun')">Gün</button>
+        </div>
+
+        <!-- Ay Görünümü -->
+        <div id="gorunum-ay">
+            <div class="ay-header">
+                <div class="ay-nav"><button onclick="ayDeg(-1)">◀</button></div>
+                <h2 id="ay-baslik"></h2>
+                <div class="ay-nav"><button onclick="ayDeg(1)">▶</button></div>
+            </div>
+            <div class="ay-grid" id="ay-grid"></div>
+        </div>
+
+        <!-- Hafta Görünümü -->
+        <div id="gorunum-hafta" class="gizli"></div>
+
+        <!-- Gün Görünümü -->
+        <div id="gorunum-gun" class="gizli"></div>
+    </div>
+
+    <!-- FAB -->
+    <button class="tak-fab" onclick="etkinlikEkleModal()">+</button>
+</div>
+
+<!-- AYARLAR -->
+<div id="ekran-ayarlar" class="ekran">
+    <div class="ayar-wrapper">
+        <h2 class="ayar-baslik">⚙️ Ayarlar</h2>
+
+        <div class="ayar-panel">
+            <h3>📋 Etkinlik Listesi</h3>
+            <div class="ayar-row">
+                <label>Yaklaşan etkinlik gün sayısı</label>
+                <input type="number" id="ayar-yaklasan" min="1" max="30" value="7">
+            </div>
+            <div class="ayar-row">
+                <label>Geçmiş etkinlik gün sayısı</label>
+                <input type="number" id="ayar-gecmis" min="0" max="14" value="3">
+            </div>
+        </div>
+
+        <div class="ayar-panel">
+            <h3>🎨 Takvim Katmanları</h3>
+            <div id="ayar-katmanlar"></div>
+            <div style="display:flex;gap:6px;margin-top:10px;">
+                <input type="text" class="input" id="ayar-yeni-katman" placeholder="Yeni katman adı..." maxlength="20" style="flex:1;">
+                <input type="color" id="ayar-yeni-renk" value="#6366f1" style="width:40px;height:40px;border:none;border-radius:8px;cursor:pointer;background:transparent;">
+                <button class="btn btn-primary btn-sm" onclick="katmanEkle()">+ Ekle</button>
+            </div>
+        </div>
+
+        <div class="ayar-panel">
+            <h3>👤 Hesap</h3>
+            <div class="ayar-row">
+                <label>Kullanıcı</label>
+                <span id="ayar-kullanici" style="color:var(--accent);font-family:'Space Mono',monospace;font-size:13px;"></span>
+            </div>
+            <button class="btn btn-danger btn-block" onclick="cikisYap()" style="margin-top:10px;">🚪 Çıkış Yap</button>
+        </div>
+
+        <button class="btn btn-primary btn-block" onclick="ayarlariKaydet()">💾 Kaydet</button>
+    </div>
+</div>
+
+<!-- ALT MENÜ -->
+<nav id="alt-menu" class="gizli">
+    <button class="aktif" id="mn-takvim" onclick="menuTikla('ekran-takvim',this)"><span class="m-ikon">📅</span>Takvim</button>
+    <button id="mn-ayarlar" onclick="menuTikla('ekran-ayarlar',this)"><span class="m-ikon">⚙️</span>Ayarlar</button>
+</nav>
+
+<!-- MODAL -->
+<div id="modal-overlay" class="gizli" onclick="if(event.target===this)modalKapat()">
+    <div id="modal-icerik"><button class="modal-kapat" onclick="modalKapat()">✕</button><div id="modal-body"></div></div>
+</div>
+
+<!-- YÜKLEME -->
+<div id="yukleme-overlay" class="gizli"><div class="spinner"></div><span class="yukleme-metin">Yükleniyor...</span></div>
+
+<script src="takvim-gh.js"></script>
+<script>
+// gh parametreleri, takvim-gh.js dosyasından gelmektedir.
+// const kullaniciAdi = "...";
+// const repoAdi = "...";
+// const token = "...";
+// const dosyaAdi = "...";
+
+// ══════════════════════════════════════════════════════════
+// GLOBAL DEĞİŞKENLER
+// ══════════════════════════════════════════════════════════
+var currentUser = null;
+var userData = null;
+var userDatabase = {};
+var aktifEkran = 'ekran-giris';
+var aktifGorunum = 'ay';
+var takYil = new Date().getFullYear();
+var takAy = new Date().getMonth();
+var takHaftaOffset = 0;
+var takGunSecili = new Date().toISOString().split('T')[0];
+var orijinalTitle = '📅 Takvim';
+
+var VARSAYILAN_KATMANLAR = [
+    {id:'kat_kisisel',name:'Kişisel',color:'#6366f1'},
+    {id:'kat_is',name:'İş',color:'#10b981'},
+    {id:'kat_aile',name:'Aile',color:'#f59e0b'}
+];
+
+var ETKINLIK_RENKLER = ['#6366f1','#10b981','#f43f5e','#f59e0b','#a78bfa','#3b82f6','#22d3ee','#ec4899','#f97316','#14b8a6','#8b5cf6','#06b6d4'];
+
+var TEKRAR_SECENEKLER = [
+    {val:'yok',lbl:'Tekrarlanmıyor'},
+    {val:'gunluk',lbl:'Her gün'},
+    {val:'haftalik',lbl:'Her hafta'},
+    {val:'aylik',lbl:'Her ay'},
+    {val:'yillik',lbl:'Her yıl'},
+    {val:'is_gunleri',lbl:'Her iş günü (Pzt-Cum)'}
+];
+
+var BILDIRIM_SECENEKLER = [
+    {val:0,lbl:'Etkinlik zamanında'},
+    {val:5,lbl:'5 dakika önce'},
+    {val:10,lbl:'10 dakika önce'},
+    {val:15,lbl:'15 dakika önce'},
+    {val:30,lbl:'30 dakika önce'},
+    {val:60,lbl:'1 saat önce'},
+    {val:120,lbl:'2 saat önce'},
+    {val:1440,lbl:'1 gün önce'},
+    {val:10080,lbl:'1 hafta önce'},
+    {val:-1,lbl:'Bildirim yok'}
+];
+
+// ══════════════════════════════════════════════════════════
+// YARDIMCI FONKSİYONLAR
+// ══════════════════════════════════════════════════════════
+function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+function bildirim(msg,tip){var el=document.getElementById('bildirim');el.textContent=msg;el.className=tip+' goster';setTimeout(function(){el.classList.remove('goster');},3000);}
+function ekranGoster(id){document.querySelectorAll('.ekran').forEach(function(e){e.classList.remove('aktif');});document.getElementById(id).classList.add('aktif');aktifEkran=id;var menuGizle=['ekran-giris'];if(menuGizle.indexOf(id)!==-1)document.getElementById('alt-menu').classList.add('gizli');else document.getElementById('alt-menu').classList.remove('gizli');if(id==='ekran-takvim')takvimRender();if(id==='ekran-ayarlar')ayarlarRender();}
+function menuTikla(ekranId,btn){document.querySelectorAll('#alt-menu button').forEach(function(b){b.classList.remove('aktif');});btn.classList.add('aktif');ekranGoster(ekranId);}
+function modalAc(html){document.getElementById('modal-body').innerHTML=html;document.getElementById('modal-overlay').classList.remove('gizli');}
+function modalKapat(){document.getElementById('modal-overlay').classList.add('gizli');}
+function yuklemeGoster(){document.getElementById('yukleme-overlay').classList.remove('gizli');}
+function yuklemeGizle(){document.getElementById('yukleme-overlay').classList.add('gizli');}
+function sekmeDegistir(tip){if(tip==='giris'){document.getElementById('sekme-giris-btn').classList.add('aktif');document.getElementById('sekme-kayit-btn').classList.remove('aktif');document.getElementById('form-giris').classList.remove('gizli');document.getElementById('form-kayit').classList.add('gizli');}else{document.getElementById('sekme-kayit-btn').classList.add('aktif');document.getElementById('sekme-giris-btn').classList.remove('aktif');document.getElementById('form-kayit').classList.remove('gizli');document.getElementById('form-giris').classList.add('gizli');}}
+
+function tarihFormat(ds){var p=ds.split('-');return p[2]+'.'+p[1]+'.'+p[0];}
+function gunAdiKisa(d){return['Pz','Pt','Sa','Ça','Pe','Cu','Ct'][d.getDay()];}
+function gunAdiFull(d){return['Pazar','Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi'][d.getDay()];}
+function ayAdi(m){return['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'][m];}
+function bugunStr(){return new Date().toISOString().split('T')[0];}
+function tarihToDate(ds){var p=ds.split('-');return new Date(parseInt(p[0]),parseInt(p[1])-1,parseInt(p[2]));}
+function dateToStr(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+
+function getKatmanlar(){return(userData&&userData.katmanlar)||VARSAYILAN_KATMANLAR.slice();}
+function getAktifKatmanlar(){var gizli=(userData&&userData.gizliKatmanlar)||[];return getKatmanlar().filter(function(k){return gizli.indexOf(k.id)===-1;});}
+function getEtkinlikler(){return(userData&&userData.etkinlikler)||[];}
+function getAyarlar(){return(userData&&userData.ayarlar)||{yaklasnGun:7,gecmisGun:3};}
+
+// Tekrar eden etkinlikleri belirli tarih aralığında genişlet
+function etkinlikleriGenislet(basTarih,bitTarih){
+    var etkinlikler=getEtkinlikler();
+    var aktifIds=getAktifKatmanlar().map(function(k){return k.id;});
+    var sonuc=[];
+    var basD=tarihToDate(basTarih);
+    var bitD=tarihToDate(bitTarih);
+
+    etkinlikler.forEach(function(e){
+        if(aktifIds.indexOf(e.katmanId)===-1)return;
+
+        // Tekrar YOKSA
+        if(!e.tekrar||e.tekrar==='yok'){
+            // Çok günlü etkinlik desteği (spanning event)
+            var eBasTarih=e.tarih;
+            var eBitTarih=e.bitTarih||e.tarih;
+            // Tarih aralıkları kesişiyor mu?
+            if(eBasTarih<=bitTarih&&eBitTarih>=basTarih){
+                // Çok günlü ise her güne klon ekle
+                if(eBasTarih!==eBitTarih){
+                    var spanBas=eBasTarih<basTarih?basTarih:eBasTarih;
+                    var spanBit=eBitTarih>bitTarih?bitTarih:eBitTarih;
+                    var sd=tarihToDate(spanBas);
+                    var sbd=tarihToDate(spanBit);
+                    while(sd<=sbd){
+                        var sds=dateToStr(sd);
+                        if(sds===e.tarih){sonuc.push(e);}
+                        else{var klon=JSON.parse(JSON.stringify(e));klon.tarih=sds;klon._cokGunlu=true;klon._cokGunluOrijinal=e.id;sonuc.push(klon);}
+                        sd.setDate(sd.getDate()+1);
+                    }
+                }else{
+                    // Tek günlük
+                    if(e.tarih>=basTarih&&e.tarih<=bitTarih)sonuc.push(e);
+                }
+            }
+            return;
+        }
+
+        // Tekrar eden etkinlik
+        var orijTarih=tarihToDate(e.tarih);
+
+        // Tek oturum süresi (gün farkı)
+        var oturumGunSayisi=0;
+        if(e.bitTarih&&e.bitTarih!==e.tarih){
+            var tmpBas=tarihToDate(e.tarih);
+            var tmpBit=tarihToDate(e.bitTarih);
+            oturumGunSayisi=Math.round((tmpBit-tmpBas)/(1000*60*60*24));
+        }
+
+        // Tekrar bitiş koşulu hesapla
+        var tekrarBitisD=null; // null = sonsuz
+        var tekrarMaxSayi=null; // null = sonsuz
+        if(e.tekrarBitisTip==='tarihe_kadar'&&e.tekrarBitisTarih){
+            tekrarBitisD=tarihToDate(e.tekrarBitisTarih);
+        }else if(e.tekrarBitisTip==='tekrar_sonra'&&e.tekrarBitisSayi){
+            tekrarMaxSayi=parseInt(e.tekrarBitisSayi);
+        }
+
+        var d=new Date(orijTarih);
+        var limit=500;var count=0;var tekrarSayac=0;
+        while(d<=bitD&&count<limit){
+            // Tekrar bitiş koşulunu kontrol et
+            if(tekrarBitisD&&d>tekrarBitisD)break;
+            if(tekrarMaxSayi!=null&&tekrarSayac>=tekrarMaxSayi)break;
+
+            var ds=dateToStr(d);
+            if(ds>=e.tarih){
+                // Bu tekrar oturumunun kapsadığı günleri ekle
+                if(oturumGunSayisi>0){
+                    // Çok günlü tekrar eden oturum
+                    for(var og=0;og<=oturumGunSayisi;og++){
+                        var oturumD=new Date(d);oturumD.setDate(d.getDate()+og);
+                        var ods=dateToStr(oturumD);
+                        if(ods>=basTarih&&ods<=bitTarih){
+                            if(ods===e.tarih){sonuc.push(e);}
+                            else{var klon=JSON.parse(JSON.stringify(e));klon.tarih=ods;klon._tekrarOrijinal=e.id;sonuc.push(klon);}
+                        }
+                    }
+                }else{
+                    // Tek günlük oturum
+                    if(ds>=basTarih&&ds<=bitTarih){
+                        if(ds===e.tarih){sonuc.push(e);}
+                        else{var klon=JSON.parse(JSON.stringify(e));klon.tarih=ds;klon._tekrarOrijinal=e.id;sonuc.push(klon);}
+                    }
+                }
+                tekrarSayac++;
+            }
+            count++;
+            if(e.tekrar==='gunluk')d.setDate(d.getDate()+1);
+            else if(e.tekrar==='haftalik')d.setDate(d.getDate()+7);
+            else if(e.tekrar==='aylik'){d.setMonth(d.getMonth()+1);d.setDate(Math.min(orijTarih.getDate(),new Date(d.getFullYear(),d.getMonth()+1,0).getDate()));}
+            else if(e.tekrar==='yillik')d.setFullYear(d.getFullYear()+1);
+            else if(e.tekrar==='is_gunleri'){d.setDate(d.getDate()+1);while(d.getDay()===0||d.getDay()===6)d.setDate(d.getDate()+1);}
+            else break;
+        }
+    });
+    return sonuc;
+}
+
+function etkinlikSaatSirala(a,b){
+    if(a.tumGun&&!b.tumGun)return -1;
+    if(!a.tumGun&&b.tumGun)return 1;
+    if(a.tumGun&&b.tumGun)return 0;
+    return(a.basSaat||'00:00').localeCompare(b.basSaat||'00:00');
+}
+
+function katmanRenkBul(katmanId){
+    var katmanlar=getKatmanlar();
+    for(var i=0;i<katmanlar.length;i++){if(katmanlar[i].id===katmanId)return katmanlar[i].color;}
+    return '#6366f1';
+}
+
+function katmanAdBul(katmanId){
+    var katmanlar=getKatmanlar();
+    for(var i=0;i<katmanlar.length;i++){if(katmanlar[i].id===katmanId)return katmanlar[i].name;}
+    return 'Takvim';
+}
+
+// ══════════════════════════════════════════════════════════
+// GITHUB VERİTABANI
+// ══════════════════════════════════════════════════════════
+async function loadUserDatabase(){
+    try{
+        var response=await fetch('https://api.github.com/repos/'+kullaniciAdi+'/'+repoAdi+'/contents/'+'takvim-'+dosyaAdi,{
+            headers:{'Authorization':'token '+token,'Accept':'application/vnd.github.v3+json'}
+        });
+        if(response.ok){var data=await response.json();var decoded=atob(data.content);var utf8=decodeURIComponent(escape(decoded));userDatabase=JSON.parse(utf8);}
+        else{userDatabase={};}
+    }catch(e){userDatabase={};throw e;}
+}
+
+async function saveUserDatabase(){
+    try{
+        var sha=null;
+        try{var r=await fetch('https://api.github.com/repos/'+kullaniciAdi+'/'+repoAdi+'/contents/'+'takvim-'+dosyaAdi,{headers:{'Authorization':'token '+token,'Accept':'application/vnd.github.v3+json'}});if(r.ok){sha=(await r.json()).sha;}}catch(e){}
+        var json=JSON.stringify(userDatabase,null,2);
+        var utf8=unescape(encodeURIComponent(json));
+        var encoded=btoa(utf8);
+        var updateR=await fetch('https://api.github.com/repos/'+kullaniciAdi+'/'+repoAdi+'/contents/'+'takvim-'+dosyaAdi,{
+            method:'PUT',headers:{'Authorization':'token '+token,'Accept':'application/vnd.github.v3+json'},
+            body:JSON.stringify({message:'Takvim güncellendi',content:encoded,sha:sha})
+        });
+        if(!updateR.ok)throw new Error('GitHub güncelleme hatası');
+    }catch(e){console.error('GitHub kaydetme hatası:',e);throw e;}
+}
+
+// ══════════════════════════════════════════════════════════
+// GİRİŞ/KAYIT
+// ══════════════════════════════════════════════════════════
+async function girisYap(){
+    var user=document.getElementById('g-user').value.trim();
+    var pass=document.getElementById('g-sifre').value.trim();
+    if(!user||!pass){bildirim('⚠️ Kullanıcı adı ve şifre gerekli!','uyari');return;}
+    yuklemeGoster();
+    try{
+        await loadUserDatabase();
+        if(userDatabase[user]){
+            if(userDatabase[user].password===pass){
+                currentUser=user;userData=userDatabase[user];
+                localStorage.setItem('takvim-user',user);
+                bildirim('👋 Hoş geldin '+user+'!','basari');
+                girisBasarili();
+            }else{bildirim('❌ Şifre hatalı!','hata');}
+        }else{bildirim('❌ Kullanıcı bulunamadı!','hata');}
+    }catch(e){console.error(e);bildirim('⚠️ GitHub bağlantı hatası!','hata');}
+    yuklemeGizle();
+}
+
+async function kayitOl(){
+    var user=document.getElementById('k-user').value.trim();
+    var pass=document.getElementById('k-sifre').value.trim();
+    var pass2=document.getElementById('k-sifre2').value.trim();
+    if(!user||!pass){bildirim('⚠️ Tüm alanları doldurun!','uyari');return;}
+    if(pass.length<4){bildirim('⚠️ Şifre en az 4 karakter!','uyari');return;}
+    if(pass!==pass2){bildirim('❌ Şifreler eşleşmiyor!','hata');return;}
+    yuklemeGoster();
+    try{
+        await loadUserDatabase();
+        if(userDatabase[user]){bildirim('❌ Bu kullanıcı adı zaten alınmış!','hata');yuklemeGizle();return;}
+        userDatabase[user]={password:pass,katmanlar:VARSAYILAN_KATMANLAR.slice(),gizliKatmanlar:[],etkinlikler:[],ayarlar:{yaklasnGun:7,gecmisGun:3}};
+        await saveUserDatabase();
+        currentUser=user;userData=userDatabase[user];
+        localStorage.setItem('takvim-user',user);
+        bildirim('🎉 Kayıt başarılı! Hoş geldin '+user+'!','basari');
+        girisBasarili();
+    }catch(e){console.error(e);bildirim('⚠️ GitHub bağlantı hatası!','hata');}
+    yuklemeGizle();
+}
+
+function girisBasarili(){ekranGoster('ekran-takvim');}
+function cikisYap(){localStorage.removeItem('takvim-user');currentUser=null;userData=null;ekranGoster('ekran-giris');bildirim('👋 Çıkış yapıldı!','bilgi');}
+
+// ══════════════════════════════════════════════════════════
+// TAKVİM RENDER
+// ══════════════════════════════════════════════════════════
+function takvimRender(){
+    katmanChipRender();
+    etkinlikListeRender();
+    if(aktifGorunum==='ay')ayRender();
+    else if(aktifGorunum==='hafta')haftaRender();
+    else gunRender();
+}
+
+function gorunumDegistir(g){
+    aktifGorunum=g;
+    document.querySelectorAll('.gorunum-sekme').forEach(function(b){b.classList.remove('aktif');});
+    document.getElementById('gs-'+g).classList.add('aktif');
+    document.getElementById('gorunum-ay').classList.toggle('gizli',g!=='ay');
+    document.getElementById('gorunum-hafta').classList.toggle('gizli',g!=='hafta');
+    document.getElementById('gorunum-gun').classList.toggle('gizli',g!=='gun');
+    takvimRender();
+}
+
+function bugununTarihineGit(){
+    var now=new Date();takYil=now.getFullYear();takAy=now.getMonth();takHaftaOffset=0;takGunSecili=bugunStr();takvimRender();
+}
+
+// KATMAN CHIP'LERİ
+function katmanChipRender(){
+    var katmanlar=getKatmanlar();
+    var gizli=(userData&&userData.gizliKatmanlar)||[];
+    var html='';
+    katmanlar.forEach(function(k){
+        var aktif=gizli.indexOf(k.id)===-1;
+        html+='<div class="katman-chip'+(aktif?' aktif':'')+'" style="color:'+k.color+'" onclick="katmanToggle(\''+k.id+'\')">';
+        html+='<div class="katman-dot" style="background:'+k.color+(aktif?'':';opacity:.3')+'"></div>';
+        html+=esc(k.name)+'</div>';
+    });
+    document.getElementById('katman-wrap').innerHTML=html;
+}
+
+async function katmanToggle(id){
+    if(!userData.gizliKatmanlar)userData.gizliKatmanlar=[];
+    var idx=userData.gizliKatmanlar.indexOf(id);
+    if(idx===-1)userData.gizliKatmanlar.push(id);
+    else userData.gizliKatmanlar.splice(idx,1);
+    userDatabase[currentUser]=userData;
+    takvimRender();
+    try{await saveUserDatabase();}catch(e){}
+}
+
+// ETKİNLİK LİSTESİ (Yaklaşan + Geçmiş)
+function etkinlikListeRender(){
+    var ayar=getAyarlar();
+    var bugun=bugunStr();
+    var now=new Date();
+
+    // Geçmiş
+    var gecmisGun=ayar.gecmisGun||3;
+    var gecmisBas=new Date(now);gecmisBas.setDate(now.getDate()-gecmisGun);
+    var gecmisBasStr=dateToStr(gecmisBas);
+    var dun=new Date(now);dun.setDate(now.getDate()-1);
+    var dunStr=dateToStr(dun);
+    var gecmisEtk=etkinlikleriGenislet(gecmisBasStr,dunStr).sort(function(a,b){return b.tarih.localeCompare(a.tarih)||etkinlikSaatSirala(b,a);});
+
+    var gecmisHtml='';
+    if(gecmisGun>0&&gecmisEtk.length>0){
+        gecmisHtml+='<div class="etk-liste-baslik">🕐 Son '+gecmisGun+' Gün</div>';
+        var gunGrup={};
+        gecmisEtk.forEach(function(e){if(!gunGrup[e.tarih])gunGrup[e.tarih]=[];gunGrup[e.tarih].push(e);});
+        var gunler=Object.keys(gunGrup).sort().reverse();
+        gunler.forEach(function(g){
+            var d=tarihToDate(g);
+            gecmisHtml+='<div class="etk-gun-grup"><div class="etk-gun-label" style="opacity:.6;">'+gunAdiKisa(d)+', '+tarihFormat(g)+'</div>';
+            gunGrup[g].sort(etkinlikSaatSirala).forEach(function(e){gecmisHtml+=etkinlikItemHtml(e,true);});
+            gecmisHtml+='</div>';
+        });
+    }
+    document.getElementById('etk-gecmis-wrap').innerHTML=gecmisHtml;
+
+    // Yaklaşan
+    var yaklasnGun=ayar.yaklasnGun||7;
+    var yaklasnBit=new Date(now);yaklasnBit.setDate(now.getDate()+yaklasnGun);
+    var yaklasnBitStr=dateToStr(yaklasnBit);
+    var yaklasnEtk=etkinlikleriGenislet(bugun,yaklasnBitStr).sort(function(a,b){return a.tarih.localeCompare(b.tarih)||etkinlikSaatSirala(a,b);});
+
+    var yaklasnHtml='';
+    if(yaklasnEtk.length>0){
+        yaklasnHtml+='<div class="etk-liste-baslik">📌 Yaklaşan '+yaklasnGun+' Gün</div>';
+        var gunGrup2={};
+        yaklasnEtk.forEach(function(e){if(!gunGrup2[e.tarih])gunGrup2[e.tarih]=[];gunGrup2[e.tarih].push(e);});
+        var gunler2=Object.keys(gunGrup2).sort();
+        gunler2.forEach(function(g){
+            var d=tarihToDate(g);
+            var label=g===bugun?'Bugün':gunAdiKisa(d)+', '+tarihFormat(g);
+            yaklasnHtml+='<div class="etk-gun-grup"><div class="etk-gun-label">'+label+'</div>';
+            gunGrup2[g].sort(etkinlikSaatSirala).forEach(function(e){yaklasnHtml+=etkinlikItemHtml(e,false);});
+            yaklasnHtml+='</div>';
+        });
+    }else{
+        yaklasnHtml+='<div class="etk-bos">Yaklaşan etkinlik yok</div>';
+    }
+    document.getElementById('etk-yaklasan-wrap').innerHTML=yaklasnHtml;
+}
+
+function etkinlikItemHtml(e,gecmis){
+    var renk=e.renk||katmanRenkBul(e.katmanId);
+    var saat=e.tumGun?'Tüm gün':(e.basSaat||'')+(e.bitSaat?' - '+e.bitSaat:'');
+    var html='<div class="etk-item" style="'+(gecmis?'opacity:.55;':'')+'" onclick="etkinlikDetayModal(\''+e.id+'\')">';
+    html+='<div class="etk-renk-bar" style="background:'+renk+'"></div>';
+    html+='<div class="etk-icerik"><div class="etk-baslik">'+esc(e.baslik)+'</div>';
+    if(e.konum)html+='<div class="etk-detay">📍 '+esc(e.konum)+'</div>';
+    html+='</div><div class="etk-saat">'+saat+'</div></div>';
+    return html;
+}
+
+// ══════════════════════════════════════════════════════════
+// AY GÖRÜNÜMÜ
+// ══════════════════════════════════════════════════════════
+function ayDeg(dir){takAy+=dir;if(takAy<0){takAy=11;takYil--;}if(takAy>11){takAy=0;takYil++;}ayRender();etkinlikListeRender();}
+
+function ayRender(){
+    document.getElementById('ay-baslik').textContent=ayAdi(takAy)+' '+takYil;
+    var ayStr=takYil+'-'+String(takAy+1).padStart(2,'0');
+    var ilkGun=new Date(takYil,takAy,1).getDay();ilkGun=ilkGun===0?6:ilkGun-1;
+    var topGun=new Date(takYil,takAy+1,0).getDate();
+    var basTarih=takYil+'-'+String(takAy+1).padStart(2,'0')+'-01';
+    var bitTarih=takYil+'-'+String(takAy+1).padStart(2,'0')+'-'+String(topGun).padStart(2,'0');
+    var ayEtk=etkinlikleriGenislet(basTarih,bitTarih);
+    var gunEtk={};
+    ayEtk.forEach(function(e){if(!gunEtk[e.tarih])gunEtk[e.tarih]=[];gunEtk[e.tarih].push(e);});
+    var bugunS=bugunStr();
+
+    var html='';
+    var gunAdlari=['Pt','Sa','Ça','Pe','Cu','Ct','Pz'];
+    gunAdlari.forEach(function(g){html+='<div class="ay-gun-adi">'+g+'</div>';});
+
+    for(var i=0;i<ilkGun;i++)html+='<div class="ay-gun bos"></div>';
+
+    for(var g=1;g<=topGun;g++){
+        var ds=takYil+'-'+String(takAy+1).padStart(2,'0')+'-'+String(g).padStart(2,'0');
+        var cls='ay-gun';
+        if(ds===bugunS)cls+=' bugun';
+        if(ds===takGunSecili)cls+=' secili';
+        var dots='';
+        if(gunEtk[ds]){
+            dots='<div class="ay-gun-dots">';
+            var gosterilen={};
+            gunEtk[ds].slice(0,4).forEach(function(e){
+                var renk=e.renk||katmanRenkBul(e.katmanId);
+                if(!gosterilen[renk]){dots+='<div class="ay-gun-dot" style="background:'+renk+'"></div>';gosterilen[renk]=true;}
+            });
+            dots+='</div>';
+        }
+        html+='<div class="'+cls+'" onclick="ayGunTikla(\''+ds+'\')"><div class="ay-gun-num">'+g+'</div>'+dots+'</div>';
+    }
+    document.getElementById('ay-grid').innerHTML=html;
+}
+
+function ayGunTikla(ds){
+    takGunSecili=ds;
+    aktifGorunum='gun';
+    gorunumDegistir('gun');
+}
+
+// ══════════════════════════════════════════════════════════
+// HAFTA GÖRÜNÜMÜ
+// ══════════════════════════════════════════════════════════
+function haftaRender(){
+    var now=new Date();
+    var haftaBas=new Date(now);
+    haftaBas.setDate(now.getDate()-((now.getDay()+6)%7)+takHaftaOffset*7);
+    var bugunS=bugunStr();
+
+    var basTarih=dateToStr(haftaBas);
+    var haftaBit=new Date(haftaBas);haftaBit.setDate(haftaBas.getDate()+6);
+    var bitTarih=dateToStr(haftaBit);
+    var haftaEtk=etkinlikleriGenislet(basTarih,bitTarih);
+
+    var html='<div class="ay-header"><div class="ay-nav"><button onclick="haftaDeg(-1)">◀</button></div>';
+    html+='<h2 id="hafta-baslik">'+tarihFormat(basTarih)+' – '+tarihFormat(bitTarih)+'</h2>';
+    html+='<div class="ay-nav"><button onclick="haftaDeg(1)">▶</button></div></div>';
+    html+='<div class="hafta-grid">';
+
+    // Header row
+    html+='<div class="hafta-gun-header"></div>';
+    for(var i=0;i<7;i++){
+        var d=new Date(haftaBas);d.setDate(haftaBas.getDate()+i);
+        var ds=dateToStr(d);
+        html+='<div class="hafta-gun-header'+(ds===bugunS?' bugun-col':'')+'">'+gunAdiKisa(d)+'<br>'+d.getDate()+'</div>';
+    }
+
+    // Time rows (6-23)
+    for(var s=6;s<=23;s++){
+        html+='<div class="hafta-saat-label">'+String(s).padStart(2,'0')+':00</div>';
+        for(var i=0;i<7;i++){
+            var d=new Date(haftaBas);d.setDate(haftaBas.getDate()+i);
+            var ds=dateToStr(d);
+            html+='<div class="hafta-cell'+(ds===bugunS?' bugun-col':'')+'" onclick="haftaCellTikla(\''+ds+'\','+s+')">';
+            // Bu saatteki etkinlikler
+            haftaEtk.forEach(function(e){
+                if(e.tarih!==ds||e.tumGun)return;
+                var eSaat=parseInt((e.basSaat||'00:00').split(':')[0]);
+                if(eSaat===s){
+                    var renk=e.renk||katmanRenkBul(e.katmanId);
+                    html+='<div class="hafta-etk" style="background:'+renk+'" onclick="event.stopPropagation();etkinlikDetayModal(\''+e.id+'\')">'+esc(e.baslik)+'</div>';
+                }
+            });
+            html+='</div>';
+        }
+    }
+    html+='</div>';
+    document.getElementById('gorunum-hafta').innerHTML=html;
+}
+
+function haftaDeg(dir){takHaftaOffset+=dir;haftaRender();}
+function haftaCellTikla(ds,saat){takGunSecili=ds;etkinlikEkleModal(ds,String(saat).padStart(2,'0')+':00');}
+
+// ══════════════════════════════════════════════════════════
+// GÜN GÖRÜNÜMÜ
+// ══════════════════════════════════════════════════════════
+function gunRender(){
+    var ds=takGunSecili;
+    var d=tarihToDate(ds);
+    var bugunS=bugunStr();
+    var gunEtk=etkinlikleriGenislet(ds,ds).sort(etkinlikSaatSirala);
+
+    var html='<div class="ay-header"><div class="ay-nav"><button onclick="gunDeg(-1)">◀</button></div>';
+    html+='<h2>'+gunAdiFull(d)+', '+tarihFormat(ds)+(ds===bugunS?' (Bugün)':'')+'</h2>';
+    html+='<div class="ay-nav"><button onclick="gunDeg(1)">▶</button></div></div>';
+
+    // Tüm gün etkinlikler
+    var tumGunler=gunEtk.filter(function(e){return e.tumGun;});
+    if(tumGunler.length>0){
+        html+='<div style="margin-bottom:8px;">';
+        tumGunler.forEach(function(e){
+            var renk=e.renk||katmanRenkBul(e.katmanId);
+            html+='<div class="gun-etk" style="background:'+renk+'" onclick="etkinlikDetayModal(\''+e.id+'\')">'+esc(e.baslik)+'</div>';
+        });
+        html+='</div>';
+    }
+
+    // Saatlik görünüm
+    html+='<div class="gun-wrapper">';
+    for(var s=0;s<=23;s++){
+        html+='<div class="gun-saat-row"><div class="gun-saat-label">'+String(s).padStart(2,'0')+':00</div>';
+        html+='<div class="gun-saat-alan" onclick="etkinlikEkleModal(\''+ds+'\',\''+String(s).padStart(2,'0')+':00\')">';
+        gunEtk.forEach(function(e){
+            if(e.tumGun)return;
+            var eSaat=parseInt((e.basSaat||'00:00').split(':')[0]);
+            if(eSaat===s){
+                var renk=e.renk||katmanRenkBul(e.katmanId);
+                html+='<div class="gun-etk" style="background:'+renk+'" onclick="event.stopPropagation();etkinlikDetayModal(\''+e.id+'\')">'+esc(e.baslik)+' <span style="opacity:.7;font-size:10px;">'+(e.basSaat||'')+(e.bitSaat?' - '+e.bitSaat:'')+'</span></div>';
+            }
+        });
+        html+='</div></div>';
+    }
+    html+='</div>';
+    document.getElementById('gorunum-gun').innerHTML=html;
+}
+
+function gunDeg(dir){var d=tarihToDate(takGunSecili);d.setDate(d.getDate()+dir);takGunSecili=dateToStr(d);gunRender();}
+
+// ══════════════════════════════════════════════════════════
+// ETKİNLİK EKLEME/DÜZENLEME MODAL
+// ══════════════════════════════════════════════════════════
+function etkinlikEkleModal(tarih,saat){
+    var ds=tarih||bugunStr();
+    var bs=saat||'09:00';
+    var bsSplit=bs.split(':');
+    var bitSaat=String(Math.min(23,parseInt(bsSplit[0])+1)).padStart(2,'0')+':'+bsSplit[1];
+    var katmanlar=getKatmanlar();
+
+    var html='<div class="modal-baslik">📅 Yeni Etkinlik</div>';
+
+    // Başlık
+    html+='<div class="form-group"><label class="form-label">Başlık *</label><input type="text" class="input" id="me-baslik" placeholder="Etkinlik başlığı" maxlength="100"></div>';
+
+    // Tüm gün toggle
+    html+='<div class="form-group"><label class="form-label">Tüm Gün</label><div class="toggle-wrap"><div class="toggle" id="me-tumgun" onclick="this.classList.toggle(\'aktif\');meToggleTumGun()"></div><span style="color:var(--text2);font-size:13px;" id="me-tumgun-lbl">Hayır</span></div></div>';
+
+    // Tarih & Saat
+    html+='<div id="me-tarih-saat">';
+    html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">';
+    html+='<div class="form-group"><label class="form-label">Başlangıç Tarihi</label><input type="date" class="input" id="me-bas-tarih" value="'+ds+'"></div>';
+    html+='<div class="form-group" id="me-bas-saat-wrap"><label class="form-label">Başlangıç Saati</label><input type="time" class="input" id="me-bas-saat" value="'+bs+'"></div>';
+    html+='</div>';
+    html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">';
+    html+='<div class="form-group"><label class="form-label">Bitiş Tarihi</label><input type="date" class="input" id="me-bit-tarih" value="'+ds+'"></div>';
+    html+='<div class="form-group" id="me-bit-saat-wrap"><label class="form-label">Bitiş Saati</label><input type="time" class="input" id="me-bit-saat" value="'+bitSaat+'"></div>';
+    html+='</div></div>';
+
+    // Konum
+    html+='<div class="form-group"><label class="form-label">📍 Konum</label><input type="text" class="input" id="me-konum" placeholder="Konum ekle" maxlength="200"></div>';
+
+    // Açıklama
+    html+='<div class="form-group"><label class="form-label">📝 Açıklama</label><textarea class="input" id="me-aciklama" placeholder="Not ekle" maxlength="1000"></textarea></div>';
+
+    // Takvim (Katman)
+    html+='<div class="form-group"><label class="form-label">📅 Takvim</label><select class="input" id="me-katman">';
+    katmanlar.forEach(function(k,i){html+='<option value="'+k.id+'"'+(i===0?' selected':'')+'>'+esc(k.name)+'</option>';});
+    html+='</select></div>';
+
+    // Tekrar
+    html+='<div class="form-group"><label class="form-label">🔁 Tekrar</label><select class="input" id="me-tekrar" onchange="meTekrarDegisti()">';
+    TEKRAR_SECENEKLER.forEach(function(t){html+='<option value="'+t.val+'">'+t.lbl+'</option>';});
+    html+='</select></div>';
+
+    // Tekrar Bitiş Koşulu (varsayılan gizli)
+    html+='<div id="me-tekrar-bitis-wrap" style="display:none;">';
+    html+='<div class="form-group"><label class="form-label">🔁 Tekrar Bitişi</label><select class="input" id="me-tekrar-bitis-tip" onchange="meTekrarBitisDegisti()">';
+    html+='<option value="hicbir_zaman">Hiçbir zaman bitme</option>';
+    html+='<option value="tarihe_kadar">Şu tarihe kadar</option>';
+    html+='<option value="tekrar_sonra">Belirli tekrar sonra</option>';
+    html+='</select></div>';
+    html+='<div id="me-tekrar-bitis-tarih-wrap" class="form-group" style="display:none;"><label class="form-label">Bitiş Tarihi</label><input type="date" class="input" id="me-tekrar-bitis-tarih"></div>';
+    html+='<div id="me-tekrar-bitis-sayi-wrap" class="form-group" style="display:none;"><label class="form-label">Tekrar Sayısı</label><input type="number" class="input" id="me-tekrar-bitis-sayi" min="1" max="999" value="10" placeholder="Kaç kez tekrarlansın?"></div>';
+    html+='</div>';
+
+    // Bildirim
+    html+='<div class="form-group"><label class="form-label">🔔 Bildirim</label><select class="input" id="me-bildirim">';
+    BILDIRIM_SECENEKLER.forEach(function(b){html+='<option value="'+b.val+'"'+(b.val===30?' selected':'')+'>'+b.lbl+'</option>';});
+    html+='</select></div>';
+
+    // Renk
+    html+='<div class="form-group"><label class="form-label">🎨 Renk</label><div class="renk-grid" id="me-renk-grid">';
+    ETKINLIK_RENKLER.forEach(function(r,i){html+='<div class="renk-item'+(i===0?' aktif':'')+'" style="background:'+r+'" data-renk="'+r+'" onclick="meRenkSec(this)"></div>';});
+    html+='</div></div>';
+
+    // Davetliler
+    html+='<div class="form-group"><label class="form-label">👥 Davetliler</label><input type="text" class="input" id="me-davetliler" placeholder="E-posta adresleri (virgülle ayır)" maxlength="500"></div>';
+
+    // Görünürlük
+    html+='<div class="form-group"><label class="form-label">👁 Görünürlük</label><select class="input" id="me-gorunurluk"><option value="mesgul">Meşgul</option><option value="musait">Müsait</option></select></div>';
+
+    // Kaydet
+    html+='<div style="display:flex;gap:8px;margin-top:16px;">';
+    html+='<button class="btn btn-primary btn-block" onclick="etkinlikKaydet()">💾 Kaydet</button>';
+    html+='</div>';
+
+    modalAc(html);
+}
+
+function meToggleTumGun(){
+    var aktif=document.getElementById('me-tumgun').classList.contains('aktif');
+    document.getElementById('me-tumgun-lbl').textContent=aktif?'Evet':'Hayır';
+    document.getElementById('me-bas-saat-wrap').style.display=aktif?'none':'';
+    document.getElementById('me-bit-saat-wrap').style.display=aktif?'none':'';
+}
+
+function meRenkSec(el){
+    document.querySelectorAll('#me-renk-grid .renk-item').forEach(function(r){r.classList.remove('aktif');});
+    el.classList.add('aktif');
+}
+
+function meTekrarDegisti(){
+    var tekrar=document.getElementById('me-tekrar').value;
+    var wrap=document.getElementById('me-tekrar-bitis-wrap');
+    if(tekrar&&tekrar!=='yok'){
+        wrap.style.display='';
+    }else{
+        wrap.style.display='none';
+    }
+}
+
+function meTekrarBitisDegisti(){
+    var tip=document.getElementById('me-tekrar-bitis-tip').value;
+    document.getElementById('me-tekrar-bitis-tarih-wrap').style.display=(tip==='tarihe_kadar')?'':'none';
+    document.getElementById('me-tekrar-bitis-sayi-wrap').style.display=(tip==='tekrar_sonra')?'':'none';
+}
+
+async function etkinlikKaydet(editId){
+    var baslik=document.getElementById('me-baslik').value.trim();
+    if(!baslik){bildirim('⚠️ Başlık gerekli!','uyari');return;}
+    var tumGun=document.getElementById('me-tumgun').classList.contains('aktif');
+    var basTarih=document.getElementById('me-bas-tarih').value;
+    var bitTarih=document.getElementById('me-bit-tarih').value;
+    var basSaat=tumGun?null:document.getElementById('me-bas-saat').value;
+    var bitSaat=tumGun?null:document.getElementById('me-bit-saat').value;
+    var konum=document.getElementById('me-konum').value.trim();
+    var aciklama=document.getElementById('me-aciklama').value.trim();
+    var katmanId=document.getElementById('me-katman').value;
+    var tekrar=document.getElementById('me-tekrar').value;
+    var tekrarBitisTip='hicbir_zaman';
+    var tekrarBitisTarih='';
+    var tekrarBitisSayi='';
+    if(tekrar&&tekrar!=='yok'){
+        tekrarBitisTip=document.getElementById('me-tekrar-bitis-tip').value||'hicbir_zaman';
+        if(tekrarBitisTip==='tarihe_kadar')tekrarBitisTarih=document.getElementById('me-tekrar-bitis-tarih').value||'';
+        if(tekrarBitisTip==='tekrar_sonra')tekrarBitisSayi=document.getElementById('me-tekrar-bitis-sayi').value||'';
+    }
+    var bildirimDk=parseInt(document.getElementById('me-bildirim').value);
+    var renkEl=document.querySelector('#me-renk-grid .renk-item.aktif');
+    var renk=renkEl?renkEl.dataset.renk:'#6366f1';
+    var davetliler=document.getElementById('me-davetliler').value.trim();
+    var gorunurluk=document.getElementById('me-gorunurluk').value;
+
+    if(!basTarih){bildirim('⚠️ Başlangıç tarihi gerekli!','uyari');return;}
+
+    var etkinlik={
+        id:editId||'etk_'+Date.now()+'_'+Math.random().toString(36).substr(2,5),
+        baslik:baslik,
+        tarih:basTarih,
+        bitTarih:bitTarih||basTarih,
+        tumGun:tumGun,
+        basSaat:basSaat,
+        bitSaat:bitSaat,
+        konum:konum,
+        aciklama:aciklama,
+        katmanId:katmanId,
+        tekrar:tekrar,
+        tekrarBitisTip:tekrarBitisTip,
+        tekrarBitisTarih:tekrarBitisTarih,
+        tekrarBitisSayi:tekrarBitisSayi,
+        bildirimDk:bildirimDk,
+        renk:renk,
+        davetliler:davetliler,
+        gorunurluk:gorunurluk,
+        olusturma:new Date().toISOString()
+    };
+
+    if(!userData.etkinlikler)userData.etkinlikler=[];
+    if(editId){
+        var idx=userData.etkinlikler.findIndex(function(e){return e.id===editId;});
+        if(idx!==-1)userData.etkinlikler[idx]=etkinlik;
+        else userData.etkinlikler.push(etkinlik);
+    }else{
+        userData.etkinlikler.push(etkinlik);
+    }
+
+    userDatabase[currentUser]=userData;
+    modalKapat();
+    takvimRender();
+    try{await saveUserDatabase();bildirim('✅ Etkinlik kaydedildi!','basari');}
+    catch(e){bildirim('⚠️ Kayıt hatası!','hata');}
+}
+
+// ══════════════════════════════════════════════════════════
+// ETKİNLİK DETAY MODAL
+// ══════════════════════════════════════════════════════════
+function etkinlikDetayModal(id){
+    var etkinlik=getEtkinlikler().find(function(e){return e.id===id;});
+    if(!etkinlik){bildirim('⚠️ Etkinlik bulunamadı!','uyari');return;}
+
+    var renk=etkinlik.renk||katmanRenkBul(etkinlik.katmanId);
+    var html='<div style="border-left:4px solid '+renk+';padding-left:12px;margin-bottom:16px;">';
+    html+='<h2 style="font-size:1.1em;margin-bottom:4px;">'+esc(etkinlik.baslik)+'</h2>';
+    html+='<div style="color:var(--text2);font-size:13px;">';
+
+    var d=tarihToDate(etkinlik.tarih);
+    html+=gunAdiFull(d)+', '+tarihFormat(etkinlik.tarih);
+    if(etkinlik.bitTarih&&etkinlik.bitTarih!==etkinlik.tarih){html+=' – '+tarihFormat(etkinlik.bitTarih);}
+    if(etkinlik.tumGun){html+=' · Tüm gün';}
+    else{html+=' · '+(etkinlik.basSaat||'')+(etkinlik.bitSaat?' – '+etkinlik.bitSaat:'');}
+    html+='</div></div>';
+
+    if(etkinlik.konum)html+='<div style="padding:8px 0;font-size:13px;color:var(--text2);">📍 '+esc(etkinlik.konum)+'</div>';
+    if(etkinlik.aciklama)html+='<div style="padding:8px 0;font-size:13px;color:var(--text2);white-space:pre-wrap;">📝 '+esc(etkinlik.aciklama)+'</div>';
+    html+='<div style="padding:8px 0;font-size:12px;color:var(--text3);">📅 '+esc(katmanAdBul(etkinlik.katmanId))+'</div>';
+
+    var tekrarLbl='';TEKRAR_SECENEKLER.forEach(function(t){if(t.val===etkinlik.tekrar)tekrarLbl=t.lbl;});
+    if(tekrarLbl&&etkinlik.tekrar!=='yok'){
+        var bitisLbl='';
+        if(etkinlik.tekrarBitisTip==='tarihe_kadar'&&etkinlik.tekrarBitisTarih){bitisLbl=' · '+tarihFormat(etkinlik.tekrarBitisTarih)+' tarihine kadar';}
+        else if(etkinlik.tekrarBitisTip==='tekrar_sonra'&&etkinlik.tekrarBitisSayi){bitisLbl=' · '+etkinlik.tekrarBitisSayi+' kez';}
+        html+='<div style="padding:4px 0;font-size:12px;color:var(--text3);">🔁 '+tekrarLbl+bitisLbl+'</div>';
+    }
+
+    if(etkinlik.davetliler)html+='<div style="padding:4px 0;font-size:12px;color:var(--text3);">👥 '+esc(etkinlik.davetliler)+'</div>';
+    if(etkinlik.gorunurluk)html+='<div style="padding:4px 0;font-size:12px;color:var(--text3);">👁 '+(etkinlik.gorunurluk==='mesgul'?'Meşgul':'Müsait')+'</div>';
+
+    html+='<div style="display:flex;gap:8px;margin-top:16px;">';
+    html+='<button class="btn btn-primary" style="flex:1;" onclick="etkinlikDuzenleModal(\''+id+'\')">✏️ Düzenle</button>';
+    html+='<button class="btn btn-danger" onclick="etkinlikSil(\''+id+'\')">🗑️ Sil</button>';
+    html+='</div>';
+
+    modalAc(html);
+}
+
+function etkinlikDuzenleModal(id){
+    var e=getEtkinlikler().find(function(x){return x.id===id;});
+    if(!e)return;
+    modalKapat();
+    setTimeout(function(){
+        etkinlikEkleModal(e.tarih,e.basSaat||'09:00');
+        // Formu doldur
+        setTimeout(function(){
+            document.getElementById('me-baslik').value=e.baslik||'';
+            if(e.tumGun){document.getElementById('me-tumgun').classList.add('aktif');meToggleTumGun();}
+            document.getElementById('me-bas-tarih').value=e.tarih||'';
+            document.getElementById('me-bit-tarih').value=e.bitTarih||e.tarih||'';
+            if(e.basSaat)document.getElementById('me-bas-saat').value=e.basSaat;
+            if(e.bitSaat)document.getElementById('me-bit-saat').value=e.bitSaat;
+            document.getElementById('me-konum').value=e.konum||'';
+            document.getElementById('me-aciklama').value=e.aciklama||'';
+            document.getElementById('me-katman').value=e.katmanId||'';
+            document.getElementById('me-tekrar').value=e.tekrar||'yok';
+            meTekrarDegisti();
+            if(e.tekrar&&e.tekrar!=='yok'){
+                document.getElementById('me-tekrar-bitis-tip').value=e.tekrarBitisTip||'hicbir_zaman';
+                meTekrarBitisDegisti();
+                if(e.tekrarBitisTarih)document.getElementById('me-tekrar-bitis-tarih').value=e.tekrarBitisTarih;
+                if(e.tekrarBitisSayi)document.getElementById('me-tekrar-bitis-sayi').value=e.tekrarBitisSayi;
+            }
+            document.getElementById('me-bildirim').value=e.bildirimDk!=null?e.bildirimDk:30;
+            document.getElementById('me-davetliler').value=e.davetliler||'';
+            document.getElementById('me-gorunurluk').value=e.gorunurluk||'mesgul';
+            // Renk
+            if(e.renk){
+                document.querySelectorAll('#me-renk-grid .renk-item').forEach(function(r){r.classList.remove('aktif');if(r.dataset.renk===e.renk)r.classList.add('aktif');});
+            }
+            // Kaydet butonunu düzenleme moduna al
+            var kaydetBtn=document.querySelector('#modal-body .btn-primary');
+            if(kaydetBtn){kaydetBtn.setAttribute('onclick','etkinlikKaydet(\''+id+'\')');kaydetBtn.innerHTML='💾 Güncelle';}
+        },50);
+    },200);
+}
+
+async function etkinlikSil(id){
+    if(!confirm('Bu etkinliği silmek istediğinize emin misiniz?'))return;
+    userData.etkinlikler=userData.etkinlikler.filter(function(e){return e.id!==id;});
+    userDatabase[currentUser]=userData;
+    modalKapat();
+    takvimRender();
+    try{await saveUserDatabase();bildirim('🗑️ Etkinlik silindi!','basari');}
+    catch(e){bildirim('⚠️ Hata!','hata');}
+}
+
+// ══════════════════════════════════════════════════════════
+// AYARLAR
+// ══════════════════════════════════════════════════════════
+function ayarlarRender(){
+    var ayar=getAyarlar();
+    document.getElementById('ayar-yaklasan').value=ayar.yaklasnGun||7;
+    document.getElementById('ayar-gecmis').value=ayar.gecmisGun||3;
+    document.getElementById('ayar-kullanici').textContent=currentUser||'';
+
+    var katmanlar=getKatmanlar();
+    var html='';
+    katmanlar.forEach(function(k){
+        html+='<div class="ayar-kategori">';
+        html+='<div style="width:24px;height:24px;border-radius:6px;background:'+k.color+';flex-shrink:0;"></div>';
+        html+='<span class="ayar-kat-ad">'+esc(k.name)+'</span>';
+        html+='<button class="ayar-kat-sil" onclick="katmanSil(\''+k.id+'\')">✕</button>';
+        html+='</div>';
+    });
+    document.getElementById('ayar-katmanlar').innerHTML=html;
+}
+
+async function ayarlariKaydet(){
+    var yaklasnGun=parseInt(document.getElementById('ayar-yaklasan').value)||7;
+    var gecmisGun=parseInt(document.getElementById('ayar-gecmis').value)||3;
+    if(!userData.ayarlar)userData.ayarlar={};
+    userData.ayarlar.yaklasnGun=yaklasnGun;
+    userData.ayarlar.gecmisGun=gecmisGun;
+    userDatabase[currentUser]=userData;
+    try{await saveUserDatabase();bildirim('✅ Ayarlar kaydedildi!','basari');}
+    catch(e){bildirim('⚠️ Hata!','hata');}
+}
+
+async function katmanEkle(){
+    var ad=document.getElementById('ayar-yeni-katman').value.trim();
+    if(!ad){bildirim('⚠️ Katman adı gerekli!','uyari');return;}
+    var renk=document.getElementById('ayar-yeni-renk').value;
+    if(!userData.katmanlar)userData.katmanlar=VARSAYILAN_KATMANLAR.slice();
+    userData.katmanlar.push({id:'kat_'+Date.now(),name:ad,color:renk});
+    document.getElementById('ayar-yeni-katman').value='';
+    userDatabase[currentUser]=userData;
+    ayarlarRender();
+    try{await saveUserDatabase();bildirim('🎨 Katman eklendi!','basari');}
+    catch(e){bildirim('⚠️ Hata!','hata');}
+}
+
+async function katmanSil(id){
+    if(!confirm('Bu katmanı silmek istediğinize emin misiniz?'))return;
+    userData.katmanlar=userData.katmanlar.filter(function(k){return k.id!==id;});
+    userDatabase[currentUser]=userData;
+    ayarlarRender();
+    try{await saveUserDatabase();bildirim('🗑️ Katman silindi!','basari');}
+    catch(e){bildirim('⚠️ Hata!','hata');}
+}
+
+// ══════════════════════════════════════════════════════════
+// BAŞLANGIÇ
+// ══════════════════════════════════════════════════════════
+async function basla(){
+    var savedUser=localStorage.getItem('takvim-user');
+    if(savedUser){
+        yuklemeGoster();
+        try{
+            await loadUserDatabase();
+            if(userDatabase[savedUser]){
+                currentUser=savedUser;userData=userDatabase[savedUser];
+                girisBasarili();
+            }else{ekranGoster('ekran-giris');}
+        }catch(e){console.error(e);ekranGoster('ekran-giris');bildirim('⚠️ Otomatik giriş başarısız','uyari');}
+        yuklemeGizle();
+    }else{ekranGoster('ekran-giris');}
+}
+basla();
+</script>
+</body>
+</html>
