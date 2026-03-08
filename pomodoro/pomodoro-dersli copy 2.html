@@ -83,16 +83,11 @@
         .timer-time.mola{color:var(--purple);}
         .timer-time.kisa-ara{color:var(--yellow);}
         .timer-time.uzun-ara{color:var(--purple);}
-        .timer-time.overtime-calisma{color:var(--yellow);animation:overtimePulse 1.5s ease-in-out infinite;}
-        .timer-time.overtime-mola{color:#ff6b6b;animation:overtimePulse 1.5s ease-in-out infinite;}
-        @keyframes overtimePulse{0%,100%{opacity:1;}50%{opacity:.6;}}
         .timer-status{font-size:14px;color:var(--text2);margin-top:8px;font-weight:600;}
         .timer-status .status-badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;}
         .status-calisma{background:rgba(16,185,129,0.15);color:var(--green);}
         .status-kisa-ara{background:rgba(245,158,11,0.15);color:var(--yellow);}
         .status-uzun-ara{background:rgba(167,139,250,0.15);color:var(--purple);}
-        .status-overtime-calisma{background:rgba(245,158,11,0.2);color:var(--yellow);}
-        .status-overtime-mola{background:rgba(255,107,107,0.2);color:#ff6b6b;}
         .status-bitti{background:var(--accent-g);color:var(--accent);}
 
         .timer-progress{width:100%;height:6px;background:var(--border);border-radius:3px;margin:16px 0;overflow:hidden;}
@@ -107,9 +102,6 @@
         .tb-devam{background:var(--accent);color:#fff;}
         .tb-durdur{background:var(--red);color:#fff;}
         .tb-sifirla{background:var(--card);color:var(--text2);border:1px solid var(--border);}
-        .tb-molaya-gec{background:var(--purple);color:#fff;animation:btnPulse 2s ease-in-out infinite;}
-        .tb-calismaya-gec{background:var(--green);color:#fff;animation:btnPulse 2s ease-in-out infinite;}
-        @keyframes btnPulse{0%,100%{box-shadow:0 0 0 0 rgba(167,139,250,0.4);}50%{box-shadow:0 0 20px 4px rgba(167,139,250,0.2);}}
 
         .timer-info{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:20px;}
         .timer-info-item{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center;}
@@ -401,10 +393,8 @@
 
         <div class="timer-controls" id="tm-controls">
             <button class="timer-btn tb-basla" id="btn-basla" onclick="tmBasla()">▶ Başlat</button>
-            <button class="timer-btn tb-mola gizli" id="btn-duraklat" onclick="tmDuraklat()">⏸ Duraklat</button>
+            <button class="timer-btn tb-mola gizli" id="btn-mola" onclick="tmMola()">⏸ Mola</button>
             <button class="timer-btn tb-devam gizli" id="btn-devam" onclick="tmDevam()">▶ Devam</button>
-            <button class="timer-btn tb-molaya-gec gizli" id="btn-molaya-gec" onclick="tmMolayaGec()">☕ Molaya Geç</button>
-            <button class="timer-btn tb-calismaya-gec gizli" id="btn-calismaya-gec" onclick="tmCalismayaGec()">▶ Çalışmaya Geç</button>
             <button class="timer-btn tb-durdur gizli" id="btn-durdur" onclick="tmDurdur()">⏹ Durdur</button>
             <button class="timer-btn tb-sifirla gizli" id="btn-sifirla" onclick="tmSifirla()">↺ Sıfırla</button>
         </div>
@@ -500,7 +490,7 @@ var userDatabase = {};
 var aktifEkran = 'ekran-giris';
 
 // Timer değişkenleri
-var tmState = 'idle'; // idle, running, paused, overtime
+var tmState = 'idle'; // idle, running, paused
 var tmInterval = null;
 var tmPhase = 'calisma'; // calisma, kisa-ara, uzun-ara
 var tmTimeLeft = 0;
@@ -513,8 +503,6 @@ var tmToplamCalismaMs = 0;
 var tmToplamMolaMs = 0;
 var tmPhaseStartTime = 0;
 var tmPausedElapsed = 0;
-var tmOvertimeStart = 0; // overtime başlangıç zamanı
-var tmOvertimeMs = 0;    // birikmiş overtime ms
 var orijinalTitle = '🍅 Pomodoro Timer';
 
 // İstatistik
@@ -882,6 +870,7 @@ function tmGuncelleSure(){
 
 function tmBasla(){
     if(tmState!=='idle')return;
+    // Ayarları kaydet
     var ayar={
         calismaSure:parseInt(document.getElementById('tm-calisma').value)||25,
         kisaAra:parseInt(document.getElementById('tm-kisa-ara').value)||5,
@@ -891,10 +880,12 @@ function tmBasla(){
     };
     tmTotalCycles=ayar.dongu;tmTotalRepeats=ayar.tekrar;
     tmCurrentCycle=0;tmCurrentRepeat=0;
-    tmToplamCalismaMs=0;tmToplamMolaMs=0;tmOvertimeMs=0;
+    tmToplamCalismaMs=0;tmToplamMolaMs=0;
 
-    acInit(); // Audio context başlat
+    // Audio context başlat (kullanıcı etkileşimi gerekli)
+    if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();
 
+    // Inputları devre dışı bırak
     document.getElementById('timer-ayarlar').style.opacity='0.5';
     document.getElementById('timer-ayarlar').style.pointerEvents='none';
     document.getElementById('tm-ders').disabled=true;
@@ -913,178 +904,86 @@ function tmBasla(){
 }
 
 function tmTick(){
-    // === OVERTIME MODU: yukarı sayar ===
-    if(tmState==='overtime'){
-        var otElapsed=Date.now()-tmOvertimeStart;
-        var totalOt=tmOvertimeMs+otElapsed;
-        var sn=Math.floor(totalOt/1000);
-        var dk=Math.floor(sn/60);sn=sn%60;
-        document.getElementById('tm-time').textContent='+'+String(dk).padStart(2,'0')+':'+String(sn).padStart(2,'0');
-
-        // Overtime süresini ilgili toplama ekle (canlı güncelleme)
-        if(tmPhase==='calisma'){
-            var emoji='🟠';
-            document.getElementById('ti-toplam').textContent=msToStr(tmToplamCalismaMs+totalOt);
-        }else{var emoji='🔴';}
-        document.title=emoji+' +'+String(dk).padStart(2,'0')+':'+String(sn).padStart(2,'0')+' - Pomodoro';
-
-        // Progress bar: overtime'da %100'de kalır + overtime rengi
-        document.getElementById('tm-progress').style.width='100%';
-        return;
-    }
-
-    // === NORMAL MOD: aşağı sayar ===
     if(tmState!=='running')return;
     var elapsed=(Date.now()-tmPhaseStartTime)/1000+tmPausedElapsed;
     var kalan=Math.max(0,tmTotalTime-elapsed);
     tmTimeLeft=kalan;
 
+    // Süre göster
     var dk=Math.floor(kalan/60);var sn=Math.floor(kalan%60);
     document.getElementById('tm-time').textContent=String(dk).padStart(2,'0')+':'+String(sn).padStart(2,'0');
     document.title=(tmPhase==='calisma'?'🟢':'🟡')+' '+String(dk).padStart(2,'0')+':'+String(sn).padStart(2,'0')+' - Pomodoro';
 
+    // Progress
     var oran=tmTotalTime>0?((tmTotalTime-kalan)/tmTotalTime)*100:0;
     document.getElementById('tm-progress').style.width=oran+'%';
 
+    // Toplam çalışma güncelle
     if(tmPhase==='calisma'){
         var topMs=tmToplamCalismaMs+elapsed*1000;
         document.getElementById('ti-toplam').textContent=msToStr(topMs);
     }
 
-    // === SÜRE BİTTİ → OVERTIME'A GEÇ ===
     if(kalan<=0){
         clearInterval(tmInterval);
 
-        // Normal faz süresini toplama ekle
         if(tmPhase==='calisma'){
             tmToplamCalismaMs+=(tmTotalTime)*1000;
-        }else{
-            tmToplamMolaMs+=(tmTotalTime)*1000;
-        }
-
-        // Ses çal (faza göre)
-        if(tmPhase==='calisma'){
-            // Son döngü + son tekrar mı? → Tamamlandı
-            if(tmCurrentCycle>=tmTotalCycles&&tmCurrentRepeat>=tmTotalRepeats){
-                tmBitti();return;
+            // Döngü bitti mi?
+            if(tmCurrentCycle<tmTotalCycles){
+                // Kısa ara
+                sesCalismasBitti(); // Çalışma bitti → mola sesi
+                tmPhase='kisa-ara';
+                var kisaAra=parseInt(document.getElementById('tm-kisa-ara').value)||5;
+                tmTimeLeft=kisaAra*60;tmTotalTime=kisaAra*60;
+                tmCurrentCycle++;
+            }else{
+                // Tekrar bitti mi?
+                if(tmCurrentRepeat<tmTotalRepeats){
+                    // Uzun ara
+                    sesUzunAra(); // Fanfar → uzun ara başlıyor
+                    tmPhase='uzun-ara';
+                    var uzunAra=parseInt(document.getElementById('tm-uzun-ara').value)||15;
+                    tmTimeLeft=uzunAra*60;tmTotalTime=uzunAra*60;
+                }else{
+                    // Hepsi bitti!
+                    tmBitti();return;
+                }
             }
-            sesCalismasBitti();
-        }else{
-            sesMolaBitti();
+        }else if(tmPhase==='kisa-ara'){
+            sesMolaBitti(); // Mola bitti → çalışmaya dön sesi
+            tmToplamMolaMs+=(tmTotalTime)*1000;
+            tmPhase='calisma';
+            var cal=parseInt(document.getElementById('tm-calisma').value)||25;
+            tmTimeLeft=cal*60;tmTotalTime=cal*60;
+        }else if(tmPhase==='uzun-ara'){
+            sesMolaBitti(); // Uzun mola bitti → çalışmaya dön sesi
+            tmToplamMolaMs+=(tmTotalTime)*1000;
+            tmCurrentRepeat++;tmCurrentCycle=1;
+            tmPhase='calisma';
+            var cal2=parseInt(document.getElementById('tm-calisma').value)||25;
+            tmTimeLeft=cal2*60;tmTotalTime=cal2*60;
         }
 
-        // Overtime moduna geç
-        tmState='overtime';
-        tmOvertimeStart=Date.now();
-        tmOvertimeMs=0;
+        tmPhaseStartTime=Date.now();tmPausedElapsed=0;
         tmUIGuncelle();
         tmInterval=setInterval(tmTick,250);
     }
 }
 
-// Overtime çalışma → Molaya geç
-function tmMolayaGec(){
-    if(tmState!=='overtime')return;
+function tmMola(){
+    if(tmState!=='running')return;
+    var elapsed=(Date.now()-tmPhaseStartTime)/1000;
+    tmPausedElapsed+=elapsed;
+    tmState='paused';
     clearInterval(tmInterval);
-
-    // Overtime süresini çalışma toplamına ekle
-    var otElapsed=Date.now()-tmOvertimeStart+tmOvertimeMs;
-    if(tmPhase==='calisma'){
-        tmToplamCalismaMs+=otElapsed;
-    }else{
-        tmToplamMolaMs+=otElapsed;
-    }
-    tmOvertimeMs=0;tmOvertimeStart=0;
-
-    // Hangi molaya geçeceğini belirle
-    if(tmPhase==='calisma'){
-        if(tmCurrentCycle<tmTotalCycles){
-            // Kısa ara
-            tmPhase='kisa-ara';
-            var kisaAra=parseInt(document.getElementById('tm-kisa-ara').value)||5;
-            tmTimeLeft=kisaAra*60;tmTotalTime=kisaAra*60;
-            tmCurrentCycle++;
-        }else{
-            // Tekrar bitmedi → Uzun ara
-            if(tmCurrentRepeat<tmTotalRepeats){
-                sesUzunAra();
-                tmPhase='uzun-ara';
-                var uzunAra=parseInt(document.getElementById('tm-uzun-ara').value)||15;
-                tmTimeLeft=uzunAra*60;tmTotalTime=uzunAra*60;
-            }else{
-                // Normalde buraya gelmemeli (tmBitti yakalamıştı), ama güvenlik
-                tmBitti();return;
-            }
-        }
-    }
-
-    tmState='running';
-    tmPhaseStartTime=Date.now();
-    tmPausedElapsed=0;
     tmUIGuncelle();
-    tmInterval=setInterval(tmTick,250);
-}
-
-// Overtime mola → Çalışmaya geç
-function tmCalismayaGec(){
-    if(tmState!=='overtime')return;
-    clearInterval(tmInterval);
-
-    // Overtime süresini mola toplamına ekle
-    var otElapsed=Date.now()-tmOvertimeStart+tmOvertimeMs;
-    if(tmPhase==='calisma'){
-        tmToplamCalismaMs+=otElapsed;
-    }else{
-        tmToplamMolaMs+=otElapsed;
-    }
-    tmOvertimeMs=0;tmOvertimeStart=0;
-
-    // Mola/uzun ara sonrası → çalışmaya dön
-    if(tmPhase==='kisa-ara'||tmPhase==='uzun-ara'){
-        if(tmPhase==='uzun-ara'){
-            tmCurrentRepeat++;tmCurrentCycle=1;
-        }
-        tmPhase='calisma';
-        var cal=parseInt(document.getElementById('tm-calisma').value)||25;
-        tmTimeLeft=cal*60;tmTotalTime=cal*60;
-    }
-
-    tmState='running';
-    tmPhaseStartTime=Date.now();
-    tmPausedElapsed=0;
-    tmUIGuncelle();
-    tmInterval=setInterval(tmTick,250);
-}
-
-function tmDuraklat(){
-    if(tmState==='running'){
-        var elapsed=(Date.now()-tmPhaseStartTime)/1000;
-        tmPausedElapsed+=elapsed;
-        tmState='paused';
-        clearInterval(tmInterval);
-        tmUIGuncelle();
-    }else if(tmState==='overtime'){
-        // Overtime'da da duraklatılabilir
-        var otElapsed=Date.now()-tmOvertimeStart;
-        tmOvertimeMs+=otElapsed;
-        tmState='paused';
-        clearInterval(tmInterval);
-        tmUIGuncelle();
-    }
 }
 
 function tmDevam(){
     if(tmState!=='paused')return;
-    // Hangi moddan duraklatılmıştı?
-    if(tmOvertimeMs>0||tmTimeLeft<=0){
-        // Overtime modundan devam
-        tmState='overtime';
-        tmOvertimeStart=Date.now();
-    }else{
-        // Normal moddan devam
-        tmState='running';
-        tmPhaseStartTime=Date.now();
-    }
+    tmState='running';
+    tmPhaseStartTime=Date.now();
     tmInterval=setInterval(tmTick,250);
     tmUIGuncelle();
 }
@@ -1092,21 +991,14 @@ function tmDevam(){
 function tmDurdur(){
     if(tmState==='idle')return;
     clearInterval(tmInterval);
-
-    // Mevcut fazın süresini ekle
-    if(tmState==='running'){
+    // Kalan çalışma süresini ekle
+    if(tmPhase==='calisma'&&tmState==='running'){
         var elapsed=(Date.now()-tmPhaseStartTime)/1000+tmPausedElapsed;
-        if(tmPhase==='calisma')tmToplamCalismaMs+=elapsed*1000;
-        else tmToplamMolaMs+=elapsed*1000;
-    }else if(tmState==='paused'){
-        if(tmPhase==='calisma')tmToplamCalismaMs+=tmPausedElapsed*1000;
-        else tmToplamMolaMs+=tmPausedElapsed*1000;
-    }else if(tmState==='overtime'){
-        var otElapsed=Date.now()-tmOvertimeStart+tmOvertimeMs;
-        if(tmPhase==='calisma')tmToplamCalismaMs+=otElapsed;
-        else tmToplamMolaMs+=otElapsed;
+        tmToplamCalismaMs+=elapsed*1000;
+    }else if(tmPhase==='calisma'&&tmState==='paused'){
+        tmToplamCalismaMs+=tmPausedElapsed*1000;
     }
-
+    // Kaydet
     if(tmToplamCalismaMs>=1000)tmOturumKaydet();
     tmSifirla();
 }
@@ -1116,9 +1008,12 @@ async function tmBitti(){
     document.getElementById('tm-time').textContent='00:00';
     document.getElementById('tm-status').innerHTML='<span class="status-badge status-bitti">🎉 Tamamlandı!</span>';
     document.title='🎉 Tamamlandı! - Pomodoro';
+    // 3x alarm
+    // 3x zafer melodisi
     sesTamamlandi();
+    // Kaydet
     if(tmToplamCalismaMs>=1000)await tmOturumKaydet();
-    setTimeout(tmSifirla,4000);
+    setTimeout(tmSifirla,3000);
 }
 
 async function tmOturumKaydet(){
@@ -1136,6 +1031,7 @@ async function tmOturumKaydet(){
     };
     if(!userData.oturumlar)userData.oturumlar=[];
     userData.oturumlar.push(oturum);
+    // Ayarları da güncelle
     userData.ayarlar={
         calismaSure:parseInt(document.getElementById('tm-calisma').value)||25,
         kisaAra:parseInt(document.getElementById('tm-kisa-ara').value)||5,
@@ -1152,8 +1048,7 @@ async function tmOturumKaydet(){
 function tmSifirla(){
     clearInterval(tmInterval);
     tmState='idle';tmPhase='calisma';tmTimeLeft=0;tmTotalTime=0;
-    tmCurrentCycle=0;tmCurrentRepeat=0;tmToplamCalismaMs=0;tmToplamMolaMs=0;
-    tmPausedElapsed=0;tmOvertimeMs=0;tmOvertimeStart=0;
+    tmCurrentCycle=0;tmCurrentRepeat=0;tmToplamCalismaMs=0;tmToplamMolaMs=0;tmPausedElapsed=0;
     document.getElementById('timer-ayarlar').style.opacity='1';
     document.getElementById('timer-ayarlar').style.pointerEvents='auto';
     document.getElementById('tm-ders').disabled=false;
@@ -1165,83 +1060,39 @@ function tmSifirla(){
 
 function tmUIGuncelle(){
     var basla=document.getElementById('btn-basla');
-    var duraklat=document.getElementById('btn-duraklat');
+    var mola=document.getElementById('btn-mola');
     var devam=document.getElementById('btn-devam');
-    var molayaGec=document.getElementById('btn-molaya-gec');
-    var calismayaGec=document.getElementById('btn-calismaya-gec');
     var durdur=document.getElementById('btn-durdur');
     var sifirla=document.getElementById('btn-sifirla');
     var timeEl=document.getElementById('tm-time');
     var statusEl=document.getElementById('tm-status');
     var progressFill=document.getElementById('tm-progress');
 
-    // Tüm butonları gizle
-    [basla,duraklat,devam,molayaGec,calismayaGec,durdur,sifirla].forEach(function(b){b.classList.add('gizli');});
+    // Butonlar
+    basla.classList.toggle('gizli',tmState!=='idle');
+    mola.classList.toggle('gizli',tmState!=='running');
+    devam.classList.toggle('gizli',tmState!=='paused');
+    durdur.classList.toggle('gizli',tmState==='idle');
+    sifirla.classList.toggle('gizli',tmState==='idle');
 
-    if(tmState==='idle'){
-        basla.classList.remove('gizli');
-    }else if(tmState==='running'){
-        duraklat.classList.remove('gizli');
-        durdur.classList.remove('gizli');
-    }else if(tmState==='paused'){
-        devam.classList.remove('gizli');
-        durdur.classList.remove('gizli');
-        sifirla.classList.remove('gizli');
-    }else if(tmState==='overtime'){
-        // Overtime çalışma → "Molaya Geç" göster
-        if(tmPhase==='calisma'){
-            molayaGec.classList.remove('gizli');
-        }else{
-            // Overtime mola → "Çalışmaya Geç" göster
-            calismayaGec.classList.remove('gizli');
-        }
-        duraklat.classList.remove('gizli');
-        durdur.classList.remove('gizli');
-    }
-
-    // Timer renk
+    // Renk
     timeEl.className='timer-time';
-    if(tmState==='overtime'){
-        if(tmPhase==='calisma')timeEl.classList.add('overtime-calisma');
-        else timeEl.classList.add('overtime-mola');
-    }else if(tmState!=='idle'){
+    if(tmState!=='idle'){
         if(tmPhase==='calisma')timeEl.classList.add('calisma');
         else if(tmPhase==='kisa-ara')timeEl.classList.add('kisa-ara');
         else timeEl.classList.add('uzun-ara');
     }
+    progressFill.style.background=tmPhase==='calisma'?'var(--green)':(tmPhase==='kisa-ara'?'var(--yellow)':'var(--purple)');
 
-    // Progress bar renk
-    if(tmState==='overtime'){
-        progressFill.style.background=tmPhase==='calisma'?'var(--yellow)':'#ff6b6b';
-    }else{
-        progressFill.style.background=tmPhase==='calisma'?'var(--green)':(tmPhase==='kisa-ara'?'var(--yellow)':'var(--purple)');
-    }
-
-    // Status badge
+    // Status
     if(tmState==='idle'){
         statusEl.innerHTML='<span class="status-badge">Hazır</span>';
-    }else if(tmState==='overtime'){
-        if(tmPhase==='calisma'){
-            statusEl.innerHTML='<span class="status-badge status-overtime-calisma">🟠 Çalışma Uzatması</span>';
-        }else if(tmPhase==='kisa-ara'){
-            statusEl.innerHTML='<span class="status-badge status-overtime-mola">🔴 Kısa Ara Uzatması</span>';
-        }else{
-            statusEl.innerHTML='<span class="status-badge status-overtime-mola">🔴 Uzun Ara Uzatması</span>';
-        }
     }else{
         var label='';var cls='';
         if(tmPhase==='calisma'){label='🟢 Çalışma';cls='status-calisma';}
         else if(tmPhase==='kisa-ara'){label='☕ Kısa Ara';cls='status-kisa-ara';}
         else{label='🌴 Uzun Ara';cls='status-uzun-ara';}
-        if(tmState==='paused'){
-            // Overtime paused durumunda da göster
-            if(tmOvertimeMs>0||tmTimeLeft<=0){
-                if(tmPhase==='calisma'){label='🟠 Çalışma Uzatması (Duraklatıldı)';cls='status-overtime-calisma';}
-                else{label='🔴 Mola Uzatması (Duraklatıldı)';cls='status-overtime-mola';}
-            }else{
-                label+=' (Duraklatıldı)';
-            }
-        }
+        if(tmState==='paused')label+=' (Duraklatıldı)';
         statusEl.innerHTML='<span class="status-badge '+cls+'">'+label+'</span>';
     }
 
