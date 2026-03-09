@@ -333,12 +333,13 @@
 <!-- YÜKLEME -->
 <div id="yukleme-overlay" class="gizli"><div class="spinner"></div><span class="yukleme-metin">Yükleniyor...</span></div>
 
+<script src="takvim-gh.js"></script>
 <script>
-// ══════════════════════════════════════════════════════════
-// CLOUDFLARE WORKER BAĞLANTISI
-// ══════════════════════════════════════════════════════════
-const WORKER_URL = 'https://gh-reci-senkron.recepyeni.workers.dev';
-const dosyaAdi = 'takvim-takvim.json';
+// gh parametreleri, takvim-gh.js dosyasından gelmektedir.
+// const kullaniciAdi = "...";
+// const repoAdi = "...";
+// const token = "...";
+// const dosyaAdi = "...";
 
 // ══════════════════════════════════════════════════════════
 // GLOBAL DEĞİŞKENLER
@@ -533,20 +534,27 @@ function katmanAdBul(katmanId){
 // ══════════════════════════════════════════════════════════
 async function loadUserDatabase(){
     try{
-        var res=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'read',dosyaAdi:dosyaAdi})});
-        var data=await res.json();
-        if(data.content){userDatabase=JSON.parse(data.content);}
+        var response=await fetch('https://api.github.com/repos/'+kullaniciAdi+'/'+repoAdi+'/contents/'+'takvim-'+dosyaAdi,{
+            headers:{'Authorization':'token '+token,'Accept':'application/vnd.github.v3+json'}
+        });
+        if(response.ok){var data=await response.json();var decoded=atob(data.content);var utf8=decodeURIComponent(escape(decoded));userDatabase=JSON.parse(utf8);}
         else{userDatabase={};}
     }catch(e){userDatabase={};throw e;}
 }
 
 async function saveUserDatabase(){
     try{
+        var sha=null;
+        try{var r=await fetch('https://api.github.com/repos/'+kullaniciAdi+'/'+repoAdi+'/contents/'+'takvim-'+dosyaAdi,{headers:{'Authorization':'token '+token,'Accept':'application/vnd.github.v3+json'}});if(r.ok){sha=(await r.json()).sha;}}catch(e){}
         var json=JSON.stringify(userDatabase,null,2);
-        var res=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'write',dosyaAdi:dosyaAdi,content:json,message:'Takvim güncellendi'})});
-        var data=await res.json();
-        if(!data.success)throw new Error(data.error||'Worker hatası');
-    }catch(e){console.error('Kaydetme hatası:',e);throw e;}
+        var utf8=unescape(encodeURIComponent(json));
+        var encoded=btoa(utf8);
+        var updateR=await fetch('https://api.github.com/repos/'+kullaniciAdi+'/'+repoAdi+'/contents/'+'takvim-'+dosyaAdi,{
+            method:'PUT',headers:{'Authorization':'token '+token,'Accept':'application/vnd.github.v3+json'},
+            body:JSON.stringify({message:'Takvim güncellendi',content:encoded,sha:sha})
+        });
+        if(!updateR.ok)throw new Error('GitHub güncelleme hatası');
+    }catch(e){console.error('GitHub kaydetme hatası:',e);throw e;}
 }
 
 // ══════════════════════════════════════════════════════════
