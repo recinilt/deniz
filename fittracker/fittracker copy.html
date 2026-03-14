@@ -436,7 +436,7 @@
             <div class="timer-time" id="st-time">05:00</div>
             <div class="timer-status" id="st-status"><span class="status-badge">Hazır</span></div>
         </div>
-        <div class="timer-progress" id="st-progress-wrap"><div class="timer-progress-fill" id="st-progress" style="width:0%"></div></div>
+        <div class="timer-progress"><div class="timer-progress-fill" id="st-progress" style="width:0%"></div></div>
         <div class="timer-controls" id="st-controls">
             <button class="timer-btn tb-basla" id="st-btn-basla" onclick="stBasla()">▶ Başlat</button>
             <button class="timer-btn tb-duraklat gizli" id="st-btn-duraklat" onclick="stDuraklat()">⏸ Duraklat</button>
@@ -999,24 +999,10 @@ function sporTimerKiloSonrasi(rutinIdx,tarih,devamMi){
 function timerEkranGuncelle(){
     var rutin=stAktifRutin.rutin;
     document.getElementById('timer-rutin-ad').textContent=rutin.ad;
-    // Sınır kontrolü
-    if(stAktifAdim>=rutin.adimlar.length){
-        document.getElementById('timer-adim-no').textContent='TAMAMLANDI';
-        document.getElementById('timer-adim-ad').textContent='🎉 Tüm adımlar bitti!';
-        document.getElementById('timer-adim-sonraki').textContent='';
-        stInfoGuncelle();
-        // Adım listesini tamamlanmış göster
-        var listHtml='';
-        rutin.adimlar.forEach(function(a,i){
-            listHtml+='<div class="timer-adim-item tamamlandi"><div class="tai-no done">✓</div><div class="tai-ad">'+esc(a.ad)+'</div><div class="tai-sure">'+a.sure+'dk</div></div>';
-        });
-        document.getElementById('st-adimlar-liste').innerHTML=listHtml;
-        return;
-    }
     var adim=rutin.adimlar[stAktifAdim];
     document.getElementById('timer-adim-no').textContent='ADIM '+(stAktifAdim+1)+'/'+rutin.adimlar.length+(stPhase==='mola'?' (MOLA)':'');
     document.getElementById('timer-adim-ad').textContent=stPhase==='mola'?'☕ Mola':adim.ad;
-    var sonraki=stPhase==='mola'?(stAktifAdim<rutin.adimlar.length-1?'Sonraki: '+rutin.adimlar[stAktifAdim+1].ad:'Son adım tamamlanıyor'):(adim.mola>0?'Sonraki: Mola ('+adim.mola+' dk)':(stAktifAdim<rutin.adimlar.length-1?'Sonraki: '+rutin.adimlar[stAktifAdim+1].ad:'Son adım'));
+    var sonraki=stPhase==='mola'?(stAktifAdim<rutin.adimlar.length-1?'Sonraki: '+rutin.adimlar[stAktifAdim+1].ad:'Son adım'):(adim.mola>0?'Sonraki: Mola ('+adim.mola+' dk)':(stAktifAdim<rutin.adimlar.length-1?'Sonraki: '+rutin.adimlar[stAktifAdim+1].ad:'Son adım'));
     document.getElementById('timer-adim-sonraki').textContent=sonraki;
     if(stState==='idle'){
         var sure=stPhase==='mola'?adim.mola:adim.sure;
@@ -1068,9 +1054,9 @@ function stTick(){
         var sn=Math.floor(totalOt/1000);var dk=Math.floor(sn/60);sn=sn%60;
         document.getElementById('st-time').textContent='+'+String(dk).padStart(2,'0')+':'+String(sn).padStart(2,'0');
         document.getElementById('st-time').className='timer-time overtime';
-        document.getElementById('st-status').innerHTML='<span class="status-badge st-overtime">'+(stPhase==='egzersiz'?'🟠 Çalışma Uzatması — devam et veya sonraki adıma geç':'🟣 Mola Uzatması — hazır olunca sonraki adıma geç')+'</span>';
+        document.getElementById('st-status').innerHTML='<span class="status-badge st-overtime">'+(stPhase==='egzersiz'?'🟠 Uzatma':'🟣 Mola Uzatması')+'</span>';
         if(stPhase==='egzersiz')stInfoGuncelle2(totalOt,0);else stInfoGuncelle2(0,totalOt);
-        var pEl=document.getElementById('st-progress');if(pEl)pEl.style.width='100%';
+        document.getElementById('st-progress').style.width='100%';
         return;
     }
     if(stState!=='running')return;
@@ -1081,8 +1067,8 @@ function stTick(){
     document.getElementById('st-time').className='timer-time '+(stPhase==='egzersiz'?'egzersiz':'mola');
     document.getElementById('st-status').innerHTML='<span class="status-badge '+(stPhase==='egzersiz'?'st-egzersiz':'st-mola')+'">'+(stPhase==='egzersiz'?'🟢 Egzersiz':'☕ Mola')+'</span>';
     var oran=stTotalTime>0?((stTotalTime-kalan)/stTotalTime)*100:0;
-    var pFill=document.getElementById('st-progress');
-    if(pFill){pFill.style.width=oran+'%';pFill.style.background=stPhase==='egzersiz'?'var(--green)':'var(--purple)';}
+    document.getElementById('st-progress').style.width=oran+'%';
+    document.getElementById('st-progress').querySelector('.timer-progress-fill').style.background=stPhase==='egzersiz'?'var(--green)':'var(--purple)';
     if(stPhase==='egzersiz')stInfoGuncelle2(elapsed*1000,0);else stInfoGuncelle2(0,elapsed*1000);
     if(kalan<=0){
         clearInterval(stInterval);
@@ -1109,7 +1095,7 @@ function stDevam(){
 }
 async function stSonrakiAdim(){
     clearInterval(stInterval);
-    // Mevcut fazın süresini ekle
+    // Overtime süresini ekle
     if(stState==='overtime'){
         var ot=Date.now()-stOvertimeStart+stOvertimeMs;
         if(stPhase==='egzersiz')stToplamSporMs+=ot;else stToplamMolaMs+=ot;
@@ -1117,34 +1103,18 @@ async function stSonrakiAdim(){
         var el=(Date.now()-stPhaseStartTime)/1000+stPausedElapsed;
         if(stPhase==='egzersiz')stToplamSporMs+=el*1000;else stToplamMolaMs+=el*1000;
     }else if(stState==='paused'){
-        if(stOvertimeMs>0){
-            if(stPhase==='egzersiz')stToplamSporMs+=stOvertimeMs;else stToplamMolaMs+=stOvertimeMs;
-        }else{
-            if(stPhase==='egzersiz')stToplamSporMs+=stPausedElapsed*1000;else stToplamMolaMs+=stPausedElapsed*1000;
-        }
+        if(stPhase==='egzersiz')stToplamSporMs+=stPausedElapsed*1000;else stToplamMolaMs+=stPausedElapsed*1000;
     }
     stOvertimeMs=0;stOvertimeStart=0;
     var rutin=stAktifRutin.rutin;var adim=rutin.adimlar[stAktifAdim];
     if(stPhase==='egzersiz'){
-        // Egzersiz bitti, adım süresini kaydet
-        var oncekiToplam=stAdimSureleri.reduce(function(s,a){return s+(a?a.sporMs||0:0);},0);
-        stAdimSureleri[stAktifAdim]={ad:adim.ad,sporMs:stToplamSporMs-oncekiToplam};
-        if(adim.mola>0){
-            // Molaya geç
-            stPhase='mola';
-        }else{
-            // Mola yok, sonraki adıma
-            stAktifAdim++;stPhase='egzersiz';
-        }
-    }else{
-        // Mola bitti, sonraki adıma
-        stAktifAdim++;stPhase='egzersiz';
-    }
+        stAdimSureleri[stAktifAdim]={ad:adim.ad,sporMs:stToplamSporMs-(stAdimSureleri.reduce(function(s,a){return s+(a?a.sporMs||0:0);},0))};
+        if(adim.mola>0){stPhase='mola';}
+        else{stAktifAdim++;stPhase='egzersiz';}
+    }else{stAktifAdim++;stPhase='egzersiz';}
     // Yarıda kaydet
     await stYaridaKaydet();
-    // Tüm adımlar bitti mi?
-    if(stAktifAdim>=rutin.adimlar.length){await stTamamlandi();return;}
-    // Sonraki faza başla
+    if(stAktifAdim>=rutin.adimlar.length){stTamamlandi();return;}
     stState='idle';stTimeLeft=0;stTotalTime=0;stPausedElapsed=0;
     timerEkranGuncelle();
     stBasla(); // Otomatik başlat
