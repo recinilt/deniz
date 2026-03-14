@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#0a0e17">
     <meta name="mobile-web-app-capable" content="yes">
-    <title>🚗 Araç Bakım Takip</title>
+    <title>🚗 Araç Takip</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚗</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -205,7 +205,7 @@
 <div id="ekran-giris" class="ekran">
     <div class="giris-wrapper">
         <div class="giris-logo">🚗</div>
-        <h1 class="giris-baslik">Araç Bakım Takip</h1>
+        <h1 class="giris-baslik">Araç Takip</h1>
         <p class="giris-aciklama">Araçlarını takip et, bakımları unutma!</p>
         <div class="giris-sekmeler">
             <button class="giris-sekme aktif" id="sekme-giris-btn" onclick="sekmeDegistir('giris')">Giriş Yap</button>
@@ -345,96 +345,26 @@ var userDatabase = {};
 var aktifEkran = 'ekran-giris';
 var aktifAracId = null;
 
-// Araç türleri
-var ARAC_TURLERI = {
-    'otomobil': { ad: '🚗 Otomobil', ikon: '🚗' },
-    'suv': { ad: '🚙 SUV/Arazi', ikon: '🚙' },
-    'hafif-ticari': { ad: '🚐 Hafif Ticari', ikon: '🚐' },
-    'kamyon': { ad: '🚛 Kamyon/Ağır Vasıta', ikon: '🚛' },
-    'motosiklet': { ad: '🏍️ Motosiklet', ikon: '🏍️' }
+// Bakım türleri ve varsayılan aralıkları
+var BAKIM_TURLERI = {
+    'yag': { ad: '🛢️ Motor Yağı + Filtre', varsayilanKm: 10000, varsayilanGun: 180 },
+    'buji': { ad: '⚡ Buji Değişimi', varsayilanKm: 40000, varsayilanGun: 730 },
+    'hava-filtre': { ad: '💨 Hava Filtresi', varsayilanKm: 20000, varsayilanGun: 365 },
+    'polen-filtre': { ad: '🌿 Polen Filtresi', varsayilanKm: 15000, varsayilanGun: 365 },
+    'fren-balata': { ad: '🛑 Fren Balatası', varsayilanKm: 30000, varsayilanGun: 730 },
+    'fren-hidroligi': { ad: '💧 Fren Hidroliği', varsayilanKm: 40000, varsayilanGun: 730 },
+    'antifriz': { ad: '❄️ Antifriz/Soğutma', varsayilanKm: 50000, varsayilanGun: 730 },
+    'aku': { ad: '🔋 Akü', varsayilanKm: 0, varsayilanGun: 1095 },
+    'lastik-rotasyon': { ad: '🔄 Lastik Rotasyonu', varsayilanKm: 10000, varsayilanGun: 365 },
+    'triger': { ad: '⛓️ Triger Kayışı', varsayilanKm: 80000, varsayilanGun: 1825 },
+    'sanziman-yag': { ad: '⚙️ Şanzıman Yağı', varsayilanKm: 50000, varsayilanGun: 1095 },
+    'direksiyon-hidroligi': { ad: '🔃 Direksiyon Hidroliği', varsayilanKm: 60000, varsayilanGun: 1095 },
+    'genel-bakim': { ad: '🔧 Genel Bakım/Tamir', varsayilanKm: 0, varsayilanGun: 0 },
+    'muayene': { ad: '📋 Muayene', varsayilanKm: 0, varsayilanGun: 365 },
+    'sigorta': { ad: '🛡️ Sigorta', varsayilanKm: 0, varsayilanGun: 365 },
+    'lastik': { ad: '🛞 Lastik Değişimi', varsayilanKm: 50000, varsayilanGun: 1460 },
+    'not': { ad: '📝 Not', varsayilanKm: 0, varsayilanGun: 0 }
 };
-
-// Bakım türleri - temel tanımlar (ad + ikon)
-var BAKIM_TURLERI_TANIM = {
-    'yag': { ad: '🛢️ Motor Yağı + Filtre' },
-    'buji': { ad: '⚡ Buji Değişimi' },
-    'hava-filtre': { ad: '💨 Hava Filtresi' },
-    'polen-filtre': { ad: '🌿 Polen Filtresi' },
-    'fren-balata': { ad: '🛑 Fren Balatası' },
-    'fren-hidroligi': { ad: '💧 Fren Hidroliği' },
-    'antifriz': { ad: '❄️ Antifriz/Soğutma' },
-    'aku': { ad: '🔋 Akü' },
-    'lastik-rotasyon': { ad: '🔄 Lastik Rotasyonu' },
-    'triger': { ad: '⛓️ Triger Kayışı' },
-    'sanziman-yag': { ad: '⚙️ Şanzıman Yağı' },
-    'direksiyon-hidroligi': { ad: '🔃 Direksiyon Hidroliği' },
-    'zincir-disli': { ad: '⛓️ Zincir-Dişli Seti' },
-    'genel-bakim': { ad: '🔧 Genel Bakım/Tamir' },
-    'muayene': { ad: '📋 Muayene' },
-    'sigorta': { ad: '🛡️ Sigorta' },
-    'lastik': { ad: '🛞 Lastik Değişimi' },
-    'not': { ad: '📝 Not' }
-};
-
-// Araç türüne göre bakım periyotları (km / gün)
-var BAKIM_PERIYOTLARI = {
-    'otomobil': {
-        'yag': { km: 10000, gun: 365 }, 'buji': { km: 40000, gun: 730 }, 'hava-filtre': { km: 20000, gun: 365 },
-        'polen-filtre': { km: 15000, gun: 365 }, 'fren-balata': { km: 40000, gun: 730 }, 'fren-hidroligi': { km: 40000, gun: 730 },
-        'antifriz': { km: 50000, gun: 1460 }, 'aku': { km: 0, gun: 1460 }, 'lastik-rotasyon': { km: 10000, gun: 365 },
-        'triger': { km: 100000, gun: 1825 }, 'sanziman-yag': { km: 60000, gun: 1095 }, 'direksiyon-hidroligi': { km: 60000, gun: 1095 },
-        'genel-bakim': { km: 0, gun: 0 }, 'muayene': { km: 0, gun: 730 }, 'sigorta': { km: 0, gun: 365 },
-        'lastik': { km: 50000, gun: 1825 }, 'not': { km: 0, gun: 0 }
-    },
-    'suv': {
-        'yag': { km: 10000, gun: 365 }, 'buji': { km: 40000, gun: 730 }, 'hava-filtre': { km: 20000, gun: 365 },
-        'polen-filtre': { km: 15000, gun: 365 }, 'fren-balata': { km: 35000, gun: 730 }, 'fren-hidroligi': { km: 40000, gun: 730 },
-        'antifriz': { km: 50000, gun: 1460 }, 'aku': { km: 0, gun: 1460 }, 'lastik-rotasyon': { km: 10000, gun: 365 },
-        'triger': { km: 100000, gun: 1825 }, 'sanziman-yag': { km: 60000, gun: 1095 }, 'direksiyon-hidroligi': { km: 60000, gun: 1095 },
-        'genel-bakim': { km: 0, gun: 0 }, 'muayene': { km: 0, gun: 730 }, 'sigorta': { km: 0, gun: 365 },
-        'lastik': { km: 45000, gun: 1825 }, 'not': { km: 0, gun: 0 }
-    },
-    'hafif-ticari': {
-        'yag': { km: 10000, gun: 365 }, 'buji': { km: 40000, gun: 730 }, 'hava-filtre': { km: 20000, gun: 365 },
-        'polen-filtre': { km: 15000, gun: 365 }, 'fren-balata': { km: 30000, gun: 545 }, 'fren-hidroligi': { km: 40000, gun: 730 },
-        'antifriz': { km: 50000, gun: 1460 }, 'aku': { km: 0, gun: 1460 }, 'lastik-rotasyon': { km: 10000, gun: 365 },
-        'triger': { km: 100000, gun: 1825 }, 'sanziman-yag': { km: 60000, gun: 1095 }, 'direksiyon-hidroligi': { km: 60000, gun: 1095 },
-        'genel-bakim': { km: 0, gun: 0 }, 'muayene': { km: 0, gun: 365 }, 'sigorta': { km: 0, gun: 365 },
-        'lastik': { km: 40000, gun: 1460 }, 'not': { km: 0, gun: 0 }
-    },
-    'kamyon': {
-        'yag': { km: 30000, gun: 365 }, 'buji': { km: 0, gun: 0 }, 'hava-filtre': { km: 30000, gun: 365 },
-        'polen-filtre': { km: 30000, gun: 365 }, 'fren-balata': { km: 60000, gun: 365 }, 'fren-hidroligi': { km: 60000, gun: 365 },
-        'antifriz': { km: 100000, gun: 1460 }, 'aku': { km: 0, gun: 1095 }, 'lastik-rotasyon': { km: 20000, gun: 365 },
-        'triger': { km: 200000, gun: 1825 }, 'sanziman-yag': { km: 100000, gun: 1095 }, 'direksiyon-hidroligi': { km: 80000, gun: 1095 },
-        'genel-bakim': { km: 0, gun: 0 }, 'muayene': { km: 0, gun: 365 }, 'sigorta': { km: 0, gun: 365 },
-        'lastik': { km: 80000, gun: 1460 }, 'not': { km: 0, gun: 0 }
-    },
-    'motosiklet': {
-        'yag': { km: 4000, gun: 180 }, 'buji': { km: 12000, gun: 365 }, 'hava-filtre': { km: 8000, gun: 365 },
-        'fren-balata': { km: 15000, gun: 365 }, 'fren-hidroligi': { km: 0, gun: 1095 },
-        'antifriz': { km: 30000, gun: 730 }, 'aku': { km: 0, gun: 1095 }, 'zincir-disli': { km: 25000, gun: 730 },
-        'triger': { km: 40000, gun: 1460 }, 'lastik': { km: 15000, gun: 730 },
-        'genel-bakim': { km: 0, gun: 0 }, 'muayene': { km: 0, gun: 365 }, 'sigorta': { km: 0, gun: 365 },
-        'not': { km: 0, gun: 0 }
-    }
-};
-
-// Araç türüne göre BAKIM_TURLERI döndür (eski yapıyla uyumlu)
-function getBakimTurleri(aracTuru) {
-    var tur = aracTuru || 'otomobil';
-    var periyotlar = BAKIM_PERIYOTLARI[tur] || BAKIM_PERIYOTLARI['otomobil'];
-    var sonuc = {};
-    Object.keys(periyotlar).forEach(function(k) {
-        if (BAKIM_TURLERI_TANIM[k]) {
-            sonuc[k] = { ad: BAKIM_TURLERI_TANIM[k].ad, varsayilanKm: periyotlar[k].km, varsayilanGun: periyotlar[k].gun };
-        }
-    });
-    return sonuc;
-}
-
-// Eski uyumluluk - varsayılan otomobil
-var BAKIM_TURLERI = getBakimTurleri('otomobil');
 
 var ARAC_IKONLARI = ['🚗','🏎️','🚙','🚐','🛻','🏍️','🚕','🚘','🚖','🏁'];
 
@@ -488,7 +418,7 @@ async function loadUserDatabase(){
 async function saveUserDatabase(){
     try{
         var json=JSON.stringify(userDatabase,null,2);
-        var res=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'write',dosyaAdi:dosyaAdi,content:json,message:'Araç Bakım Takip güncellendi'})});
+        var res=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'write',dosyaAdi:dosyaAdi,content:json,message:'Araç takip güncellendi'})});
         var data=await res.json();
         if(!data.success)throw new Error(data.error||'Worker hatası');
     }catch(e){console.error('Kaydetme hatası:',e);throw e;}
@@ -612,7 +542,7 @@ function garajRender(){
         html+='<div class="arac-ikon">'+a.ikon+'</div>';
         html+='<div class="arac-bilgi">';
         html+='<div class="arac-plaka">'+esc(a.plaka)+'</div>';
-        html+='<div class="arac-model">'+esc(a.marka)+' '+esc(a.model)+' ('+a.yil+')'+(a.aracTuru&&ARAC_TURLERI[a.aracTuru]?' — '+ARAC_TURLERI[a.aracTuru].ad:'')+'</div>';
+        html+='<div class="arac-model">'+esc(a.marka)+' '+esc(a.model)+' ('+a.yil+')</div>';
         html+='<div class="arac-km">📏 '+a.km.toLocaleString('tr-TR')+' km</div>';
         html+='</div></div>';
         if(kirmizi>0||sari>0){
@@ -628,9 +558,6 @@ function garajRender(){
 
 function aracEkleModal(){
     var html='<h3 style="color:var(--accent);margin-bottom:14px;">🚗 Yeni Araç Ekle</h3>';
-    html+='<div class="form-group"><label class="form-label">Araç Türü *</label><select id="ae-tur" class="input" onchange="aracTurIkonGuncelle()">';
-    Object.keys(ARAC_TURLERI).forEach(function(k){html+='<option value="'+k+'">'+ARAC_TURLERI[k].ad+'</option>';});
-    html+='</select></div>';
     html+='<div class="form-group"><label class="form-label">Araç İkonu</label><div class="avatar-grid" id="arac-ikon-grid">';
     ARAC_IKONLARI.forEach(function(i,idx){html+='<div class="avatar-item'+(idx===0?' aktif':'')+'" data-avatar="'+i+'" onclick="avatarSec(this)">'+i+'</div>';});
     html+='</div></div>';
@@ -647,16 +574,6 @@ function aracEkleModal(){
     modalAc(html);
 }
 
-function aracTurIkonGuncelle(){
-    var tur=document.getElementById('ae-tur').value;
-    var at=ARAC_TURLERI[tur];
-    if(at){
-        var grid=document.querySelectorAll('#arac-ikon-grid .avatar-item');
-        grid.forEach(function(g){g.classList.remove('aktif');});
-        grid.forEach(function(g){if(g.dataset.avatar===at.ikon)g.classList.add('aktif');});
-    }
-}
-
 async function aracEkle(){
     var ikon=document.querySelector('#arac-ikon-grid .avatar-item.aktif');
     var plaka=document.getElementById('ae-plaka').value.trim().toUpperCase();
@@ -664,13 +581,11 @@ async function aracEkle(){
     var model=document.getElementById('ae-model').value.trim();
     var yil=parseInt(document.getElementById('ae-yil').value)||new Date().getFullYear();
     var km=parseInt(document.getElementById('ae-km').value)||0;
-    var aracTuru=document.getElementById('ae-tur').value||'otomobil';
     if(!plaka||!marka||!model){bildirim('⚠️ Plaka, marka ve model gerekli!','uyari');return;}
     if(!userData.araclar)userData.araclar=[];
     userData.araclar.push({
         id:'arc_'+Date.now(),
         plaka:plaka,marka:marka,model:model,yil:yil,km:km,
-        aracTuru:aracTuru,
         ikon:ikon?ikon.dataset.avatar:'🚗',
         bakimlar:[],yakitlar:[],notlar:[],
         createdAt:bugunStr()
@@ -700,7 +615,7 @@ function detaySekmeDeg(panel,btn){
 function detayRender(){
     var a=getAktifArac();if(!a)return;
     document.getElementById('detay-baslik-plaka').textContent=a.ikon+' '+a.plaka;
-    document.getElementById('detay-baslik-model').textContent=a.marka+' '+a.model+' ('+a.yil+') — '+a.km.toLocaleString('tr-TR')+' km'+(a.aracTuru&&ARAC_TURLERI[a.aracTuru]?' | '+ARAC_TURLERI[a.aracTuru].ad:'');
+    document.getElementById('detay-baslik-model').textContent=a.marka+' '+a.model+' ('+a.yil+') — '+a.km.toLocaleString('tr-TR')+' km';
     yaklasBakimRender(a);
     gecmisRender(a);
     yakitRender(a);
@@ -714,9 +629,8 @@ function detayRender(){
 function yaklasBakimHesapla(a){
     var sonuc=[];
     var bugun=bugunStr();
-    var bakimTurleri=getBakimTurleri(a.aracTuru||'otomobil');
-    Object.keys(bakimTurleri).forEach(function(tur){
-        var bt=bakimTurleri[tur];
+    Object.keys(BAKIM_TURLERI).forEach(function(tur){
+        var bt=BAKIM_TURLERI[tur];
         if(bt.varsayilanKm===0&&bt.varsayilanGun===0)return;
         var sonBakim=null;
         (a.bakimlar||[]).forEach(function(b){
@@ -790,7 +704,7 @@ function gecmisRender(a){
     if(bakimlar.length===0){el.innerHTML='<div style="color:var(--text3);text-align:center;padding:20px;font-size:13px;">Henüz bakım kaydı yok.</div>';return;}
     var html='';
     bakimlar.forEach(function(b){
-        var bt=BAKIM_TURLERI_TANIM[b.tur];
+        var bt=BAKIM_TURLERI[b.tur];
         html+='<div class="bakim-item"><div class="bakim-item-ust">';
         html+='<div><div class="bakim-tur-badge">'+(bt?bt.ad:b.tur)+'</div></div>';
         html+='<div style="display:flex;align-items:center;gap:6px;"><span class="bakim-tarih">'+tarihFormat(b.tarih)+'</span>';
@@ -807,14 +721,13 @@ function gecmisRender(a){
 
 function bakimEkleModal(){
     var a=getAktifArac();if(!a)return;
-    var bakimTurleri=getBakimTurleri(a.aracTuru||'otomobil');
     var html='<h3 style="color:var(--accent);margin-bottom:14px;">🔧 Bakım Kaydı Ekle</h3>';
     html+='<div class="form-group"><label class="form-label">Bakım Türü *</label><select id="be-tur" class="input" onchange="bakimTurDeg()">';
-    Object.keys(bakimTurleri).forEach(function(k){html+='<option value="'+k+'">'+bakimTurleri[k].ad+'</option>';});
+    Object.keys(BAKIM_TURLERI).forEach(function(k){html+='<option value="'+k+'">'+BAKIM_TURLERI[k].ad+'</option>';});
     html+='</select></div>';
     html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">';
-    html+='<div class="form-group"><label class="form-label">Tarih *</label><input type="date" id="be-tarih" class="input" value="'+bugunStr()+'" onchange="bakimTurDeg()"></div>';
-    html+='<div class="form-group"><label class="form-label">KM</label><input type="number" id="be-km" class="input" placeholder="'+a.km+'" value="'+a.km+'" onchange="bakimTurDeg()"></div>';
+    html+='<div class="form-group"><label class="form-label">Tarih *</label><input type="date" id="be-tarih" class="input" value="'+bugunStr()+'"></div>';
+    html+='<div class="form-group"><label class="form-label">KM</label><input type="number" id="be-km" class="input" placeholder="'+a.km+'" value="'+a.km+'"></div>';
     html+='</div>';
     html+='<div class="form-group"><label class="form-label">Maliyet (₺)</label><input type="number" id="be-maliyet" class="input" placeholder="0" step="0.01"></div>';
     html+='<div class="form-group"><label class="form-label">Not / Açıklama</label><input type="text" id="be-not" class="input" placeholder="Detay..." maxlength="200"></div>';
@@ -829,22 +742,19 @@ function bakimEkleModal(){
 
 function bakimTurDeg(){
     var tur=document.getElementById('be-tur').value;
+    var bt=BAKIM_TURLERI[tur];
     var a=getAktifArac();if(!a)return;
-    var bakimTurleri=getBakimTurleri(a.aracTuru||'otomobil');
-    var bt=bakimTurleri[tur];
     var kmEl=document.getElementById('be-sonraki-km');
     var tarihEl=document.getElementById('be-sonraki-tarih');
-    if(bt&&bt.varsayilanKm>0){
+    if(bt.varsayilanKm>0){
         var mevcutKm=parseInt(document.getElementById('be-km').value)||a.km;
-        kmEl.value=mevcutKm+bt.varsayilanKm;
         kmEl.placeholder=(mevcutKm+bt.varsayilanKm).toLocaleString('tr-TR');
-    }else{kmEl.value='';kmEl.placeholder='Yok';}
-    if(bt&&bt.varsayilanGun>0){
+    }else{kmEl.placeholder='Yok';}
+    if(bt.varsayilanGun>0){
         var d=new Date(document.getElementById('be-tarih').value||bugunStr());
         d.setDate(d.getDate()+bt.varsayilanGun);
-        tarihEl.value=d.toISOString().split('T')[0];
         tarihEl.placeholder=d.toISOString().split('T')[0];
-    }else{tarihEl.value='';tarihEl.placeholder='Yok';}
+    }else{tarihEl.placeholder='Yok';}
 }
 
 async function bakimEkle(){
@@ -857,10 +767,9 @@ async function bakimEkle(){
     var not_=document.getElementById('be-not').value.trim();
     var sonrakiKmVal=parseInt(document.getElementById('be-sonraki-km').value)||0;
     var sonrakiTarihVal=document.getElementById('be-sonraki-tarih').value||'';
-    var bakimTurleri=getBakimTurleri(a.aracTuru||'otomobil');
-    var bt=bakimTurleri[tur];
-    if(!sonrakiKmVal&&bt&&bt.varsayilanKm>0)sonrakiKmVal=km+bt.varsayilanKm;
-    if(!sonrakiTarihVal&&bt&&bt.varsayilanGun>0){
+    var bt=BAKIM_TURLERI[tur];
+    if(!sonrakiKmVal&&bt.varsayilanKm>0)sonrakiKmVal=km+bt.varsayilanKm;
+    if(!sonrakiTarihVal&&bt.varsayilanGun>0){
         var d=new Date(tarih);d.setDate(d.getDate()+bt.varsayilanGun);
         sonrakiTarihVal=d.toISOString().split('T')[0];
     }
@@ -976,7 +885,7 @@ function maliyetRender(a){
     var bakimlar=a.bakimlar||[];
     var yakitlar=a.yakitlar||[];
     var tumMaliyet=[];
-    bakimlar.forEach(function(b){if(b.maliyet)tumMaliyet.push({tarih:b.tarih,tutar:b.maliyet,tur:'bakim',ad:BAKIM_TURLERI_TANIM[b.tur]?BAKIM_TURLERI_TANIM[b.tur].ad:b.tur});});
+    bakimlar.forEach(function(b){if(b.maliyet)tumMaliyet.push({tarih:b.tarih,tutar:b.maliyet,tur:'bakim',ad:BAKIM_TURLERI[b.tur]?BAKIM_TURLERI[b.tur].ad:b.tur});});
     yakitlar.forEach(function(y){if(y.maliyet)tumMaliyet.push({tarih:y.tarih,tutar:y.maliyet,tur:'yakit',ad:'⛽ Yakıt'});});
 
     if(tumMaliyet.length===0){el.innerHTML='<div style="color:var(--text3);text-align:center;padding:20px;">Maliyet verisi yok.</div>';return;}
@@ -1018,7 +927,7 @@ function maliyetRender(a){
     var katMaliyet={};
     bakimlar.forEach(function(b){
         if(!b.maliyet)return;
-        var ad=BAKIM_TURLERI_TANIM[b.tur]?BAKIM_TURLERI_TANIM[b.tur].ad:b.tur;
+        var ad=BAKIM_TURLERI[b.tur]?BAKIM_TURLERI[b.tur].ad:b.tur;
         if(!katMaliyet[ad])katMaliyet[ad]=0;
         katMaliyet[ad]+=b.maliyet;
     });
@@ -1094,9 +1003,6 @@ async function notSil(id){
 function aracDuzenleModal(){
     var a=getAktifArac();if(!a)return;
     var html='<h3 style="color:var(--accent);margin-bottom:14px;">✏️ Araç Düzenle</h3>';
-    html+='<div class="form-group"><label class="form-label">Araç Türü</label><select id="ad-aracTuru" class="input">';
-    Object.keys(ARAC_TURLERI).forEach(function(k){html+='<option value="'+k+'"'+(a.aracTuru===k?' selected':'')+'>'+ARAC_TURLERI[k].ad+'</option>';});
-    html+='</select></div>';
     html+='<div class="form-group"><label class="form-label">Plaka</label><input type="text" id="ad-plaka" class="input" value="'+esc(a.plaka)+'" style="text-transform:uppercase;" maxlength="15"></div>';
     html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">';
     html+='<div class="form-group"><label class="form-label">Marka</label><input type="text" id="ad-marka" class="input" value="'+esc(a.marka)+'" maxlength="30"></div>';
@@ -1120,7 +1026,6 @@ async function aracDuzenleKaydet(){
     a.model=document.getElementById('ad-model').value.trim()||a.model;
     a.yil=parseInt(document.getElementById('ad-yil').value)||a.yil;
     a.km=parseInt(document.getElementById('ad-km').value)||a.km;
-    a.aracTuru=document.getElementById('ad-aracTuru').value||a.aracTuru||'otomobil';
     userDatabase[currentUser]=userData;
     yuklemeGoster();
     try{await saveUserDatabase();bildirim('✅ Araç güncellendi!','basari');detayRender();modalKapat();}
@@ -1176,7 +1081,7 @@ function yazdir(){
     html+='<p class="info">Yazdırma tarihi: '+new Date().toLocaleDateString('tr-TR')+'</p>';
     html+='<table><thead><tr><th>Tarih</th><th>Bakım Türü</th><th>KM</th><th>Maliyet</th><th>Not</th></tr></thead><tbody>';
     bakimlar.forEach(function(b){
-        var bt=BAKIM_TURLERI_TANIM[b.tur];
+        var bt=BAKIM_TURLERI[b.tur];
         html+='<tr><td>'+tarihFormat(b.tarih)+'</td><td>'+(bt?bt.ad:b.tur)+'</td><td>'+(b.km||'-')+'</td><td>'+(b.maliyet?paraFormat(b.maliyet):'-')+'</td><td>'+(b.not?esc(b.not):'-')+'</td></tr>';
     });
     html+='</tbody></table></body></html>';
