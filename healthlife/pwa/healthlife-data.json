@@ -1,0 +1,23 @@
+{
+  "admin": {
+    "password": "HealthLife2026!",
+    "profil": {
+      "avatar": "🏋️",
+      "nick": "Admin",
+      "boy": 175,
+      "kilo": 80,
+      "cinsiyet": "erkek"
+    },
+    "uyeler": {},
+    "adminRutinleri": [],
+    "adminDiyetleri": [],
+    "hedefler": {
+      "gunlukDk": 0,
+      "haftalikDk": 0,
+      "kiloHedef": 0
+    },
+    "sporOturumlari": [],
+    "kiloKayitlari": [],
+    "diyetKayitlari": []
+  }
+}
