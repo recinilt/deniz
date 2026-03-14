@@ -1147,9 +1147,7 @@ function gunDotHtml(tarih){
     var gunIdx=new Date(tarih).getDay();
     var sporVar=false,diyetVar=false;
     (userData.sporRutinleri||[]).forEach(function(r){if(r.gunler&&r.gunler.indexOf(gunIdx)!==-1)sporVar=true;});
-    getAdminRutinleri().forEach(function(r){if(r.gunler&&r.gunler.indexOf(gunIdx)!==-1)sporVar=true;});
     (userData.diyetProgramlari||[]).forEach(function(d){if(d.gunler&&d.gunler.indexOf(gunIdx)!==-1)diyetVar=true;});
-    getAdminDiyetleri().forEach(function(d){if(d.gunler&&d.gunler.indexOf(gunIdx)!==-1)diyetVar=true;});
     if(sporVar)dots+='<span style="background:var(--sport);"></span>';
     if(diyetVar)dots+='<span style="background:var(--diet);"></span>';
     return dots;
@@ -1829,17 +1827,6 @@ function takTakvimRender(){
 function takGunTikla(tarih){
     var gunIdx=new Date(tarih).getDay();
     var html='<h3 style="color:var(--accent);margin-bottom:14px;">📅 '+tarih+'</h3>';
-    // Admin sabit rutinleri
-    var adminRut=getAdminRutinleri();
-    var adminOnerilen=[];
-    adminRut.forEach(function(r,i){if(r.gunler&&r.gunler.indexOf(gunIdx)!==-1)adminOnerilen.push({r:r,i:i});});
-    if(adminOnerilen.length>0){
-        html+='<div style="margin-bottom:12px;"><div style="font-size:12px;color:var(--purple);font-weight:700;margin-bottom:6px;">🔒 Salon Rutinleri</div>';
-        adminOnerilen.forEach(function(item){
-            html+='<div class="bugun-kart" onclick="modalKapat();sporRutiniSecAdmin('+item.i+',\''+tarih+'\')"><div class="bk-header"><span class="bk-icon">💪</span><span class="bk-title">'+esc(item.r.ad)+'</span><span class="bk-badge bk-badge-lock">🔒 Sabit</span></div></div>';
-        });
-        html+='</div>';
-    }
     // Önerilen spor rutinleri
     var onerilen=[];var digerleri=[];
     (userData.sporRutinleri||[]).forEach(function(r,i){
@@ -1847,7 +1834,7 @@ function takGunTikla(tarih){
         else digerleri.push({r:r,i:i});
     });
     if(onerilen.length>0){
-        html+='<div style="margin-bottom:12px;"><div style="font-size:12px;color:var(--sport);font-weight:700;margin-bottom:6px;">💪 Kendi Rutinlerin</div>';
+        html+='<div style="margin-bottom:12px;"><div style="font-size:12px;color:var(--sport);font-weight:700;margin-bottom:6px;">💪 Önerilen Spor Rutinleri</div>';
         onerilen.forEach(function(item){
             html+='<div class="bugun-kart" onclick="modalKapat();sporRutiniSec('+item.i+',\''+tarih+'\')"><div class="bk-header"><span class="bk-icon">💪</span><span class="bk-title">'+esc(item.r.ad)+'</span><span class="bk-badge bk-badge-sport">⭐ Önerilen</span></div></div>';
         });
@@ -1860,30 +1847,19 @@ function takGunTikla(tarih){
         });
         html+='</div>';
     }
-    // Admin sabit diyetleri
-    var adminDiyet=getAdminDiyetleri();
-    var adminDiyetOnerilen=[];
-    adminDiyet.forEach(function(d,i){if(d.gunler&&d.gunler.indexOf(gunIdx)!==-1)adminDiyetOnerilen.push({d:d,i:i});});
-    if(adminDiyetOnerilen.length>0){
-        html+='<div style="margin-bottom:12px;"><div style="font-size:12px;color:var(--yellow);font-weight:700;margin-bottom:6px;">🔒 Salon Diyet Programları</div>';
-        adminDiyetOnerilen.forEach(function(item){
-            html+='<div class="bugun-kart" onclick="modalKapat();setTimeout(function(){diyetDetayModal('+item.i+',\''+tarih+'\',true);},200)"><div class="bk-header"><span class="bk-icon">🥗</span><span class="bk-title">'+esc(item.d.ad)+'</span><span class="bk-badge bk-badge-lock">🔒 Sabit</span></div></div>';
-        });
-        html+='</div>';
-    }
     // Diyet
     var diyetOnerilen=[];
     (userData.diyetProgramlari||[]).forEach(function(d,i){
         if(d.gunler&&d.gunler.indexOf(gunIdx)!==-1)diyetOnerilen.push({d:d,i:i});
     });
     if(diyetOnerilen.length>0){
-        html+='<div><div style="font-size:12px;color:var(--diet);font-weight:700;margin-bottom:6px;">🥗 Kendi Diyet Programların</div>';
+        html+='<div><div style="font-size:12px;color:var(--diet);font-weight:700;margin-bottom:6px;">🥗 Diyet Programları</div>';
         diyetOnerilen.forEach(function(item){
             html+='<div class="bugun-kart" onclick="modalKapat();setTimeout(function(){diyetDetayModal('+item.i+',\''+tarih+'\');},200)"><div class="bk-header"><span class="bk-icon">🥗</span><span class="bk-title">'+esc(item.d.ad)+'</span></div></div>';
         });
         html+='</div>';
     }
-    if(!adminOnerilen.length&&!onerilen.length&&!digerleri.length&&!adminDiyetOnerilen.length&&!diyetOnerilen.length)html+='<p style="color:var(--text3);font-size:13px;">Bu gün için plan yok.</p>';
+    if(!onerilen.length&&!digerleri.length&&!diyetOnerilen.length)html+='<p style="color:var(--text3);font-size:13px;">Bu gün için plan yok.</p>';
     modalAc(html);
 }
 
