@@ -547,9 +547,6 @@
             <div class="profil-menu-item" onclick="adminDiyetYonetModal()"><span class="menu-ikon">🥗</span><span class="menu-metin">Sabit Diyetler (Tüm Üyelere)</span><span class="menu-ok">›</span></div>
             <div class="profil-menu-item" onclick="adminSifreDegistirModal()"><span class="menu-ikon">🔑</span><span class="menu-metin">Yönetici Şifresi Değiştir</span><span class="menu-ok">›</span></div>
         </div>
-        <div id="pwa-yukle-item" class="profil-menu-item gizli" onclick="pwaYukle()" style="background:var(--accent-g);border-bottom:1px solid var(--accent-d);">
-            <span class="menu-ikon">📲</span><span class="menu-metin" style="color:var(--accent);font-weight:700;">Uygulamayı Yükle</span><span class="menu-ok" style="color:var(--accent);">›</span>
-        </div>
         <div class="profil-menu-item" onclick="cikisYap()"><span class="menu-ikon">🚪</span><span class="menu-metin" style="color:var(--red);">Çıkış Yap</span><span class="menu-ok" style="color:var(--red);">›</span></div>
     </div>
 </div>
@@ -2126,51 +2123,7 @@ async function basla(){
 }
 basla();
 // PWA Service Worker Kaydı
-var deferredPrompt=null;
 if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(function(e){console.log('SW kayıt hatası:',e);});}
-// PWA Install Prompt yakalama
-window.addEventListener('beforeinstallprompt',function(e){
-    e.preventDefault();deferredPrompt=e;
-    var el=document.getElementById('pwa-yukle-item');if(el)el.classList.remove('gizli');
-});
-window.addEventListener('appinstalled',function(){
-    deferredPrompt=null;
-    var el=document.getElementById('pwa-yukle-item');if(el)el.classList.add('gizli');
-    bildirim('✅ Uygulama yüklendi!','basari');
-});
-function pwaYukle(){
-    if(deferredPrompt){
-        deferredPrompt.prompt();
-        deferredPrompt.userChoice.then(function(result){
-            if(result.outcome==='accepted')bildirim('✅ Uygulama yükleniyor...','basari');
-            deferredPrompt=null;
-            var el=document.getElementById('pwa-yukle-item');if(el)el.classList.add('gizli');
-        });
-    }else{
-        // iOS veya prompt yakalanamadıysa manuel talimat
-        var isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent);
-        var isSafari=/^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-        var isStandalone=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone;
-        if(isStandalone){bildirim('✅ Uygulama zaten yüklü!','basari');return;}
-        if(isIOS){
-            modalAc('<h3 style="color:var(--accent);margin-bottom:14px;">📲 iPhone\'a Yükle</h3>'+
-            '<div style="font-size:14px;color:var(--text2);line-height:2;">'+
-            '<p>1️⃣ Safari\'de alt barda <strong style="color:var(--accent);font-size:20px;">⬆</strong> (Paylaş) butonuna bas</p>'+
-            '<p>2️⃣ Aşağı kaydır, <strong style="color:var(--accent);">\"Ana Ekrana Ekle\"</strong> seç</p>'+
-            '<p>3️⃣ Sağ üstten <strong style="color:var(--accent);">\"Ekle\"</strong> bas</p></div>'+
-            '<p style="margin-top:12px;font-size:12px;color:var(--text3);">⚠️ Bu işlem sadece Safari tarayıcısında çalışır.</p>');
-        }else{
-            modalAc('<h3 style="color:var(--accent);margin-bottom:14px;">📲 Uygulamayı Yükle</h3>'+
-            '<div style="font-size:14px;color:var(--text2);line-height:2;">'+
-            '<p>1️⃣ Chrome menüsünü aç <strong style="color:var(--accent);font-size:18px;">⋮</strong></p>'+
-            '<p>2️⃣ <strong style="color:var(--accent);">\"Ana ekrana ekle\"</strong> veya <strong style="color:var(--accent);">\"Uygulamayı yükle\"</strong> seç</p></div>');
-        }
-    }
-}
-// Standalone modda çalışıyorsa butonu gizle
-if(window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone){
-    var el=document.getElementById('pwa-yukle-item');if(el)el.classList.add('gizli');
-}
 </script>
 </body>
 </html>
