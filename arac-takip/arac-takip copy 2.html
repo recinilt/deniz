@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#0a0e17">
     <meta name="mobile-web-app-capable" content="yes">
-    <title>🚗 Araç Takip</title>
+    <title>🚗 Araç Bakım Takip</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚗</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -205,7 +205,7 @@
 <div id="ekran-giris" class="ekran">
     <div class="giris-wrapper">
         <div class="giris-logo">🚗</div>
-        <h1 class="giris-baslik">Araç Takip</h1>
+        <h1 class="giris-baslik">Araç Bakım Takip</h1>
         <p class="giris-aciklama">Araçlarını takip et, bakımları unutma!</p>
         <div class="giris-sekmeler">
             <button class="giris-sekme aktif" id="sekme-giris-btn" onclick="sekmeDegistir('giris')">Giriş Yap</button>
@@ -488,7 +488,7 @@ async function loadUserDatabase(){
 async function saveUserDatabase(){
     try{
         var json=JSON.stringify(userDatabase,null,2);
-        var res=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'write',dosyaAdi:dosyaAdi,content:json,message:'Araç takip güncellendi'})});
+        var res=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'write',dosyaAdi:dosyaAdi,content:json,message:'Araç Bakım Takip güncellendi'})});
         var data=await res.json();
         if(!data.success)throw new Error(data.error||'Worker hatası');
     }catch(e){console.error('Kaydetme hatası:',e);throw e;}
@@ -819,8 +819,8 @@ function bakimEkleModal(){
     html+='<div class="form-group"><label class="form-label">Maliyet (₺)</label><input type="number" id="be-maliyet" class="input" placeholder="0" step="0.01"></div>';
     html+='<div class="form-group"><label class="form-label">Not / Açıklama</label><input type="text" id="be-not" class="input" placeholder="Detay..." maxlength="200"></div>';
     html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">';
-    html+='<div class="form-group"><label class="form-label">Sonraki Bakım KM</label><input type="number" id="be-sonraki-km" class="input" placeholder="Otomatik"><span id="be-oneri-km" style="display:block;font-size:11px;color:var(--text3);margin-top:3px;font-style:italic;"></span></div>';
-    html+='<div class="form-group"><label class="form-label">Sonraki Bakım Tarih</label><input type="date" id="be-sonraki-tarih" class="input"><span id="be-oneri-tarih" style="display:block;font-size:11px;color:var(--text3);margin-top:3px;font-style:italic;"></span></div>';
+    html+='<div class="form-group"><label class="form-label">Sonraki Bakım KM</label><input type="number" id="be-sonraki-km" class="input" placeholder="Otomatik"></div>';
+    html+='<div class="form-group"><label class="form-label">Sonraki Bakım Tarih</label><input type="date" id="be-sonraki-tarih" class="input"></div>';
     html+='</div>';
     html+='<button class="btn btn-primary btn-block" onclick="bakimEkle()">✅ Kaydet</button>';
     modalAc(html);
@@ -834,27 +834,17 @@ function bakimTurDeg(){
     var bt=bakimTurleri[tur];
     var kmEl=document.getElementById('be-sonraki-km');
     var tarihEl=document.getElementById('be-sonraki-tarih');
-    var oneriKmEl=document.getElementById('be-oneri-km');
-    var oneriTarihEl=document.getElementById('be-oneri-tarih');
     if(bt&&bt.varsayilanKm>0){
         var mevcutKm=parseInt(document.getElementById('be-km').value)||a.km;
         kmEl.value=mevcutKm+bt.varsayilanKm;
         kmEl.placeholder=(mevcutKm+bt.varsayilanKm).toLocaleString('tr-TR');
-        oneriKmEl.textContent='(Önerilen: '+bt.varsayilanKm.toLocaleString('tr-TR')+' km sonra)';
-    }else{kmEl.value='';kmEl.placeholder='Yok';oneriKmEl.textContent='';}
+    }else{kmEl.value='';kmEl.placeholder='Yok';}
     if(bt&&bt.varsayilanGun>0){
         var d=new Date(document.getElementById('be-tarih').value||bugunStr());
         d.setDate(d.getDate()+bt.varsayilanGun);
         tarihEl.value=d.toISOString().split('T')[0];
         tarihEl.placeholder=d.toISOString().split('T')[0];
-        var yil=Math.floor(bt.varsayilanGun/365);
-        var ay=Math.round((bt.varsayilanGun%365)/30);
-        var sureStr='';
-        if(yil>0)sureStr+=yil+' yıl';
-        if(ay>0)sureStr+=(sureStr?' ':'')+ ay+' ay';
-        if(!sureStr)sureStr=bt.varsayilanGun+' gün';
-        oneriTarihEl.textContent='(Önerilen: '+sureStr+' sonra)';
-    }else{tarihEl.value='';tarihEl.placeholder='Yok';oneriTarihEl.textContent='';}
+    }else{tarihEl.value='';tarihEl.placeholder='Yok';}
 }
 
 async function bakimEkle(){
