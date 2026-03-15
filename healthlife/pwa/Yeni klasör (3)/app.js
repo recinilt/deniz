@@ -456,7 +456,7 @@ function adminUyeListeModal(){
         else badge='<span class="uye-uyelik aktif">✅ '+gun+' gün</span>';
         html+='<div class="uye-item" onclick="adminUyeDetay(\''+esc(eKey)+'\')">';
         html+='<div class="uye-avatar">'+(u.avatar||'👤')+'</div>';
-        html+='<div class="uye-bilgi"><div class="uye-ad">'+esc(u.ad||'')+' '+esc(u.soyad||'')+'</div><div class="uye-email">'+esc(keyToEmail(eKey))+(u.sifre?' • 🔑 '+esc(u.sifre):'')+'</div></div>';
+        html+='<div class="uye-bilgi"><div class="uye-ad">'+esc(u.ad||'')+' '+esc(u.soyad||'')+'</div><div class="uye-email">'+esc(keyToEmail(eKey))+'</div></div>';
         html+=badge+'</div>';
     });
     html+='<button class="btn btn-primary btn-block" style="margin-top:12px;" onclick="adminUyeEkleModal()">+ Yeni Üye Ekle</button>';
@@ -472,7 +472,6 @@ function adminUyeDetay(eKey){
     var html='<h3 style="color:var(--accent);margin-bottom:14px;">👤 '+esc(u.ad)+' '+esc(u.soyad)+'</h3>';
     html+='<div style="font-size:13px;color:var(--text2);line-height:1.8;">';
     html+='📧 '+esc(email)+'<br>';
-    if(u.sifre) html+='🔑 Şifre: <strong style="color:var(--yellow);user-select:all;">'+esc(u.sifre)+'</strong><br>';
     if(u.tel)html+='📱 '+esc(u.tel)+'<br>';
     if(u.adres)html+='📍 '+esc(u.adres)+'<br>';
     html+='📅 Kayıt: '+esc(u.kayitTarihi||'-')+'<br>';
@@ -481,7 +480,6 @@ function adminUyeDetay(eKey){
     html+='</div>';
     html+='<div style="display:flex;gap:6px;margin-top:14px;flex-wrap:wrap;">';
     html+='<button class="btn btn-primary btn-sm" onclick="adminUyeUzatModal(\''+esc(eKey)+'\')">📅 Uzat</button>';
-    html+='<button class="btn btn-ghost btn-sm" onclick="adminUyeSifreDegModal(\''+esc(eKey)+'\')">🔑 Şifre</button>';
     html+='<button class="btn btn-ghost btn-sm" onclick="readonlyBaslat(\''+esc(email)+'\',\'istatistik\')">📊 İstatistik</button>';
     html+='<button class="btn btn-sport btn-sm" onclick="adminUyeRutinAtaModal(\''+esc(eKey)+'\')">💪 Spor</button>';
     html+='<button class="btn btn-diet btn-sm" onclick="adminUyeDiyetAtaModal(\''+esc(eKey)+'\')">🥗 Diyet</button>';
@@ -490,53 +488,6 @@ function adminUyeDetay(eKey){
     modalAc(html);
 }
 window.adminUyeDetay = adminUyeDetay;
-
-function adminUyeSifreDegModal(eKey){
-    var u=(G.adminData.uyeler||{})[eKey];if(!u)return;
-    var html='<h3 style="color:var(--accent);margin-bottom:14px;">🔑 Şifre Güncelle - '+esc(u.ad)+'</h3>';
-    html+='<div class="form-group"><label class="form-label">Yeni Şifre (min 6 karakter)</label><input type="text" id="ue-yeni-sifre" class="input" placeholder="Yeni şifre" value="'+(u.sifre?esc(u.sifre):'')+'"></div>';
-    html+='<p style="font-size:11px;color:var(--text3);margin-bottom:12px;">⚠️ Firebase Auth şifresi de güncellenecektir. Üyeye yeni şifreyi söylemeyi unutmayın.</p>';
-    html+='<button class="btn btn-primary btn-block" onclick="adminUyeSifreKaydet(\''+esc(eKey)+'\')">💾 Şifreyi Güncelle</button>';
-    modalAc(html);
-}
-window.adminUyeSifreDegModal = adminUyeSifreDegModal;
-
-async function adminUyeSifreKaydet(eKey){
-    var yeniSifre=document.getElementById('ue-yeni-sifre').value;
-    if(!yeniSifre||yeniSifre.length<6){bildirim('⚠️ Şifre en az 6 karakter!','uyari');return;}
-    var email=keyToEmail(eKey);
-    yuklemeGoster();
-    try{
-        // Firebase Auth'da şifreyi güncellemek için: üyeyi sil+yeniden oluştur (client SDK'da updatePassword sadece kendi oturumunda çalışır)
-        // Alternatif: ikinci app ile giriş yap, şifre güncelle
-        var secondApp=initializeApp(firebaseConfig,'tempSifre_'+Date.now());
-        var secondAuth=getAuth(secondApp);
-        try{
-            // Eski şifre ile giriş yap
-            var eskiSifre=(G.adminData.uyeler[eKey]||{}).sifre;
-            if(eskiSifre){
-                var cred=await signInWithEmailAndPassword(secondAuth,email,eskiSifre);
-                // Şifre güncelle (import gerekiyor)
-                var updatePassword=(await import("https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js")).updatePassword;
-                await updatePassword(cred.user,yeniSifre);
-            } else {
-                // Eski şifre bilinmiyor, yeniden oluştur
-                await createUserWithEmailAndPassword(secondAuth,email,yeniSifre);
-            }
-        }catch(ae){
-            // email-already-in-use ise eski şifre bilinmeden güncellenemez, sadece admin verisine kaydet
-            if(ae.code!=='auth/email-already-in-use') console.warn('Auth şifre güncelleme:',ae.code);
-        }
-        await deleteApp(secondApp);
-        // Admin verisinde şifreyi güncelle
-        G.adminData.uyeler[eKey].sifre=yeniSifre;
-        await fbYaz('admin',G.adminData);
-        bildirim('✅ Şifre güncellendi!','basari');
-        adminUyeDetay(eKey);
-    }catch(e){console.error(e);bildirim('⚠️ Hata: '+e.message,'hata');}
-    yuklemeGizle();
-}
-window.adminUyeSifreKaydet = adminUyeSifreKaydet;
 
 function adminUyeEkleModal(prefill){
     var p=prefill||{};
@@ -577,7 +528,7 @@ async function adminUyeKaydet(){
         catch(ae){ if(ae.code!=='auth/email-already-in-use') throw ae; }
         await deleteApp(secondApp);
         // Admin verisine ekle
-        G.adminData.uyeler[eKey]={ad:ad,soyad:soyad,tel:tel,adres:adres,sifre:sifre,uyelikBaslangic:baslangic,uyelikBitis:bitisStr,uyelikAy:surAy,kayitTarihi:bugunStr(),avatar:'👤'};
+        G.adminData.uyeler[eKey]={ad:ad,soyad:soyad,tel:tel,adres:adres,uyelikBaslangic:baslangic,uyelikBitis:bitisStr,uyelikAy:surAy,kayitTarihi:bugunStr(),avatar:'👤'};
         await fbYaz('admin',G.adminData);
         // Kullanıcı DB verisi yoksa oluştur
         var mevcut=await loadUserData(eKey);
