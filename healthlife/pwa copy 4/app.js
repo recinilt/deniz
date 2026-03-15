@@ -2,7 +2,7 @@
 // FIREBASE ENTEGRASYONU
 // ══════════════════════════════════════════════════════════
 import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
-import { getAuth, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
+import { getAuth, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signOut } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
 import { getDatabase, ref, get, set, remove } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-database.js";
 import { initTimer, stBasla, stDuraklat, stDevam, stSonrakiAdim, stDurdur, timerdenCik } from "./timer.js";
 import { istSayfaYukle, istHedefKaydet, istAyDeg } from "./stats.js";
@@ -1173,42 +1173,10 @@ export function takTakvimRender(){
 }
 
 function takGunTikla(tarih){
-    // Takvimde güne tıklayınca o günün planlarını modal olarak göster
-    var d=getAktifData();if(!d)return;
-    var gunIdx=new Date(tarih).getDay();
-    var html='<h3 style="color:var(--accent);margin-bottom:14px;">📅 '+tarih+'</h3>';
-    var icerikVar=false;
-    // Atanan rutinler
-    getAtananRutinler().forEach(function(r,ri){
-        if(r.gunler&&r.gunler.indexOf(gunIdx)!==-1){
-            icerikVar=true;
-            var oc=G.readonlyMode?'':'onclick="modalKapat();sporRutiniSecAtanan('+ri+',\''+tarih+'\')"';
-            html+='<div class="bugun-kart" '+oc+'><div class="bk-header"><span class="bk-icon">💪</span><span class="bk-title">'+esc(r.ad)+'</span><span class="bk-badge bk-badge-lock">🔒</span></div></div>';
-        }
-    });
-    (d.sporRutinleri||[]).forEach(function(r,ri){
-        if(r.gunler&&r.gunler.indexOf(gunIdx)!==-1){
-            icerikVar=true;
-            var oc=G.readonlyMode?'':'onclick="modalKapat();sporRutiniSec('+ri+',\''+tarih+'\')"';
-            html+='<div class="bugun-kart" '+oc+'><div class="bk-header"><span class="bk-icon">💪</span><span class="bk-title">'+esc(r.ad)+'</span></div></div>';
-        }
-    });
-    getAtananDiyetler().forEach(function(dd,di){
-        if(dd.gunler&&dd.gunler.indexOf(gunIdx)!==-1){
-            icerikVar=true;
-            var oc=G.readonlyMode?'':'onclick="modalKapat();diyetDetayModalAtanan('+di+',\''+tarih+'\')"';
-            html+='<div class="bugun-kart" '+oc+'><div class="bk-header"><span class="bk-icon">🥗</span><span class="bk-title">'+esc(dd.ad)+'</span><span class="bk-badge bk-badge-lock">🔒</span></div></div>';
-        }
-    });
-    (d.diyetProgramlari||[]).forEach(function(dd,di){
-        if(dd.gunler&&dd.gunler.indexOf(gunIdx)!==-1){
-            icerikVar=true;
-            var oc=G.readonlyMode?'':'onclick="modalKapat();diyetDetayModal('+di+',\''+tarih+'\')"';
-            html+='<div class="bugun-kart" '+oc+'><div class="bk-header"><span class="bk-icon">🥗</span><span class="bk-title">'+esc(dd.ad)+'</span></div></div>';
-        }
-    });
-    if(!icerikVar) html+='<p style="color:var(--text3);font-size:13px;">Bu gün için plan yok.</p>';
-    modalAc(html);
+    haftaSeritRender(tarih);bugunKartRender(tarih);
+    document.querySelectorAll('#alt-menu button').forEach(function(b){b.classList.remove('aktif');});
+    document.getElementById('mn-ana').classList.add('aktif');
+    ekranGoster('ekran-ana');
 }
 window.takGunTikla = takGunTikla;
 
@@ -1260,7 +1228,11 @@ async function profilKaydet(){
 }
 window.profilKaydet = profilKaydet;
 
-// menuTikla artık altta wrapped olarak tanımlı
+function menuTikla(ekranId,btn){
+    document.querySelectorAll('#alt-menu button').forEach(function(b){b.classList.remove('aktif');});
+    btn.classList.add('aktif');ekranGoster(ekranId);
+}
+window.menuTikla = menuTikla;
 
 // ══════════════════════════════════════════════════════════
 // PWA
@@ -1284,122 +1256,6 @@ window.pwaYukle = pwaYukle;
 if(window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone){var el=document.getElementById('pwa-yukle-item');if(el)el.classList.add('gizli');}
 
 // ══════════════════════════════════════════════════════════
-// EKSİK WINDOW ATAMALARI (HTML onclick handler'ları için)
+// BAŞLANGIÇ
 // ══════════════════════════════════════════════════════════
-window.modalKapat = modalKapat;
-window.modalAc = modalAc;
-window.bildirim = bildirim;
-window.ekranGoster = ekranGoster;
-window.esc = esc;
-window.bugunStr = bugunStr;
-
-// ══════════════════════════════════════════════════════════
-// GERİ BUTONU YÖNETİMİ
-// ══════════════════════════════════════════════════════════
-var ekranGecmisi = [];
-var _orijinalEkranGoster = ekranGoster;
-
-// ekranGoster'i sarmalayarak history yönetimi ekle
-function ekranGosterWrapped(id){
-    // Modal açıksa kapat
-    if(!document.getElementById('modal-overlay').classList.contains('gizli')){
-        modalKapat();
-        return;
-    }
-    var onceki = G.aktifEkran;
-    if(onceki && onceki !== id && onceki !== 'ekran-giris' && onceki !== 'ekran-profil-olustur'){
-        ekranGecmisi.push(onceki);
-        if(ekranGecmisi.length > 20) ekranGecmisi.shift();
-    }
-    _orijinalEkranGoster(id);
-    // pushState sadece kullanıcı etkileşiminde
-    try { history.pushState({ekran:id}, '', ''); } catch(e){}
-}
-
-window.addEventListener('popstate', function(e){
-    // Modal açıksa önce onu kapat
-    if(!document.getElementById('modal-overlay').classList.contains('gizli')){
-        modalKapat();
-        history.pushState({}, '', '');
-        return;
-    }
-    if(ekranGecmisi.length > 0){
-        var oncekiEkran = ekranGecmisi.pop();
-        _orijinalEkranGoster(oncekiEkran);
-        // Alt menü butonunu güncelle
-        var menuMap = {'ekran-ana':'mn-ana','ekran-takvim':'mn-tak','ekran-istatistik':'mn-ist','ekran-profil':'mn-profil'};
-        document.querySelectorAll('#alt-menu button').forEach(function(b){b.classList.remove('aktif');});
-        if(menuMap[oncekiEkran]) document.getElementById(menuMap[oncekiEkran]).classList.add('aktif');
-        history.pushState({}, '', '');
-    } else {
-        // Geçmiş boş, ana sayfadaysa tarayıcı geri gitsin
-        if(G.aktifEkran === 'ekran-ana'){
-            // izin ver - hiçbir şey yapma
-        } else {
-            _orijinalEkranGoster('ekran-ana');
-            document.querySelectorAll('#alt-menu button').forEach(function(b){b.classList.remove('aktif');});
-            document.getElementById('mn-ana').classList.add('aktif');
-            history.pushState({}, '', '');
-        }
-    }
-});
-
-// menuTikla'yı da sarmalayalım
-function menuTiklaWrapped(ekranId, btn){
-    document.querySelectorAll('#alt-menu button').forEach(function(b){b.classList.remove('aktif');});
-    btn.classList.add('aktif');
-    ekranGosterWrapped(ekranId);
-}
-window.menuTikla = menuTiklaWrapped;
-
-// ══════════════════════════════════════════════════════════
-// OTURUM KALICILIĞI (onAuthStateChanged)
-// ══════════════════════════════════════════════════════════
-async function basla(){
-    yuklemeGoster();
-    try {
-        // Firebase Auth durumunu kontrol et
-        var user = await new Promise(function(resolve){
-            var unsub = onAuthStateChanged(auth, function(u){
-                unsub();
-                resolve(u);
-            });
-        });
-
-        if(user){
-            // Kullanıcı oturum açmış
-            if(user.email === ADMIN_EMAIL){
-                // Admin
-                G.currentUser = ADMIN_EMAIL; G.isAdmin = true;
-                G.adminData = await loadAdminData();
-                if(!G.adminData.profil) G.adminData.profil = {avatar:'🔐', nick:'Yönetici'};
-                G.userData = G.adminData;
-                girisBasarili();
-            } else {
-                // Üye
-                G.adminData = await loadAdminData();
-                var eKey = emailKey(user.email);
-                if(G.adminData.uyeler && G.adminData.uyeler[eKey]){
-                    G.currentUser = user.email; G.isAdmin = false;
-                    G.userData = await loadUserData(eKey);
-                    if(!G.userData.profil) ekranGoster('ekran-profil-olustur');
-                    else girisBasarili();
-                } else {
-                    // Üye listesinde yok, çıkış yap
-                    await signOut(auth);
-                    ekranGoster('ekran-giris');
-                }
-            }
-        } else {
-            ekranGoster('ekran-giris');
-        }
-    } catch(e){
-        console.error('Başlangıç hatası:', e);
-        ekranGoster('ekran-giris');
-    }
-    yuklemeGizle();
-    // İlk history state
-    try { history.replaceState({ekran:G.aktifEkran}, '', ''); } catch(e){}
-}
-
-basla();
+ekranGoster('ekran-giris');
