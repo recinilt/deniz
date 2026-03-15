@@ -1,0 +1,14 @@
+{
+  "rules": {
+    "admin": {
+      ".read": "auth != null && auth.token.email === 'gymfitnesssalonu@gmail.com'",
+      ".write": "auth != null && auth.token.email === 'gymfitnesssalonu@gmail.com'"
+    },
+    "users": {
+      "$userKey": {
+        ".read": "auth != null",
+        ".write": "auth != null"
+      }
+    }
+  }
+}
