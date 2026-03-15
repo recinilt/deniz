@@ -573,24 +573,9 @@ async function adminUyeKaydet(){
         // İkinci Firebase app ile kullanıcı oluştur (admin oturumunu bozmadan)
         var secondApp=initializeApp(firebaseConfig,'tempApp_'+Date.now());
         var secondAuth=getAuth(secondApp);
-        var authBasarili=false;
-        try{
-            await createUserWithEmailAndPassword(secondAuth,email,sifre);
-            authBasarili=true;
-        }catch(ae){
-            if(ae.code==='auth/email-already-in-use'){
-                authBasarili=true; // zaten var, sorun yok
-            } else {
-                console.error('Auth hesap oluşturma hatası:',ae.code,ae.message);
-                bildirim('⚠️ Auth hatası: '+ae.code+' - Firebase Console\'da Email/Password etkin mi?','hata');
-            }
-        }
-        try{ await signOut(secondAuth); }catch(e){}
-        try{ await deleteApp(secondApp); }catch(e){}
-
-        if(!authBasarili){
-            yuklemeGizle();return;
-        }
+        try{ await createUserWithEmailAndPassword(secondAuth,email,sifre); }
+        catch(ae){ if(ae.code!=='auth/email-already-in-use') throw ae; }
+        await deleteApp(secondApp);
         // Admin verisine ekle
         G.adminData.uyeler[eKey]={ad:ad,soyad:soyad,tel:tel,adres:adres,sifre:sifre,uyelikBaslangic:baslangic,uyelikBitis:bitisStr,uyelikAy:surAy,kayitTarihi:bugunStr(),avatar:'👤'};
         await fbYaz('admin',G.adminData);
