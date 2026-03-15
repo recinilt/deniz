@@ -1,7 +1,7 @@
 // ══════════════════════════════════════════════════════════
 // SPOR TIMER - timer.js
 // ══════════════════════════════════════════════════════════
-import { G, getAktifData, getAtananRutinler, fbYaz, fbYazUye, emailKey, bugunStr, esc, bildirim, modalAc, modalKapat, yuklemeGoster, yuklemeGizle, msToStr, msToDkStr, hesaplaKaloriAdim, hesaplaKaloriMs, ekranGoster, acInit, sesGucluAlarm, sesAdimBitti, sesSporBitti, PARAM_LABELS, PARAM_UNITS } from './app.js';
+import { G, getAktifData, getAtananRutinler, fbYaz, fbYazUye, emailKey, bugunStr, esc, bildirim, modalAc, modalKapat, yuklemeGoster, yuklemeGizle, msToStr, msToDkStr, hesaplaKaloriAdim, hesaplaKaloriMs, ekranGoster, acInit, sesGucluAlarm, sesAdimBitti, sesSporBitti } from './app.js';
 
 // Timer değişkenleri
 var stState = 'idle'; // idle, running, paused, overtime
@@ -138,37 +138,6 @@ function timerEkranGuncelle(){
         notEl.textContent = '';
     }
 
-    // Parametre bilgisi göster (adım bilgi kutusunun altına)
-    var paramEl = document.getElementById('timer-adim-params');
-    if(!paramEl){
-        // İlk kez oluştur
-        var bilgiKutu = document.querySelector('.timer-adim-bilgi');
-        if(bilgiKutu){
-            var div = document.createElement('div');
-            div.id = 'timer-adim-params';
-            div.style.cssText = 'display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:8px;';
-            bilgiKutu.appendChild(div);
-            paramEl = div;
-        }
-    }
-    if(paramEl){
-        if(stPhase==='mola'){
-            paramEl.innerHTML = '';
-        } else {
-            var pv = adim.paramValues || {};
-            var paramHtml = '';
-            Object.keys(pv).forEach(function(p){
-                if(p==='mola') return;
-                var val = pv[p];
-                if(val === undefined || val === null || val === 0) return;
-                var label = PARAM_LABELS[p] || p;
-                var unit = PARAM_UNITS[p] || '';
-                paramHtml += '<span style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:3px 8px;font-size:11px;color:var(--accent);font-family:\'JetBrains Mono\',monospace;font-weight:700;">'+label+': '+val+' '+unit+'</span>';
-            });
-            paramEl.innerHTML = paramHtml;
-        }
-    }
-
     // Idle durumda süreyi göster
     if(stState==='idle'){
         var sure = stPhase==='mola' ? adim.mola : adim.sure;
@@ -192,23 +161,8 @@ function timerEkranGuncelle(){
         } else if(i>=stAktifAdim){
             kcalStr = ' <span style="color:var(--text3);font-size:9px;">~'+hesaplaKaloriAdim(a,kiloKg)+'kcal</span>';
         }
-        // Parametre özeti
-        var paramOzet = '';
-        var pv = a.paramValues || {};
-        var parcalar = [];
-        if(pv.set) parcalar.push(pv.set+'set');
-        if(pv.tekrar) parcalar.push(pv.tekrar+'rep');
-        if(pv.agirlik_kg) parcalar.push(pv.agirlik_kg+'kg');
-        if(pv.hiz_kmsa) parcalar.push(pv.hiz_kmsa+'km/sa');
-        if(pv.direnc_seviye) parcalar.push('Direnç:'+pv.direnc_seviye);
-        if(pv.egim_yuzde) parcalar.push('Eğim:%'+pv.egim_yuzde);
-        if(pv.mesafe_km) parcalar.push(pv.mesafe_km+'km');
-        if(pv.mesafe_m) parcalar.push(pv.mesafe_m+'m');
-        if(pv.dinlenme_sn) parcalar.push(pv.dinlenme_sn+'sn din.');
-        if(parcalar.length>0) paramOzet = '<div style="font-size:9px;color:var(--text3);margin-top:1px;font-family:\'JetBrains Mono\',monospace;">'+parcalar.join(' • ')+'</div>';
-
-        listHtml += '<div class="'+cls+'" style="flex-wrap:wrap;"><div class="tai-no'+(i<stAktifAdim?' done':'')+'">'+((i<stAktifAdim)?'✓':(i+1))+'</div>';
-        listHtml += '<div class="tai-ad" style="min-width:0;">'+esc(a.ad)+kcalStr+paramOzet+'</div><div class="tai-sure">'+a.sure+'dk'+(a.mola>0?' +'+a.mola+'dk mola':'')+'</div></div>';
+        listHtml += '<div class="'+cls+'"><div class="tai-no'+(i<stAktifAdim?' done':'')+'">'+((i<stAktifAdim)?'✓':(i+1))+'</div>';
+        listHtml += '<div class="tai-ad">'+esc(a.ad)+kcalStr+'</div><div class="tai-sure">'+a.sure+'dk'+(a.mola>0?' +'+a.mola+'dk mola':'')+'</div></div>';
     });
     document.getElementById('st-adimlar-liste').innerHTML = listHtml;
 
