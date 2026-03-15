@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rutin Yükleyici</title>
+<style>
+body{font-family:sans-serif;background:#0a0e17;color:#f1f5f9;padding:20px;max-width:600px;margin:0 auto;}
+h1{color:#10b981;font-size:1.3em;}
+.btn{padding:14px 24px;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;width:100%;margin:8px 0;transition:all .2s;}
+.btn:active{transform:scale(.97);}
+.btn-go{background:#10b981;color:#fff;}
+.btn-go:hover{background:#059669;}
+.btn-danger{background:#f43f5e;color:#fff;}
+#log{background:#111827;border:1px solid #1e293b;border-radius:12px;padding:14px;margin-top:16px;font-family:monospace;font-size:12px;max-height:400px;overflow-y:auto;white-space:pre-wrap;}
+.ok{color:#10b981;}.hata{color:#f43f5e;}.bilgi{color:#f59e0b;}
+</style>
+</head>
+<body>
+<h1>💪 Örnek Rutin Yükleyici</h1>
+<p style="color:#94a3b8;font-size:13px;">Firebase'e 7 sabit spor rutini ekler. Önce Google ile yönetici girişi yapmanız gerekir.</p>
+
+<button class="btn btn-go" id="btn-giris" onclick="girisYap()">🔐 Google ile Yönetici Girişi</button>
+<button class="btn btn-go" id="btn-yukle" onclick="rutinleriYukle()" style="display:none;">🚀 7 Örnek Rutini Yükle</button>
+<button class="btn btn-danger" id="btn-sil" onclick="rutinleriSil()" style="display:none;">🗑️ Tüm Sabit Rutinleri Sil</button>
+
+<div id="log"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
+import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
+import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-database.js";
+
+const app = initializeApp({
+    apiKey: "AIzaSyAhRWk_w4IvdG3G4qUfKeW5MNCbLVVJby0",
+    authDomain: "fitnesssalonu.firebaseapp.com",
+    databaseURL: "https://fitnesssalonu-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "fitnesssalonu",
+    storageBucket: "fitnesssalonu.firebasestorage.app",
+    messagingSenderId: "217081542142",
+    appId: "1:217081542142:web:c998d8acbc877abbbb7caf"
+});
+const auth = getAuth(app);
+const db = getDatabase(app);
+const ADMIN_EMAIL = 'gymfitnesssalonu@gmail.com';
+
+function log(msg, cls){
+    var el = document.getElementById('log');
+    el.innerHTML += '<span class="'+cls+'">'+msg+'</span>\n';
+    el.scrollTop = el.scrollHeight;
+}
+
+// 7 RUTIN TANIMI
+var RUTINLER = [
+// ══════════════════════════════════════════
+// 1) BAŞLANGIÇ
+// ══════════════════════════════════════════
+{
+    id:'ornek_baslangic_'+Date.now(), ad:'🟢 Başlangıç - Temel Fitness',
+    gunler:[1,3,5], // Pt,Çar,Cu
+    adimlar:[
+        {ad:'Yürüyüş',egzersizId:'yuruyus',kategoriId:'kardiyo',met:4.3,tipiZaman:true,sure:10,mola:2,paramValues:{sure:10,mesafe_km:0,hiz_kmsa:5},digerAd:'',notlar:'Isınma yürüyüşü'},
+        {ad:'Leg Press',egzersizId:'leg_press',kategoriId:'bacak',met:5.5,tipiZaman:false,sure:6,mola:2,paramValues:{set:3,tekrar:12,agirlik_kg:20,dinlenme_sn:60},digerAd:'',notlar:''},
+        {ad:'Göğüs Press Makinesi',egzersizId:'gogus_press_makine',kategoriId:'gogus',met:5.0,tipiZaman:false,sure:6,mola:2,paramValues:{set:3,tekrar:12,agirlik_kg:15,dinlenme_sn:60},digerAd:'',notlar:''},
+        {ad:'Lat Pulldown',egzersizId:'lat_pulldown',kategoriId:'sirt',met:5.0,tipiZaman:false,sure:6,mola:2,paramValues:{set:3,tekrar:12,agirlik_kg:20,dinlenme_sn:60},digerAd:'',notlar:''},
+        {ad:'Omuz Press',egzersizId:'shoulder_press',kategoriId:'omuz',met:5.0,tipiZaman:false,sure:6,mola:2,paramValues:{set:3,tekrar:12,agirlik_kg:10,dinlenme_sn:60},digerAd:'',notlar:''},
+        {ad:'Bicep Curl',egzersizId:'bicep_curl',kategoriId:'kol',met:4.0,tipiZaman:false,sure:5,mola:1,paramValues:{set:3,tekrar:12,agirlik_kg:8,dinlenme_sn:60},digerAd:'',notlar:''},
+        {ad:'Crunch',egzersizId:'crunch',kategoriId:'karin',met:2.8,tipiZaman:false,sure:4,mola:1,paramValues:{set:3,tekrar:15,dinlenme_sn:45},digerAd:'',notlar:''},
+        {ad:'Germe/Stretching',egzersizId:'germe',kategoriId:'esneklik',met:2.3,tipiZaman:true,sure:5,mola:0,paramValues:{sure:5},digerAd:'',notlar:'Soğuma germeleri'}
+    ]
+},
+// ══════════════════════════════════════════
+// 2) ORTA - ÜST VÜCUT
+// ══════════════════════════════════════════
+{
+    id:'ornek_orta_ust_'+Date.now(), ad:'🟡 Orta - Split A (Üst Vücut)',
+    gunler:[1,4], // Pt,Per
+    adimlar:[
+        {ad:'Koşu Bandı',egzersizId:'kosu_bandi',kategoriId:'kardiyo',met:8.0,tipiZaman:true,sure:8,mola:2,paramValues:{sure:8,hiz_kmsa:7,egim_yuzde:0},digerAd:'',notlar:'Isınma koşusu'},
+        {ad:'Bench Press',egzersizId:'bench_press',kategoriId:'gogus',met:5.0,tipiZaman:false,sure:8,mola:2,paramValues:{set:4,tekrar:10,agirlik_kg:40,dinlenme_sn:90},digerAd:'',notlar:''},
+        {ad:'Eğimli Bench Press',egzersizId:'incline_bench',kategoriId:'gogus',met:5.0,tipiZaman:false,sure:7,mola:2,paramValues:{set:3,tekrar:10,agirlik_kg:30,dinlenme_sn:90},digerAd:'',notlar:''},
+        {ad:'Kablo Çapraz',egzersizId:'cable_crossover',kategoriId:'gogus',met:4.5,tipiZaman:false,sure:5,mola:2,paramValues:{set:3,tekrar:12,agirlik_kg:15,dinlenme_sn:60},digerAd:'',notlar:''},
+        {ad:'Barbell Sıra Çekiş',egzersizId:'barbell_row',kategoriId:'sirt',met:5.5,tipiZaman:false,sure:8,mola:2,paramValues:{set:4,tekrar:10,agirlik_kg:40,dinlenme_sn:90},digerAd:'',notlar:''},
+        {ad:'Lat Pulldown',egzersizId:'lat_pulldown',kategoriId:'sirt',met:5.0,tipiZaman:false,sure:5,mola:2,paramValues:{set:3,tekrar:10,agirlik_kg:35,dinlenme_sn:60},digerAd:'',notlar:''},
+        {ad:'Omuz Press',egzersizId:'shoulder_press',kategoriId:'omuz',met:5.0,tipiZaman:false,sure:8,mola:1,paramValues:{set:4,tekrar:10,agirlik_kg:20,dinlenme_sn:90},digerAd:'',notlar:''},
+        {ad:'Yan Kaldırma',egzersizId:'lateral_raise',kategoriId:'omuz',met:4.0,tipiZaman:false,sure:5,mola:1,paramValues:{set:3,tekrar:12,agirlik_kg:8,dinlenme_sn:60},digerAd:'',notlar:''},
+        {ad:'Tricep İtme',egzersizId:'tricep_pushdown',kategoriId:'kol',met:4.0,tipiZaman:false,sure:5,mola:1,paramValues:{set:3,tekrar:12,agirlik_kg:20,dinlenme_sn:60},digerAd:'',notlar:''},
+        {ad:'Hammer Curl',egzersizId:'hammer_curl',kategoriId:'kol',met:4.0,tipiZaman:false,sure:5,mola:1,paramValues:{set:3,tekrar:12,agirlik_kg:12,dinlenme_sn:60},digerAd:'',notlar:''},
+        {ad:'Germe/Stretching',egzersizId:'germe',kategoriId:'esneklik',met:2.3,tipiZaman:true,sure:5,mola:0,paramValues:{sure:5},digerAd:'',notlar:''}
+    ]
+},
+// ══════════════════════════════════════════
+// 3) ORTA - ALT VÜCUT
+// ══════════════════════════════════════════
+{
+    id:'ornek_orta_alt_'+Date.now(), ad:'🟡 Orta - Split B (Alt Vücut)',
+    gunler:[2,5], // Sa,Cu
+    adimlar:[
+        {ad:'Sabit Bisiklet',egzersizId:'bisiklet_sabit',kategoriId:'kardiyo',met:6.8,tipiZaman:true,sure:8,mola:2,paramValues:{sure:8,direnc_seviye:5},digerAd:'',notlar:'Isınma'},
+        {ad:'Squat',egzersizId:'squat',kategoriId:'bacak',met:6.0,tipiZaman:false,sure:10,mola:2,paramValues:{set:4,tekrar:10,agirlik_kg:40,dinlenme_sn:120},digerAd:'',notlar:''},
+        {ad:'Leg Press',egzersizId:'leg_press',kategoriId:'bacak',met:5.5,tipiZaman:false,sure:8,mola:2,paramValues:{set:4,tekrar:10,agirlik_kg:80,dinlenme_sn:90},digerAd:'',notlar:''},
+        {ad:'Bacak Açma',egzersizId:'leg_extension',kategoriId:'bacak',met:4.0,tipiZaman:false,sure:5,mola:1,paramValues:{set:3,tekrar:12,agirlik_kg:30,dinlenme_sn:60},digerAd:'',notlar:''},
+        {ad:'Bacak Bükme',egzersizId:'leg_curl',kategoriId:'bacak',met:4.0,tipiZaman:false,sure:5,mola:1,paramValues:{set:3,tekrar:12,agirlik_kg:25,dinlenme_sn:60},digerAd:'',notlar:''},
+        {ad:'Baldır Kaldırma',egzersizId:'calf_raise',kategoriId:'bacak',met:3.5,tipiZaman:false,sure:5,mola:1,paramValues:{set:4,tekrar:15,agirlik_kg:30,dinlenme_sn:45},digerAd:'',notlar:''},
+        {ad:'Kalça İtme',egzersizId:'hip_thrust',kategoriId:'bacak',met:5.0,tipiZaman:false,sure:7,mola:2,paramValues:{set:3,tekrar:12,agirlik_kg:40,dinlenme_sn:90},digerAd:'',notlar:''},
+        {ad:'Plank',egzersizId:'plank',kategoriId:'karin',met:4.0,tipiZaman:true,sure:3,mola:1,paramValues:{sure:3},digerAd:'',notlar:''},
+        {ad:'Bacak Kaldırma',egzersizId:'leg_raise',kategoriId:'karin',met:3.5,tipiZaman:false,sure:4,mola:1,paramValues:{set:3,tekrar:15,dinlenme_sn:45},digerAd:'',notlar:''},
+        {ad:'Foam Roller',egzersizId:'foam_roller',kategoriId:'esneklik',met:2.0,tipiZaman:true,sure:5,mola:0,paramValues:{sure:5},digerAd:'',notlar:'Soğuma'}
+    ]
+},
+// ══════════════════════════════════════════
+// 4) İLERİ - PUSH
+// ══════════════════════════════════════════
+{
+    id:'ornek_ileri_push_'+Date.now(), ad:'🔴 İleri - PPL Push Günü',
+    gunler:[1,4], // Pt,Per
+    adimlar:[
+        {ad:'Koşu Bandı',egzersizId:'kosu_bandi',kategoriId:'kardiyo',met:8.0,tipiZaman:true,sure:5,mola:1,paramValues:{sure:5,hiz_kmsa:8,egim_yuzde:0},digerAd:'',notlar:'Kısa ısınma'},
+        {ad:'Bench Press',egzersizId:'bench_press',kategoriId:'gogus',met:5.0,tipiZaman:false,sure:12,mola:2,paramValues:{set:5,tekrar:5,agirlik_kg:80,dinlenme_sn:180},digerAd:'',notlar:'Ağır ana hareket'},
+        {ad:'Eğimli Bench Press',egzersizId:'incline_bench',kategoriId:'gogus',met:5.0,tipiZaman:false,sure:9,mola:2,paramValues:{set:4,tekrar:8,agirlik_kg:60,dinlenme_sn:120},digerAd:'',notlar:''},
+        {ad:'Dumbbell Fly',egzersizId:'dumbbell_fly',kategoriId:'gogus',met:4.5,tipiZaman:false,sure:5,mola:1,paramValues:{set:3,tekrar:12,agirlik_kg:18,dinlenme_sn:60},digerAd:'',notlar:''},
+        {ad:'Omuz Press',egzersizId:'shoulder_press',kategoriId:'omuz',met:5.0,tipiZaman:false,sure:9,mola:2,paramValues:{set:4,tekrar:8,agirlik_kg:35,dinlenme_sn:120},digerAd:'',notlar:''},
+        {ad:'Yan Kaldırma',egzersizId:'lateral_raise',kategoriId:'omuz',met:4.0,tipiZaman:false,sure:5,mola:1,paramValues:{set:4,tekrar:15,agirlik_kg:12,dinlenme_sn:45},digerAd:'',notlar:''},
+        {ad:'Ön Kaldırma',egzersizId:'front_raise',kategoriId:'omuz',met:4.0,tipiZaman:false,sure:4,mola:1,paramValues:{set:3,tekrar:12,agirlik_kg:10,dinlenme_sn:45},digerAd:'',notlar:''},
+        {ad:'Tricep İtme',egzersizId:'tricep_pushdown',kategoriId:'kol',met:4.0,tipiZaman:false,sure:5,mola:1,paramValues:{set:4,tekrar:10,agirlik_kg:30,dinlenme_sn:60},digerAd:'',notlar:''},
+        {ad:'Skull Crusher',egzersizId:'skull_crusher',kategoriId:'kol',met:4.5,tipiZaman:false,sure:5,mola:1,paramValues:{set:3,tekrar:10,agirlik_kg:25,dinlenme_sn:60},digerAd:'',notlar:''},
+        {ad:'Germe/Stretching',egzersizId:'germe',kategoriId:'esneklik',met:2.3,tipiZaman:true,sure:5,mola:0,paramValues:{sure:5},digerAd:'',notlar:''}
+    ]
+},
+// ══════════════════════════════════════════
+// 5) İLERİ - PULL
+// ══════════════════════════════════════════
+{
+    id:'ornek_ileri_pull_'+Date.now(), ad:'🔴 İleri - PPL Pull Günü',
+    gunler:[2,5], // Sa,Cu
+    adimlar:[
+        {ad:'Kürek Makinesi',egzersizId:'kurek',kategoriId:'kardiyo',met:7.0,tipiZaman:true,sure:5,mola:1,paramValues:{sure:5,mesafe_m:500,direnc_seviye:5},digerAd:'',notlar:'Isınma'},
+        {ad:'Deadlift',egzersizId:'deadlift',kategoriId:'sirt',met:6.0,tipiZaman:false,sure:12,mola:2,paramValues:{set:5,tekrar:5,agirlik_kg:100,dinlenme_sn:180},digerAd:'',notlar:'Ağır ana hareket'},
+        {ad:'Barbell Sıra Çekiş',egzersizId:'barbell_row',kategoriId:'sirt',met:5.5,tipiZaman:false,sure:9,mola:2,paramValues:{set:4,tekrar:8,agirlik_kg:60,dinlenme_sn:120},digerAd:'',notlar:''},
+        {ad:'Kablo Çekiş',egzersizId:'cable_row',kategoriId:'sirt',met:5.0,tipiZaman:false,sure:5,mola:1,paramValues:{set:3,tekrar:12,agirlik_kg:40,dinlenme_sn:60},digerAd:'',notlar:''},
+        {ad:'Barfiks',egzersizId:'barfiks',kategoriId:'sirt',met:8.0,tipiZaman:false,sure:7,mola:2,paramValues:{set:4,tekrar:8,dinlenme_sn:90},digerAd:'',notlar:''},
+        {ad:'Yüz Çekişi',egzersizId:'face_pull',kategoriId:'omuz',met:4.0,tipiZaman:false,sure:4,mola:1,paramValues:{set:3,tekrar:15,agirlik_kg:15,dinlenme_sn:45},digerAd:'',notlar:'Arka omuz odaklı'},
+        {ad:'Bicep Curl',egzersizId:'bicep_curl',kategoriId:'kol',met:4.0,tipiZaman:false,sure:5,mola:1,paramValues:{set:4,tekrar:10,agirlik_kg:15,dinlenme_sn:60},digerAd:'',notlar:''},
+        {ad:'Hammer Curl',egzersizId:'hammer_curl',kategoriId:'kol',met:4.0,tipiZaman:false,sure:5,mola:1,paramValues:{set:3,tekrar:12,agirlik_kg:12,dinlenme_sn:60},digerAd:'',notlar:''},
+        {ad:'Germe/Stretching',egzersizId:'germe',kategoriId:'esneklik',met:2.3,tipiZaman:true,sure:5,mola:0,paramValues:{sure:5},digerAd:'',notlar:''}
+    ]
+},
+// ══════════════════════════════════════════
+// 6) İLERİ - LEGS
+// ══════════════════════════════════════════
+{
+    id:'ornek_ileri_legs_'+Date.now(), ad:'🔴 İleri - PPL Legs Günü',
+    gunler:[3,6], // Çar,Ct
+    adimlar:[
+        {ad:'Sabit Bisiklet',egzersizId:'bisiklet_sabit',kategoriId:'kardiyo',met:6.8,tipiZaman:true,sure:5,mola:1,paramValues:{sure:5,direnc_seviye:7},digerAd:'',notlar:'Isınma'},
+        {ad:'Squat',egzersizId:'squat',kategoriId:'bacak',met:6.0,tipiZaman:false,sure:12,mola:2,paramValues:{set:5,tekrar:5,agirlik_kg:100,dinlenme_sn:180},digerAd:'',notlar:'Ağır ana hareket'},
+        {ad:'Hack Squat',egzersizId:'hack_squat',kategoriId:'bacak',met:5.5,tipiZaman:false,sure:9,mola:2,paramValues:{set:4,tekrar:8,agirlik_kg:80,dinlenme_sn:120},digerAd:'',notlar:''},
+        {ad:'Bacak Açma',egzersizId:'leg_extension',kategoriId:'bacak',met:4.0,tipiZaman:false,sure:5,mola:1,paramValues:{set:4,tekrar:12,agirlik_kg:50,dinlenme_sn:60},digerAd:'',notlar:''},
+        {ad:'Bacak Bükme',egzersizId:'leg_curl',kategoriId:'bacak',met:4.0,tipiZaman:false,sure:5,mola:1,paramValues:{set:4,tekrar:12,agirlik_kg:40,dinlenme_sn:60},digerAd:'',notlar:''},
+        {ad:'Kalça İtme',egzersizId:'hip_thrust',kategoriId:'bacak',met:5.0,tipiZaman:false,sure:8,mola:2,paramValues:{set:4,tekrar:10,agirlik_kg:80,dinlenme_sn:90},digerAd:'',notlar:''},
+        {ad:'Baldır Kaldırma',egzersizId:'calf_raise',kategoriId:'bacak',met:3.5,tipiZaman:false,sure:5,mola:1,paramValues:{set:4,tekrar:15,agirlik_kg:50,dinlenme_sn:45},digerAd:'',notlar:''},
+        {ad:'Rus Döndürmesi',egzersizId:'russian_twist',kategoriId:'karin',met:3.8,tipiZaman:false,sure:4,mola:1,paramValues:{set:3,tekrar:20,agirlik_kg:10,dinlenme_sn:45},digerAd:'',notlar:''},
+        {ad:'Plank',egzersizId:'plank',kategoriId:'karin',met:4.0,tipiZaman:true,sure:3,mola:1,paramValues:{sure:3},digerAd:'',notlar:''},
+        {ad:'Foam Roller',egzersizId:'foam_roller',kategoriId:'esneklik',met:2.0,tipiZaman:true,sure:5,mola:0,paramValues:{sure:5},digerAd:'',notlar:'Soğuma'}
+    ]
+}
+];
+
+window.girisYap = async function(){
+    log('🔐 Google girişi başlatılıyor...','bilgi');
+    try{
+        var result = await signInWithPopup(auth, new GoogleAuthProvider());
+        if(result.user.email !== ADMIN_EMAIL){
+            log('❌ Bu hesap yönetici değil: '+result.user.email,'hata');
+            return;
+        }
+        log('✅ Yönetici girişi başarılı: '+result.user.email,'ok');
+        document.getElementById('btn-giris').style.display='none';
+        document.getElementById('btn-yukle').style.display='';
+        document.getElementById('btn-sil').style.display='';
+    }catch(e){
+        log('❌ Giriş hatası: '+e.message,'hata');
+    }
+};
+
+window.rutinleriYukle = async function(){
+    log('\n🚀 7 rutin yükleniyor...','bilgi');
+    try{
+        var snap = await get(ref(db, 'admin'));
+        var adminData = snap.exists() ? snap.val() : {};
+        if(!adminData.sabitRutinler) adminData.sabitRutinler = [];
+
+        var eklenen = 0;
+        RUTINLER.forEach(function(r){
+            // Aynı isimde varsa ekleme
+            var var_mi = adminData.sabitRutinler.some(function(m){ return m.ad === r.ad; });
+            if(var_mi){
+                log('⏭️ Zaten var, atlandı: '+r.ad,'bilgi');
+            } else {
+                adminData.sabitRutinler.push(r);
+                eklenen++;
+                log('✅ Eklendi: '+r.ad+' ('+r.adimlar.length+' adım)','ok');
+            }
+        });
+
+        await set(ref(db, 'admin'), adminData);
+        log('\n🎉 Tamamlandı! '+eklenen+' yeni rutin eklendi. Toplam: '+adminData.sabitRutinler.length,'ok');
+    }catch(e){
+        log('❌ Hata: '+e.message,'hata');
+    }
+};
+
+window.rutinleriSil = async function(){
+    if(!confirm('TÜM sabit rutinleri silmek istediğinize emin misiniz?')) return;
+    try{
+        var snap = await get(ref(db, 'admin'));
+        var adminData = snap.exists() ? snap.val() : {};
+        var eski = (adminData.sabitRutinler||[]).length;
+        adminData.sabitRutinler = [];
+        await set(ref(db, 'admin'), adminData);
+        log('🗑️ '+eski+' rutin silindi. Sabit rutinler temizlendi.','hata');
+    }catch(e){
+        log('❌ Hata: '+e.message,'hata');
+    }
+};
+</script>
+</body>
+</html>

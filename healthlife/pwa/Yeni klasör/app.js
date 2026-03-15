@@ -580,11 +580,9 @@ async function adminUyeRutinAtaModal(eKey){
     if(atananlar.length>0){
         html+='<div style="font-size:12px;color:var(--accent);font-weight:700;margin-bottom:6px;">Atanan Rutinler</div>';
         atananlar.forEach(function(r,i){
-            var kisiselBadge = r.kisisellestirildi ? '<span style="font-size:9px;color:var(--cyan);background:rgba(34,211,238,0.12);padding:2px 6px;border-radius:8px;font-weight:700;">✨ Kişiye Özel</span>' : '';
             html+='<div style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;margin-bottom:4px;padding:8px;">';
             html+='<div style="display:flex;align-items:center;gap:6px;">';
             html+='<span style="flex:1;font-size:13px;font-weight:600;">'+esc(r.ad)+'</span>';
-            html+=kisiselBadge;
             html+='<span style="font-size:10px;color:var(--text3);">'+r.adimlar.length+' adım</span></div>';
             html+='<div style="display:flex;gap:4px;margin-top:6px;">';
             html+='<button class="btn btn-ghost btn-sm" style="flex:1;padding:4px 8px;font-size:10px;" onclick="adminAtananRutinDuzenle(\''+esc(eKey)+'\','+i+')">✏️ Düzenle</button>';
@@ -640,7 +638,6 @@ async function adminAtananRutinKaydet(){
         uyeData.atananRutinler[idx].ad=ad;
         uyeData.atananRutinler[idx].gunler=gunler;
         uyeData.atananRutinler[idx].adimlar=adimlar;
-        uyeData.atananRutinler[idx].kisisellestirildi=true;
         await fbYaz('users/'+eKey,uyeData);
         bildirim('✅ Güncellendi!','basari');
         adminUyeRutinAtaModal(eKey);
@@ -686,11 +683,9 @@ async function adminUyeDiyetAtaModal(eKey){
     if(atananlar.length>0){
         html+='<div style="font-size:12px;color:var(--accent);font-weight:700;margin-bottom:6px;">Atanan Diyetler</div>';
         atananlar.forEach(function(d,i){
-            var kisiselBadge = d.kisisellestirildi ? '<span style="font-size:9px;color:var(--cyan);background:rgba(34,211,238,0.12);padding:2px 6px;border-radius:8px;font-weight:700;">✨ Kişiye Özel</span>' : '';
             html+='<div style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;margin-bottom:4px;padding:8px;">';
             html+='<div style="display:flex;align-items:center;gap:6px;">';
             html+='<span style="flex:1;font-size:13px;font-weight:600;">'+esc(d.ad)+'</span>';
-            html+=kisiselBadge;
             html+='<span style="font-size:10px;color:var(--text3);">'+(d.ogunler||[]).length+' öğün</span></div>';
             html+='<div style="display:flex;gap:4px;margin-top:6px;">';
             html+='<button class="btn btn-ghost btn-sm" style="flex:1;padding:4px 8px;font-size:10px;" onclick="adminAtananDiyetDuzenle(\''+esc(eKey)+'\','+i+')">✏️ Düzenle</button>';
@@ -738,7 +733,6 @@ async function adminAtananDiyetKaydet(){
         uyeData.atananDiyetler[idx].ad=ad;
         uyeData.atananDiyetler[idx].gunler=gunler;
         uyeData.atananDiyetler[idx].ogunler=window._dpOgunler;
-        uyeData.atananDiyetler[idx].kisisellestirildi=true;
         await fbYaz('users/'+eKey,uyeData);
         bildirim('✅ Güncellendi!','basari');
         adminUyeDiyetAtaModal(eKey);
