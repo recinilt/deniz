@@ -887,23 +887,8 @@ export function sporAdimHtml(idx,a){
     h+='</select></div>';
     if(selEgzId==='diger') h+='<div class="adim-row1"><input class="adim-diger-ad input" placeholder="Egzersiz adı..." value="'+esc(a.digerAd||'')+'"></div>';
     var params=egz?egz.params:['sure'];var pv=a.paramValues||{};
-    // Mesafe otomatik hesapla (süre × hız)
-    var otomatikMesafe = false;
-    if(params.indexOf('mesafe_km')!==-1 && params.indexOf('hiz_kmsa')!==-1) otomatikMesafe = 'km';
-    if(params.indexOf('mesafe_m')!==-1 && params.indexOf('sure')!==-1 && !otomatikMesafe) otomatikMesafe = 'm';
     h+='<div class="adim-params">';
-    params.forEach(function(p){
-        var val=pv[p]!==undefined?pv[p]:(PARAM_DEFAULTS[p]||0);
-        // mesafe_km: süre ve hız varsa otomatik hesapla, readonly göster
-        if(p==='mesafe_km' && otomatikMesafe==='km'){
-            var sureDk=pv['sure']||PARAM_DEFAULTS['sure']||5;
-            var hiz=pv['hiz_kmsa']||PARAM_DEFAULTS['hiz_kmsa']||5;
-            var hesap=((hiz*sureDk)/60).toFixed(2);
-            h+='<div class="adim-param-group" style="background:rgba(16,185,129,0.1);border-color:var(--accent-d);"><label style="color:var(--accent);">Mesafe</label><input type="text" data-param="'+p+'" value="'+hesap+'" readonly style="color:var(--accent);font-weight:700;opacity:1;"><span>km</span></div>';
-        } else {
-            h+='<div class="adim-param-group"><label>'+PARAM_LABELS[p]+'</label><input type="number" data-param="'+p+'" value="'+val+'" step="'+(PARAM_STEPS[p]||1)+'" min="0" onchange="srParamDeg('+idx+')"><span>'+PARAM_UNITS[p]+'</span></div>';
-        }
-    });
+    params.forEach(function(p){var val=pv[p]!==undefined?pv[p]:(PARAM_DEFAULTS[p]||0);h+='<div class="adim-param-group"><label>'+PARAM_LABELS[p]+'</label><input type="number" data-param="'+p+'" value="'+val+'" step="'+(PARAM_STEPS[p]||1)+'" min="0" onchange="srParamDeg('+idx+')"><span>'+PARAM_UNITS[p]+'</span></div>';});
     var molaVal=a.mola!==undefined?a.mola:1;
     h+='<div class="adim-param-group"><label>Mola</label><input type="number" data-param="mola" value="'+molaVal+'" step="1" min="0"><span>dk</span></div>';
     h+='<div class="adim-kalori-badge" id="adim-kcal-'+idx+'">🔥 ~'+tahminiKcal+' kcal</div></div>';
@@ -939,16 +924,7 @@ function srParamDeg(idx){
     var el=document.querySelectorAll('#sr-adimlar .adim-item')[idx];if(!el)return;
     var egz=egzersizBul(el.querySelector('.adim-egz-sel').value);if(!egz)return;
     var d=getAktifData();var kiloKg=(d&&d.profil)?d.profil.kilo||70:70;
-    var pv={};el.querySelectorAll('[data-param]').forEach(function(inp){if(inp.dataset.param!=='mola'){var v=parseFloat(inp.value)||0;pv[inp.dataset.param]=v;}});
-    // Mesafe otomatik hesapla
-    if(egz.params.indexOf('mesafe_km')!==-1 && egz.params.indexOf('hiz_kmsa')!==-1){
-        var sureDk=pv.sure||5; var hiz=pv.hiz_kmsa||5;
-        var mesafeKm=((hiz*sureDk)/60).toFixed(2);
-        var mesafeInput=el.querySelector('[data-param="mesafe_km"]');
-        if(mesafeInput) mesafeInput.value=mesafeKm;
-        pv.mesafe_km=parseFloat(mesafeKm);
-    }
-    // Kalori hesapla
+    var pv={};el.querySelectorAll('[data-param]').forEach(function(inp){if(inp.dataset.param!=='mola')pv[inp.dataset.param]=parseFloat(inp.value)||0;});
     var sureDk=egz.tipiZaman?(pv.sure||5):((pv.set||4)*(pv.tekrar||12)*3.5+(pv.set||4)*(pv.dinlenme_sn||60))/60;
     var badge=el.querySelector('.adim-kalori-badge');
     if(badge) badge.textContent='🔥 ~'+Math.round(egz.met*3.5*kiloKg/200*sureDk)+' kcal';
