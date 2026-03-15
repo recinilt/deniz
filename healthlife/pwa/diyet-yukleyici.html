@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diyet Yükleyici</title>
+<style>
+body{font-family:sans-serif;background:#0a0e17;color:#f1f5f9;padding:20px;max-width:600px;margin:0 auto;}
+h1{color:#f59e0b;font-size:1.3em;}
+.btn{padding:14px 24px;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;width:100%;margin:8px 0;transition:all .2s;}
+.btn:active{transform:scale(.97);}
+.btn-go{background:#f59e0b;color:#000;}
+.btn-go:hover{background:#d97706;}
+.btn-danger{background:#f43f5e;color:#fff;}
+#log{background:#111827;border:1px solid #1e293b;border-radius:12px;padding:14px;margin-top:16px;font-family:monospace;font-size:12px;max-height:400px;overflow-y:auto;white-space:pre-wrap;}
+.ok{color:#10b981;}.hata{color:#f43f5e;}.bilgi{color:#f59e0b;}
+</style>
+</head>
+<body>
+<h1>🥗 Örnek Diyet Yükleyici</h1>
+<p style="color:#94a3b8;font-size:13px;">Firebase'e 5 sabit diyet programı ekler. Önce Google ile yönetici girişi yapmanız gerekir.</p>
+
+<button class="btn btn-go" id="btn-giris" onclick="girisYap()">🔐 Google ile Yönetici Girişi</button>
+<button class="btn btn-go" id="btn-yukle" onclick="diyetleriYukle()" style="display:none;">🚀 5 Örnek Diyeti Yükle</button>
+<button class="btn btn-danger" id="btn-sil" onclick="diyetleriSil()" style="display:none;">🗑️ Tüm Sabit Diyetleri Sil</button>
+
+<div id="log"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
+import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
+import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-database.js";
+
+const app = initializeApp({
+    apiKey: "AIzaSyAhRWk_w4IvdG3G4qUfKeW5MNCbLVVJby0",
+    authDomain: "fitnesssalonu.firebaseapp.com",
+    databaseURL: "https://fitnesssalonu-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "fitnesssalonu",
+    storageBucket: "fitnesssalonu.firebasestorage.app",
+    messagingSenderId: "217081542142",
+    appId: "1:217081542142:web:c998d8acbc877abbbb7caf"
+});
+const auth = getAuth(app);
+const db = getDatabase(app);
+const ADMIN_EMAIL = 'gymfitnesssalonu@gmail.com';
+
+function log(msg, cls){
+    var el = document.getElementById('log');
+    el.innerHTML += '<span class="'+cls+'">'+msg+'</span>\n';
+    el.scrollTop = el.scrollHeight;
+}
+
+// ══════════════════════════════════════════════════════════
+// 5 DİYET PROGRAMI
+// ══════════════════════════════════════════════════════════
+var DIYETLER = [
+// ──────────────────────────────────────
+// 1) KAS YAPMA DİYETİ (Bulk)
+// ──────────────────────────────────────
+{
+    id:'diyet_bulk_'+Date.now(), ad:'💪 Kas Yapma Diyeti (Bulk)',
+    gunler:[1,2,3,4,5,6], // Pt-Ct
+    ogunler:[
+        {tip:'Kahvaltı', yiyecekler:['4 yumurta (omlet)','2 dilim tam buğday ekmeği','1 avuç ceviz','1 bardak süt','1 muz']},
+        {tip:'Ara Öğün 1', yiyecekler:['Protein shake (1 ölçek whey + süt)','1 avuç badem','1 elma']},
+        {tip:'Öğle', yiyecekler:['200g tavuk göğsü (ızgara)','1 porsiyon bulgur pilavı','Mevsim salata (zeytinyağlı)','1 kase yoğurt']},
+        {tip:'Ara Öğün 2', yiyecekler:['2 dilim tam buğday ekmeği + fıstık ezmesi','1 muz','1 bardak ayran']},
+        {tip:'Akşam', yiyecekler:['200g somon (fırında)','Makarna (150g)','Brokoli sote','Zeytinyağlı salata']},
+        {tip:'Gece', yiyecekler:['1 kase süzme peynir','1 yemek kaşığı bal','1 avuç ceviz']}
+    ]
+},
+// ──────────────────────────────────────
+// 2) YAĞ YAKMA DİYETİ (Cut)
+// ──────────────────────────────────────
+{
+    id:'diyet_cut_'+Date.now(), ad:'🔥 Yağ Yakma Diyeti (Cut)',
+    gunler:[1,2,3,4,5,6], // Pt-Ct
+    ogunler:[
+        {tip:'Kahvaltı', yiyecekler:['3 yumurta beyazı + 1 bütün yumurta','1 dilim tam buğday ekmeği','Domates-salatalık','Yeşil çay']},
+        {tip:'Ara Öğün 1', yiyecekler:['10 adet badem','1 yeşil elma']},
+        {tip:'Öğle', yiyecekler:['150g tavuk göğsü (ızgara)','Bol yeşil salata (limonlu)','1/2 porsiyon bulgur','Ayran']},
+        {tip:'Ara Öğün 2', yiyecekler:['Protein shake (su ile)','1 havuç']},
+        {tip:'Akşam', yiyecekler:['150g balık (ızgara)','Haşlanmış brokoli','Roka-maydanoz salata','1 dilim limon']},
+        {tip:'Gece', yiyecekler:['1 kase light yoğurt','5 adet çilek']}
+    ]
+},
+// ──────────────────────────────────────
+// 3) DENGELİ BESLENME
+// ──────────────────────────────────────
+{
+    id:'diyet_dengeli_'+Date.now(), ad:'⚖️ Dengeli Beslenme Programı',
+    gunler:[0,1,2,3,4,5,6], // Her gün
+    ogunler:[
+        {tip:'Kahvaltı', yiyecekler:['2 yumurta (haşlanmış)','Peynir (50g beyaz peynir)','Domates-salatalık-yeşillik','Zeytin (5-6 adet)','1 dilim tam buğday ekmeği','Çay']},
+        {tip:'Ara Öğün 1', yiyecekler:['1 porsiyon meyve (elma/armut/portakal)','5-6 adet fındık veya badem']},
+        {tip:'Öğle', yiyecekler:['150g et/tavuk/balık (ızgara veya fırın)','1 porsiyon tahıl (bulgur/kinoa/esmer pirinç)','Bol salata (zeytinyağlı)','1 kase yoğurt']},
+        {tip:'Ara Öğün 2', yiyecekler:['1 bardak ayran veya kefir','2-3 adet tam buğday grissini']},
+        {tip:'Akşam', yiyecekler:['Sebze yemeği (zeytinyağlı)','Mercimek veya baklagil çorbası','1 dilim ekşi mayalı ekmek','Cacık']},
+        {tip:'Gece', yiyecekler:['1 bardak ılık süt veya bitki çayı']}
+    ]
+},
+// ──────────────────────────────────────
+// 4) VEJETERYAN DİYET
+// ──────────────────────────────────────
+{
+    id:'diyet_veje_'+Date.now(), ad:'🌱 Vejetaryen Diyet Programı',
+    gunler:[0,1,2,3,4,5,6], // Her gün
+    ogunler:[
+        {tip:'Kahvaltı', yiyecekler:['Avokado toast (tam buğday ekmeği)','2 yumurta (çırpılmış)','Cherry domates','Taze sıkılmış portakal suyu']},
+        {tip:'Ara Öğün 1', yiyecekler:['Smoothie (muz + ıspanak + yulaf + badem sütü)','1 yemek kaşığı chia tohumu']},
+        {tip:'Öğle', yiyecekler:['Nohutlu buddha bowl (kinoa, ıspanak, avokado, havuç, nohut)','Tahin-limon sos','1 dilim tam buğday ekmeği']},
+        {tip:'Ara Öğün 2', yiyecekler:['Hummus + havuç/kereviz çubukları','1 avuç kaju']},
+        {tip:'Akşam', yiyecekler:['Mercimek köftesi (6-8 adet)','Çoban salata','Zeytinyağlı enginar veya fasulye','1 kase yoğurt']},
+        {tip:'Gece', yiyecekler:['1 kase yulaf ezmesi + tarçın + bal + ceviz']}
+    ]
+},
+// ──────────────────────────────────────
+// 5) DÜŞÜK KARBONHİDRAT (Low Carb)
+// ──────────────────────────────────────
+{
+    id:'diyet_lowcarb_'+Date.now(), ad:'🥩 Düşük Karbonhidrat (Low Carb)',
+    gunler:[1,2,3,4,5,6], // Pt-Ct
+    ogunler:[
+        {tip:'Kahvaltı', yiyecekler:['3 yumurta (tereyağında)','50g beyaz peynir','Avokado (yarım)','5-6 zeytin','Yeşil çay']},
+        {tip:'Ara Öğün 1', yiyecekler:['1 avuç ceviz + badem karışımı','1 dilim kaşar peyniri']},
+        {tip:'Öğle', yiyecekler:['200g köfte/pirzola (ızgara)','Karnabahar püresi','Bol yeşillikli salata (zeytinyağı + limon)','Turşu']},
+        {tip:'Ara Öğün 2', yiyecekler:['Kereviz sapı + cream cheese','Haşlanmış yumurta (1 adet)']},
+        {tip:'Akşam', yiyecekler:['200g somon veya levrek (fırında)','Kuşkonmaz sote (tereyağlı)','Mantar sote','Roka salatası (parmesan + limon)']},
+        {tip:'Gece', yiyecekler:['1 kase süzme yoğurt (tam yağlı)','1 yemek kaşığı keten tohumu']}
+    ]
+}
+];
+
+window.girisYap = async function(){
+    log('🔐 Google girişi başlatılıyor...','bilgi');
+    try{
+        var result = await signInWithPopup(auth, new GoogleAuthProvider());
+        if(result.user.email !== ADMIN_EMAIL){
+            log('❌ Bu hesap yönetici değil: '+result.user.email,'hata');
+            return;
+        }
+        log('✅ Yönetici girişi başarılı: '+result.user.email,'ok');
+        document.getElementById('btn-giris').style.display='none';
+        document.getElementById('btn-yukle').style.display='';
+        document.getElementById('btn-sil').style.display='';
+    }catch(e){
+        log('❌ Giriş hatası: '+e.message,'hata');
+    }
+};
+
+window.diyetleriYukle = async function(){
+    log('\n🚀 5 diyet programı yükleniyor...','bilgi');
+    try{
+        var snap = await get(ref(db, 'admin'));
+        var adminData = snap.exists() ? snap.val() : {};
+        if(!adminData.sabitDiyetler) adminData.sabitDiyetler = [];
+
+        var eklenen = 0;
+        DIYETLER.forEach(function(d){
+            var var_mi = adminData.sabitDiyetler.some(function(m){ return m.ad === d.ad; });
+            if(var_mi){
+                log('⏭️ Zaten var, atlandı: '+d.ad,'bilgi');
+            } else {
+                adminData.sabitDiyetler.push(d);
+                eklenen++;
+                var ogunSayisi = d.ogunler.length;
+                var topYiyecek = 0;
+                d.ogunler.forEach(function(o){ topYiyecek += o.yiyecekler.length; });
+                log('✅ Eklendi: '+d.ad+' ('+ogunSayisi+' öğün, '+topYiyecek+' yiyecek)','ok');
+            }
+        });
+
+        await set(ref(db, 'admin'), adminData);
+        log('\n🎉 Tamamlandı! '+eklenen+' yeni diyet eklendi. Toplam: '+adminData.sabitDiyetler.length,'ok');
+    }catch(e){
+        log('❌ Hata: '+e.message,'hata');
+    }
+};
+
+window.diyetleriSil = async function(){
+    if(!confirm('TÜM sabit diyetleri silmek istediğinize emin misiniz?')) return;
+    try{
+        var snap = await get(ref(db, 'admin'));
+        var adminData = snap.exists() ? snap.val() : {};
+        var eski = (adminData.sabitDiyetler||[]).length;
+        adminData.sabitDiyetler = [];
+        await set(ref(db, 'admin'), adminData);
+        log('🗑️ '+eski+' diyet silindi. Sabit diyetler temizlendi.','hata');
+    }catch(e){
+        log('❌ Hata: '+e.message,'hata');
+    }
+};
+</script>
+</body>
+</html>
