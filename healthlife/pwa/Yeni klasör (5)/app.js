@@ -56,22 +56,12 @@ export async function fbSil(path){
 }
 
 async function loadAdminData(){
-    // Admin ise tüm admin düğümünü oku
-    if(G.isAdmin){
-        var data = await fbOku('admin');
-        if(!data) data = {};
-        if(!data.uyeler) data.uyeler = {};
-        if(!data.sabitRutinler) data.sabitRutinler = [];
-        if(!data.sabitDiyetler) data.sabitDiyetler = [];
-        if(!data.arsiv) data.arsiv = {};
-        return data;
-    }
-    // Üye ise sadece izin verilen alt düğümleri oku
-    var data = {};
-    data.uyeler = (await fbOku('admin/uyeler')) || {};
-    data.sabitRutinler = (await fbOku('admin/sabitRutinler')) || [];
-    data.sabitDiyetler = (await fbOku('admin/sabitDiyetler')) || [];
-    data.arsiv = {};
+    var data = await fbOku('admin');
+    if(!data) data = { uyeler:{}, sabitRutinler:[], sabitDiyetler:[], arsiv:{} };
+    if(!data.uyeler) data.uyeler = {};
+    if(!data.sabitRutinler) data.sabitRutinler = [];
+    if(!data.sabitDiyetler) data.sabitDiyetler = [];
+    if(!data.arsiv) data.arsiv = {};
     return data;
 }
 export async function loadUserData(eKey){
