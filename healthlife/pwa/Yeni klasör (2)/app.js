@@ -93,44 +93,8 @@ export var G = {
 };
 
 export function getAktifData(){ return G.readonlyMode ? G.readonlyUserData : G.userData; }
-export function getAtananRutinler(){
-    var d = getAktifData(); if(!d || !d.atananRutinler) return [];
-    var sabitler = (G.adminData && G.adminData.sabitRutinler) ? G.adminData.sabitRutinler : [];
-    return d.atananRutinler.map(function(r){
-        // Kişiselleştirilmemiş ise sabitten güncel halini al
-        if(!r.kisisellestirildi && r.sabitId){
-            var sabit = sabitler.find(function(s){ return s.id === r.sabitId; });
-            if(sabit){
-                // Sabitin güncel verilerini al, ama atananın id/sabitId/atayanAdmin/kisisellestirildi alanlarını koru
-                var guncel = JSON.parse(JSON.stringify(sabit));
-                guncel.id = r.id;
-                guncel.sabitId = r.sabitId;
-                guncel.atayanAdmin = r.atayanAdmin;
-                guncel.kisisellestirildi = false;
-                return guncel;
-            }
-        }
-        return r;
-    });
-}
-export function getAtananDiyetler(){
-    var d = getAktifData(); if(!d || !d.atananDiyetler) return [];
-    var sabitler = (G.adminData && G.adminData.sabitDiyetler) ? G.adminData.sabitDiyetler : [];
-    return d.atananDiyetler.map(function(dd){
-        if(!dd.kisisellestirildi && dd.sabitId){
-            var sabit = sabitler.find(function(s){ return s.id === dd.sabitId; });
-            if(sabit){
-                var guncel = JSON.parse(JSON.stringify(sabit));
-                guncel.id = dd.id;
-                guncel.sabitId = dd.sabitId;
-                guncel.atayanAdmin = dd.atayanAdmin;
-                guncel.kisisellestirildi = false;
-                return guncel;
-            }
-        }
-        return dd;
-    });
-}
+export function getAtananRutinler(){ var d = getAktifData(); return (d && d.atananRutinler) ? d.atananRutinler : []; }
+export function getAtananDiyetler(){ var d = getAktifData(); return (d && d.atananDiyetler) ? d.atananDiyetler : []; }
 
 // ══════════════════════════════════════════════════════════
 // SABİTLER
@@ -691,10 +655,7 @@ async function adminRutinAta(eKey,sabitIdx){
     try{
         var uyeData=await loadUserData(eKey);
         var kopya=JSON.parse(JSON.stringify(sabit));
-        kopya.id='ar_'+Date.now();
-        kopya.atayanAdmin=true;
-        kopya.sabitId=sabit.id; // sabit rutinin id'si (güncelleme takibi için)
-        kopya.kisisellestirildi=false;
+        kopya.id='ar_'+Date.now();kopya.atayanAdmin=true;
         uyeData.atananRutinler.push(kopya);
         await fbYaz('users/'+eKey,uyeData);
         bildirim('✅ Rutin atandı!','basari');adminUyeRutinAtaModal(eKey);
@@ -792,10 +753,7 @@ async function adminDiyetAta(eKey,sabitIdx){
     try{
         var uyeData=await loadUserData(eKey);
         var kopya=JSON.parse(JSON.stringify(sabit));
-        kopya.id='ad_'+Date.now();
-        kopya.atayanAdmin=true;
-        kopya.sabitId=sabit.id;
-        kopya.kisisellestirildi=false;
+        kopya.id='ad_'+Date.now();kopya.atayanAdmin=true;
         uyeData.atananDiyetler.push(kopya);
         await fbYaz('users/'+eKey,uyeData);
         bildirim('✅ Diyet atandı!','basari');adminUyeDiyetAtaModal(eKey);
