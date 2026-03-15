@@ -1,7 +1,7 @@
 // ══════════════════════════════════════════════════════════
 // İSTATİSTİKLER - stats.js
 // ══════════════════════════════════════════════════════════
-import { G, getAktifData, fbYaz, fbYazUye, emailKey, bugunStr, esc, bildirim, msToDkStr, msToStr, GUN_ADI, AY_ADI, DONUT_RENKLER } from './app.js';
+import { G, getAktifData, fbYaz, emailKey, bugunStr, esc, bildirim, msToDkStr, msToStr, GUN_ADI, AY_ADI, DONUT_RENKLER } from './app.js';
 
 // İstatistik takvim değişkenleri
 var istTakYil = new Date().getFullYear();
@@ -37,7 +37,7 @@ export async function istHedefKaydet(){
     G.userData.hedefler.gunlukDk = parseInt(document.getElementById('ist-hedef-dk').value) || 0;
     G.userData.hedefler.haftalikDk = parseInt(document.getElementById('ist-hedef-hafta').value) || 0;
     try{
-        await fbYazUye(emailKey(G.currentUser), G.userData);
+        await fbYaz('users/' + emailKey(G.currentUser), G.userData);
         bildirim('🎯 Hedef kaydedildi!', 'basari');
         istOzetRender();
     } catch(e){ bildirim('⚠️ Hata!', 'hata'); }

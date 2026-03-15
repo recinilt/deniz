@@ -37,19 +37,6 @@ export async function fbYaz(path, data){
     try{ await set(ref(db, path), data); return true; }
     catch(e){ console.error('FB yazma:', path, e); throw e; }
 }
-// Üye verisini kaydederken atananRutinler/atananDiyetler'i korur (üye değiştiremez)
-export async function fbYazUye(eKey, userData){
-    if(!G.isAdmin){
-        // Üye kaydediyorsa, atanan verileri DB'den al (üyenin local değişikliklerini ezme)
-        try{
-            var dbAtananRut = await fbOku('users/'+eKey+'/atananRutinler');
-            var dbAtananDiyet = await fbOku('users/'+eKey+'/atananDiyetler');
-            if(dbAtananRut !== null) userData.atananRutinler = dbAtananRut;
-            if(dbAtananDiyet !== null) userData.atananDiyetler = dbAtananDiyet;
-        }catch(e){ console.error('Atanan koruma hatası:', e); }
-    }
-    return await fbYaz('users/'+eKey, userData);
-}
 export async function fbSil(path){
     try{ await remove(ref(db, path)); return true; }
     catch(e){ console.error('FB silme:', path, e); throw e; }
@@ -330,7 +317,7 @@ async function profilOlustur(){
     G.userData.profil={avatar:avatar?avatar.dataset.avatar:'💪',nick:nick,boy:boy,kilo:kilo,dogumTarihi:document.getElementById('po-dogum').value,cinsiyet:document.getElementById('po-cinsiyet').value,createdDate:bugunStr()};
     G.userData.hedefler.kiloHedef=parseFloat(document.getElementById('po-kilo-hedef').value)||kilo;
     G.userData.kiloKayitlari.push({tarih:bugunStr(),kilo:kilo,timestamp:Date.now()});
-    try{await fbYazUye(emailKey(G.currentUser),G.userData);bildirim('🚀 Profil oluşturuldu!','basari');girisBasarili();}
+    try{await fbYaz('users/'+emailKey(G.currentUser),G.userData);bildirim('🚀 Profil oluşturuldu!','basari');girisBasarili();}
     catch(e){bildirim('⚠️ Kayıt hatası!','hata');}
     yuklemeGizle();
 }
@@ -580,14 +567,10 @@ async function adminUyeRutinAtaModal(eKey){
     if(atananlar.length>0){
         html+='<div style="font-size:12px;color:var(--accent);font-weight:700;margin-bottom:6px;">Atanan Rutinler</div>';
         atananlar.forEach(function(r,i){
-            html+='<div style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;margin-bottom:4px;padding:8px;">';
-            html+='<div style="display:flex;align-items:center;gap:6px;">';
+            html+='<div style="display:flex;align-items:center;gap:6px;padding:8px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;margin-bottom:4px;">';
             html+='<span style="flex:1;font-size:13px;font-weight:600;">'+esc(r.ad)+'</span>';
-            html+='<span style="font-size:10px;color:var(--text3);">'+r.adimlar.length+' adım</span></div>';
-            html+='<div style="display:flex;gap:4px;margin-top:6px;">';
-            html+='<button class="btn btn-ghost btn-sm" style="flex:1;padding:4px 8px;font-size:10px;" onclick="adminAtananRutinDuzenle(\''+esc(eKey)+'\','+i+')">✏️ Düzenle</button>';
-            html+='<button class="btn btn-danger btn-sm" style="padding:4px 8px;font-size:10px;" onclick="adminAtananRutinSil(\''+esc(eKey)+'\','+i+')">🗑️ Sil</button>';
-            html+='</div></div>';
+            html+='<span style="font-size:10px;color:var(--text3);">'+r.adimlar.length+' adım</span>';
+            html+='<button class="btn btn-danger btn-sm" style="padding:4px 8px;font-size:10px;" onclick="adminAtananRutinSil(\''+esc(eKey)+'\','+i+')">✕</button></div>';
         });
     }
     if(sabitler.length>0){
@@ -601,50 +584,6 @@ async function adminUyeRutinAtaModal(eKey){
     modalAc(html);
 }
 window.adminUyeRutinAtaModal = adminUyeRutinAtaModal;
-
-// Atanan rutini kişiye özel düzenle
-async function adminAtananRutinDuzenle(eKey, idx){
-    var uyeData=await loadUserData(eKey);
-    var rutin=JSON.parse(JSON.stringify(uyeData.atananRutinler[idx]));
-    if(!rutin) return;
-    // Düzenleme formu aç (sabit rutinlerle aynı form ama üyeye kaydeder)
-    window._atananDuzenleEKey = eKey;
-    window._atananDuzenleIdx = idx;
-    var html='<h3 style="color:var(--sport);margin-bottom:14px;">✏️ Atanan Rutini Düzenle <span style="font-size:11px;color:var(--text3);">(kişiye özel)</span></h3>';
-    html+='<div class="form-group"><label class="form-label">Rutin Adı</label><input type="text" id="sr-ad" class="input" value="'+esc(rutin.ad)+'" maxlength="40"></div>';
-    html+='<div class="form-group"><label class="form-label">Hangi Günler?</label><div class="gun-toggle" id="sr-gunler">';
-    ['Pz','Pt','Sa','Ça','Pe','Cu','Ct'].forEach(function(g,i){html+='<label><input type="checkbox" value="'+i+'"'+(rutin.gunler.indexOf(i)!==-1?' checked':'')+'><span style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;">'+g+'</span></label>';});
-    html+='</div></div>';
-    html+='<div class="form-group"><label class="form-label">Adımlar</label><div id="sr-adimlar">';
-    rutin.adimlar.forEach(function(a,i){html+=sporAdimHtml(i,a);});
-    html+='</div><button class="btn btn-ghost btn-sm btn-block" style="margin-top:8px;" onclick="srAdimEkle()">+ Adım Ekle</button></div>';
-    html+='<div style="display:flex;gap:8px;margin-top:14px;">';
-    html+='<button class="btn btn-sport btn-block" onclick="adminAtananRutinKaydet()">💾 Kaydet</button></div>';
-    modalAc(html);
-}
-window.adminAtananRutinDuzenle = adminAtananRutinDuzenle;
-
-async function adminAtananRutinKaydet(){
-    var eKey=window._atananDuzenleEKey;
-    var idx=window._atananDuzenleIdx;
-    var ad=document.getElementById('sr-ad').value.trim();
-    if(!ad){bildirim('⚠️ Rutin adı gerekli!','uyari');return;}
-    var gunler=[];document.querySelectorAll('#sr-gunler input:checked').forEach(function(c){gunler.push(parseInt(c.value));});
-    var adimlar=toplaAdimlar();
-    if(adimlar.length===0){bildirim('⚠️ En az bir adım!','uyari');return;}
-    yuklemeGoster();
-    try{
-        var uyeData=await loadUserData(eKey);
-        uyeData.atananRutinler[idx].ad=ad;
-        uyeData.atananRutinler[idx].gunler=gunler;
-        uyeData.atananRutinler[idx].adimlar=adimlar;
-        await fbYaz('users/'+eKey,uyeData);
-        bildirim('✅ Güncellendi!','basari');
-        adminUyeRutinAtaModal(eKey);
-    }catch(e){bildirim('⚠️ Hata!','hata');}
-    yuklemeGizle();
-}
-window.adminAtananRutinKaydet = adminAtananRutinKaydet;
 
 async function adminRutinAta(eKey,sabitIdx){
     var sabit=G.adminData.sabitRutinler[sabitIdx];if(!sabit)return;
@@ -683,14 +622,9 @@ async function adminUyeDiyetAtaModal(eKey){
     if(atananlar.length>0){
         html+='<div style="font-size:12px;color:var(--accent);font-weight:700;margin-bottom:6px;">Atanan Diyetler</div>';
         atananlar.forEach(function(d,i){
-            html+='<div style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;margin-bottom:4px;padding:8px;">';
-            html+='<div style="display:flex;align-items:center;gap:6px;">';
+            html+='<div style="display:flex;align-items:center;gap:6px;padding:8px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;margin-bottom:4px;">';
             html+='<span style="flex:1;font-size:13px;font-weight:600;">'+esc(d.ad)+'</span>';
-            html+='<span style="font-size:10px;color:var(--text3);">'+(d.ogunler||[]).length+' öğün</span></div>';
-            html+='<div style="display:flex;gap:4px;margin-top:6px;">';
-            html+='<button class="btn btn-ghost btn-sm" style="flex:1;padding:4px 8px;font-size:10px;" onclick="adminAtananDiyetDuzenle(\''+esc(eKey)+'\','+i+')">✏️ Düzenle</button>';
-            html+='<button class="btn btn-danger btn-sm" style="padding:4px 8px;font-size:10px;" onclick="adminAtananDiyetSil(\''+esc(eKey)+'\','+i+')">🗑️ Sil</button>';
-            html+='</div></div>';
+            html+='<button class="btn btn-danger btn-sm" style="padding:4px 8px;font-size:10px;" onclick="adminAtananDiyetSil(\''+esc(eKey)+'\','+i+')">✕</button></div>';
         });
     }
     if(sabitler.length>0){
@@ -704,42 +638,6 @@ async function adminUyeDiyetAtaModal(eKey){
     modalAc(html);
 }
 window.adminUyeDiyetAtaModal = adminUyeDiyetAtaModal;
-
-// Atanan diyeti kişiye özel düzenle
-async function adminAtananDiyetDuzenle(eKey, idx){
-    var uyeData=await loadUserData(eKey);
-    var prog=JSON.parse(JSON.stringify(uyeData.atananDiyetler[idx]));
-    if(!prog) return;
-    window._atananDiyetDuzenleEKey = eKey;
-    window._atananDiyetDuzenleIdx = idx;
-    var html='<h3 style="color:var(--diet);margin-bottom:14px;">✏️ Atanan Diyeti Düzenle <span style="font-size:11px;color:var(--text3);">(kişiye özel)</span></h3>';
-    html+=diyetFormHtml(prog);
-    html+='<div style="display:flex;gap:8px;margin-top:14px;">';
-    html+='<button class="btn btn-diet btn-block" onclick="adminAtananDiyetKaydet()">💾 Kaydet</button></div>';
-    modalAc(html);
-    window._dpOgunler=JSON.parse(JSON.stringify(prog.ogunler||[]));
-}
-window.adminAtananDiyetDuzenle = adminAtananDiyetDuzenle;
-
-async function adminAtananDiyetKaydet(){
-    var eKey=window._atananDiyetDuzenleEKey;
-    var idx=window._atananDiyetDuzenleIdx;
-    var ad=document.getElementById('dp-ad').value.trim();
-    if(!ad){bildirim('⚠️ Program adı gerekli!','uyari');return;}
-    var gunler=[];document.querySelectorAll('#dp-gunler input:checked').forEach(function(c){gunler.push(parseInt(c.value));});
-    yuklemeGoster();
-    try{
-        var uyeData=await loadUserData(eKey);
-        uyeData.atananDiyetler[idx].ad=ad;
-        uyeData.atananDiyetler[idx].gunler=gunler;
-        uyeData.atananDiyetler[idx].ogunler=window._dpOgunler;
-        await fbYaz('users/'+eKey,uyeData);
-        bildirim('✅ Güncellendi!','basari');
-        adminUyeDiyetAtaModal(eKey);
-    }catch(e){bildirim('⚠️ Hata!','hata');}
-    yuklemeGizle();
-}
-window.adminAtananDiyetKaydet = adminAtananDiyetKaydet;
 
 async function adminDiyetAta(eKey,sabitIdx){
     var sabit=G.adminData.sabitDiyetler[sabitIdx];if(!sabit)return;
@@ -778,15 +676,9 @@ function adminRutinYonetModal(){
     var html='<h3 style="color:var(--sport);margin-bottom:14px;">📋 Sabit Spor Rutinleri</h3>';
     if(rutinler.length===0) html+='<p style="color:var(--text3);font-size:13px;">Henüz sabit rutin yok.</p>';
     else rutinler.forEach(function(r,i){
-        html+='<div style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;padding:10px;">';
-        html+='<div style="display:flex;align-items:center;gap:8px;">';
+        html+='<div style="display:flex;align-items:center;gap:8px;padding:10px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;cursor:pointer;" onclick="modalKapat();setTimeout(function(){adminRutinDuzenle('+i+');},200);">';
         html+='<span>🔒</span><span style="flex:1;font-weight:600;font-size:14px;">'+esc(r.ad)+'</span>';
-        html+='<span style="font-size:11px;color:var(--text3);">'+r.adimlar.length+' adım</span></div>';
-        html+='<div style="display:flex;gap:6px;margin-top:8px;">';
-        html+='<button class="btn btn-ghost btn-sm" style="flex:1;" onclick="modalKapat();setTimeout(function(){adminRutinDuzenle('+i+');},200);">✏️ Düzenle</button>';
-        html+='<button class="btn btn-ghost btn-sm" style="flex:1;" onclick="adminSabitRutinKopyala('+i+')">📋 Kopyala</button>';
-        html+='<button class="btn btn-danger btn-sm" style="padding:8px 10px;" onclick="adminSabitRutinSil('+i+')">🗑️</button>';
-        html+='</div></div>';
+        html+='<span style="font-size:11px;color:var(--text3);">'+r.adimlar.length+' adım</span><span style="color:var(--text3);">›</span></div>';
     });
     html+='<button class="btn btn-sport btn-block" style="margin-top:12px;" onclick="modalKapat();setTimeout(function(){adminRutinDuzenle();},200);">+ Yeni Sabit Rutin</button>';
     modalAc(html);
@@ -820,44 +712,16 @@ async function adminSabitRutinKaydet(editIdx){
     if(editIdx>=0){G.adminData.sabitRutinler[editIdx].ad=ad;G.adminData.sabitRutinler[editIdx].gunler=gunler;G.adminData.sabitRutinler[editIdx].adimlar=adimlar;}
     else G.adminData.sabitRutinler.push({id:'ar_'+Date.now(),ad:ad,gunler:gunler,adimlar:adimlar});
     yuklemeGoster();
-    try{await fbYaz('admin',G.adminData);bildirim('✅ Kaydedildi!','basari');adminRutinYonetModal();}
+    try{await fbYaz('admin',G.adminData);bildirim('✅ Kaydedildi!','basari');modalKapat();}
     catch(e){bildirim('⚠️ Hata!','hata');}
     yuklemeGizle();
 }
 window.adminSabitRutinKaydet = adminSabitRutinKaydet;
 
-function adminSabitRutinKopyala(idx){
-    var orijinal = G.adminData.sabitRutinler[idx];
-    if(!orijinal) return;
-    // Kopyasını oluştur, yeni id ve isimle düzenleme modunda aç
-    var kopya = JSON.parse(JSON.stringify(orijinal));
-    kopya.id = 'ar_' + Date.now();
-    kopya.ad = kopya.ad + ' (Kopya)';
-    // adminRutinDuzenle'yi -1 (yeni) modunda aç ama kopya verisiyle
-    modalKapat();
-    setTimeout(function(){ adminRutinDuzenleKopya(kopya); }, 200);
-}
-window.adminSabitRutinKopyala = adminSabitRutinKopyala;
-
-function adminRutinDuzenleKopya(rutin){
-    var html='<h3 style="color:var(--sport);margin-bottom:14px;">🔒 Kopyadan Yeni Rutin</h3>';
-    html+='<div class="form-group"><label class="form-label">Rutin Adı</label><input type="text" id="sr-ad" class="input" value="'+esc(rutin.ad)+'" placeholder="Örn: Başlangıç" maxlength="40"></div>';
-    html+='<div class="form-group"><label class="form-label">Hangi Günler?</label><div class="gun-toggle" id="sr-gunler">';
-    ['Pz','Pt','Sa','Ça','Pe','Cu','Ct'].forEach(function(g,i){html+='<label><input type="checkbox" value="'+i+'"'+(rutin.gunler.indexOf(i)!==-1?' checked':'')+'><span style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;">'+g+'</span></label>';});
-    html+='</div></div>';
-    html+='<div class="form-group"><label class="form-label">Adımlar</label><div id="sr-adimlar">';
-    rutin.adimlar.forEach(function(a,i){html+=sporAdimHtml(i,a);});
-    html+='</div><button class="btn btn-ghost btn-sm btn-block" style="margin-top:8px;" onclick="srAdimEkle()">+ Adım Ekle</button></div>';
-    html+='<div style="display:flex;gap:8px;margin-top:14px;">';
-    html+='<button class="btn btn-sport btn-block" onclick="adminSabitRutinKaydet(-1)">💾 Yeni Olarak Kaydet</button></div>';
-    modalAc(html);
-}
-window.adminRutinDuzenleKopya = adminRutinDuzenleKopya;
-
 async function adminSabitRutinSil(idx){
     if(!confirm('Silmek istediğinize emin misiniz?'))return;
     G.adminData.sabitRutinler.splice(idx,1);yuklemeGoster();
-    try{await fbYaz('admin',G.adminData);bildirim('🗑️ Silindi!','basari');adminRutinYonetModal();}catch(e){bildirim('⚠️ Hata!','hata');}
+    try{await fbYaz('admin',G.adminData);bildirim('🗑️ Silindi!','basari');modalKapat();}catch(e){bildirim('⚠️ Hata!','hata');}
     yuklemeGizle();
 }
 window.adminSabitRutinSil = adminSabitRutinSil;
@@ -868,41 +732,14 @@ function adminDiyetYonetModal(){
     var html='<h3 style="color:var(--diet);margin-bottom:14px;">🥗 Sabit Diyet Programları</h3>';
     if(diyetler.length===0) html+='<p style="color:var(--text3);font-size:13px;">Henüz sabit diyet yok.</p>';
     else diyetler.forEach(function(d,i){
-        html+='<div style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;padding:10px;">';
-        html+='<div style="display:flex;align-items:center;gap:8px;">';
+        html+='<div style="display:flex;align-items:center;gap:8px;padding:10px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;cursor:pointer;" onclick="modalKapat();setTimeout(function(){adminSabitDiyetDuzenle('+i+');},200);">';
         html+='<span>🔒</span><span style="flex:1;font-weight:600;font-size:14px;">'+esc(d.ad)+'</span>';
-        html+='<span style="font-size:11px;color:var(--text3);">'+(d.ogunler||[]).length+' öğün</span></div>';
-        html+='<div style="display:flex;gap:6px;margin-top:8px;">';
-        html+='<button class="btn btn-ghost btn-sm" style="flex:1;" onclick="modalKapat();setTimeout(function(){adminSabitDiyetDuzenle('+i+');},200);">✏️ Düzenle</button>';
-        html+='<button class="btn btn-ghost btn-sm" style="flex:1;" onclick="adminSabitDiyetKopyala('+i+')">📋 Kopyala</button>';
-        html+='<button class="btn btn-danger btn-sm" style="padding:8px 10px;" onclick="adminSabitDiyetSil('+i+')">🗑️</button>';
-        html+='</div></div>';
+        html+='<span style="font-size:11px;color:var(--text3);">'+(d.ogunler||[]).length+' öğün</span><span style="color:var(--text3);">›</span></div>';
     });
     html+='<button class="btn btn-diet btn-block" style="margin-top:12px;" onclick="modalKapat();setTimeout(function(){adminSabitDiyetDuzenle();},200);">+ Yeni Sabit Diyet</button>';
     modalAc(html);
 }
 window.adminDiyetYonetModal = adminDiyetYonetModal;
-
-function adminSabitDiyetKopyala(idx){
-    var orijinal = G.adminData.sabitDiyetler[idx];
-    if(!orijinal) return;
-    var kopya = JSON.parse(JSON.stringify(orijinal));
-    kopya.id = 'ad_' + Date.now();
-    kopya.ad = kopya.ad + ' (Kopya)';
-    modalKapat();
-    setTimeout(function(){ adminSabitDiyetDuzenleKopya(kopya); }, 200);
-}
-window.adminSabitDiyetKopyala = adminSabitDiyetKopyala;
-
-function adminSabitDiyetDuzenleKopya(prog){
-    var html='<h3 style="color:var(--diet);margin-bottom:14px;">🔒 Kopyadan Yeni Diyet</h3>';
-    html+=diyetFormHtml(prog);
-    html+='<div style="display:flex;gap:8px;margin-top:14px;">';
-    html+='<button class="btn btn-diet btn-block" onclick="adminSabitDiyetKaydet(-1)">💾 Yeni Olarak Kaydet</button></div>';
-    modalAc(html);
-    window._dpOgunler=JSON.parse(JSON.stringify(prog.ogunler||[]));
-}
-window.adminSabitDiyetDuzenleKopya = adminSabitDiyetDuzenleKopya;
 
 function adminSabitDiyetDuzenle(editIdx){
     var prog=editIdx!==undefined?JSON.parse(JSON.stringify(G.adminData.sabitDiyetler[editIdx])):{id:'ad_'+Date.now(),ad:'',gunler:[],ogunler:OGUN_TIPLERI.map(function(t){return{tip:t,yiyecekler:[]};})};
@@ -924,7 +761,7 @@ async function adminSabitDiyetKaydet(editIdx){
     if(editIdx>=0){G.adminData.sabitDiyetler[editIdx].ad=ad;G.adminData.sabitDiyetler[editIdx].gunler=gunler;G.adminData.sabitDiyetler[editIdx].ogunler=window._dpOgunler;}
     else G.adminData.sabitDiyetler.push({id:'ad_'+Date.now(),ad:ad,gunler:gunler,ogunler:window._dpOgunler});
     yuklemeGoster();
-    try{await fbYaz('admin',G.adminData);bildirim('✅ Kaydedildi!','basari');adminDiyetYonetModal();}
+    try{await fbYaz('admin',G.adminData);bildirim('✅ Kaydedildi!','basari');modalKapat();}
     catch(e){bildirim('⚠️ Hata!','hata');}
     yuklemeGizle();
 }
@@ -933,7 +770,7 @@ window.adminSabitDiyetKaydet = adminSabitDiyetKaydet;
 async function adminSabitDiyetSil(idx){
     if(!confirm('Silmek istediğinize emin misiniz?'))return;
     G.adminData.sabitDiyetler.splice(idx,1);yuklemeGoster();
-    try{await fbYaz('admin',G.adminData);bildirim('🗑️ Silindi!','basari');adminDiyetYonetModal();}catch(e){bildirim('⚠️ Hata!','hata');}
+    try{await fbYaz('admin',G.adminData);bildirim('🗑️ Silindi!','basari');modalKapat();}catch(e){bildirim('⚠️ Hata!','hata');}
     yuklemeGizle();
 }
 window.adminSabitDiyetSil = adminSabitDiyetSil;
@@ -1161,7 +998,7 @@ async function sporRutiniKaydet(editIdx){
     if(editIdx>=0){G.userData.sporRutinleri[editIdx].ad=ad;G.userData.sporRutinleri[editIdx].gunler=gunler;G.userData.sporRutinleri[editIdx].adimlar=adimlar;}
     else G.userData.sporRutinleri.push({id:'sr_'+Date.now(),ad:ad,gunler:gunler,adimlar:adimlar});
     yuklemeGoster();
-    try{await fbYazUye(emailKey(G.currentUser),G.userData);bildirim('✅ Kaydedildi!','basari');modalKapat();anaSayfaRender();}
+    try{await fbYaz('users/'+emailKey(G.currentUser),G.userData);bildirim('✅ Kaydedildi!','basari');modalKapat();anaSayfaRender();}
     catch(e){bildirim('⚠️ Hata!','hata');}yuklemeGizle();
 }
 window.sporRutiniKaydet = sporRutiniKaydet;
@@ -1169,7 +1006,7 @@ window.sporRutiniKaydet = sporRutiniKaydet;
 async function sporRutiniSil(idx){
     if(!confirm('Silmek istediğinize emin misiniz?'))return;
     G.userData.sporRutinleri.splice(idx,1);yuklemeGoster();
-    try{await fbYazUye(emailKey(G.currentUser),G.userData);bildirim('🗑️ Silindi!','basari');modalKapat();anaSayfaRender();}
+    try{await fbYaz('users/'+emailKey(G.currentUser),G.userData);bildirim('🗑️ Silindi!','basari');modalKapat();anaSayfaRender();}
     catch(e){bildirim('⚠️ Hata!','hata');}yuklemeGizle();
 }
 window.sporRutiniSil = sporRutiniSil;
@@ -1234,7 +1071,7 @@ async function diyetProgramiKaydet(editIdx){
     if(editIdx>=0){G.userData.diyetProgramlari[editIdx].ad=ad;G.userData.diyetProgramlari[editIdx].gunler=gunler;G.userData.diyetProgramlari[editIdx].ogunler=window._dpOgunler;}
     else G.userData.diyetProgramlari.push({id:'dp_'+Date.now(),ad:ad,gunler:gunler,ogunler:window._dpOgunler});
     yuklemeGoster();
-    try{await fbYazUye(emailKey(G.currentUser),G.userData);bildirim('✅ Kaydedildi!','basari');modalKapat();anaSayfaRender();}
+    try{await fbYaz('users/'+emailKey(G.currentUser),G.userData);bildirim('✅ Kaydedildi!','basari');modalKapat();anaSayfaRender();}
     catch(e){bildirim('⚠️ Hata!','hata');}yuklemeGizle();
 }
 window.diyetProgramiKaydet = diyetProgramiKaydet;
@@ -1242,7 +1079,7 @@ window.diyetProgramiKaydet = diyetProgramiKaydet;
 async function diyetProgramiSil(idx){
     if(!confirm('Silmek istediğinize emin misiniz?'))return;
     G.userData.diyetProgramlari.splice(idx,1);yuklemeGoster();
-    try{await fbYazUye(emailKey(G.currentUser),G.userData);bildirim('🗑️ Silindi!','basari');modalKapat();anaSayfaRender();}
+    try{await fbYaz('users/'+emailKey(G.currentUser),G.userData);bildirim('🗑️ Silindi!','basari');modalKapat();anaSayfaRender();}
     catch(e){bildirim('⚠️ Hata!','hata');}yuklemeGizle();
 }
 window.diyetProgramiSil = diyetProgramiSil;
@@ -1295,7 +1132,7 @@ async function diyetTikDeg(diyetId,tarih,ogunIdx,checked){
     var kayit=G.userData.diyetKayitlari.find(function(k){return k.tarih===tarih&&k.diyetId===diyetId;});
     if(!kayit)return;if(!kayit.tamamlanan)kayit.tamamlanan={};
     kayit.tamamlanan[ogunIdx]=checked;
-    try{await fbYazUye(emailKey(G.currentUser),G.userData);}catch(e){console.error(e);}
+    try{await fbYaz('users/'+emailKey(G.currentUser),G.userData);}catch(e){console.error(e);}
 }
 window.diyetTikDeg = diyetTikDeg;
 
@@ -1442,7 +1279,7 @@ async function profilKaydet(){
     G.userData.profil.kilo=parseFloat(document.getElementById('pd-kilo').value)||G.userData.profil.kilo;
     G.userData.hedefler.kiloHedef=parseFloat(document.getElementById('pd-kilo-hedef').value)||G.userData.hedefler.kiloHedef;
     yuklemeGoster();
-    try{await fbYazUye(emailKey(G.currentUser),G.userData);bildirim('✅ Güncellendi!','basari');profilRender();modalKapat();}
+    try{await fbYaz('users/'+emailKey(G.currentUser),G.userData);bildirim('✅ Güncellendi!','basari');profilRender();modalKapat();}
     catch(e){bildirim('⚠️ Hata!','hata');}yuklemeGizle();
 }
 window.profilKaydet = profilKaydet;

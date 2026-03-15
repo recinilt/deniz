@@ -1,7 +1,7 @@
 // ══════════════════════════════════════════════════════════
 // SPOR TIMER - timer.js
 // ══════════════════════════════════════════════════════════
-import { G, getAktifData, getAtananRutinler, fbYaz, fbYazUye, emailKey, bugunStr, esc, bildirim, modalAc, modalKapat, yuklemeGoster, yuklemeGizle, msToStr, msToDkStr, hesaplaKaloriAdim, hesaplaKaloriMs, ekranGoster, acInit, sesGucluAlarm, sesAdimBitti, sesSporBitti } from './app.js';
+import { G, getAktifData, getAtananRutinler, fbYaz, emailKey, bugunStr, esc, bildirim, modalAc, modalKapat, yuklemeGoster, yuklemeGizle, msToStr, msToDkStr, hesaplaKaloriAdim, hesaplaKaloriMs, ekranGoster, acInit, sesGucluAlarm, sesAdimBitti, sesSporBitti } from './app.js';
 
 // Timer değişkenleri
 var stState = 'idle'; // idle, running, paused, overtime
@@ -396,7 +396,7 @@ async function stYaridaKaydet(){
     };
     if(mevcutIdx>=0) G.userData.sporOturumlari[mevcutIdx] = kayit;
     else G.userData.sporOturumlari.push(kayit);
-    try{ await fbYazUye(emailKey(G.currentUser), G.userData); }
+    try{ await fbYaz('users/'+emailKey(G.currentUser), G.userData); }
     catch(e){ console.error(e); }
 }
 
@@ -424,7 +424,7 @@ async function stTamamlandi(){
         G.userData.sporOturumlari.push(kayit);
     }
     try{
-        await fbYazUye(emailKey(G.currentUser), G.userData);
+        await fbYaz('users/'+emailKey(G.currentUser), G.userData);
         bildirim('🎉 Antrenman tamamlandı! '+msToDkStr(stToplamSporMs), 'basari');
     } catch(e){
         bildirim('⚠️ Kayıt hatası!', 'hata');
