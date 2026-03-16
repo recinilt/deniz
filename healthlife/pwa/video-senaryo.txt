@@ -1,0 +1,239 @@
+════════════════════════════════════════════════════════════════
+HEALTH LIFE GYM - TANITIM VİDEOSU SENARYOSU
+════════════════════════════════════════════════════════════════
+Toplam süre: ~3-4 dakika
+Format: Dikey (9:16) veya Yatay (16:9)
+TTS ile seslendirilecek, CapCut ile düzenlenecek
+
+════════════════════════════════════════════════════════════════
+
+
+-------------------------------------------------------------------
+SAHNE 1 - AÇILIŞ (0:00 - 0:12)
+-------------------------------------------------------------------
+[EKRAN: Logo animasyonu veya spor salonu görüntüsü]
+[MÜZİK: Enerjik, motivasyon verici arka plan müziği başlar]
+
+SESLENDİRME:
+"Spor salonunuzu dijital çağa taşıyın.
+Üyelerinizin antrenmanlarını takip edin,
+kişiye özel programlar oluşturun
+ve salonunuzu profesyonel bir seviyeye çıkarın."
+
+
+-------------------------------------------------------------------
+SAHNE 2 - SORUN TESPİTİ (0:12 - 0:28)
+-------------------------------------------------------------------
+[EKRAN: Kağıt programlar, karışık notlar, WhatsApp mesajları gibi görseller]
+
+SESLENDİRME:
+"Hâlâ kağıda program mı yazıyorsunuz?
+Üyeleriniz programlarını kaybediyor mu?
+Hangi üyenin ne yaptığını takip edemiyorsunuz, değil mi?
+Artık bu sorunlar tarihe karışıyor."
+
+
+-------------------------------------------------------------------
+SAHNE 3 - ÜRÜN TANITIMI (0:28 - 0:42)
+-------------------------------------------------------------------
+[EKRAN: Telefondan uygulamanın giriş ekranı açılır]
+
+SESLENDİRME:
+"Health Life Gym, spor salonları için geliştirilmiş,
+akıllı antrenman ve diyet takip sistemidir.
+Web tabanlı çalışır. Uygulama indirmeye gerek yok.
+Telefondan, tabletten veya bilgisayardan erişilebilir.
+Üstelik telefona uygulama olarak da yüklenebilir."
+
+
+-------------------------------------------------------------------
+SAHNE 4 - YÖNETİCİ GİRİŞİ (0:42 - 0:58)
+-------------------------------------------------------------------
+[EKRAN: Yönetici sekmesi → Google ile giriş → Profil ekranı]
+
+SESLENDİRME:
+"Salon yöneticisi olarak Google hesabınızla güvenle giriş yaparsınız.
+Yönetici panelinden tüm salonunuzu kontrol edersiniz.
+Üye ekleme, program atama, istatistik görüntüleme,
+her şey parmaklarınızın ucunda."
+
+
+-------------------------------------------------------------------
+SAHNE 5 - ÜYE YÖNETİMİ (0:58 - 1:25)
+-------------------------------------------------------------------
+[EKRAN: Üye Yönetimi → Yeni Üye Ekle → Üye listesi]
+
+SESLENDİRME:
+"Yeni üye eklemek çok kolay.
+Ad, soyad, e-posta ve şifre belirleyin.
+Üyelik süresini ay olarak girin.
+Sistem üyelik bitiş tarihini otomatik hesaplar.
+
+Üye listesinde her üyenin durumunu anlık görürsünüz.
+Üyeliği bitmek üzere olanlar sarı,
+süresi dolanlar kırmızı ile işaretlenir.
+Tek tuşla üyelik uzatabilirsiniz."
+
+
+-------------------------------------------------------------------
+SAHNE 6 - SABİT SPOR RUTİNLERİ (1:25 - 1:55)
+-------------------------------------------------------------------
+[EKRAN: Sabit Spor Rutinleri → Rutin detayı → Egzersiz adımları]
+
+SESLENDİRME:
+"Başlangıç, orta ve ileri seviye için
+hazır spor rutinleri oluşturun.
+Her rutin; egzersiz adımları, set, tekrar,
+ağırlık, süre ve mola bilgilerini içerir.
+
+Rutinleri kopyalayarak hızla yeni varyasyonlar üretin.
+Düzenleyin, silin veya yenilerini ekleyin.
+Bu rutinler sizin şablon havuzunuzdur."
+
+
+-------------------------------------------------------------------
+SAHNE 7 - SABİT DİYET PROGRAMLARI (1:55 - 2:15)
+-------------------------------------------------------------------
+[EKRAN: Sabit Diyet Programları → Diyet detayı → Öğünler]
+
+SESLENDİRME:
+"Aynı şekilde diyet programları da oluşturabilirsiniz.
+Kas yapma, yağ yakma, dengeli beslenme,
+vejetaryen, düşük karbonhidrat gibi programlar
+altı öğün detayıyla hazırlanır.
+Her öğünde hangi yiyeceklerin tüketileceği açıkça belirtilir."
+
+
+-------------------------------------------------------------------
+SAHNE 8 - KİŞİYE ÖZEL ATAMA (2:15 - 2:45)
+-------------------------------------------------------------------
+[EKRAN: Üye detay → Spor butonu → Sabitlerden ata → Kişiye özel düzenle]
+
+SESLENDİRME:
+"İşte en güçlü özellik.
+Hazırladığınız şablon rutinleri üyelere atayın.
+Her üyeye birden fazla spor ve diyet programı atayabilirsiniz.
+
+Üstelik, atadığınız programı kişiye özel düzenleyebilirsiniz.
+Bir üyenin dizinde sorun mu var? Squat'ı çıkarın, yerine leg press ekleyin.
+Kişiye özel düzenlenen programlar özel olarak işaretlenir.
+
+Şablonu güncellediğinizde, kişiselleştirilmemiş tüm üyeler
+otomatik olarak güncel programı görür."
+
+
+-------------------------------------------------------------------
+SAHNE 9 - ÜYE DENEYİMİ (2:45 - 3:20)
+-------------------------------------------------------------------
+[EKRAN: Üye girişi → Ana sayfa → Spor rutini başlat → Timer ekranı]
+
+SESLENDİRME:
+"Üyeleriniz e-posta ve şifre ile giriş yapar.
+Ana sayfada bugünün programını görürler.
+Haftalık takvim şeridi ile hangi gün ne yapacaklarını bilirler.
+
+Antrenmanı başlattıklarında akıllı zamanlayıcı devreye girer.
+Her egzersizin süresi, set sayısı, ağırlık bilgisi ekranda görünür.
+Egzersiz bittiğinde sesli uyarı verilir ve otomatik olarak sonraki adıma geçilir.
+Mola süreleri de takip edilir.
+Toplam spor süresi, mola süresi ve yakılan kalori anlık hesaplanır."
+
+
+-------------------------------------------------------------------
+SAHNE 10 - DİYET TAKİBİ (3:20 - 3:35)
+-------------------------------------------------------------------
+[EKRAN: Ana sayfada diyet kartı → Öğün listesi → Tik atma]
+
+SESLENDİRME:
+"Diyet programları da ana sayfada görünür.
+Üyeler her öğünü tamamladıkça tik atarlar.
+Günlük ilerleme çubuğu dolarak motivasyon sağlar."
+
+
+-------------------------------------------------------------------
+SAHNE 11 - İSTATİSTİKLER (3:35 - 3:55)
+-------------------------------------------------------------------
+[EKRAN: İstatistik sayfası → Özet kartları → Grafikler → Kilo takip]
+
+SESLENDİRME:
+"Detaylı istatistikler ile gelişimi takip edin.
+Günlük, haftalık ve aylık spor süreleri,
+yakılan kalori, antrenman streak'i,
+en verimli saat dilimleri ve kilo değişim grafiği.
+
+Yönetici olarak herhangi bir üyenin istatistiklerini
+kendi gözünden görüntüleyebilirsiniz."
+
+
+-------------------------------------------------------------------
+SAHNE 12 - TAKVİM (3:55 - 4:05)
+-------------------------------------------------------------------
+[EKRAN: Takvim sayfası → Ay görünümü → Güne tıklama]
+
+SESLENDİRME:
+"Aylık takvimde hangi gün ne kadar spor yapıldığı,
+kilo kayıtları ve hedef durumu bir bakışta görülür."
+
+
+-------------------------------------------------------------------
+SAHNE 13 - TEKNİK AVANTAJLAR (4:05 - 4:20)
+-------------------------------------------------------------------
+[EKRAN: Farklı cihazlarda uygulama görselleri]
+
+SESLENDİRME:
+"Sistem bulut tabanlıdır. Veriler güvenle saklanır.
+İnternet olan her yerden erişilebilir.
+Telefona uygulama olarak yüklenebilir.
+Kurulum gerektirmez, anında kullanıma hazırdır."
+
+
+-------------------------------------------------------------------
+SAHNE 14 - KAPANIŞ (4:20 - 4:35)
+-------------------------------------------------------------------
+[EKRAN: Logo + İletişim bilgileri + QR kod]
+[MÜZİK: Final crescendo]
+
+SESLENDİRME:
+"Salonunuzu profesyonel bir seviyeye taşıyın.
+Üyelerinize unutulmaz bir deneyim sunun.
+Health Life Gym, dijital fitness asistanınız.
+Hemen iletişime geçin."
+
+
+════════════════════════════════════════════════════════════════
+CAPCUT DÜZENLENİRKEN NOTLAR:
+════════════════════════════════════════════════════════════════
+
+1. Her sahne geçişinde kısa bir fade veya slide geçişi kullanın
+2. Ekran kayıtlarını telefondan dikey (9:16) çekin
+3. TTS sesini her sahnenin başına hizalayın
+4. Arka plan müziği TTS sesinin %20-30 seviyesinde olsun
+5. Önemli özelliklerde yakınlaştırma (zoom) efekti kullanın
+6. Metin overlay'leri ile anahtar kelimeleri vurgulayın:
+   - "Kişiye Özel" → yeşil vurgu
+   - "Otomatik" → mavi vurgu
+   - "Anlık" → turuncu vurgu
+7. Son sahnede iletişim bilgilerinizi ve QR kodu ekleyin
+8. Video açıklamasına demo linki ekleyin
+
+════════════════════════════════════════════════════════════════
+EKRAN KAYDI ÇEKİLECEK YERLER (sırasıyla):
+════════════════════════════════════════════════════════════════
+
+1. Giriş ekranı (logo + sekmeler)
+2. Google ile yönetici girişi
+3. Profil → Üye Yönetimi → üye listesi
+4. Yeni üye ekleme formu
+5. Üye detay (butonlar: Uzat, Şifre, İstatistik, Spor, Diyet, Sil)
+6. Sabit Spor Rutinleri listesi (düzenle/kopyala/sil butonları)
+7. Rutin düzenleme formu (egzersiz adımları, parametreler)
+8. Sabit Diyet Programları listesi
+9. Üyeye rutin atama (sabitlerden seç → kişiye özel düzenle)
+10. Üye girişi (e-posta + şifre)
+11. Ana sayfa (hafta şeridi + bugünün kartları)
+12. Spor rutini başlatma → kilo girişi → timer ekranı
+13. Timer çalışırken (egzersiz → mola → sonraki adım)
+14. Diyet kartına tıklama → öğün tikleme
+15. İstatistik sayfası (scroll ile tüm grafikler)
+16. Takvim sayfası
+17. PWA yükleme (opsiyonel)
