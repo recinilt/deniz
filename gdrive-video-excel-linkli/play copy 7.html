@@ -355,6 +355,19 @@
       url += '?t=' + _t;
     }
 
+    /* Dogrudan goruntulemek icin view URL'i (yeni sekme icin) */
+    var viewUrl = '';
+    for (var j = 0; j < s1.length; j++) viewUrl += String.fromCharCode(s1[j]);
+    for (var j = 0; j < s2.length; j++) viewUrl += String.fromCharCode(s2[j]);
+    for (var j = 0; j < s3.length; j++) viewUrl += String.fromCharCode(s3[j]);
+    viewUrl += id;
+    var s5 = [47,118,105,101,119]; /* /view */
+    for (var j = 0; j < s5.length; j++) viewUrl += String.fromCharCode(s5[j]);
+
+    if (_t && _t !== '0s') {
+      viewUrl += '?t=' + _t;
+    }
+
     document.getElementById('keyScreen').classList.add('hidden');
     document.getElementById('playerScreen').classList.remove('hidden');
 
@@ -381,10 +394,10 @@
       /* Fallback mesajını göster */
       var fb = document.getElementById('fallbackMsg');
       fb.classList.remove('hidden');
-      document.getElementById('fallbackLink').href = url;
+      document.getElementById('fallbackLink').href = viewUrl;
 
       /* Otomatik yeni sekmede aç */
-      window.open(url, '_blank');
+      window.open(viewUrl, '_blank');
     }
 
     /* 1) iframe error event */
