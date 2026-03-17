@@ -198,6 +198,27 @@
   }
   .fallback-msg .open-btn:hover { background: #d97706; transform: scale(1.02); }
   .fallback-msg .open-btn:active { transform: scale(0.98); }
+  .time-hint { margin: 0.8rem 0; }
+  .time-copy {
+    display: inline-block;
+    background: #0f172a;
+    color: #60a5fa;
+    padding: 0.4rem 1rem;
+    border-radius: 6px;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 1.3rem;
+    font-weight: 700;
+    cursor: pointer;
+    border: 2px solid #3b82f6;
+    transition: background 0.2s;
+    user-select: all;
+  }
+  .time-copy:hover { background: #1e3a5f; }
+  .copy-note {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    margin-top: 0.3rem;
+  }
 </style>
 </head>
 <body>
@@ -246,7 +267,12 @@
   <!-- Fallback mesajı - başta gizli -->
   <div class="fallback-msg hidden" id="fallbackMsg">
     <div class="warn-icon">&#x26A0;&#xFE0F;</div>
-    <p>Video burada yüklenemiyor mu?<br>Aşağıdaki butonla zaman damgalı olarak Google Drive'da açın.</p>
+    <p>Video burada yüklenemiyor mu?<br>Aşağıdaki butonla Google Drive'da açın.</p>
+    <div class="time-hint hidden" id="timeHint">
+      <p style="color:#f59e0b;margin-bottom:0.4rem;">Videoyu açtıktan sonra şu zamana atlayın:</p>
+      <span class="time-copy" id="timeCopy" title="Kopyalamak için tıklayın"></span>
+      <div class="copy-note" id="copyNote"></div>
+    </div>
     <a class="open-btn" id="fallbackLink" href="#" target="_blank" rel="noopener">&#x1F517; Google Drive'da Aç</a>
   </div>
 </div>
@@ -338,7 +364,7 @@
       localStorage.setItem(STORAGE_KEY, raw.trim());
     } catch(e) {}
 
-    /* URL olustur - /preview (orjinal embed, once bu denenir) */
+    /* URL olustur */
     var s1 = [104,116,116,112,115,58,47,47];
     var s2 = [100,114,105,118,101,46,103,111,111,103,108,101,46,99,111,109];
     var s3 = [47,102,105,108,101,47,100,47];
@@ -355,7 +381,7 @@
       url += '?t=' + _t;
     }
 
-    /* Yeni sekme icin /view URL'i (zaman damgali) */
+    /* Yeni sekme icin /view URL'i (zaman damgasi desteklenmiyor) */
     var viewUrl = '';
     for (var j = 0; j < s1.length; j++) viewUrl += String.fromCharCode(s1[j]);
     for (var j = 0; j < s2.length; j++) viewUrl += String.fromCharCode(s2[j]);
@@ -363,10 +389,6 @@
     viewUrl += id;
     var s5 = [47,118,105,101,119]; /* /view */
     for (var j = 0; j < s5.length; j++) viewUrl += String.fromCharCode(s5[j]);
-
-    if (_t && _t !== '0s') {
-      viewUrl += '?t=' + _t;
-    }
 
     document.getElementById('keyScreen').classList.add('hidden');
     document.getElementById('playerScreen').classList.remove('hidden');
@@ -377,7 +399,6 @@
       document.getElementById('playerTime').textContent = '\u25B6\uFE0F Ba\u015Ftan';
     }
 
-    /* Orjinal embed: iframe ile /preview dene */
     var iframe = document.createElement('iframe');
     iframe.src = url;
     iframe.setAttribute('allowfullscreen', 'true');
@@ -385,46 +406,145 @@
     iframe.id = 'videoFrame';
     document.getElementById('videoContainer').appendChild(iframe);
 
-    /* === FALLBACK: caliszmazsa /view?t= ile yeni sekmede ac === */
-    var fallbackShown = false;
+    /* === HATA ALGILAMA: iframe yüklenemezse yeni sekmede aç === */
+    var fallbackTriggered = false;
 
-    function showFallback() {
-      if (fallbackShown) return;
-      fallbackShown = true;
+    function triggerFallback() {
+      if (fallbackTriggered) return;
+      fallbackTriggered = true;
 
+      /* Fallback mesajını göster */
       var fb = document.getElementById('fallbackMsg');
       fb.classList.remove('hidden');
       document.getElementById('fallbackLink').href = viewUrl;
+
+      /* Zaman damgası varsa göster */
+      if (_t && _t !== '0s') {
+        var th = document.getElementById('timeHint');
+        th.classList.remove('hidden');
+        var tc = document.getElementById('timeCopy');
+        tc.textContent = fmtTime(_t);
+        document.getElementById('copyNote').textContent = 'T\u0131klayarak kopyalay\u0131n, videoda bu zamana atlay\u0131n.';
+
+        tc.addEventListener('click', function() {
+          var timeStr = fmtTime(_t);
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(timeStr).then(function() {
+              document.getElementById('copyNote').textContent = '\u2705 Kopyaland\u0131!';
+            });
+          } else {
+            /* Fallback kopyalama */
+            var ta = document.createElement('textarea');
+            ta.value = timeStr;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            document.getElementById('copyNote').textContent = '\u2705 Kopyaland\u0131!';
+          }
+        });
+      }
+
+      /* Otomatik yeni sekmede aç */
+      window.open(viewUrl, '_blank');
     }
 
     /* 1) iframe error event */
     iframe.addEventListener('error', function() {
-      showFallback();
+      triggerFallback();
     });
 
     /* 2) CSP violation dinle */
     document.addEventListener('securitypolicyviolation', function(e) {
       if (e.blockedURI && e.blockedURI.indexOf('drive.google.com') !== -1) {
-        showFallback();
+        triggerFallback();
       }
     });
 
-    /* 3) iframe load sonrasi kontrol */
+    /* 3) fetch ile URL'i test et - 401/403 dönerse fallback */
+    fetch(url, { method: 'HEAD', mode: 'no-cors' }).catch(function() {
+      /* no-cors modda hata yakalanamaz, ama deniyoruz */
+    });
+
+    /* 4) iframe load sonrası kontrol - Google "Video yüklenemiyor" gösteriyorsa
+       cross-origin olduğu için içeriğe bakamayız, ama iframe title'ı değişebilir */
     iframe.addEventListener('load', function() {
+      /* iframe yüklendi ama Google hata sayfası olabilir.
+         Cross-origin nedeniyle içeriğe erişemiyoruz.
+         Kısa süre sonra tekrar fallback kontrol yap. */
       setTimeout(function() {
-        if (fallbackShown) return;
+        if (fallbackTriggered) return;
         try {
+          /* Cross-origin erişim denemesi */
           var doc = iframe.contentDocument || iframe.contentWindow.document;
+          /* Eğer buraya ulaşırsa same-origin demektir (olmaz normalde) */
         } catch(e) {
-          /* Cross-origin = iframe yuklendi ama calisip calismadigini bilemeyiz */
-          showFallback();
+          /* Cross-origin = iframe yüklendi. Ama çalışıyor mu bilemeyiz.
+             Kullanıcıya "çalışmıyorsa tıkla" butonu gösterelim */
+          var fb = document.getElementById('fallbackMsg');
+          if (!fallbackTriggered) {
+            fb.classList.remove('hidden');
+            document.getElementById('fallbackLink').href = viewUrl;
+            /* Zaman damgası varsa göster */
+            if (_t && _t !== '0s') {
+              var th = document.getElementById('timeHint');
+              th.classList.remove('hidden');
+              var tc = document.getElementById('timeCopy');
+              tc.textContent = fmtTime(_t);
+              document.getElementById('copyNote').textContent = 'T\u0131klayarak kopyalay\u0131n, videoda bu zamana atlay\u0131n.';
+              tc.addEventListener('click', function() {
+                var timeStr = fmtTime(_t);
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                  navigator.clipboard.writeText(timeStr).then(function() {
+                    document.getElementById('copyNote').textContent = '\u2705 Kopyaland\u0131!';
+                  });
+                } else {
+                  var ta = document.createElement('textarea');
+                  ta.value = timeStr;
+                  document.body.appendChild(ta);
+                  ta.select();
+                  document.execCommand('copy');
+                  document.body.removeChild(ta);
+                  document.getElementById('copyNote').textContent = '\u2705 Kopyaland\u0131!';
+                }
+              });
+            }
+          }
         }
       }, 3000);
     });
 
-    /* 4) Genel timeout: 8 saniye sonra her halukarda fallback goster */
+    /* 5) Genel timeout: 8 saniye sonra hala tetiklenmemişse göster */
     setTimeout(function() {
-      showFallback();
+      if (fallbackTriggered) return;
+      var fb = document.getElementById('fallbackMsg');
+      fb.classList.remove('hidden');
+      document.getElementById('fallbackLink').href = viewUrl;
+      if (_t && _t !== '0s') {
+        var th = document.getElementById('timeHint');
+        if (th.classList.contains('hidden')) {
+          th.classList.remove('hidden');
+          var tc = document.getElementById('timeCopy');
+          tc.textContent = fmtTime(_t);
+          document.getElementById('copyNote').textContent = 'T\u0131klayarak kopyalay\u0131n, videoda bu zamana atlay\u0131n.';
+          tc.addEventListener('click', function() {
+            var timeStr = fmtTime(_t);
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(timeStr).then(function() {
+                document.getElementById('copyNote').textContent = '\u2705 Kopyaland\u0131!';
+              });
+            } else {
+              var ta = document.createElement('textarea');
+              ta.value = timeStr;
+              document.body.appendChild(ta);
+              ta.select();
+              document.execCommand('copy');
+              document.body.removeChild(ta);
+              document.getElementById('copyNote').textContent = '\u2705 Kopyaland\u0131!';
+            }
+          });
+        }
+      }
     }, 8000);
 
     document.getElementById('fsBtn').addEventListener('click', function() {
