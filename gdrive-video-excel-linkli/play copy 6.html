@@ -166,38 +166,6 @@
     color: #64748b;
     margin-top: 0.4rem;
   }
-
-  /* FALLBACK UYARI */
-  .fallback-msg {
-    background: #1e293b;
-    border: 1px solid #f59e0b;
-    border-radius: 10px;
-    padding: 1.2rem;
-    margin-top: 1rem;
-    text-align: center;
-  }
-  .fallback-msg .warn-icon { font-size: 2rem; margin-bottom: 0.5rem; }
-  .fallback-msg p {
-    font-size: 0.9rem;
-    color: #fbbf24;
-    margin-bottom: 0.8rem;
-    line-height: 1.4;
-  }
-  .fallback-msg .open-btn {
-    display: inline-block;
-    padding: 0.7rem 1.5rem;
-    background: #f59e0b;
-    color: #0f172a;
-    border: none;
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: 700;
-    cursor: pointer;
-    text-decoration: none;
-    transition: background 0.2s, transform 0.1s;
-  }
-  .fallback-msg .open-btn:hover { background: #d97706; transform: scale(1.02); }
-  .fallback-msg .open-btn:active { transform: scale(0.98); }
 </style>
 </head>
 <body>
@@ -242,12 +210,6 @@
   <div class="player-footer">
     <button class="fullscreen-btn" id="fsBtn">&#x1F4FA; Tam Ekran</button>
     <div class="player-note">Tam ekran için yukarıdaki butona veya video içindeki butona basın.</div>
-  </div>
-  <!-- Fallback mesajı - başta gizli -->
-  <div class="fallback-msg hidden" id="fallbackMsg">
-    <div class="warn-icon">&#x26A0;&#xFE0F;</div>
-    <p>Video burada yüklenemedi (Google engeli).<br>Yeni sekmede açılıyor...</p>
-    <a class="open-btn" id="fallbackLink" href="#" target="_blank" rel="noopener">&#x1F517; Google Drive'da Aç</a>
   </div>
 </div>
 
@@ -355,19 +317,6 @@
       url += '?t=' + _t;
     }
 
-    /* Dogrudan goruntulemek icin view URL'i (yeni sekme icin) */
-    var viewUrl = '';
-    for (var j = 0; j < s1.length; j++) viewUrl += String.fromCharCode(s1[j]);
-    for (var j = 0; j < s2.length; j++) viewUrl += String.fromCharCode(s2[j]);
-    for (var j = 0; j < s3.length; j++) viewUrl += String.fromCharCode(s3[j]);
-    viewUrl += id;
-    var s5 = [47,118,105,101,119]; /* /view */
-    for (var j = 0; j < s5.length; j++) viewUrl += String.fromCharCode(s5[j]);
-
-    if (_t && _t !== '0s') {
-      viewUrl += '?t=' + _t;
-    }
-
     document.getElementById('keyScreen').classList.add('hidden');
     document.getElementById('playerScreen').classList.remove('hidden');
 
@@ -383,54 +332,6 @@
     iframe.setAttribute('allow', 'autoplay; fullscreen');
     iframe.id = 'videoFrame';
     document.getElementById('videoContainer').appendChild(iframe);
-
-    /* === HATA ALGILAMA: iframe yüklenemezse yeni sekmede aç === */
-    var fallbackTriggered = false;
-
-    function triggerFallback() {
-      if (fallbackTriggered) return;
-      fallbackTriggered = true;
-
-      /* Fallback mesajını göster */
-      var fb = document.getElementById('fallbackMsg');
-      fb.classList.remove('hidden');
-      document.getElementById('fallbackLink').href = viewUrl;
-
-      /* Otomatik yeni sekmede aç */
-      window.open(viewUrl, '_blank');
-    }
-
-    /* 1) iframe error event */
-    iframe.addEventListener('error', function() {
-      triggerFallback();
-    });
-
-    /* 2) CSP violation dinle */
-    document.addEventListener('securitypolicyviolation', function(e) {
-      if (e.blockedURI && e.blockedURI.indexOf('drive.google.com') !== -1) {
-        triggerFallback();
-      }
-    });
-
-    /* 3) Timeout: 5 saniye içinde iframe içeriğine erişilemezse fallback */
-    setTimeout(function() {
-      if (fallbackTriggered) return;
-      try {
-        /* Cross-origin iframe'e erişim denemesi - hata fırlatırsa yüklenmiş demektir (CORS engeli normal) */
-        var f = document.getElementById('videoFrame');
-        if (!f || !f.contentWindow) {
-          triggerFallback();
-          return;
-        }
-        /* iframe boyu kontrol - 0x0 ise yüklenememiş olabilir */
-        var rect = f.getBoundingClientRect();
-        if (rect.width === 0 || rect.height === 0) {
-          triggerFallback();
-        }
-      } catch(e) {
-        /* Cross-origin hatası = iframe yüklendi, sorun yok */
-      }
-    }, 5000);
 
     document.getElementById('fsBtn').addEventListener('click', function() {
       var vc = document.getElementById('videoContainer');
