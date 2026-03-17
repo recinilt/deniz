@@ -128,23 +128,6 @@
     font-size: 0.95rem;
     font-weight: 700;
   }
-  .header-right {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-  .gdrive-link {
-    padding: 0.25rem 0.6rem;
-    background: #f59e0b;
-    color: #0f172a;
-    border-radius: 6px;
-    font-size: 0.8rem;
-    font-weight: 700;
-    text-decoration: none;
-    white-space: nowrap;
-    transition: background 0.2s;
-  }
-  .gdrive-link:hover { background: #d97706; }
   .video-container {
     position: relative;
     width: 100%;
@@ -252,10 +235,7 @@
 <div class="player-wrap hidden" id="playerScreen">
   <div class="player-header">
     <h2>&#x1F3AC; Video Oynatıcı</h2>
-    <div class="header-right">
-      <a class="gdrive-link hidden" id="gdriveLink" href="#" target="_blank" rel="noopener" title="Google Drive'da aç">&#x1F517; Drive'da Aç</a>
-      <span class="player-time" id="playerTime"></span>
-    </div>
+    <span class="player-time" id="playerTime"></span>
   </div>
   <div class="video-container" id="videoContainer">
   </div>
@@ -390,11 +370,6 @@
 
     document.getElementById('keyScreen').classList.add('hidden');
     document.getElementById('playerScreen').classList.remove('hidden');
-
-    /* Header'daki Google Drive linkini ayarla */
-    var gdriveLink = document.getElementById('gdriveLink');
-    gdriveLink.href = viewUrl;
-    gdriveLink.classList.remove('hidden');
 
     if (_t && _t !== '0s') {
       document.getElementById('playerTime').textContent = '\u23F1 ' + fmtTime(_t);
