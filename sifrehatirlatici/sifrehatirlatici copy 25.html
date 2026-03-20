@@ -969,15 +969,15 @@ function sifreFiltreUygula() {
 // ══════════════════════════════════════════════════════════
 function listeGuncelle() {
     var container = document.getElementById('sifre-liste');
-    var aramaMetni = document.getElementById('arama-input').value.toLocaleLowerCase('tr').trim();
+    var aramaMetni = document.getElementById('arama-input').value.toLowerCase().trim();
 
     var filtreli = sifreListesi.filter(function(s) {
         var katUygun = (aktifKategori === 'Tümü') || (s.kategori === aktifKategori);
         var aramaUygun = !aramaMetni ||
-            (s.baslik || '').toLocaleLowerCase('tr').indexOf(aramaMetni) !== -1 ||
-            (s.kullanici || '').toLocaleLowerCase('tr').indexOf(aramaMetni) !== -1 ||
-            (s.url || '').toLocaleLowerCase('tr').indexOf(aramaMetni) !== -1 ||
-            (s.not || '').toLocaleLowerCase('tr').indexOf(aramaMetni) !== -1;
+            (s.baslik || '').toLowerCase().indexOf(aramaMetni) !== -1 ||
+            (s.kullanici || '').toLowerCase().indexOf(aramaMetni) !== -1 ||
+            (s.url || '').toLowerCase().indexOf(aramaMetni) !== -1 ||
+            (s.not || '').toLowerCase().indexOf(aramaMetni) !== -1;
         return katUygun && aramaUygun;
     });
 
