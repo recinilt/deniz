@@ -1035,7 +1035,7 @@ async function callGemini(prompt, includeImages = false, refImages = []) {
 
   // Determine correct API URL and call strategy
   const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${STATE.model}:generateContent?key=${STATE.apiKey}`;
-  const proxyUrl = STATE.corsProxy + '/?url=' + encodeURIComponent(apiUrl);
+  const proxyUrl = STATE.corsProxy + '/' + apiUrl;
 
   const resp = await fetch(proxyUrl, {
     method: 'POST',
@@ -1077,7 +1077,7 @@ async function testConnection() {
     // Use text model for test (image model may fail for plain text)
     const testModel = 'gemini-2.5-flash';
     const testUrl = `https://generativelanguage.googleapis.com/v1beta/models/${testModel}:generateContent?key=${STATE.apiKey}`;
-    const proxyUrl = STATE.corsProxy + '/?url=' + encodeURIComponent(testUrl);
+    const proxyUrl = STATE.corsProxy + '/' + testUrl;
     const resp = await fetch(proxyUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -1139,7 +1139,7 @@ Türkçe yanıt ver. Kısa ve öz yaz.`;
     // Use text model for analysis
     const textModel = 'gemini-2.5-flash';
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${textModel}:generateContent?key=${STATE.apiKey}`;
-    const proxyUrl = STATE.corsProxy + '/?url=' + encodeURIComponent(apiUrl);
+    const proxyUrl = STATE.corsProxy + '/' + apiUrl;
     const resp = await fetch(proxyUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -1189,7 +1189,7 @@ Yanıtı şu JSON formatında ver (başka bir şey yazma):
   try {
     const textModel = 'gemini-2.5-flash';
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${textModel}:generateContent?key=${STATE.apiKey}`;
-    const proxyUrl = STATE.corsProxy + '/?url=' + encodeURIComponent(apiUrl);
+    const proxyUrl = STATE.corsProxy + '/' + apiUrl;
     const resp = await fetch(proxyUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -1283,7 +1283,7 @@ Sadece açıklama metnini yaz, başka bir şey yazma.`;
   try {
     const textModel = 'gemini-2.5-flash';
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${textModel}:generateContent?key=${STATE.apiKey}`;
-    const proxyUrl = STATE.corsProxy + '/?url=' + encodeURIComponent(apiUrl);
+    const proxyUrl = STATE.corsProxy + '/' + apiUrl;
     const resp = await fetch(proxyUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -1322,7 +1322,7 @@ Sadece JSON dizisi döndür, başka bir şey yazma: ["etiket1","etiket2",...]`;
   try {
     const textModel = 'gemini-2.5-flash';
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${textModel}:generateContent?key=${STATE.apiKey}`;
-    const proxyUrl = STATE.corsProxy + '/?url=' + encodeURIComponent(apiUrl);
+    const proxyUrl = STATE.corsProxy + '/' + apiUrl;
     const resp = await fetch(proxyUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
