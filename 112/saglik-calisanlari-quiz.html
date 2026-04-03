@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sağlık Çalışanları Temel Eğitim - Quiz</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0f1c;
+  --surface: #111827;
+  --surface2: #1a2235;
+  --border: #2a3553;
+  --text: #e2e8f0;
+  --text2: #94a3b8;
+  --accent: #3b82f6;
+  --accent2: #60a5fa;
+  --green: #22c55e;
+  --green-bg: rgba(34,197,94,.12);
+  --red: #ef4444;
+  --red-bg: rgba(239,68,68,.12);
+  --yellow: #eab308;
+  --yellow-bg: rgba(234,179,8,.12);
+  --orange: #f97316;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Plus Jakarta Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+.app { max-width:860px; margin:0 auto; padding:16px; }
+
+/* Header */
+.header { text-align:center; padding:32px 0 24px; }
+.header h1 { font-size:1.6rem; font-weight:800; background:linear-gradient(135deg,#3b82f6,#8b5cf6); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+.header p { color:var(--text2); margin-top:6px; font-size:.85rem; }
+
+/* Stats bar */
+.stats-bar { display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap; }
+.stat-card { flex:1; min-width:100px; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:12px 14px; text-align:center; }
+.stat-card .val { font-size:1.4rem; font-weight:800; color:var(--accent2); }
+.stat-card .lbl { font-size:.7rem; color:var(--text2); text-transform:uppercase; letter-spacing:.5px; margin-top:2px; }
+
+/* Tabs */
+.tabs { display:flex; gap:6px; margin-bottom:20px; overflow-x:auto; padding-bottom:4px; }
+.tab { padding:8px 16px; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--text2); cursor:pointer; font-size:.8rem; font-weight:600; white-space:nowrap; transition:.2s; font-family:inherit; }
+.tab:hover { border-color:var(--accent); color:var(--text); }
+.tab.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+
+/* Chapter Grid */
+.chapter-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:10px; margin-bottom:20px; }
+.ch-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px; cursor:pointer; transition:.2s; position:relative; overflow:hidden; }
+.ch-card:hover { border-color:var(--accent); transform:translateY(-2px); }
+.ch-card .ch-num { font-size:.7rem; font-weight:700; color:var(--accent); text-transform:uppercase; letter-spacing:1px; }
+.ch-card .ch-title { font-size:.85rem; font-weight:600; margin-top:4px; line-height:1.3; }
+.ch-card .ch-meta { display:flex; gap:12px; margin-top:8px; font-size:.72rem; color:var(--text2); }
+.ch-card .ch-bar { position:absolute; bottom:0; left:0; height:3px; background:var(--accent); transition:.3s; }
+.ch-card .ch-bar.good { background:var(--green); }
+.ch-card .ch-bar.mid { background:var(--yellow); }
+
+/* Quiz Area */
+.quiz-area { display:none; }
+.quiz-area.active { display:block; }
+.quiz-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:8px; }
+.quiz-title { font-size:1rem; font-weight:700; }
+.quiz-progress { font-size:.8rem; color:var(--text2); }
+.progress-track { width:100%; height:6px; background:var(--surface2); border-radius:3px; margin-bottom:20px; overflow:hidden; }
+.progress-fill { height:100%; background:linear-gradient(90deg,var(--accent),#8b5cf6); border-radius:3px; transition:.4s; }
+
+.q-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:24px; margin-bottom:16px; }
+.q-type { font-size:.65rem; font-weight:700; color:var(--accent); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; }
+.q-text { font-size:1rem; font-weight:600; line-height:1.5; margin-bottom:20px; }
+.q-options { display:flex; flex-direction:column; gap:8px; }
+.q-opt { padding:14px 16px; border:2px solid var(--border); border-radius:12px; cursor:pointer; font-size:.88rem; transition:.2s; line-height:1.4; font-family:inherit; background:transparent; color:var(--text); text-align:left; width:100%; }
+.q-opt:hover:not(.disabled) { border-color:var(--accent); background:rgba(59,130,246,.06); }
+.q-opt.correct { border-color:var(--green); background:var(--green-bg); }
+.q-opt.wrong { border-color:var(--red); background:var(--red-bg); }
+.q-opt.disabled { cursor:default; opacity:.7; }
+.q-opt.disabled.correct { opacity:1; }
+
+.q-feedback { margin-top:16px; padding:14px; border-radius:12px; font-size:.85rem; line-height:1.5; display:none; }
+.q-feedback.show { display:block; }
+.q-feedback.correct { background:var(--green-bg); border:1px solid rgba(34,197,94,.25); }
+.q-feedback.wrong { background:var(--red-bg); border:1px solid rgba(239,68,68,.25); }
+.q-feedback strong { display:block; margin-bottom:4px; }
+
+.tf-group { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+
+/* Buttons */
+.btn { padding:10px 20px; border-radius:10px; border:none; font-family:inherit; font-weight:600; font-size:.85rem; cursor:pointer; transition:.2s; }
+.btn-primary { background:var(--accent); color:#fff; }
+.btn-primary:hover { background:#2563eb; }
+.btn-secondary { background:var(--surface2); color:var(--text); border:1px solid var(--border); }
+.btn-secondary:hover { border-color:var(--accent); }
+.btn-row { display:flex; gap:8px; margin-top:16px; flex-wrap:wrap; }
+
+/* Results */
+.results-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:32px; text-align:center; }
+.results-card h2 { font-size:1.3rem; margin-bottom:8px; }
+.results-score { font-size:3rem; font-weight:800; background:linear-gradient(135deg,var(--green),var(--accent)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin:12px 0; }
+.results-detail { font-size:.85rem; color:var(--text2); margin-bottom:20px; }
+.results-breakdown { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:20px 0; }
+.rb-item { padding:12px; background:var(--surface2); border-radius:10px; }
+.rb-item .rb-val { font-size:1.2rem; font-weight:700; }
+.rb-item .rb-lbl { font-size:.7rem; color:var(--text2); margin-top:2px; }
+
+/* Spaced Rep */
+.sr-badge { display:inline-block; padding:2px 8px; border-radius:6px; font-size:.65rem; font-weight:700; }
+.sr-new { background:rgba(59,130,246,.15); color:var(--accent2); }
+.sr-review { background:var(--yellow-bg); color:var(--yellow); }
+.sr-mastered { background:var(--green-bg); color:var(--green); }
+
+/* Responsive */
+@media(max-width:600px) {
+  .header h1 { font-size:1.2rem; }
+  .stats-bar { gap:6px; }
+  .stat-card { min-width:70px; padding:8px; }
+  .stat-card .val { font-size:1rem; }
+  .chapter-grid { grid-template-columns:1fr; }
+  .q-card { padding:16px; }
+  .tf-group { grid-template-columns:1fr; }
+}
+
+/* Animations */
+@keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+.fade-in { animation:fadeIn .3s ease-out; }
+
+/* Study mode badge */
+.mode-selector { display:flex; gap:6px; margin-bottom:16px; }
+.mode-btn { padding:6px 14px; border-radius:8px; border:1px solid var(--border); background:transparent; color:var(--text2); cursor:pointer; font-size:.75rem; font-weight:600; font-family:inherit; transition:.2s; }
+.mode-btn.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width:6px; height:6px; }
+::-webkit-scrollbar-track { background:var(--bg); }
+::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script>
+// ========== QUESTION DATABASE ==========
+const chapters = [
+{id:1,title:"Erişkinlerde Yabancı Cisme Bağlı Havayolu Tıkanıklıkları ve Temel Yaşam Desteği",questions:[
+{type:"mc",q:"Yabancı cisme bağlı havayolu tam tıkanıklığında kişide hangi bulgular gözlenir?",opts:["Yüksek sesle öksürme ve hırıltı","Nefes alamama, ses çıkaramama ve öksürememe","Sadece hafif solunum güçlüğü","Yalnızca morarma"],ans:1,exp:"Tam tıkanıklıkta kişi nefes alıp veremez, ses çıkaramaz ve öksüremez. Kısmi tıkanıklıkta ise zayıf öksürme ve hırıltı görülür."},
+{type:"mc",q:"Erişkinde yabancı cisme bağlı tam havayolu tıkanıklığında sırt vuruşu kaç kez uygulanır?",opts:["3 kez","10 kez","5 kez","Cisim çıkana kadar aralıksız"],ans:2,exp:"Skapulalar arasına saniyede bir olmak üzere 5 kez vurulur. Ardından 5 kez karına bası manevrası uygulanır ve bu döngü tekrarlanır."},
+{type:"tf",q:"Sırt vuruşu sırasında kuvvet yönü geriye ve dışarıya doğru olmalıdır.",ans:false,exp:"Kuvvet yönü ileriye ve içeriye olacak şekilde, skapulalar arasına uygulanır."},
+{type:"mc",q:"Yaşam kurtarma zincirinin 4 halkası hangi sıradadır?",opts:["Erken tanıma → Erken KPR → Erken defibrilasyon → Resüsitasyon sonrası bakım","Erken defibrilasyon → Erken KPR → Erken tanıma → Bakım","Erken KPR → Erken tanıma → İlaç tedavisi → Nakil","Erken tanıma → İlaç → Defibrilasyon → Bakım"],ans:0,exp:"Zincir sırasıyla: 1) Erken tanıma, 2) Erken KPR, 3) Erken defibrilasyon, 4) Resüsitasyon sonrası bakım şeklindedir."},
+{type:"mc",q:"Kardiyopulmoner arrestte serebral hasar kaç dakika sonra başlar?",opts:["2 dakika","4 dakika","6 dakika","10 dakika"],ans:1,exp:"Kardiyopulmoner arrestte 4 dakikadan sonra serebral hasar başlar. Hipoksemik hastalarda bu süre daha kısa olabilir."},
+{type:"tf",q:"Erişkin TYD'de kompresyon/ventilasyon oranı 30:2'dir.",ans:true,exp:"Erişkinlerde temel yaşam desteğinde 30 göğüs kompresyonu ve 2 ventilasyon uygulanır."},
+{type:"mc",q:"Erişkin TYD'de hastanın bilinç kontrolü nasıl yapılır?",opts:["Sadece sesli uyaran verilir","Her iki omzundan tutularak boyun ve başa hareket vermeden sarsılır ve sesli uyaran verilir","Ağrılı uyaran uygulanır","Göz kapağı açılarak ışık tutulur"],ans:1,exp:"Hasta her iki omzundan tutularak, boyun ve başa hareket vermeden hafifçe sarsılır ve seslenilir."},
+{type:"mc",q:"Erişkin TYD'de ilk adım hangisidir?",opts:["Göğüs kompresyonuna başlamak","Güvenlik sağlama","Havayolunu açmak","AED bağlamak"],ans:1,exp:"TYD'nin ilk basamağı güvenlik sağlamadır. Sağlık personeli önce kendi, çevredeki kişilerin ve hastanın güvenliğini sağlamalıdır."},
+{type:"tf",q:"Bilinci kapanan ve yabancı cisim çıkmayan hastada kalp masajından başlanarak TYD uygulamasına geçilir.",ans:true,exp:"Bilinç kapandığı halde yabancı cisim çıkmamışsa, kalp masajından başlanarak temel yaşam desteği uygulamasına geçilir."},
+{type:"mc",q:"Karına bası manevrası hangi bölgeye uygulanır?",opts:["Göğüs kafesi üzerine","Göbek ile ksifoid çıkıntı arasına","Skapulalar arasına","Boyun bölgesine"],ans:1,exp:"Karına bası manevrası, göbek ile ksifoid (kılıç) çıkıntı arasına, yukarı ve içeri yönünde uygulanır."}
+]},
+{id:2,title:"Bebek ve Çocuklarda Yabancı Cisme Bağlı Havayolu Tıkanıklıkları ve TYD",questions:[
+{type:"mc",q:"Bebeklerde yabancı cisim tam tıkanıklığında sırt vuruşu sonrası hangi manevra uygulanır?",opts:["Karına bası manevrası","Göğüs basısı","Heimlich manevrası","Abdominal trust"],ans:1,exp:"Bebeklerde sırt vuruşu ardından göğüs basısı uygulanır. Karına bası manevrası bebeklerde uygulanmaz, çocuklarda uygulanır."},
+{type:"tf",q:"Bebek ve çocuklarda kalp durmasının en sık nedeni solunum sorunlarıdır.",ans:true,exp:"Erişkinlerde sorun genellikle dolaşım kaynaklıyken, bebek/çocuklarda çoğunlukla solunum kaynaklıdır."},
+{type:"mc",q:"Bebek TYD'sinde kompresyon derinliği göğüs ön-arka çapının ne kadarıdır?",opts:["1/4'ü","1/3'ü - 1/2'si arasında","2/3'ü","Tam yarısı"],ans:1,exp:"Bebeklerde göğüs kompresyonu derinliği göğüs ön-arka çapının 1/3'ü ile 1/2'si oranında olmalıdır."},
+{type:"mc",q:"Çocuk TYD'de temel yaşam desteğine hangi sırayla başlanır?",opts:["C-A-B (Dolaşım-Havayolu-Solunum)","A-B-C (Havayolu-Solunum-Dolaşım)","D-R-S (Defibrilasyon-Resüsitasyon-Solunum)","B-A-C (Solunum-Havayolu-Dolaşım)"],ans:1,exp:"Çocuklarda TYD'ye önce A (havayolu açılması), sonra B (hayat kurtarıcı soluk), sonra C (göğüs kompresyonu) ile başlanır."},
+{type:"tf",q:"1 yaşın altındaki bebeklere karına bası manevrası (Heimlich) uygulanabilir.",ans:false,exp:"Bebeklerde (1 yaş altı) karına bası manevrası uygulanmaz. Sırt vuruşu ve göğüs basısı uygulanır."},
+{type:"mc",q:"Bebekte göğüs basısı hangi noktaya uygulanır?",opts:["Sol meme başı hizasında","Sternum üzerinde, göğüs kompresyonu yapılan noktaya","Ksifoid çıkıntının hemen altına","Skapulalar arasına"],ans:1,exp:"Sternum üzerinde, işaret-orta parmak veya orta-yüzük parmağı ile göğüs kompresyonu noktasına uygulanır."},
+{type:"mc",q:"Çocuklarda yabancı cisim kısmi tıkanıklığında ne yapılmalıdır?",opts:["Hemen karına bası uygulanır","Sırt vuruşuna başlanır","Çocuğun kendi kendine öksürmesi desteklenir","Derhal TYD başlatılır"],ans:2,exp:"Kısmi tıkanıklıkta bebek/çocuğun kendi kendine öksürmesi desteklenmelidir. Tam tıkanıklık bulguları ortaya çıkarsa müdahale edilir."},
+{type:"tf",q:"Çocuklarda ender de olsa aktivite halinde ani yığılıp kalma olduğunda dolaşım kaynaklı arrest düşünülebilir.",ans:true,exp:"Bebek ve çocuklarda solunum kaynaklı arrest daha sık olsa da, aktivite halindeyken ani yığılıp kalma durumunda dolaşım kaynaklı arrest düşünülmelidir."}
+]},
+{id:3,title:"Acil Olgu Yönetimi",questions:[
+{type:"mc",q:"Acil olgu yönetiminde olgunun değerlendirilmesi kaç dakikada tamamlanması hedeflenir?",opts:["5-10 dakikada","10-15 dakikada","2-3 dakikada","1 dakikada"],ans:2,exp:"Ekip ve malzeme yerleşimi, birincil-ikincil değerlendirme ve ön tanı konulması işlemlerinin uyumlu organizasyonla 2-3 dakikada tamamlanması hedeflenir."},
+{type:"mc",q:"Birincil değerlendirmede kullanılan ABCDE yaklaşımında 'D' neyi ifade eder?",opts:["Damaryolu (Damar)","Defibrilasyon","Disability (Nörolojik Değerlendirme)","Diagnoz (Tanı)"],ans:2,exp:"ABCDE: A-Airway, B-Breathing, C-Circulation, D-Disability (nörolojik değerlendirme), E-Exposure (maruziyetin değerlendirilmesi)."},
+{type:"mc",q:"İkincil değerlendirmede tıbbi öykü almak için kullanılan kısaltma hangisidir?",opts:["ABCDE","SAMPLE","PQRST","AVPU"],ans:1,exp:"S-AMPLE: S-Semptomlar, A-Alerji, M-Medikasyon (ilaçlar), P-Past medical history (tıbbi geçmiş), L-Last meal (son yemek), E-Events (olaylar)."},
+{type:"tf",q:"Ekip lideri hastanın sol tarafından yaklaşmalıdır.",ans:false,exp:"Ekip lideri mekânsal bir kısıtlılık yoksa hastanın sağ yanından yaklaşarak değerlendirme yapar."},
+{type:"mc",q:"Acil olgu yönetiminin üç aşaması hangileridir?",opts:["Tanı, tedavi, tahliye","Değerlendirme, tedavi, nakil","Triaj, müdahale, raporlama","Stabilizasyon, entübasyon, defibrilasyon"],ans:1,exp:"Acil olgu yönetimi: 1) Olgunun değerlendirilmesi, 2) Olgunun tedavisi, 3) Olgunun nakli olarak üç aşamada tanımlanır."},
+{type:"mc",q:"Acil olgu yönetimi öncesinde ön hazırlık nerede başlar?",opts:["Sadece olay yerinde","İstasyonda ve hareket halindeki ambulans içinde","Sadece ambulans kabininde","Hastaneye ulaştıktan sonra"],ans:1,exp:"Ön hazırlık istasyonda başlar ve ambulans hareket halindeyken devam eder. Ekip, ilaç ve malzeme hazırlıklarını ambulansta yapar."},
+{type:"tf",q:"Hastadan tıbbi onam alınamadığı durumlarda hiçbir müdahale yapılamaz.",ans:false,exp:"Hayatı tehdit eden acil durumlarda tıbbi onam alınamasa bile, hasta yakınının sağlık ekibini hastaya yönlendirmesi geçici olarak onam sayılır."},
+{type:"mc",q:"Ekip liderinin temel görevi nedir?",opts:["Defibrilatör kullanmak","İlaç uygulamak","Ekip üyelerinin uyum içinde çalışmalarını gözetmek ve yönlendirmek","Sadece hastanın nabzını kontrol etmek"],ans:2,exp:"Ekip liderinin temel görevi, ekip üyelerinin bir arada uyum içinde çalışmalarını gözetmek ve gerekli durumlarda çalışmaları yönlendirmektir."}
+]},
+{id:4,title:"Erişkinlerde Havayolu Açıklığı ve Ventilasyonun Sağlanması",questions:[
+{type:"mc",q:"Erişkinlerde normal dinlenme tidal volümü yaklaşık ne kadardır?",opts:["250 ml","500 ml","750 ml","1000 ml"],ans:1,exp:"Normal dinlenme esnasında ventilasyonda yaklaşık 500 ml hava akciğerlere transfer olur (tidal volüm)."},
+{type:"mc",q:"Farinks kaç bölümden oluşur?",opts:["2","3","4","5"],ans:1,exp:"Farinks; nazofarinks (burun bölümü), orofarinks (ağız bölümü) ve laringofarinks (gırtlak bölümü) olmak üzere 3 bölümden oluşur."},
+{type:"tf",q:"Hastane öncesinde havayolu yönetiminde en önemli şey entübasyon değil oksijenasyondur.",ans:true,exp:"Kitapta vurgulanan temel ilke: 'Önemli olan entübasyon değil oksijenasyondur!'"},
+{type:"mc",q:"Glottis nedir?",opts:["Akciğer zarı","Ses plikalarının arasındaki boşluk","Bronş ağzı","Burun boşluğu"],ans:1,exp:"Ses plikalarının arasındaki boşluğa glottis denir. Epiglot, yutma esnasında glottisi kapatarak besinlerin solunum yoluna kaçmasını engeller."},
+{type:"mc",q:"Trakea kaç adet U şeklinde kıkırdaktan oluşmuştur?",opts:["5-10","15-20","25-30","35-40"],ans:1,exp:"Trakea, üst üste dizilmiş 15-20 adet U harfi şeklinde, açıklığı arkaya bakan trakeal kıkırdaklardan oluşmuştur."},
+{type:"mc",q:"Aşağıdakilerden hangisi hipoventilasyon nedeni DEĞİLDİR?",opts:["Solunum merkezi hasarı","Havayolundaki obstrüksiyon","Akciğerlerin havalanmasını engelleyen patoloji","Yüksek hemoglobin düzeyi"],ans:3,exp:"Hipoventilasyon solunum kontrolü bozuklukları, havayolu obstrüksiyonu veya akciğer patolojileri nedeniyle oluşabilir."},
+{type:"tf",q:"Ventilasyon, havanın akciğerlere girip çıkma hareketidir.",ans:true,exp:"Ventilasyon havanın hareketi, oksijenasyon hemoglobinin oksijenle yüklenmesi, respirasyon alveol düzeyinde gaz değişimidir."},
+{type:"mc",q:"Erişkinde dakika volümü nasıl hesaplanır?",opts:["Tidal volüm × kalp hızı","Tidal volüm × solunum sayısı","Solunum sayısı × kalp hızı","Vital kapasite × solunum sayısı"],ans:1,exp:"Dakika volümü = Tidal volüm × dakikada alınan soluk sayısı. Örneğin: 500 ml × 14 soluk/dk = 7000 ml/dk."}
+]},
+{id:5,title:"Bebek ve Çocuklarda Havayolu Açıklığı ve Ventilasyonun Sağlanması",questions:[
+{type:"mc",q:"Bebek/çocuklarda kalp durmasının en önemli nedeni hangisidir?",opts:["Aritmiler","Hipoksi","Elektrolit bozukluğu","Hipotermi"],ans:1,exp:"Bebek/çocuklarda kalp durmasının en önemli nedeni hipoksidir."},
+{type:"mc",q:"Bebek/çocuk havayolunda en dar bölge neresidir?",opts:["Glottis seviyesinde","Orofarinks","Krikoid kıkırdak seviyesinde","Nazofarinks"],ans:2,exp:"Bebek/çocuklarda havayolunun en dar bölümü krikoid kıkırdak seviyesinde ve glottisin altındadır."},
+{type:"tf",q:"Çocuklarda metabolizma hızı ve oksijen tüketimi erişkinden fazladır.",ans:true,exp:"Bu nedenle apne veya alveoler ventilasyon yetersizliğinde erişkinden daha hızlı hipoksemi gelişir."},
+{type:"mc",q:"Bebek/çocuk entübasyonunda hangi tip laringoskop bıçağı kullanılır?",opts:["Eğri bıçaklı (Macintosh)","Düz bıçaklı","Fiber optik bıçaklı","Videolaringoskop"],ans:1,exp:"Bebek/çocuklarda epiglotun kontrolü zor olduğu için düz bıçaklı laringoskop kullanılır."},
+{type:"mc",q:"Solunum sıkıntılı bilinci açık çocuğa oksijen verilirken nelere dikkat edilmelidir?",opts:["Yüksek akış hızında soğuk oksijen verilmelidir","Çocuk huzursuz edilmemeli, oksijen nemlendirilerek ve ısıtılarak verilmelidir","Sadece nazal kanül kullanılmalıdır","Oksijen tedavisi bilinci açık çocuklarda kontrendikedir"],ans:1,exp:"Çocuk huzursuz edilmemelidir çünkü ağlama oksijen tüketimini artırır. Oksijen nemlendirilmeli ve özellikle küçük çocuklarda hipotermi önlenmesi için ısıtılmalıdır."},
+{type:"tf",q:"Çocuklarda larinks erişkinlere göre daha aşağıda ve daha arkadadır.",ans:false,exp:"Çocuklarda larinks erişkine göre daha yüksekte ve öndedir, huni şeklindedir (erişkinde silindir şeklinde)."},
+{type:"mc",q:"Çocuklarda hipoksiye en sık neden olan durumlar arasında hangisi YOKTUR?",opts:["Epiglottit","Bronşiolit","Yabancı cisim aspirasyonu","Hipertansiyon"],ans:3,exp:"Havayolunda tıkanıklar (dil, yabancı cisim), enfeksiyonlar (epiglottit, bronşiolit), ventilasyon-perfüzyon bozuklukları hipoksiye neden olur."}
+]},
+{id:6,title:"Solunum Yetmezliği Olan Hastaya Yaklaşım",questions:[
+{type:"mc",q:"Normal bir kişide SpO2 ölçüm değeri ne olmalıdır?",opts:["% 85-90","% 90-94","% 97-99","% 100"],ans:2,exp:"Normal bir kişide SpO2 % 97-99 aralığındadır. % 94-98 arası monitörize hastada hipoksi sorunu olmadığını gösterir."},
+{type:"mc",q:"KOAH hastalarında normal kabul edilen oksijen saturasyonu değeri yaklaşık ne kadardır?",opts:["% 88","% 92","% 97","% 100"],ans:1,exp:"KOAH gibi kronik akciğer hastalıklarında SpO2'nin % 92 düzeylerinde ölçümü normal değerler olarak değerlendirilir."},
+{type:"tf",q:"İnleme sesi bebek ve çocuklarda akciğer parankim hastalığını düşündürür.",ans:true,exp:"Solunum sırasında inleme, alveollerin açık tutulabilmesi için ekspiryum sonrası akciğer basıncını artırma çabasından kaynaklanır."},
+{type:"mc",q:"Solunum yeterliliğini değerlendirmek için incelenmesi gereken parametreler arasında hangisi YOKTUR?",opts:["Solunum hızı","Bilinç düzeyi","Kan basıncı","Deri ve ağız mukozası rengi"],ans:2,exp:"Değerlendirme parametreleri: solunum hızı, solunum hareketleri, solunum sesleri, bilinç düzeyi, deri ve ağız mukozası rengidir."},
+{type:"mc",q:"Hipokside deri ve ekstremitelerde ne gözlenir?",opts:["Kızarıklık ve sıcaklık","Solukluk, soğukluk ve siyanoz","Kaşıntı ve döküntü","Ödem ve morarma"],ans:1,exp:"Hipokside hayati organları korumak için deri ve ekstremitelerdeki kan dolaşımı azaltılır, sonuçta solukluk, soğukluk ve siyanoz görülür."},
+{type:"mc",q:"Solunum sorunlarının şiddete göre sınıflandırılmasında hangileri vardır?",opts:["Hafif, orta, ağır","Akut, kronik, terminal","Solunum sıkıntısı, solunum yetmezliği, solunum arresti","Primer, sekonder, tersiyer"],ans:2,exp:"Sorun solunum sıkıntısı, solunum yetmezliği veya solunum arresti olarak sınıflandırılır. Hepsi yetersiz doku oksijenizasyonu ile kendini gösterir."},
+{type:"tf",q:"Artan solunum sıkıntısı huzursuzluğa neden olur.",ans:true,exp:"Artan solunum sıkıntısı huzursuzluğa neden olur. Kanda oksijenin azalması ve CO2 artması bilinç düzeyinde değişikliklere yol açabilir."}
+]},
+{id:7,title:"Şok ve Tedavisi",questions:[
+{type:"mc",q:"Şok fizyolojik olarak kaç evrede incelenir?",opts:["2","3","4","5"],ans:1,exp:"Kompanze şok, dekompanze şok ve geri dönüşümsüz şok olmak üzere 3 evrede incelenir."},
+{type:"mc",q:"Dopaminin düşük dozda (2-5 mcg/kg/dk) etkisi nedir?",opts:["Ciddi vazokonstrüksiyon","Böbrek damarlarında dilatasyon","Kalp hızını ciddi şekilde artırma","Bradikardi yapma"],ans:1,exp:"Düşük dozda dopamin dopaminerjik reseptörleri uyararak böbrek damarlarında dilatasyon yapar ve kan akımını artırır."},
+{type:"mc",q:"Kompanze şokta hastane öncesi tedavi başarı oranı nasıldır?",opts:["Çok düşüktür","En çok bu dönemde başarılıdır","Tedaviye yanıt alınamaz","Sadece ilaçla tedavi edilir"],ans:1,exp:"Kompanze şokta kompanzasyon mekanizmaları ile yaşamsal organların perfüzyonu korunduğu için hastane öncesi tedavi en çok bu dönemde başarılıdır."},
+{type:"tf",q:"Dopaminin maksimum dozu 20 mcg/kg/dk'dır.",ans:true,exp:"20 mcg/kg/dk üzerinde dopamin verilmesi inotrop etkiyi artırmadan ciddi vazokonstrüksiyona neden olabilir."},
+{type:"mc",q:"Şoktaki ilk kompanzasyon yanıtı hangisidir?",opts:["Bradikardi","Hipotansiyon","Taşikardi","Oligüri"],ans:2,exp:"Kalp debisindeki düşüşe tipik fizyolojik yanıt taşikardidir. Ancak taşikardi sadece şoka spesifik değildir."},
+{type:"mc",q:"70 kg'lık bir erişkinde yaklaşık ne kadar kan bulunur?",opts:["2-3 litre","3-4 litre","5-6 litre","8-9 litre"],ans:2,exp:"Vücut ağırlığının ortalama 1/13'ünü kan oluşturur. 70 kg'lık bir kişide 5-6 litre civarında kan bulunur."},
+{type:"mc",q:"Geri dönüşümsüz şokta ne olur?",opts:["Kompanzasyon mekanizmaları yeterlidir","Tedaviye yanıt alınır","İleri organ disfonksiyonu ve ölüm meydana gelir","Sadece sıvı tedavisi yeterlidir"],ans:2,exp:"Geri dönüşümsüz şokta tedaviye cevap alınamaz, ilerleyici organ hasarı ve ölüm meydana gelir."},
+{type:"tf",q:"Katekolaminler (dopamin, adrenalin) sodyum bikarbonat ile birlikte verilebilir.",ans:false,exp:"Katekolaminler alkali pH'da inaktive olacaklarından NaHCO3 ile birlikte verilmemelidir."}
+]},
+{id:8,title:"Damaryolu Açma",questions:[
+{type:"mc",q:"İntravenöz ilaç emilim hızı ne kadardır?",opts:["3 dakika","5-30 dakika","30 saniye - 1 dakika","10-20 dakika"],ans:2,exp:"İntravenöz yolda emilim hızı 1/2 - 1 dakikadır. İntraosseöz yolda da aynı hızdadır."},
+{type:"mc",q:"Çocuklarda venöz damar yolu açılamadığında intraosseöz yola ne kadar sürede geçilmelidir?",opts:["5 dakika içinde","1 dakika içinde","3 dakika içinde","10 dakika içinde"],ans:1,exp:"KPR veya dekompanze şokta çocuklarda 1 dk, yetişkinlerde 2 dk içinde venöz yol açılamazsa intraosseöz yol açılmalıdır."},
+{type:"mc",q:"Periferik venöz yolda damar seçimi nasıl olmalıdır?",opts:["Proksimalden (merkeze yakın) başlanmalı","Distalden (merkezden uzak) başlanmalı","Eklem bölgeleri tercih edilmeli","Sadece boyun venleri kullanılmalı"],ans:1,exp:"Seçilen venlerin öncelikle distalden (merkezden uzak) olmasına dikkat edilerek IV kateter uygulaması yapılmalıdır."},
+{type:"tf",q:"Mastektomi yapılmış taraftaki ekstremiteden IV girişim yapılabilir.",ans:false,exp:"Mastektomi, arterio-venöz fistül veya şant varlığında o ekstremiteden IV girişim yapılmamalıdır."},
+{type:"mc",q:"Aşağıdakilerden hangisi periferik venöz yol komplikasyonu DEĞİLDİR?",opts:["Hematom","Flebit","Ekstravazasyon","Hipertansiyon"],ans:3,exp:"Komplikasyonlar: hematom, flebit, ekstravazasyon ve tromboembolidir."},
+{type:"mc",q:"Erişkinlerde (özellikle diyabet hastalarında) bacaktaki venler neden tercih edilmemelidir?",opts:["Damar bulunamadığı için","Flebit ve emboli riski nedeniyle","Acı verdiği için","Damarlar çok kalın olduğu için"],ans:1,exp:"Diyabet hastalarında bacaktaki venler flebit ve emboli riski nedeniyle mümkünse tercih edilmemelidir."},
+{type:"tf",q:"İntraosseöz yolla verilen ilaçların emilim hızı intravenöz yola eşittir.",ans:true,exp:"Her ikisinde de emilim hızı 1/2 - 1 dakikadır."}
+]},
+{id:9,title:"Temel EKG (Elektrokardiografi)",questions:[
+{type:"mc",q:"Sinüs düğümünün (SAD) uyarı çıkarma kapasitesi dakikada ne kadardır?",opts:["15-30 atım/dk","40-60 atım/dk","60-100 atım/dk","100-160 atım/dk"],ans:2,exp:"Sinüs düğümü kalbin doğal pacemaker'ıdır ve dakikada 60-100 arası uyarı çıkarır."},
+{type:"mc",q:"Atriyoventriküler düğüm (AVD) uyarı çıkarma kapasitesi ne kadardır?",opts:["15-30 atım/dk","40-60 atım/dk","60-100 atım/dk","100-150 atım/dk"],ans:1,exp:"AVD, sinüs düğümünden uyarı gelmediğinde veya baskın olduğunda 40-60 atım/dk kapasitesiyle uyarı başlatır."},
+{type:"tf",q:"EKG kalibrasyon ayarında 1 mV'lik uyarı 1 cm'lik vertikal defleksiyon oluşturmalıdır.",ans:true,exp:"Doğru EKG değerlendirmesi için 1 mV = 1 cm (2 büyük kare) olmalı ve kağıt hızı 25 mm/sn olmalıdır."},
+{type:"mc",q:"His demeti uyarı başlatamazsa, purkinje liflerindeki ileti sayısı dakikada ne kadardır?",opts:["60-100","40-60","30-40","15-30"],ans:3,exp:"Purkinje liflerinden çıkan uyarı sayısı dakikada 15-30 arasındadır."},
+{type:"mc",q:"EKG'de P dalgasının görülmemesi neyi düşündürür?",opts:["Normal sinüs ritmi","Nodal ritim (AVD'nin baskın olması)","Ventriküler fibrilasyon","Asistoli"],ans:1,exp:"AVD baskın uyarı merkezi olduğunda EKG'de P dalgası görülmez ve bu nodal ritim olarak tanımlanır."},
+{type:"tf",q:"Hastane öncesinde sadece EKG'ye bakarak kesin tanı konulabilir.",ans:false,exp:"Hastane öncesinde sadece EKG'ye bakarak tanı konulmaz. EKG klinik değerlendirmeyle birlikte yardımcı bir yöntem olarak ele alınmalıdır."},
+{type:"mc",q:"Son kullanım tarihi geçmiş elektrotlarla ilgili doğru olan nedir?",opts:["Acil durumda kullanılabilir","Kesinlikle kullanılmamalıdır","Jeli toplanırsa kullanılabilir","Sadece monitörizasyon için kullanılabilir"],ans:1,exp:"Son kullanım tarihi geçmiş, jeli kurumuş elektrotlar kullanılmamalıdır."}
+]},
+{id:10,title:"Arrest Ritimlerin Yönetimi",questions:[
+{type:"mc",q:"Şok uygulanabilir arrest ritimleri hangileridir?",opts:["Asistoli ve NEA","VF ve nabızsız VT","Sinüs bradikardisi ve AV blok","Atriyal fibrilasyon ve SVT"],ans:1,exp:"Şok uygulanabilir ritimleri: Ventriküler Fibrilasyon (VF) ve Nabızsız Ventriküler Taşikardi (nVT)."},
+{type:"mc",q:"Göğüs kompresyonuna başlanmamış ise arrest ile defibrilasyon arasında geçen her dakika mortaliteyi ne kadar artırır?",opts:["%2-5","%5-8","%10-12","%15-20"],ans:2,exp:"Her geçen dakika mortaliteyi %10-12 artırır. Erken, etkin ve sürekli kompresyon yaklaşık iki kat zaman kazandırır."},
+{type:"tf",q:"Defibrilasyon sırasında oksijen tüpü hastadan en az 1 metre uzaklaştırılmalıdır.",ans:true,exp:"Oksijen tüpü ve maskesi çıkabilecek kıvılcımlar sonrası yanık ve yangınlara neden olabileceğinden en az 1 metre uzaklaştırılmalıdır."},
+{type:"mc",q:"Şok uygulanamaz arrest ritimleri hangileridir?",opts:["VF ve VT","Asistoli ve Nabızsız Elektriksel Aktivite (NEA)","SVT ve AF","Sinüs taşikardisi"],ans:1,exp:"Şok uygulanamaz ritimleri: Asistoli ve Nabızsız Elektriksel Aktivite (NEA/PEA)."},
+{type:"mc",q:"Agonal solunum hakkında doğru olan nedir?",opts:["Yaşam belirtisidir","Dolaşım belirtisidir","Kardiyak arrestin erken evresinde yaygındır ve yaşam belirtisi olarak değerlendirilmemelidir","Normal solunumun hafif bir formudur"],ans:2,exp:"Agonal solunum kardiyak arrestin erken evresinde yaygındır ve bir yaşam/dolaşım belirtisi olarak değerlendirilmemelidir."},
+{type:"mc",q:"Defibrilasyon uygulanırken en kritik güvenlik kuralı nedir?",opts:["Cihazın şarj düzeyini kontrol etmek","Deşarj sırasında hastaya kimsenin temas etmemesini sağlamak","Kaşıkları mümkün olduğunca sert bastırmak","İşlemi sessizce yapmak"],ans:1,exp:"Deşarj işlemi sırasında hastaya kimse temas etmemeli ve uygulayıcı şok vermeden önce yüksek sesle uyarıda bulunmalıdır."},
+{type:"tf",q:"VF/VT durumunda 4 dakikadan sonra serebral hasar başlar.",ans:true,exp:"VF ve nVT ritimlerinde kalp debisi sonlanır ve 4 dakikadan sonra serebral hasar başlar."}
+]},
+{id:11,title:"Periarrest Aritmiler",questions:[
+{type:"mc",q:"Aritmilerde anstabilite kriterleri hangi dört klinik tablonun değerlendirilmesidir?",opts:["Ateş, öksürük, halsizlik, bulantı","Şok, senkop, miyokard iskemisi, kalp yetmezliği","Hipertansiyon, taşikardi, dispne, ödem","Bradikardi, hipotansiyon, siyanoz, bilinç kaybı"],ans:1,exp:"Dört olumsuz klinik tablo: şok, senkop, miyokard iskemisi ve kalp yetmezliği."},
+{type:"mc",q:"Anstabil taşikardilerde tercih edilecek tedavi hangisidir?",opts:["İlaç tedavisi","Senkronize kardiyoversiyon","Defibrilasyon","Vagal manevra"],ans:1,exp:"Anstabil taşikardilerde senkronize kardiyoversiyon uygulanır."},
+{type:"mc",q:"Bradiaritmi tedavisinde ilk tercih edilmesi gereken ilaç hangisidir?",opts:["Adrenalin","Dopamin","Atropin","Amiodaron"],ans:2,exp:"Bradikardinin tedavisinde ilk tercih atropin olmalıdır. 0,5 mg IV puşe uygulanır, gerekirse 3-5 dk'da tekrarlanır, toplam maks 3 mg."},
+{type:"tf",q:"Kardiyoversiyonda şok EKG'nin R dalgasıyla senkronize edilir.",ans:true,exp:"Kardiyoversiyonda şok R dalgasıyla senkronize edilir; defibrilasyondan farklı olarak senkronize düğmesi aktif hale getirilmelidir."},
+{type:"mc",q:"Atriyal fibrilasyonda monofazik defibrilatörde kardiyoversiyon başlangıç dozu nedir?",opts:["50 J","100 J","200 J","360 J"],ans:2,exp:"Atriyal fibrilasyon ve düzensiz VT'de monofazik: 200 J, bifazik: 120 J'den başlanır."},
+{type:"mc",q:"Dar QRS'li düzenli taşikardilerde en sık görülen aritmi hangisidir?",opts:["Atriyal fibrilasyon","AVNRT (SVT)","Ventriküler taşikardi","Sinüs taşikardisi"],ans:1,exp:"Düzenli dar QRS'li taşikardiler içinde en sık görüleni AVNRT (SVT)'dir."},
+{type:"tf",q:"Atropine rağmen anstabil bulgular devam ederse 2-10 mcg/dk adrenalin infüzyonu düşünülmelidir.",ans:true,exp:"Nabız sayısı 60'ın altında ve sistolik KB 90 mmHg'nin altında kalırsa adrenalin infüzyonu başlanabilir."}
+]},
+{id:12,title:"Kanama ve Yaralanmalarda Acil Bakım İlkeleri",questions:[
+{type:"mc",q:"70 kg'lık bir erişkinde yüzde kaç kan kaybı tehlikeli sonuçlara yol açabilir?",opts:["%5","%10","%20","%30"],ans:1,exp:"%10 oranında kan kaybı (erişkinde ~600 ml, çocukta 200-300 ml, bebekte 25-30 ml) tehlikeli sonuçlara yol açabilir."},
+{type:"mc",q:"Arter kanamasının özelliği nedir?",opts:["Yavaş sızıntı şeklindedir","Nabızla eş zamanlı fışkırır tarzda olması","Koyu renkli ve sürekli akması","Kendiliğinden durması"],ans:1,exp:"Arter kanamalarında kan nabızla eş zamanlı olarak fışkırır. Basınç yüksek olduğundan kısa sürede fazla kan kaybı olur."},
+{type:"tf",q:"Internal kanamalarda her zaman vücut dışında kanama görülür.",ans:false,exp:"Internal kanamaların tanınması daha zordur çünkü çoğunlukla vücut dışında kanama görülmez. Ancak öksürük, kusma vb. yollarla görülebilir."},
+{type:"mc",q:"Eksternal kanamada ilk yapılması gereken nedir?",opts:["Turnike uygulamak","Kanama bölgesine direkt bası uygulamak","Arter bası noktasına basmak","Hastayı sırt üstü yatırmak"],ans:1,exp:"İlk olarak kanama bölgesine direkt bası uygulanır. Turnike ancak diğer yöntemler başarısız olursa yapılır."},
+{type:"mc",q:"Turnike uygulaması ne zaman yapılır?",opts:["Her kanamada ilk müdahale olarak","Bütün girişimler ile kanama durdurulamamışsa","Sadece venöz kanamalarda","Sadece iç kanamalarda"],ans:1,exp:"Bütün girişimler ile kanama durdurulamadığında son çare olarak turnike uygulaması yapılır."},
+{type:"mc",q:"Kanama bölgesindeki sargının distalinde hangi kontrol yapılmalıdır?",opts:["Sadece sıcaklık kontrolü","Nabız, renk, motor ve duyu kontrolü","Sadece nabız kontrolü","Sadece renk kontrolü"],ans:1,exp:"Sargı sonrası distal kısımdan nabız, renk, motor ve duyu kontrolü yapılır. Sorun varsa sargı gözden geçirilir."}
+]},
+{id:13,title:"Hastane Öncesinde Travma Hastasına Yaklaşım",questions:[
+{type:"mc",q:"Travma hastasının değerlendirilmesinde ekip yerleşimi nasıl olmalıdır?",opts:["Tüm ekip hastanın sol tarafında durmalı","Hastanın kalbi merkezde, başı üst köşede hayali üçgen oluşturacak şekilde","Rastgele yerleşim yeterlidir","Hepsi hastanın başucunda durmalı"],ans:1,exp:"Ekip, hastanın kalbi merkezde başı üçgenin üst köşesini oluşturacak şekilde konumlanır."},
+{type:"mc",q:"Travma hastasına yaklaşımda sağlık ekibi hastaya ilk ne uyarısı verir?",opts:["Gözlerini açmasını ister","Hareket etmemesi konusunda uyarır","Derin nefes almasını söyler","Adını sorar"],ans:1,exp:"Ekip önce travma hastasını hareket etmemesi konusunda uyarır, çünkü hareketi (örn. boynunu çevirmesi) omurga sinirine zarar verebilir."},
+{type:"tf",q:"Multi travma birden fazla organ ve sistemi etkileyen travmadır.",ans:true,exp:"Tek organ/sistemi etkileyen yaralanma 'travma', birden fazla organ/sistemi etkileyen yaralanma 'multi travma' olarak tanımlanır."},
+{type:"mc",q:"Travma hastasının değerlendirilmesinde sıralama nasıldır?",opts:["Nakil → Tedavi → Değerlendirme","Birincil değerlendirme → İlaç → Nakil","Ekip yerleşimi → Birincil değerlendirme (ABCDE) → İkincil değerlendirme → Ön tanı","Sadece vital parametreler yeterlidir"],ans:2,exp:"1) Ekip ve malzeme yerleşimi, 2) Birincil değerlendirme (ABCDE), 3) İkincil değerlendirme (muayene, SAMPLE, vitaller), 4) Ön tanı."},
+{type:"mc",q:"Travma hastasına yaklaşımda genel çerçeveyi ne belirler?",opts:["Triaj","Acil olgu yönetimi","Glasgow Koma Skalası","Kardiyak protokoller"],ans:1,exp:"Sağlık ekiplerinin travma hastasına yönelik müdahalelerinin genel çerçevesini 'acil olgu yönetimi' belirler."},
+{type:"tf",q:"Travma hastasına kişisel koruyucu ekipman kullanmadan müdahale edilebilir.",ans:false,exp:"Travma hastası değerlendirilmeden önce mutlaka kişisel koruyucu ekipman kullanılmalıdır."}
+]},
+{id:14,title:"Bilinç Bozukluğu ve Nörolojik Aciller",questions:[
+{type:"mc",q:"Glasgow Koma Skalası'nda 3-8 arası skor ne anlama gelir?",opts:["Hafif nörolojik etkilenme","Orta derecede etkilenme","Ağır nörolojik etkilenme ve koma","Normal"],ans:2,exp:"GKS 3-8: ağır etkilenme/koma, 9-12: orta derece, 13-15: hafif derece nörolojik etkilenme."},
+{type:"mc",q:"Bilinç bozukluğu seviyelerinden 'Stupor' neyi ifade eder?",opts:["Bilinç bulanıklığı","Uyaranlara hafif yanıt","Bilinçsiz, ağrıyı lokalize eder ama sözel cevap yok","Dış uyaranla uyandırılamama"],ans:2,exp:"Stupor: Hasta bilinçsizdir, ağrıyı lokalize eder ancak uygun yanıt veremez, sözlü cevap alınamaz."},
+{type:"mc",q:"Pupillerde anizokori ne anlama gelir?",opts:["Her iki pupil aynı büyüklükte","Pupiller çok küçük (toplu iğne başı gibi)","Pupil büyüklükleri birbirinden farklı","Pupiller genişlemiş"],ans:2,exp:"Anizokori: pupil büyüklükleri birbirinden farklıdır ve kafa içi basıncı artışını düşündürür."},
+{type:"mc",q:"Status epileptikus ne zaman söz konusudur?",opts:["Nöbet 30 saniye sürerse","Nöbet 2 dakika sürerse","Nöbetler bilinç yerine gelmeden 5 dakikadan uzun sürerse","Nöbet 1 saat sürerse"],ans:2,exp:"Nöbetler aralıksız veya aralıklı olarak bilinç yerine gelmeden 5 dakikadan uzun sürüyorsa status epileptiktur ve hayatı tehdit eder."},
+{type:"tf",q:"İskemik inmede semptomların başlamasından itibaren 3 saat içinde trombolitik tedavi başarı şansını artırır.",ans:true,exp:"%87 oranında görülen iskemik inmede, 3 saat içinde uygulanan trombolitik tedavi başarı şansını artırır ve tedavi süresini kısaltır."},
+{type:"mc",q:"Nöbet geçiren hastaya ne yapılmalıdır?",opts:["Ağzına kaşık konulmalı","Hasta bağlanmalı","Nöbet seyrine bırakılmalı, hasta sekonder travmalardan korunmalı","Ağzından sıvı verilmeli"],ans:2,exp:"Nöbet seyrine bırakılmalı, hasta sekonder travmalardan korunmalı, ağzına hiçbir şey konulmamalı ve bağlanmamalıdır."},
+{type:"mc",q:"Pinpoint (miyozis) pupil hangi durumları düşündürür?",opts:["Beyin ölümü","Narkotik kullanımı, pons kanaması","Kafa içi basınç artışı","Normal bulgu"],ans:1,exp:"Pinpoint (toplu iğne başı gibi küçük) pupiller narkotik kullanımı, pons kanaması gibi durumları düşündürür."}
+]},
+{id:15,title:"Obstetrik Aciller ve Yenidoğanın Değerlendirilmesi",questions:[
+{type:"mc",q:"Normal bir gebelik ortalama kaç hafta sürer?",opts:["36 hafta","38 hafta","40 hafta","42 hafta"],ans:2,exp:"Normal bir gebelik ortalama 40 hafta sürer."},
+{type:"mc",q:"Gerçek doğum ağrıları ile yalancı ağrılar arasındaki temel fark nedir?",opts:["Gerçek ağrılar karında, yalancılar belde hissedilir","Gerçek ağrılarda aralıklar giderek azalır ve şiddet artar, yalancıda değişmez","İkisi arasında fark yoktur","Yalancı ağrılar daha şiddetlidir"],ans:1,exp:"Gerçek doğum ağrılarında aralıklar azalır, süre ve şiddet artar, servikal dilatasyon olur. Yalancıda bunlar olmaz."},
+{type:"mc",q:"Göbek kordonu doğumdan kaç dakika sonra klemplenir?",opts:["Hemen doğumda","En az 1 dakika sonra","5 dakika sonra","10 dakika sonra"],ans:1,exp:"En az 1 dk sonra göbek kordonu klemplenerek kesilmelidir. Bu sayede bebeğin anne ile teması sağlanır ve hipotermiye karşı önlem alınır."},
+{type:"tf",q:"Birinci klemp bebeğin göbeğinden 10 cm ileriye yerleştirilir.",ans:true,exp:"Birinci klemp bebeğin göbeğinden 10 cm, ikinci klemp birincinin 5 cm ilerisine yerleştirilir ve ortasından kesilir."},
+{type:"mc",q:"Doğum eyleminin üçüncü evresi ne ile sonlanır?",opts:["Bebeğin doğumu ile","Plasentanın ayrılıp atılması ile","Göbek kordonunun kesilmesi ile","Servikal dilatasyonun tamamlanması ile"],ans:1,exp:"Üçüncü evre bebeğin doğumundan sonra başlar, plasentanın ayrılıp atılması ile sonlanır."},
+{type:"mc",q:"Yenidoğan değerlendirilmesinde APGAR skoru hangi parametreleri içerir?",opts:["Ağırlık, boy, baş çevresi, göğüs çevresi, cilt rengi","Kalp hızı, solunum, cilt rengi, kas tonusu, refleks","Kan basıncı, nabız, solunum, ısı, saturasyon","GKS, pupil yanıtı, motor cevap, solunum, nabız"],ans:1,exp:"APGAR: kalp hızı, solunum, cilt rengi, kas tonusu ve refleks değerlendirmesini içerir."},
+{type:"tf",q:"Plasentanın tam olup olmadığı kontrol edilmelidir çünkü kalan parçalar kanama ve enfeksiyona neden olabilir.",ans:true,exp:"Rahim içinde kalan plasenta parçaları kanama ve enfeksiyona sebep olur."}
+]},
+{id:16,title:"Olay Yeri Yönetimi",questions:[
+{type:"mc",q:"Olay yeri yönetiminde ilk ekibin ilk yapması gereken nedir?",opts:["Hastaya müdahale etmek","Triaj yapmak","Olay yeri güvenliğini değerlendirmek","İlaç hazırlamak"],ans:2,exp:"İlk ekip her olayda öncelikli olarak olay yeri güvenliğini değerlendirmeli ve güvenlik tedbirlerini almalıdır."},
+{type:"mc",q:"Olay Yeri Yöneticisi kimdir?",opts:["112 operatörü","Olay yerine ilk ulaşan ekibin en kıdemli sağlık personeli","Polis amiri","Hastane müdürü"],ans:1,exp:"Olay yerine ilk ulaşan ekibin en kıdemli sağlık personeli olay yeri yöneticisi görevini üstlenir."},
+{type:"tf",q:"Adli vakalarda tıbbi zorunluluk dışında olay yerindeki deliller korunmalıdır.",ans:true,exp:"Tıbbi zorunluluk dışında olay yerindeki deliller bozulmamalı ve korunmalıdır."},
+{type:"mc",q:"Olay yeri yönetiminin aşamaları hangileridir?",opts:["Planlama ve operasyon","Güvenlik değerlendirmesi → Hasta sayısı saptanması → Triaj ve tedavi → Nakil","Sadece triaj ve tedavi","Sadece nakil organizasyonu"],ans:1,exp:"Operasyon aşaması: a) Güvenlik değerlendirmesi, b) Adli boyut değerlendirmesi, c) Hasta sayısı saptanması, d) Triaj ve tedavi, e) Nakil."},
+{type:"mc",q:"KBRN tehlikeleri ne anlama gelir?",opts:["Kimyasal, Biyolojik, Radyolojik, Nükleer","Kaza, Barikat, Risk, Nakil","Kontrol, Bakım, Resüsitasyon, Nakil","Kan, Böbrek, Rahim, Nöroloji"],ans:0,exp:"KBRN: Kimyasal, Biyolojik, Radyolojik, Nükleer tehlikeler."},
+{type:"tf",q:"Hasta sayısı doğrulanmadan 112 KKM'ye bildirilmemelidir.",ans:true,exp:"Hasta sayısı olay yeri yöneticisi tarafından doğrulanmadan ve emniyet birimleri ile koordine edilmeden bildirilmemelidir."}
+]},
+{id:17,title:"Triaj",questions:[
+{type:"mc",q:"Triaj kelimesinin kökeni nedir ve ne anlama gelir?",opts:["İngilizce 'try' - denemek","Fransızca 'trier' - ayırt etmek, seçmek, sınıflandırmak","Latince 'tria' - üç","Almanca 'triage' - ayrım"],ans:1,exp:"Fransızca 'Trier' kökenlidir ve ayırt etmek, seçmek, sınıflandırmak anlamına gelir."},
+{type:"mc",q:"Tıbbi triajı ilk kim kullanmıştır?",opts:["Hipokrat","Florence Nightingale","Baron Dominique Jean Larrey","Henry Dunant"],ans:2,exp:"Napolyon orduları baş cerrahı Baron Dominique Jean Larrey tarafından savaşta yaralı askerlerin önceliklendirilmesi için kullanılmıştır."},
+{type:"tf",q:"Triaj sadece çok sayıda yaralının olduğu durumlarda uygulanır.",ans:false,exp:"Triajın hasta sayısı ile ilgisi sınırlıdır. Sistemin anlık cevap kapasitesi ile ilgilidir."},
+{type:"mc",q:"Triaj hakkında hangisi doğrudur?",opts:["Herhangi bir sağlık personeli triaj yapabilir","Triaj olaydan etkilenen herkese uygulanır","Triaj sadece yaralılara uygulanır","Triaj sadece doktorlar tarafından yapılır"],ans:1,exp:"Triaj olaydan etkilenen herkese uygulanır ve tüm hastaların sevki gerçekleşene kadar devam eder."},
+{type:"mc",q:"Olay yeri triajında görevli sağlık personeli aşağıdakilerden hangisini yapMAZ?",opts:["Hastaları sınıflandırmak","Triaj kartlarını kullanmak","Kesin tedavi uygulamak","Nakil önceliklerini belirlemek"],ans:2,exp:"Triaj sorumlusu hastayı sınıflandırır, öncelik belirler, kayıt tutar ama kesin tedavi uygulamaz."},
+{type:"tf",q:"Triaj, olay yeri güvenliği sağlandıktan sonra yapılır.",ans:true,exp:"Triajda olay yerine giriş her zaman çevre güvenliği sağlandıktan sonra yapılır."}
+]},
+{id:18,title:"Haberleşme",questions:[
+{type:"mc",q:"112 acil sağlık sisteminde hangi haberleşme kuralları kullanılır?",opts:["Yerel kurallar","Kuruma özel kurallar","Uluslararası standart telsiz haberleşme kuralları","Sadece telefon kuralları"],ans:2,exp:"112 acil sağlık sistemi diğer kurumlarla sürekli işbirliği yapması gerektiğinden uluslararası standart telsiz haberleşme kuralları kullanılır."},
+{type:"mc",q:"Telsiz haberleşmesinin acil durumlarda tercih edilmesinin temel nedeni nedir?",opts:["Ucuz olması","Enerji ve kablo sorunlarından bağımsız olması","Görüntü iletebilmesi","Şifreli olması"],ans:1,exp:"Telsiz enerji ve kablo sorunlarından bağımsızdır, pek çok kişiye aynı anda mesaj iletebilir ve afetlerde telefon/internet çalışmadığında en uygun seçenektir."},
+{type:"tf",q:"Acil durum ve afetlerde telefon ve internet her zaman güvenilir haberleşme sağlar.",ans:false,exp:"Acil durum ve afetlerde telefon, faks, internet ile sağlıklı haberleşme sağlanamaz. Bu nedenle telsiz en uygun seçenektir."},
+{type:"mc",q:"NATO fonetik alfabesinde 'A' harfi nasıl okunur?",opts:["Adam","Alfa (Alpha)","Ankara","Apple"],ans:1,exp:"NATO fonetik alfabesinde A harfi 'Alpha' olarak okunur."},
+{type:"mc",q:"Haberleşmenin temel öğeleri nelerdir?",opts:["Sadece gönderici ve alıcı","Gönderici, mesaj, kanal, alıcı, geri bildirim","Sadece telefon ve telsiz","Konuşmacı ve dinleyici"],ans:1,exp:"Haberleşme öğeleri: gönderici, mesaj, kanal (ortam), alıcı ve geri bildirimdir."},
+{type:"mc",q:"Telsiz haberleşme sistemleri arasında hangisi dijital bir sistemdir?",opts:["VHF","HF","TETRA","UHF"],ans:2,exp:"TETRA (Terrestrial Trunked Radio) ve APCO-25 dijital sistemlerdir. VHF, UHF, HF analog sistemlerdir."}
+]},
+{id:19,title:"Asepsi, Antisepsi, Sterilizasyon ve Dezenfeksiyon",questions:[
+{type:"mc",q:"Asepsi nedir?",opts:["Canlı doku üzerindeki mikropların öldürülmesi","Mikroorganizmaların korunmuş bir alana ulaşmalarının önlenmesi","Cansız yüzeylerin temizlenmesi","Sporların yok edilmesi"],ans:1,exp:"Asepsi: Mikroorganizmaların korunmuş bir alana ulaşmalarının önlenmesi ve bunun devamlılığının sağlanmasıdır."},
+{type:"mc",q:"Antiseptik nerede kullanılır?",opts:["Cansız yüzeylerde","Canlı doku üzerinde","Sadece amelathane zemininde","Sadece aletlerde"],ans:1,exp:"Antiseptik canlı doku üzerinde, dezenfektan ise cansız madde ve yüzeylerde kullanılır."},
+{type:"mc",q:"Hijyenik el ovalamada alkol bazlı solüsyon ne kadar süre uygulanır?",opts:["5-10 saniye","0,5 - 1 dakika","3-5 dakika","10 dakika"],ans:1,exp:"Alkol bazlı solüsyon 3-5 mL alınır ve 0,5 ile 1 dakika arasında eller birbirine sürtülür ve ovuşturulur."},
+{type:"tf",q:"Alkol bazlı el dezenfektanları ıslak ele uygulanabilir.",ans:false,exp:"Alkol bazlı el dezenfektanları asla ıslak ele uygulanmamalıdır."},
+{type:"mc",q:"Dezenfeksiyon seviyeleri arasında hangisi bakteri sporlarına etki göstermez ama mikobakterilere etkilidir?",opts:["Düşük düzey dezenfeksiyon","Orta düzey dezenfeksiyon","Yüksek düzey dezenfeksiyon","Sterilizasyon"],ans:1,exp:"Orta düzey dezenfeksiyon bakteri sporlarına etki göstermez ama mikobakterilere etkili olabilir."},
+{type:"tf",q:"El yıkama enfeksiyonların önlenmesinde en basit ve önemli yöntemdir.",ans:true,exp:"Usulüne uygun el yıkama enfeksiyonların önlenmesinde en basit yöntemdir ve halk sağlığı açısından son derece önemlidir."}
+]},
+{id:20,title:"Ambulanslar, Acil Sağlık Araçları ve Donanımları",questions:[
+{type:"mc",q:"Ambulanslar kaç ana kategoriye ayrılır?",opts:["2 (kara ve hava)","3 (kara, hava ve deniz)","4 (kara, hava, deniz ve tren)","5"],ans:1,exp:"Ambulanslar kara, hava ve deniz ambulansı olmak üzere üç kategoriye ayrılır."},
+{type:"mc",q:"Acil yardım ambulansı ekibi en az kaç personelden oluşur?",opts:["2","3","4","5"],ans:1,exp:"Ambulans ekibi, biri hekim ya da AABT olmak üzere ikisi sağlık personeli nitelikli en az üç personelden oluşur."},
+{type:"mc",q:"Hasta nakil ambulansının acil yardım ambulansından temel farkı nedir?",opts:["Daha büyüktür","Acil tıbbi müdahale gerektirmeyen hastaların nakli için kullanılır","Daha hızlıdır","Daha fazla personel bulundurur"],ans:1,exp:"Hasta nakil ambulansı acil tıbbi müdahale gerektirmeyen hasta veya yaralıların nakli amacıyla kullanılır."},
+{type:"tf",q:"Acil yardım ambulansı beyaz üzerine kırmızı fosforlu şeritle çevrelenmiştir.",ans:true,exp:"Acil yardım ambulansı beyaz üzerine kırmızı, hasta nakil ambulansı beyaz üzerine lacivert fosforlu şeritle çevrelenmiştir."},
+{type:"mc",q:"Yeni doğan ambulansında ekstra olarak hangi donanım bulunur?",opts:["Röntgen cihazı","Ventilatörlü transport kuvöz","Ameliyat masası","MR cihazı"],ans:1,exp:"Yeni doğan ambulansında acil yardım ambulansı donanımına ilaveten ventilatörlü transport kuvöz bulunur."},
+{type:"mc",q:"Hasta nakil ambulansı ekibi en az kaç personelden oluşur?",opts:["1","2","3","4"],ans:1,exp:"Hasta nakil ambulansı ekibi bir sağlık personeli ve bir sürücü olmak üzere iki personelden oluşur."}
+]},
+{id:21,title:"Hasta Taşıma Teknikleri",questions:[
+{type:"mc",q:"Hasta taşımada temel kural nedir?",opts:["Hastayı mümkün olduğunca hızlı taşımak","Stabilizasyon sağlandıktan sonra doğru teknikle taşımak","Sadece sedye kullanmak","Hastayı ayağa kaldırmak"],ans:1,exp:"Temel kural: Gerekli tıbbi bakım ve stabilizasyon sağlandıktan sonra (paketleme), doğru kaldırma ve taşıma teknikleriyle güvenli nakil."},
+{type:"mc",q:"Şoktaki hasta hangi pozisyona alınmalıdır?",opts:["Oturur pozisyon","Yan yatış pozisyonu","Sırt üstü yatar, ayaklar 30 cm yükseltilir (şok pozisyonu)","Yüzükoyun pozisyon"],ans:2,exp:"Şoktaki hasta sırt üstü yatırılarak ayakları 30 cm düz bir şekilde yukarı kaldırılır (şok pozisyonu)."},
+{type:"mc",q:"Travmatik beyin yaralanmasında sedye baş tarafı kaç derece yükseltilmelidir?",opts:["10-15 derece","30-45 derece","60 derece","90 derece"],ans:1,exp:"30-45 derece yükseklik kafa içi basıncını düşürür. 45 derecenin üzeri serebral perfüzyon basıncını olumsuz etkileyebilir."},
+{type:"tf",q:"KPR uygulanan hasta taşınırken mekanik göğüs kompresyon cihazları önerilmektedir.",ans:true,exp:"AHA ve ERC, taşınırken KPR gerekiyorsa mekanik göğüs kompresyon cihazlarını önermektedir."},
+{type:"mc",q:"Ana sedyenin ayakları açık olarak maksimum taşıma kapasitesi ne kadardır?",opts:["100 kg","120 kg","160 kg","200 kg"],ans:2,exp:"Ana sedyenin ayakları açık olarak en fazla 160 kg taşıma kapasitesi vardır. Daha ağır hastalar için özel sedye gerekir."},
+{type:"mc",q:"Pediatrik hastanın taşınmasında en önemli iki husus nedir?",opts:["Hız ve güç","Baş-boyun stabilizasyonu ve vücut ısısının korunması","Sadece hız","Sadece sedye seçimi"],ans:1,exp:"Pediatrik hastaların taşınmasında baş-boyun stabilizasyonu ve vücut ısısının korunması en önemlisidir."},
+{type:"mc",q:"Sürükleme tekniklerinde 'küçültme' işlemi nedir?",opts:["Hastanın üzerini örtmek","Ellerin kemer içine, ayakların üst üste bindirilmesi","Hastayı kıvırmak","Hastanın kollarını bağlamak"],ans:1,exp:"Küçültme: ellerin pantolon kemerine veya ceplerine yerleştirilmesi, ayakların birbiri üzerine bindirilmesidir. Sürüklemeyi kolaylaştırır."},
+{type:"tf",q:"Obez (bariatrik) hastalar için ambulanslarda özel sedyeler bulunmaktadır.",ans:true,exp:"Sağlık Bakanlığı'nda 160 kg üzeri hastalar için özel ambulanslar ve ağırlığa dayanıklı sedyeler mevcuttur."}
+]}
+];
+
+// ========== APP STATE ==========
+let state = {
+  view: 'chapters', // chapters, quiz, results
+  activeChapter: null,
+  currentQ: 0,
+  answers: [],
+  score: 0,
+  mode: 'chapter', // chapter, random, weak
+  srData: {} // spaced repetition: {chId_qIdx: {correct:0, wrong:0, lastSeen:Date, interval:1}}
+};
+
+// Load SR data
+try { const d = localStorage.getItem('sr_data_v2'); if(d) state.srData = JSON.parse(d); } catch(e){}
+function saveSR() { try { localStorage.setItem('sr_data_v2', JSON.stringify(state.srData)); } catch(e){} }
+
+function getSRKey(chId, qIdx) { return `${chId}_${qIdx}`; }
+function getSRStatus(key) {
+  const d = state.srData[key];
+  if(!d) return 'new';
+  if(d.correct >= 3 && d.correct > d.wrong * 2) return 'mastered';
+  return 'review';
+}
+
+function getChapterStats(ch) {
+  let total=ch.questions.length, answered=0, correct=0;
+  ch.questions.forEach((q,i) => {
+    const k = getSRKey(ch.id, i);
+    const d = state.srData[k];
+    if(d) { answered++; correct += d.correct; }
+  });
+  return { total, answered, correct, pct: answered ? Math.round((correct/(correct + (state.srData[getSRKey(ch.id,0)]?.wrong||0))) * 100) || 0 : 0 };
+}
+
+function getTotalStats() {
+  let totalQ=0, answered=0, mastered=0;
+  chapters.forEach(ch => {
+    ch.questions.forEach((q,i) => {
+      totalQ++;
+      const k = getSRKey(ch.id, i);
+      const d = state.srData[k];
+      if(d) answered++;
+      if(getSRStatus(k)==='mastered') mastered++;
+    });
+  });
+  return { totalQ, answered, mastered };
+}
+
+// ========== RENDER ==========
+function render() {
+  const app = document.getElementById('app');
+  const ts = getTotalStats();
+
+  if(state.view === 'chapters') {
+    app.innerHTML = `
+      <div class="header fade-in">
+        <h1>🏥 Sağlık Çalışanları Temel Eğitim Quiz</h1>
+        <p>21 Bölüm • ${ts.totalQ} Soru • Aralıklı Tekrar Sistemi</p>
+      </div>
+      <div class="stats-bar fade-in">
+        <div class="stat-card"><div class="val">${ts.totalQ}</div><div class="lbl">Toplam Soru</div></div>
+        <div class="stat-card"><div class="val">${ts.answered}</div><div class="lbl">Çözülen</div></div>
+        <div class="stat-card"><div class="val">${ts.mastered}</div><div class="lbl">Öğrenilen</div></div>
+        <div class="stat-card"><div class="val">${ts.totalQ>0?Math.round(ts.mastered/ts.totalQ*100):0}%</div><div class="lbl">İlerleme</div></div>
+      </div>
+      <div class="mode-selector fade-in">
+        <button class="mode-btn ${state.mode==='chapter'?'active':''}" onclick="setMode('chapter')">📚 Bölüm Seçimi</button>
+        <button class="mode-btn ${state.mode==='random'?'active':''}" onclick="startRandom()">🎲 Karışık Mod</button>
+        <button class="mode-btn ${state.mode==='weak'?'active':''}" onclick="startWeak()">🔄 Zayıf Konular</button>
+        <button class="mode-btn" onclick="resetAll()" style="margin-left:auto;color:var(--red)">🗑️ Sıfırla</button>
+      </div>
+      <div class="chapter-grid fade-in">
+        ${chapters.map(ch => {
+          const s = getChapterStats(ch);
+          let barClass = s.answered===0?'':'mid';
+          if(s.pct >= 70) barClass = 'good';
+          return `<div class="ch-card" onclick="startChapter(${ch.id})">
+            <div class="ch-num">Bölüm ${ch.id}</div>
+            <div class="ch-title">${ch.title}</div>
+            <div class="ch-meta">
+              <span>📝 ${ch.questions.length} soru</span>
+              <span>${s.answered>0?`✅ ${s.pct}%`:''}</span>
+            </div>
+            <div class="ch-bar ${barClass}" style="width:${s.answered?Math.max(s.pct,5):0}%"></div>
+          </div>`;
+        }).join('')}
+      </div>
+    `;
+  } else if(state.view === 'quiz') {
+    const qs = state.activeQuestions;
+    const q = qs[state.currentQ];
+    const answered = state.answers[state.currentQ] !== undefined;
+    const pct = Math.round(((state.currentQ + (answered?1:0)) / qs.length) * 100);
+
+    app.innerHTML = `
+      <div class="quiz-area active fade-in">
+        <div class="quiz-header">
+          <div class="quiz-title">${state.quizTitle}</div>
+          <div class="quiz-progress">${state.currentQ+1} / ${qs.length}</div>
+        </div>
+        <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+        <div class="q-card">
+          <div class="q-type">${q.type==='mc'?'Çoktan Seçmeli':'Doğru / Yanlış'}</div>
+          <div class="q-text">${q.q}</div>
+          ${q.type==='mc' ? renderMC(q, answered) : renderTF(q, answered)}
+          ${answered ? renderFeedback(q) : ''}
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-secondary" onclick="backToChapters()">← Bölümler</button>
+          ${answered && state.currentQ < qs.length-1 ? `<button class="btn btn-primary" onclick="nextQ()">Sonraki →</button>` : ''}
+          ${answered && state.currentQ === qs.length-1 ? `<button class="btn btn-primary" onclick="showResults()">Sonuçları Gör</button>` : ''}
+        </div>
+      </div>
+    `;
+  } else if(state.view === 'results') {
+    const qs = state.activeQuestions;
+    const correct = state.answers.filter((a,i) => {
+      const q = qs[i];
+      if(q.type==='mc') return a === q.ans;
+      return a === q.ans;
+    }).length;
+    const wrong = qs.length - correct;
+    const pct = Math.round(correct/qs.length*100);
+    let emoji = pct>=90?'🏆':pct>=70?'🎯':pct>=50?'💪':'📖';
+    let msg = pct>=90?'Mükemmel!':pct>=70?'İyi gidiyorsun!':pct>=50?'Biraz daha tekrar gerekli':'Tekrar etmelisin!';
+
+    app.innerHTML = `
+      <div class="results-card fade-in">
+        <h2>${emoji} ${msg}</h2>
+        <div class="results-score">${pct}%</div>
+        <div class="results-detail">${qs.length} sorudan ${correct} doğru, ${wrong} yanlış</div>
+        <div class="results-breakdown">
+          <div class="rb-item"><div class="rb-val" style="color:var(--green)">${correct}</div><div class="rb-lbl">Doğru</div></div>
+          <div class="rb-item"><div class="rb-val" style="color:var(--red)">${wrong}</div><div class="rb-lbl">Yanlış</div></div>
+          <div class="rb-item"><div class="rb-val" style="color:var(--accent2)">${pct}%</div><div class="rb-lbl">Başarı</div></div>
+        </div>
+        <div class="btn-row" style="justify-content:center">
+          <button class="btn btn-secondary" onclick="backToChapters()">← Bölümlere Dön</button>
+          <button class="btn btn-primary" onclick="retryQuiz()">🔄 Tekrar Çöz</button>
+        </div>
+      </div>
+    `;
+  }
+}
+
+function renderMC(q, answered) {
+  return `<div class="q-options">${q.opts.map((o,i) => {
+    let cls = '';
+    if(answered) {
+      cls = 'disabled';
+      if(i === q.ans) cls += ' correct';
+      else if(state.answers[state.currentQ] === i) cls += ' wrong';
+    }
+    return `<button class="q-opt ${cls}" ${answered?'disabled':''} onclick="answer(${i})">${String.fromCharCode(65+i)}) ${o}</button>`;
+  }).join('')}</div>`;
+}
+
+function renderTF(q, answered) {
+  return `<div class="tf-group">${[true,false].map(v => {
+    let cls = '';
+    if(answered) {
+      cls = 'disabled';
+      if(v === q.ans) cls += ' correct';
+      else if(state.answers[state.currentQ] === v) cls += ' wrong';
+    }
+    return `<button class="q-opt ${cls}" ${answered?'disabled':''} onclick="answer(${v})">${v?'✓ Doğru':'✗ Yanlış'}</button>`;
+  }).join('')}</div>`;
+}
+
+function renderFeedback(q) {
+  const a = state.answers[state.currentQ];
+  const isCorrect = a === q.ans;
+  return `<div class="q-feedback show ${isCorrect?'correct':'wrong'}">
+    <strong>${isCorrect?'✅ Doğru!':'❌ Yanlış!'}</strong>
+    ${q.exp}
+  </div>`;
+}
+
+// ========== ACTIONS ==========
+function setMode(m) { state.mode = m; render(); }
+
+function startChapter(id) {
+  const ch = chapters.find(c=>c.id===id);
+  state.activeChapter = ch;
+  state.activeQuestions = shuffle([...ch.questions]).map(q=>({...q,_chId:ch.id}));
+  state.quizTitle = `Bölüm ${ch.id}: ${ch.title}`;
+  state.currentQ = 0;
+  state.answers = [];
+  state.score = 0;
+  state.view = 'quiz';
+  render();
+  window.scrollTo(0,0);
+}
+
+function startRandom() {
+  let allQ = [];
+  chapters.forEach(ch => ch.questions.forEach((q,i) => allQ.push({...q,_chId:ch.id,_qIdx:i})));
+  state.activeQuestions = shuffle(allQ).slice(0, 20);
+  state.quizTitle = '🎲 Karışık Mod (20 Soru)';
+  state.currentQ = 0;
+  state.answers = [];
+  state.score = 0;
+  state.view = 'quiz';
+  render();
+  window.scrollTo(0,0);
+}
+
+function startWeak() {
+  let weakQ = [];
+  chapters.forEach(ch => ch.questions.forEach((q,i) => {
+    const k = getSRKey(ch.id, i);
+    const s = getSRStatus(k);
+    if(s !== 'mastered') weakQ.push({...q,_chId:ch.id,_qIdx:i});
+  }));
+  if(weakQ.length === 0) { alert('Tüm soruları öğrenmişsin! Tebrikler! 🎉'); return; }
+  state.activeQuestions = shuffle(weakQ).slice(0, 20);
+  state.quizTitle = '🔄 Zayıf Konular (20 Soru)';
+  state.currentQ = 0;
+  state.answers = [];
+  state.score = 0;
+  state.view = 'quiz';
+  render();
+  window.scrollTo(0,0);
+}
+
+function answer(val) {
+  if(state.answers[state.currentQ] !== undefined) return;
+  state.answers[state.currentQ] = val;
+  const q = state.activeQuestions[state.currentQ];
+  const isCorrect = val === q.ans;
+
+  // Update SR data
+  const k = getSRKey(q._chId, q._qIdx !== undefined ? q._qIdx : state.currentQ);
+  if(!state.srData[k]) state.srData[k] = {correct:0,wrong:0,lastSeen:0,interval:1};
+  if(isCorrect) { state.srData[k].correct++; state.score++; }
+  else state.srData[k].wrong++;
+  state.srData[k].lastSeen = Date.now();
+  saveSR();
+  render();
+}
+
+function nextQ() { state.currentQ++; render(); window.scrollTo(0,0); }
+function showResults() { state.view = 'results'; render(); window.scrollTo(0,0); }
+function backToChapters() { state.view = 'chapters'; state.mode = 'chapter'; render(); window.scrollTo(0,0); }
+function retryQuiz() {
+  state.activeQuestions = shuffle(state.activeQuestions);
+  state.currentQ = 0; state.answers = []; state.score = 0;
+  state.view = 'quiz'; render(); window.scrollTo(0,0);
+}
+function resetAll() {
+  if(confirm('Tüm ilerleme verileriniz silinecek. Emin misiniz?')) {
+    state.srData = {};
+    saveSR();
+    render();
+  }
+}
+
+function shuffle(arr) { for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];} return arr; }
+
+// Assign _qIdx to all questions
+chapters.forEach(ch => ch.questions.forEach((q,i) => { q._chId = ch.id; q._qIdx = i; }));
+
+render();
+</script>
+</body>
+</html>
