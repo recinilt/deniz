@@ -1,0 +1,1653 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YouTube Kanal Kurucu — AI Destekli</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+:root {
+  --bg-primary: #0a0a0f;
+  --bg-secondary: #12121a;
+  --bg-card: #1a1a28;
+  --bg-card-hover: #222236;
+  --bg-input: #0f0f18;
+  --accent: #ff3366;
+  --accent-dim: #ff336640;
+  --accent2: #00e5ff;
+  --accent2-dim: #00e5ff30;
+  --accent3: #a855f7;
+  --text-primary: #eeeef2;
+  --text-secondary: #8888a4;
+  --text-muted: #55556a;
+  --border: #2a2a3e;
+  --border-active: #3a3a5e;
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --radius-lg: 16px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* === SCROLLBAR === */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-secondary); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+/* === LAYOUT === */
+.app-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  min-height: 100vh;
+}
+
+/* === SIDEBAR === */
+.sidebar {
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border);
+  padding: 24px 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-logo {
+  padding: 0 20px 24px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 16px;
+}
+
+.sidebar-logo h1 {
+  font-size: 18px;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--accent), var(--accent3));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.5px;
+}
+
+.sidebar-logo span {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: 'Space Mono', monospace;
+  display: block;
+  margin-top: 4px;
+}
+
+.nav-items { flex: 1; padding: 0 12px; }
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: var(--transition);
+  margin-bottom: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  position: relative;
+}
+
+.nav-item:hover { background: var(--bg-card); color: var(--text-primary); }
+
+.nav-item.active {
+  background: var(--accent-dim);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.nav-item.completed .nav-icon { background: var(--success); color: #fff; }
+.nav-item.locked { opacity: 0.4; pointer-events: none; }
+
+.nav-icon {
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  background: var(--bg-card);
+  flex-shrink: 0;
+}
+
+.nav-item.active .nav-icon { background: var(--accent); color: #fff; }
+
+.nav-badge {
+  margin-left: auto;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--bg-card);
+  color: var(--text-muted);
+  font-family: 'Space Mono', monospace;
+}
+
+.nav-item.completed .nav-badge { background: #22c55e20; color: var(--success); }
+
+/* === MAIN === */
+.main-content {
+  padding: 32px 40px;
+  max-width: 960px;
+  width: 100%;
+}
+
+/* === STEP HEADER === */
+.step-header {
+  margin-bottom: 32px;
+}
+
+.step-number {
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+}
+
+.step-title {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  margin-bottom: 8px;
+}
+
+.step-desc {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+/* === CARDS === */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 20px;
+  transition: var(--transition);
+}
+
+.card:hover { border-color: var(--border-active); }
+
+.card-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-title .icon { font-size: 16px; }
+
+/* === FORM ELEMENTS === */
+.form-group { margin-bottom: 18px; }
+
+.form-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.form-input, .form-textarea, .form-select {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  transition: var(--transition);
+  outline: none;
+}
+
+.form-input:focus, .form-textarea:focus, .form-select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+
+.form-textarea { resize: vertical; min-height: 100px; line-height: 1.6; }
+.form-select { cursor: pointer; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%238888a4' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 36px;
+}
+.form-select option { background: var(--bg-card); color: var(--text-primary); }
+
+.form-hint { font-size: 11px; color: var(--text-muted); margin-top: 6px; }
+.char-count { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--text-muted); text-align: right; margin-top: 4px; }
+
+/* === RADIO / CHECKBOX GROUP === */
+.option-group { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.option-btn {
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--bg-input);
+  color: var(--text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+  transition: var(--transition);
+  font-family: 'Outfit', sans-serif;
+}
+
+.option-btn:hover { border-color: var(--accent); color: var(--text-primary); }
+.option-btn.selected { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+
+/* === BUTTONS === */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: var(--radius-sm);
+  border: none;
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent), #cc2952);
+  color: #fff;
+  box-shadow: 0 4px 16px var(--accent-dim);
+}
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 24px var(--accent-dim); }
+.btn-primary:disabled { opacity: 0.5; pointer-events: none; }
+
+.btn-secondary {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+}
+.btn-secondary:hover { border-color: var(--accent); background: var(--bg-card-hover); }
+
+.btn-success { background: var(--success); color: #fff; }
+.btn-success:hover { background: #1ba04e; }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  padding: 8px 14px;
+}
+.btn-ghost:hover { color: var(--text-primary); background: var(--bg-card); }
+
+.btn-group { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+
+/* === SUGGESTION ITEMS === */
+.suggestion-list { display: flex; flex-direction: column; gap: 8px; }
+
+.suggestion-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.suggestion-item:hover { border-color: var(--accent); background: var(--bg-card); }
+.suggestion-item.selected { border-color: var(--accent); background: var(--accent-dim); }
+.suggestion-item .text { font-size: 14px; font-weight: 500; }
+.suggestion-item .sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+/* === IMAGE PREVIEW === */
+.image-preview-area {
+  background: var(--bg-input);
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  margin: 16px 0;
+}
+
+.image-preview-area img {
+  max-width: 100%;
+  max-height: 400px;
+  object-fit: contain;
+}
+
+.image-preview-area.has-image { border-style: solid; border-color: var(--border-active); }
+
+.safe-zone-overlay {
+  position: absolute;
+  border: 2px dashed var(--warning);
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+.safe-zone-label {
+  position: absolute;
+  top: -18px;
+  left: 0;
+  font-size: 10px;
+  color: var(--warning);
+  font-family: 'Space Mono', monospace;
+}
+
+/* === REFERENCE IMAGES BAR === */
+.ref-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-bottom: 16px;
+}
+
+.ref-bar-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.ref-thumb {
+  width: 40px; height: 40px;
+  border-radius: 6px;
+  object-fit: cover;
+  border: 2px solid var(--border);
+}
+
+.ref-thumb-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* === IMAGE SUB-STEP TABS === */
+.img-tabs { display: flex; gap: 4px; margin-bottom: 20px; }
+
+.img-tab {
+  padding: 10px 18px;
+  border-radius: 8px 8px 0 0;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  border-bottom: none;
+  background: var(--bg-input);
+  color: var(--text-secondary);
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.img-tab:hover { background: var(--bg-card); color: var(--text-primary); }
+.img-tab.active { background: var(--bg-card); color: var(--accent); border-color: var(--accent); }
+.img-tab.completed { color: var(--success); }
+.img-tab.locked { opacity: 0.4; pointer-events: none; }
+
+.img-tab-icon { font-size: 14px; }
+
+/* === TAG LIST === */
+.tag-list { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.tag .remove {
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 16px;
+  line-height: 1;
+}
+.tag .remove:hover { color: var(--error); }
+
+/* === LOADING === */
+.loading-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(10,10,15,0.85);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.loading-overlay.show { display: flex; }
+
+.spinner {
+  width: 48px; height: 48px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loading-text {
+  font-size: 14px;
+  color: var(--text-secondary);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse { 0%,100%{ opacity: 0.5; } 50%{ opacity: 1; } }
+
+/* === TOAST === */
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.toast {
+  padding: 14px 20px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: var(--shadow);
+  animation: slideIn 0.3s ease-out;
+  max-width: 360px;
+}
+
+.toast.success { background: #16a34a; color: #fff; }
+.toast.error { background: var(--error); color: #fff; }
+.toast.info { background: var(--accent2); color: #000; }
+
+@keyframes slideIn { from { transform: translateX(100px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+/* === STEP VISIBILITY === */
+.step-panel { display: none; }
+.step-panel.active { display: block; animation: fadeIn 0.4s ease-out; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+  .app-layout { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+  .main-content { padding: 20px 16px; }
+}
+
+/* === COPY BTN === */
+.copy-btn {
+  padding: 4px 10px;
+  font-size: 11px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: var(--bg-input);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: 'Space Mono', monospace;
+  transition: var(--transition);
+}
+.copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* === PROGRESS BAR (image step) === */
+.img-progress {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 20px;
+}
+.img-progress-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--border);
+  transition: var(--transition);
+}
+.img-progress-dot.done { background: var(--success); }
+.img-progress-dot.current { background: var(--accent); box-shadow: 0 0 8px var(--accent-dim); }
+.img-progress-line {
+  flex: 1; height: 2px;
+  background: var(--border);
+}
+.img-progress-line.done { background: var(--success); }
+</style>
+</head>
+<body>
+
+<div class="app-layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <h1>🎬 YT Kanal Kurucu</h1>
+      <span>AI Destekli • Gemini API</span>
+    </div>
+    <nav class="nav-items" id="navItems">
+      <div class="nav-item active" data-step="1"><div class="nav-icon">🔑</div>API Ayarları<span class="nav-badge">1/7</span></div>
+      <div class="nav-item locked" data-step="2"><div class="nav-icon">💡</div>Kanal Konsepti<span class="nav-badge">2/7</span></div>
+      <div class="nav-item locked" data-step="3"><div class="nav-icon">✏️</div>Ad & Kullanıcı Adı<span class="nav-badge">3/7</span></div>
+      <div class="nav-item locked" data-step="4"><div class="nav-icon">📝</div>Açıklama<span class="nav-badge">4/7</span></div>
+      <div class="nav-item locked" data-step="5"><div class="nav-icon">🏷️</div>Etiketler<span class="nav-badge">5/7</span></div>
+      <div class="nav-item locked" data-step="6"><div class="nav-icon">🎨</div>Görseller<span class="nav-badge">6/7</span></div>
+      <div class="nav-item locked" data-step="7"><div class="nav-icon">📋</div>Özet & Dışa Aktar<span class="nav-badge">7/7</span></div>
+    </nav>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main-content">
+
+    <!-- ============ STEP 1: API ============ -->
+    <section class="step-panel active" id="step1">
+      <div class="step-header">
+        <div class="step-number">Adım 01</div>
+        <h2 class="step-title">API Ayarları</h2>
+        <p class="step-desc">Gemini API anahtarını gir ve bağlantıyı test et. Anahtar tarayıcına kaydedilir.</p>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="icon">🔑</span> Gemini API Key</div>
+        <div class="form-group">
+          <label class="form-label">API Anahtarı</label>
+          <input type="password" class="form-input" id="apiKeyInput" placeholder="AI Studio'dan aldığın API key'i yapıştır...">
+          <p class="form-hint">Google AI Studio → <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--accent)">aistudio.google.com/apikey</a> adresinden alabilirsin.</p>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Model Seçimi</label>
+          <select class="form-select" id="modelSelect">
+            <option value="gemini-3.1-flash-image-preview">Nano Banana 2 (Hızlı, Önerilen)</option>
+            <option value="gemini-3-pro-image-preview">Nano Banana Pro (Yüksek Kalite)</option>
+            <option value="gemini-2.5-flash-image">Nano Banana (Eski, Ücretsiz Tier Var)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">CORS Proxy</label>
+          <input type="text" class="form-input" id="corsProxy" value="https://mycors.recepyeni.workers.dev">
+          <p class="form-hint">Gemini API browser'dan CORS engeli nedeniyle doğrudan çağrılamaz. Proxy URL'ini buraya gir.</p>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-secondary" onclick="testConnection()">🔌 Bağlantıyı Test Et</button>
+          <button class="btn btn-primary" onclick="saveApiSettings()">💾 Kaydet & Devam Et</button>
+        </div>
+        <div id="testResult" style="margin-top:14px;font-size:13px;"></div>
+      </div>
+    </section>
+
+    <!-- ============ STEP 2: KONSEPT ============ -->
+    <section class="step-panel" id="step2">
+      <div class="step-header">
+        <div class="step-number">Adım 02</div>
+        <h2 class="step-title">Kanal Konsepti</h2>
+        <p class="step-desc">Kanalın hakkında bilgi ver. AI, SEO'ya uygun niş analizi yapacak.</p>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="icon">💡</span> Kanalın Ne Hakkında?</div>
+        <div class="form-group">
+          <label class="form-label">Konu / Niş</label>
+          <textarea class="form-textarea" id="channelTopic" rows="3" placeholder="Örn: Çocuklar için sesli masallar ve uyku hikayeleri, AI illüstrasyonlu..."></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Hedef Kitle</label>
+          <div class="option-group" id="audienceGroup">
+            <button class="option-btn selected" data-val="ai">🤖 AI Seçsin</button>
+            <button class="option-btn" data-val="çocuklar">👶 Çocuklar</button>
+            <button class="option-btn" data-val="gençler">🧑 Gençler</button>
+            <button class="option-btn" data-val="yetişkinler">🧔 Yetişkinler</button>
+            <button class="option-btn" data-val="herkes">🌍 Herkes</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">İçerik Türü</label>
+          <div class="option-group" id="contentTypeGroup">
+            <button class="option-btn selected" data-val="ai">🤖 AI Seçsin</button>
+            <button class="option-btn" data-val="eğitim">📚 Eğitim</button>
+            <button class="option-btn" data-val="eğlence">🎮 Eğlence</button>
+            <button class="option-btn" data-val="müzik">🎵 Müzik</button>
+            <button class="option-btn" data-val="oyun">🕹️ Oyun</button>
+            <button class="option-btn" data-val="yaşam">🌿 Yaşam</button>
+            <button class="option-btn" data-val="teknoloji">💻 Teknoloji</button>
+            <button class="option-btn" data-val="yemek">🍳 Yemek</button>
+            <button class="option-btn" data-val="diğer">📦 Diğer</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Yayın Dili</label>
+          <select class="form-select" id="channelLang">
+            <option value="Türkçe">🇹🇷 Türkçe</option>
+            <option value="İngilizce">🇬🇧 İngilizce</option>
+            <option value="Almanca">🇩🇪 Almanca</option>
+            <option value="Arapça">🇸🇦 Arapça</option>
+          </select>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-ghost" onclick="goStep(1)">← Geri</button>
+          <button class="btn btn-primary" onclick="analyzeChannel()">🧠 AI Analiz Et & Devam</button>
+        </div>
+      </div>
+      <div class="card" id="analysisResult" style="display:none;">
+        <div class="card-title"><span class="icon">📊</span> AI Niş Analizi</div>
+        <div id="analysisContent" style="font-size:14px;line-height:1.7;white-space:pre-wrap;"></div>
+      </div>
+    </section>
+
+    <!-- ============ STEP 3: AD ============ -->
+    <section class="step-panel" id="step3">
+      <div class="step-header">
+        <div class="step-number">Adım 03</div>
+        <h2 class="step-title">Kanal Adı & Kullanıcı Adı</h2>
+        <p class="step-desc">AI, SEO uyumlu ve akılda kalıcı isim önerileri üretecek.</p>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="icon">✏️</span> Kanal Adı Önerileri</div>
+        <div class="suggestion-list" id="namesList"></div>
+        <div class="form-group" style="margin-top:16px;">
+          <label class="form-label">Seçilen / Özel Kanal Adı</label>
+          <input type="text" class="form-input" id="chosenName" placeholder="Bir öneri seç veya kendin yaz...">
+        </div>
+        <button class="btn btn-ghost" onclick="regenerateNames()">🔄 Yeniden Öner</button>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="icon">@</span> Kullanıcı Adı Önerileri</div>
+        <div class="suggestion-list" id="handlesList"></div>
+        <div class="form-group" style="margin-top:16px;">
+          <label class="form-label">Seçilen / Özel Kullanıcı Adı</label>
+          <input type="text" class="form-input" id="chosenHandle" placeholder="@...">
+        </div>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-ghost" onclick="goStep(2)">← Geri</button>
+        <button class="btn btn-primary" onclick="confirmNames()">✅ Onayla & Devam</button>
+      </div>
+    </section>
+
+    <!-- ============ STEP 4: AÇIKLAMA ============ -->
+    <section class="step-panel" id="step4">
+      <div class="step-header">
+        <div class="step-number">Adım 04</div>
+        <h2 class="step-title">Kanal Açıklaması</h2>
+        <p class="step-desc">SEO optimize, emoji destekli, E-E-A-T uyumlu kanal açıklaması.</p>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="icon">📝</span> Açıklama <button class="copy-btn" onclick="copyText('descriptionArea')">Kopyala</button></div>
+        <textarea class="form-textarea" id="descriptionArea" rows="12" placeholder="AI tarafından üretilecek..."></textarea>
+        <div class="char-count"><span id="descCharCount">0</span> / 5000</div>
+        <div class="btn-group">
+          <button class="btn btn-ghost" onclick="regenerateDescription()">🔄 Yeniden Üret</button>
+        </div>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-ghost" onclick="goStep(3)">← Geri</button>
+        <button class="btn btn-primary" onclick="confirmDescription()">✅ Onayla & Devam</button>
+      </div>
+    </section>
+
+    <!-- ============ STEP 5: ETİKETLER ============ -->
+    <section class="step-panel" id="step5">
+      <div class="step-header">
+        <div class="step-number">Adım 05</div>
+        <h2 class="step-title">Etiketler & Anahtar Kelimeler</h2>
+        <p class="step-desc">YouTube SEO için kanal etiketleri. Geniş + niş kombinasyon.</p>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="icon">🏷️</span> Kanal Etiketleri <button class="copy-btn" onclick="copyTags()">Tümünü Kopyala</button></div>
+        <div class="tag-list" id="tagList"></div>
+        <div class="form-group" style="margin-top:16px;">
+          <label class="form-label">Yeni Etiket Ekle</label>
+          <div style="display:flex;gap:8px;">
+            <input type="text" class="form-input" id="newTagInput" placeholder="Etiket yaz, Enter'a bas..." style="flex:1;" onkeydown="if(event.key==='Enter')addTag()">
+            <button class="btn btn-secondary" onclick="addTag()">+ Ekle</button>
+          </div>
+        </div>
+        <button class="btn btn-ghost" onclick="regenerateTags()">🔄 Daha Fazla Öner</button>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-ghost" onclick="goStep(4)">← Geri</button>
+        <button class="btn btn-primary" onclick="goStep(6)">🎨 Görsellere Geç</button>
+      </div>
+    </section>
+
+    <!-- ============ STEP 6: GÖRSELLER ============ -->
+    <section class="step-panel" id="step6">
+      <div class="step-header">
+        <div class="step-number">Adım 06</div>
+        <h2 class="step-title">Görseller</h2>
+        <p class="step-desc">AI ile kanal görselleri üret. Her görsel öncekiyle uyumlu olacak.</p>
+      </div>
+
+      <!-- Sub-tabs -->
+      <div class="img-tabs">
+        <div class="img-tab active" data-imgtab="banner" onclick="switchImgTab('banner')"><span class="img-tab-icon">🖼️</span> Banner</div>
+        <div class="img-tab locked" data-imgtab="profile" onclick="switchImgTab('profile')"><span class="img-tab-icon">👤</span> Profil</div>
+        <div class="img-tab locked" data-imgtab="watermark" onclick="switchImgTab('watermark')"><span class="img-tab-icon">💧</span> Filigran</div>
+        <div class="img-tab locked" data-imgtab="thumbnail" onclick="switchImgTab('thumbnail')"><span class="img-tab-icon">📸</span> Thumbnail</div>
+      </div>
+
+      <!-- Progress -->
+      <div class="img-progress">
+        <div class="img-progress-dot current" id="progDot0"></div>
+        <div class="img-progress-line" id="progLine0"></div>
+        <div class="img-progress-dot" id="progDot1"></div>
+        <div class="img-progress-line" id="progLine1"></div>
+        <div class="img-progress-dot" id="progDot2"></div>
+        <div class="img-progress-line" id="progLine2"></div>
+        <div class="img-progress-dot" id="progDot3"></div>
+      </div>
+
+      <!-- Banner Sub-Panel -->
+      <div class="img-sub-panel" id="imgPanel_banner">
+        <div class="card">
+          <div class="card-title"><span class="icon">🖼️</span> Banner (2560 × 1440)</div>
+          <div class="form-group">
+            <label class="form-label">Görsel Stili</label>
+            <div class="option-group" id="bannerStyleGroup">
+              <button class="option-btn selected" data-val="ai">🤖 AI Seçsin</button>
+              <button class="option-btn" data-val="minimalist">🔲 Minimalist</button>
+              <button class="option-btn" data-val="canlı">🌈 Canlı</button>
+              <button class="option-btn" data-val="profesyonel">💼 Profesyonel</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Prompt (Düzenleyebilirsin)</label>
+            <textarea class="form-textarea" id="bannerPrompt" rows="4"></textarea>
+          </div>
+          <button class="btn btn-primary" onclick="generateImage('banner')">🎨 Banner Üret</button>
+
+          <div class="image-preview-area" id="bannerPreview">
+            <span style="color:var(--text-muted);font-size:13px;">Henüz görsel yok. "Banner Üret" butonuna tıkla.</span>
+          </div>
+
+          <div class="btn-group" id="bannerActions" style="display:none;">
+            <button class="btn btn-secondary" onclick="generateImage('banner')">🔄 Yeniden Üret</button>
+            <button class="btn btn-secondary" onclick="downloadImage('banner')">⬇️ İndir (PNG)</button>
+            <button class="btn btn-success" onclick="approveImage('banner')">✅ Onayla & Sonraki</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Profile Sub-Panel -->
+      <div class="img-sub-panel" id="imgPanel_profile" style="display:none;">
+        <div class="ref-bar" id="profileRefBar">
+          <span class="ref-bar-label">📌 Referanslar:</span>
+          <div style="text-align:center;"><img class="ref-thumb" id="refThumb_banner_1" src="" alt=""><div class="ref-thumb-label">Banner</div></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><span class="icon">👤</span> Profil Resmi (800 × 800)</div>
+          <div class="form-group">
+            <label class="form-label">Görsel Stili</label>
+            <div class="option-group" id="profileStyleGroup">
+              <button class="option-btn selected" data-val="ai">🤖 AI Seçsin</button>
+              <button class="option-btn" data-val="logo">🔤 Logo</button>
+              <button class="option-btn" data-val="ikon">🎯 İkon</button>
+              <button class="option-btn" data-val="karakter">🧸 Karakter</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Prompt (Düzenleyebilirsin)</label>
+            <textarea class="form-textarea" id="profilePrompt" rows="4"></textarea>
+          </div>
+          <button class="btn btn-primary" onclick="generateImage('profile')">🎨 Profil Resmi Üret</button>
+          <div class="image-preview-area" id="profilePreview">
+            <span style="color:var(--text-muted);font-size:13px;">Banner onaylandıktan sonra burası aktif olur.</span>
+          </div>
+          <div class="btn-group" id="profileActions" style="display:none;">
+            <button class="btn btn-secondary" onclick="generateImage('profile')">🔄 Yeniden Üret</button>
+            <button class="btn btn-secondary" onclick="downloadImage('profile')">⬇️ İndir (PNG)</button>
+            <button class="btn btn-success" onclick="approveImage('profile')">✅ Onayla & Sonraki</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Watermark Sub-Panel -->
+      <div class="img-sub-panel" id="imgPanel_watermark" style="display:none;">
+        <div class="ref-bar">
+          <span class="ref-bar-label">📌 Referanslar:</span>
+          <div style="text-align:center;"><img class="ref-thumb" id="refThumb_banner_2" src="" alt=""><div class="ref-thumb-label">Banner</div></div>
+          <div style="text-align:center;"><img class="ref-thumb" id="refThumb_profile_2" src="" alt=""><div class="ref-thumb-label">Profil</div></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><span class="icon">💧</span> Video Filigranı (150 × 150)</div>
+          <div class="form-group">
+            <label class="form-label">Prompt (Düzenleyebilirsin)</label>
+            <textarea class="form-textarea" id="watermarkPrompt" rows="4"></textarea>
+          </div>
+          <button class="btn btn-primary" onclick="generateImage('watermark')">🎨 Filigran Üret</button>
+          <div class="image-preview-area" id="watermarkPreview">
+            <span style="color:var(--text-muted);font-size:13px;">Profil resmi onaylandıktan sonra burası aktif olur.</span>
+          </div>
+          <div class="btn-group" id="watermarkActions" style="display:none;">
+            <button class="btn btn-secondary" onclick="generateImage('watermark')">🔄 Yeniden Üret</button>
+            <button class="btn btn-secondary" onclick="downloadImage('watermark')">⬇️ İndir (PNG)</button>
+            <button class="btn btn-success" onclick="approveImage('watermark')">✅ Onayla & Sonraki</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Thumbnail Sub-Panel -->
+      <div class="img-sub-panel" id="imgPanel_thumbnail" style="display:none;">
+        <div class="ref-bar">
+          <span class="ref-bar-label">📌 Referanslar:</span>
+          <div style="text-align:center;"><img class="ref-thumb" id="refThumb_banner_3" src="" alt=""><div class="ref-thumb-label">Banner</div></div>
+          <div style="text-align:center;"><img class="ref-thumb" id="refThumb_profile_3" src="" alt=""><div class="ref-thumb-label">Profil</div></div>
+          <div style="text-align:center;"><img class="ref-thumb" id="refThumb_watermark_3" src="" alt=""><div class="ref-thumb-label">Filigran</div></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><span class="icon">📸</span> Örnek Thumbnail (1280 × 720)</div>
+          <div class="form-group">
+            <label class="form-label">Prompt (Düzenleyebilirsin)</label>
+            <textarea class="form-textarea" id="thumbnailPrompt" rows="4"></textarea>
+          </div>
+          <button class="btn btn-primary" onclick="generateImage('thumbnail')">🎨 Thumbnail Üret</button>
+          <div class="image-preview-area" id="thumbnailPreview">
+            <span style="color:var(--text-muted);font-size:13px;">Filigran onaylandıktan sonra burası aktif olur.</span>
+          </div>
+          <div class="btn-group" id="thumbnailActions" style="display:none;">
+            <button class="btn btn-secondary" onclick="generateImage('thumbnail')">🔄 Yeniden Üret</button>
+            <button class="btn btn-secondary" onclick="downloadImage('thumbnail')">⬇️ İndir (PNG)</button>
+            <button class="btn btn-success" onclick="approveImage('thumbnail')">✅ Onayla & Özete Geç</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="btn-group" style="margin-top:20px;">
+        <button class="btn btn-ghost" onclick="goStep(5)">← Geri</button>
+        <button class="btn btn-ghost" onclick="goStep(7)">Özete Atla →</button>
+      </div>
+    </section>
+
+    <!-- ============ STEP 7: ÖZET ============ -->
+    <section class="step-panel" id="step7">
+      <div class="step-header">
+        <div class="step-number">Adım 07</div>
+        <h2 class="step-title">Özet & Dışa Aktar</h2>
+        <p class="step-desc">Tüm bilgilerin özeti. Kopyala, indir veya YouTube Studio'ya git.</p>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="icon">📋</span> Kanal Bilgileri</div>
+        <div id="summaryContent" style="font-size:14px;line-height:1.8;"></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="icon">🖼️</span> Görseller</div>
+        <div id="summaryImages" style="display:flex;flex-wrap:wrap;gap:16px;"></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="icon">✅</span> Kontrol Listesi</div>
+        <div id="checklist" style="font-size:14px;line-height:2;"></div>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="downloadAllZip()">📦 Tümünü İndir (ZIP)</button>
+        <button class="btn btn-secondary" onclick="copyText('descriptionArea')">📝 Açıklamayı Kopyala</button>
+        <button class="btn btn-secondary" onclick="copyTags()">🏷️ Etiketleri Kopyala</button>
+        <a class="btn btn-secondary" href="https://studio.youtube.com" target="_blank" style="text-decoration:none;">🚀 YouTube Studio'ya Git</a>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- LOADING OVERLAY -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loadingText">AI çalışıyor...</div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+/* =====================================================
+   YOUTUBE KANAL KURUCU — AI Destekli
+   Gemini API + Nano Banana 2
+   ===================================================== */
+
+// === STATE ===
+const STATE = {
+  apiKey: localStorage.getItem('yt_gemini_key') || '',
+  model: localStorage.getItem('yt_gemini_model') || 'gemini-3.1-flash-image-preview',
+  corsProxy: localStorage.getItem('yt_cors_proxy') || 'https://mycors.recepyeni.workers.dev',
+  currentStep: 1,
+  channelTopic: '',
+  audience: 'ai',
+  contentType: 'ai',
+  language: 'Türkçe',
+  analysis: '',
+  channelName: '',
+  channelHandle: '',
+  description: '',
+  tags: [],
+  images: { banner: null, profile: null, watermark: null, thumbnail: null },
+  currentImgTab: 'banner',
+  imgApproved: { banner: false, profile: false, watermark: false, thumbnail: false }
+};
+
+// === INIT ===
+document.addEventListener('DOMContentLoaded', () => {
+  if (STATE.apiKey) document.getElementById('apiKeyInput').value = STATE.apiKey;
+  if (STATE.corsProxy) document.getElementById('corsProxy').value = STATE.corsProxy;
+  document.getElementById('modelSelect').value = STATE.model;
+
+  // Option group click handlers
+  document.querySelectorAll('.option-group').forEach(group => {
+    group.querySelectorAll('.option-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        group.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+      });
+    });
+  });
+
+  // Char counter
+  document.getElementById('descriptionArea').addEventListener('input', (e) => {
+    document.getElementById('descCharCount').textContent = e.target.value.length;
+  });
+});
+
+// === NAVIGATION ===
+function goStep(n) {
+  STATE.currentStep = n;
+  document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('step' + n).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(ni => {
+    ni.classList.remove('active');
+    const s = parseInt(ni.dataset.step);
+    if (s === n) ni.classList.add('active');
+    if (s <= n) ni.classList.remove('locked');
+  });
+  if (n === 7) buildSummary();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// === TOAST ===
+function toast(msg, type = 'info') {
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.textContent = msg;
+  document.getElementById('toastContainer').appendChild(t);
+  setTimeout(() => t.remove(), 4000);
+}
+
+// === LOADING ===
+function showLoading(text = 'AI çalışıyor...') {
+  document.getElementById('loadingText').textContent = text;
+  document.getElementById('loadingOverlay').classList.add('show');
+}
+function hideLoading() {
+  document.getElementById('loadingOverlay').classList.remove('show');
+}
+
+// === GEMINI API CALL ===
+async function callGemini(prompt, includeImages = false, refImages = []) {
+  const parts = [];
+
+  // Add reference images
+  for (const ref of refImages) {
+    if (ref) {
+      parts.push({ inlineData: { mimeType: 'image/png', data: ref } });
+    }
+  }
+
+  parts.push({ text: prompt });
+
+  const body = {
+    contents: [{ parts }],
+    generationConfig: includeImages ? {
+      responseModalities: ['TEXT', 'IMAGE'],
+    } : {}
+  };
+
+  // Determine correct API URL and call strategy
+  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${STATE.model}:generateContent?key=${STATE.apiKey}`;
+  const proxyUrl = STATE.corsProxy + '/' + apiUrl;
+
+  const resp = await fetch(proxyUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+
+  if (!resp.ok) {
+    const errData = await resp.json().catch(() => ({}));
+    throw new Error(errData?.error?.message || `API Hatası: ${resp.status}`);
+  }
+
+  return await resp.json();
+}
+
+function extractText(response) {
+  const parts = response?.candidates?.[0]?.content?.parts || [];
+  return parts.filter(p => p.text).map(p => p.text).join('\n');
+}
+
+function extractImage(response) {
+  const parts = response?.candidates?.[0]?.content?.parts || [];
+  const imgPart = parts.find(p => p.inlineData && p.inlineData.mimeType?.startsWith('image/'));
+  return imgPart ? imgPart.inlineData.data : null;
+}
+
+// === STEP 1: API SETTINGS ===
+async function testConnection() {
+  const key = document.getElementById('apiKeyInput').value.trim();
+  if (!key) { toast('API key boş!', 'error'); return; }
+  STATE.apiKey = key;
+  STATE.corsProxy = document.getElementById('corsProxy').value.trim();
+  STATE.model = document.getElementById('modelSelect').value;
+
+  const res = document.getElementById('testResult');
+  res.innerHTML = '<span style="color:var(--warning)">⏳ Test ediliyor...</span>';
+
+  try {
+    // Use text model for test (image model may fail for plain text)
+    const testModel = 'gemini-2.5-flash';
+    const testUrl = `https://generativelanguage.googleapis.com/v1beta/models/${testModel}:generateContent?key=${STATE.apiKey}`;
+    const proxyUrl = STATE.corsProxy + '/' + testUrl;
+    const resp = await fetch(proxyUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents: [{ parts: [{ text: 'Merhaba, sadece "OK" yaz.' }] }] })
+    });
+    if (resp.ok) {
+      res.innerHTML = '<span style="color:var(--success)">✅ Bağlantı başarılı!</span>';
+      toast('API bağlantısı çalışıyor!', 'success');
+    } else {
+      const err = await resp.json().catch(() => ({}));
+      res.innerHTML = `<span style="color:var(--error)">❌ Hata: ${err?.error?.message || resp.status}</span>`;
+    }
+  } catch (e) {
+    res.innerHTML = `<span style="color:var(--error)">❌ Bağlantı hatası: ${e.message}</span>`;
+  }
+}
+
+function saveApiSettings() {
+  STATE.apiKey = document.getElementById('apiKeyInput').value.trim();
+  STATE.model = document.getElementById('modelSelect').value;
+  STATE.corsProxy = document.getElementById('corsProxy').value.trim();
+  if (!STATE.apiKey) { toast('API key gir!', 'error'); return; }
+  localStorage.setItem('yt_gemini_key', STATE.apiKey);
+  localStorage.setItem('yt_gemini_model', STATE.model);
+  localStorage.setItem('yt_cors_proxy', STATE.corsProxy);
+  toast('Ayarlar kaydedildi!', 'success');
+  goStep(2);
+}
+
+// === STEP 2: CHANNEL ANALYSIS ===
+async function analyzeChannel() {
+  STATE.channelTopic = document.getElementById('channelTopic').value.trim();
+  if (!STATE.channelTopic) { toast('Kanalın konusunu yaz!', 'error'); return; }
+
+  STATE.audience = document.querySelector('#audienceGroup .option-btn.selected')?.dataset.val || 'ai';
+  STATE.contentType = document.querySelector('#contentTypeGroup .option-btn.selected')?.dataset.val || 'ai';
+  STATE.language = document.getElementById('channelLang').value;
+
+  showLoading('Niş analizi yapılıyor...');
+
+  const prompt = `Sen bir YouTube SEO uzmanısın. 2026 YouTube algoritmasına ve SEO standartlarına göre analiz yap.
+
+Kanal konusu: "${STATE.channelTopic}"
+Hedef kitle: ${STATE.audience === 'ai' ? 'Sen belirle' : STATE.audience}
+İçerik türü: ${STATE.contentType === 'ai' ? 'Sen belirle' : STATE.contentType}
+Dil: ${STATE.language}
+
+Şunları yap:
+1. Niş analizi (rekabet, potansiyel, fırsat)
+2. Önerilen hedef kitle detayı
+3. Önerilen içerik türü ve format
+4. SEO anahtar kelimeler (10 adet, Türkçe)
+5. Mikro-niş önerisi
+6. İlk 10 video fikri
+
+Türkçe yanıt ver. Kısa ve öz yaz.`;
+
+  try {
+    // Use text model for analysis
+    const textModel = 'gemini-2.5-flash';
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${textModel}:generateContent?key=${STATE.apiKey}`;
+    const proxyUrl = STATE.corsProxy + '/' + apiUrl;
+    const resp = await fetch(proxyUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }]
+      })
+    });
+    const data = await resp.json();
+    STATE.analysis = extractText(data);
+    document.getElementById('analysisContent').textContent = STATE.analysis;
+    document.getElementById('analysisResult').style.display = 'block';
+    hideLoading();
+    toast('Analiz tamamlandı!', 'success');
+
+    // Auto generate names
+    await generateNames();
+    goStep(3);
+  } catch (e) {
+    hideLoading();
+    toast('Hata: ' + e.message, 'error');
+  }
+}
+
+// === STEP 3: NAMES ===
+async function generateNames() {
+  showLoading('İsim önerileri üretiliyor...');
+
+  const prompt = `Sen YouTube kanal ismi uzmanısın. 2026 YouTube SEO standartlarına göre isimler öner.
+
+Kanal konusu: "${STATE.channelTopic}"
+Dil: ${STATE.language}
+
+5 adet kanal adı öner. Her biri:
+- Akılda kalıcı
+- SEO uyumlu (anahtar kelime içeren)
+- Marka olabilecek
+- Kısa (max 40 karakter)
+
+5 adet @kullaniciadi öner. Her biri:
+- Küçük harf, boşluksuz
+- Kolay yazılır
+- Kanal adıyla uyumlu
+
+Yanıtı şu JSON formatında ver (başka bir şey yazma):
+{"names":[{"name":"İsim","reason":"Neden iyi"}],"handles":[{"handle":"@handle","reason":"Neden iyi"}]}`;
+
+  try {
+    const textModel = 'gemini-2.5-flash';
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${textModel}:generateContent?key=${STATE.apiKey}`;
+    const proxyUrl = STATE.corsProxy + '/' + apiUrl;
+    const resp = await fetch(proxyUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { responseMimeType: 'application/json' }
+      })
+    });
+    const data = await resp.json();
+    let text = extractText(data);
+    // Clean potential markdown code blocks
+    text = text.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+    const parsed = JSON.parse(text);
+
+    renderNames(parsed.names || [], parsed.handles || []);
+    hideLoading();
+  } catch (e) {
+    hideLoading();
+    toast('İsim üretme hatası: ' + e.message, 'error');
+  }
+}
+
+function renderNames(names, handles) {
+  const nl = document.getElementById('namesList');
+  nl.innerHTML = '';
+  names.forEach(n => {
+    const div = document.createElement('div');
+    div.className = 'suggestion-item';
+    div.innerHTML = `<div><div class="text">${n.name}</div><div class="sub">${n.reason}</div></div><button class="btn btn-ghost" style="font-size:12px;" onclick="selectName(this,'${n.name.replace(/'/g,"\\'")}')">Seç</button>`;
+    nl.appendChild(div);
+  });
+
+  const hl = document.getElementById('handlesList');
+  hl.innerHTML = '';
+  handles.forEach(h => {
+    const div = document.createElement('div');
+    div.className = 'suggestion-item';
+    div.innerHTML = `<div><div class="text">${h.handle}</div><div class="sub">${h.reason}</div></div><button class="btn btn-ghost" style="font-size:12px;" onclick="selectHandle(this,'${h.handle.replace(/'/g,"\\'")}')">Seç</button>`;
+    hl.appendChild(div);
+  });
+}
+
+function selectName(btn, name) {
+  document.querySelectorAll('#namesList .suggestion-item').forEach(i => i.classList.remove('selected'));
+  btn.closest('.suggestion-item').classList.add('selected');
+  document.getElementById('chosenName').value = name;
+}
+
+function selectHandle(btn, handle) {
+  document.querySelectorAll('#handlesList .suggestion-item').forEach(i => i.classList.remove('selected'));
+  btn.closest('.suggestion-item').classList.add('selected');
+  document.getElementById('chosenHandle').value = handle;
+}
+
+async function regenerateNames() { await generateNames(); }
+
+async function confirmNames() {
+  STATE.channelName = document.getElementById('chosenName').value.trim();
+  STATE.channelHandle = document.getElementById('chosenHandle').value.trim();
+  if (!STATE.channelName) { toast('Bir kanal adı seç veya yaz!', 'error'); return; }
+  if (!STATE.channelHandle) { toast('Bir kullanıcı adı seç veya yaz!', 'error'); return; }
+
+  // Generate description
+  await generateDescription();
+  goStep(4);
+}
+
+// === STEP 4: DESCRIPTION ===
+async function generateDescription() {
+  showLoading('Açıklama üretiliyor...');
+
+  const prompt = `Sen YouTube kanal açıklaması yazarısın. 2026 SEO standartlarına göre yaz.
+
+Kanal adı: "${STATE.channelName}"
+Kullanıcı adı: ${STATE.channelHandle}
+Konu: "${STATE.channelTopic}"
+Dil: ${STATE.language}
+
+YouTube kanal açıklaması yaz:
+- İlk 2 satır: Hook + birincil anahtar kelime (YouTube "Daha fazla göster" öncesi görünen kısım)
+- Emoji kullan (ama abartma)
+- İçerik listesi (bullet points)
+- CTA (abone ol, bildirim aç)
+- İletişim bilgisi alanı
+- Hashtag'ler (5-8 adet)
+- Max 5000 karakter
+- E-E-A-T sinyalleri ekle (uzmanlık, güvenilirlik)
+
+Sadece açıklama metnini yaz, başka bir şey yazma.`;
+
+  try {
+    const textModel = 'gemini-2.5-flash';
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${textModel}:generateContent?key=${STATE.apiKey}`;
+    const proxyUrl = STATE.corsProxy + '/' + apiUrl;
+    const resp = await fetch(proxyUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+    });
+    const data = await resp.json();
+    STATE.description = extractText(data);
+    document.getElementById('descriptionArea').value = STATE.description;
+    document.getElementById('descCharCount').textContent = STATE.description.length;
+    hideLoading();
+
+    // Auto generate tags
+    await generateTags();
+  } catch (e) {
+    hideLoading();
+    toast('Açıklama hatası: ' + e.message, 'error');
+  }
+}
+
+async function regenerateDescription() { await generateDescription(); }
+
+function confirmDescription() {
+  STATE.description = document.getElementById('descriptionArea').value;
+  goStep(5);
+}
+
+// === STEP 5: TAGS ===
+async function generateTags() {
+  const prompt = `YouTube kanal etiketleri üret.
+Kanal: "${STATE.channelName}" — "${STATE.channelTopic}"
+Dil: ${STATE.language}
+
+20 adet etiket üret. Geniş + niş karışımı. SEO uyumlu.
+Sadece JSON dizisi döndür, başka bir şey yazma: ["etiket1","etiket2",...]`;
+
+  try {
+    const textModel = 'gemini-2.5-flash';
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${textModel}:generateContent?key=${STATE.apiKey}`;
+    const proxyUrl = STATE.corsProxy + '/' + apiUrl;
+    const resp = await fetch(proxyUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { responseMimeType: 'application/json' }
+      })
+    });
+    const data = await resp.json();
+    let text = extractText(data);
+    text = text.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+    STATE.tags = JSON.parse(text);
+    renderTags();
+  } catch (e) {
+    console.error('Tag hatası:', e);
+  }
+}
+
+function renderTags() {
+  const tl = document.getElementById('tagList');
+  tl.innerHTML = '';
+  STATE.tags.forEach((tag, i) => {
+    const span = document.createElement('span');
+    span.className = 'tag';
+    span.innerHTML = `${tag}<span class="remove" onclick="removeTag(${i})">×</span>`;
+    tl.appendChild(span);
+  });
+}
+
+function removeTag(i) { STATE.tags.splice(i, 1); renderTags(); }
+
+function addTag() {
+  const input = document.getElementById('newTagInput');
+  const val = input.value.trim();
+  if (val) { STATE.tags.push(val); renderTags(); input.value = ''; }
+}
+
+async function regenerateTags() { await generateTags(); renderTags(); toast('Etiketler yenilendi!', 'success'); }
+
+function copyTags() {
+  navigator.clipboard.writeText(STATE.tags.join(', '));
+  toast('Etiketler kopyalandı!', 'success');
+}
+
+// === STEP 6: IMAGES ===
+const IMG_CONFIG = {
+  banner:    { w: 2560, h: 1440, aspect: '16:9', refs: [] },
+  profile:   { w: 800,  h: 800,  aspect: '1:1',  refs: ['banner'] },
+  watermark: { w: 150,  h: 150,  aspect: '1:1',  refs: ['banner', 'profile'] },
+  thumbnail: { w: 1280, h: 720,  aspect: '16:9', refs: ['banner', 'profile', 'watermark'] }
+};
+
+const IMG_ORDER = ['banner', 'profile', 'watermark', 'thumbnail'];
+
+function switchImgTab(tab) {
+  if (tab !== 'banner' && !STATE.imgApproved[IMG_ORDER[IMG_ORDER.indexOf(tab) - 1]]) {
+    toast('Önce önceki görseli onayla!', 'error');
+    return;
+  }
+  STATE.currentImgTab = tab;
+  document.querySelectorAll('.img-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector(`.img-tab[data-imgtab="${tab}"]`).classList.add('active');
+  document.querySelectorAll('.img-sub-panel').forEach(p => p.style.display = 'none');
+  document.getElementById('imgPanel_' + tab).style.display = 'block';
+  generatePromptForImage(tab);
+}
+
+function generatePromptForImage(type) {
+  const style = document.querySelector(`#${type}StyleGroup .option-btn.selected`)?.dataset.val || 'ai';
+  const styleText = style === 'ai' ? 'konuya en uygun stili sen seç' : `${style} tarzda`;
+  const name = STATE.channelName || STATE.channelTopic;
+
+  const prompts = {
+    banner: `YouTube kanal banner görseli oluştur. 16:9 en-boy oranı.
+Kanal adı: "${name}"
+Konu: "${STATE.channelTopic}"
+Stil: ${styleText}
+Önemli: Banner'ın ortasında kanal adını büyük ve okunabilir şekilde yaz. Safe zone (1235x338 piksel ortada) içindeki alan önemli, ana mesaj ve logo orada olsun. Profesyonel, dikkat çekici, YouTube'a uygun. Arka plan zengin ama kanal adı ön planda olsun.`,
+
+    profile: `Bu referans banner görseline uyumlu bir YouTube profil resmi oluştur. Aynı renk paleti, stil ve tema ile.
+Kanal adı: "${name}"
+Konu: "${STATE.channelTopic}"
+Stil: ${styleText}
+1:1 kare format. Dairesel kırpılmaya uygun olsun (önemli detaylar kenarlarda değil ortada). Basit, tanınabilir, küçük boyutta bile anlaşılır bir ikon/logo olsun.`,
+
+    watermark: `Bu referans banner ve profil resmine uyumlu bir YouTube video filigranı oluştur. Aynı renk paleti ve stil.
+Kanal adı: "${name}"
+1:1 kare format, 150x150 piksel hedef. Şeffaf/beyaz arka plan, basit ve tanınır, minimal detay. Küçük boyutta bile net görünsün. Abone ol butonu gibi davranacak.`,
+
+    thumbnail: `Bu referans kanal görsellerine uyumlu bir YouTube video thumbnail'i oluştur.
+Kanal adı: "${name}"
+Konu: "${STATE.channelTopic}"
+16:9 format. İlk video için örnek thumbnail. Dikkat çekici, yüksek kontrast, büyük ve okunabilir metin overlay. Tıklama oranını artıracak tasarım. 2026 YouTube trendlerine uygun.`
+  };
+
+  document.getElementById(type + 'Prompt').value = prompts[type] || '';
+}
+
+async function generateImage(type) {
+  const prompt = document.getElementById(type + 'Prompt').value.trim();
+  if (!prompt) { toast('Prompt boş!', 'error'); return; }
+
+  const config = IMG_CONFIG[type];
+  const refImages = [];
+
+  // Collect reference images
+  for (const refType of config.refs) {
+    if (STATE.images[refType]) {
+      // Compress reference to avoid 20MB limit
+      const compressed = await compressBase64(STATE.images[refType], 800);
+      refImages.push(compressed);
+    }
+  }
+
+  showLoading(`${type} görseli üretiliyor...`);
+
+  try {
+    const resp = await callGemini(prompt, true, refImages);
+    const imgData = extractImage(resp);
+    if (imgData) {
+      STATE.images[type] = imgData;
+      showImagePreview(type, imgData);
+      document.getElementById(type + 'Actions').style.display = 'flex';
+      toast(`${type} görseli üretildi!`, 'success');
+    } else {
+      const textResp = extractText(resp);
+      toast('Görsel üretilemedi. AI yanıtı: ' + (textResp || 'Boş yanıt').substring(0, 200), 'error');
+    }
+  } catch (e) {
+    toast('Hata: ' + e.message, 'error');
+  }
+  hideLoading();
+}
+
+function showImagePreview(type, base64Data) {
+  const preview = document.getElementById(type + 'Preview');
+  preview.innerHTML = `<img src="data:image/png;base64,${base64Data}" alt="${type}">`;
+  preview.classList.add('has-image');
+}
+
+function approveImage(type) {
+  STATE.imgApproved[type] = true;
+  toast(`${type} onaylandı!`, 'success');
+
+  // Update progress dots
+  const idx = IMG_ORDER.indexOf(type);
+  document.getElementById('progDot' + idx).classList.add('done');
+  document.getElementById('progDot' + idx).classList.remove('current');
+  if (idx < 3) {
+    document.getElementById('progLine' + idx).classList.add('done');
+    document.getElementById('progDot' + (idx + 1)).classList.add('current');
+  }
+
+  // Update tabs
+  document.querySelector(`.img-tab[data-imgtab="${type}"]`).classList.add('completed');
+
+  // Unlock & switch to next
+  const nextIdx = idx + 1;
+  if (nextIdx < IMG_ORDER.length) {
+    const nextType = IMG_ORDER[nextIdx];
+    document.querySelector(`.img-tab[data-imgtab="${nextType}"]`).classList.remove('locked');
+
+    // Set reference thumbnails
+    updateRefThumbs(nextType);
+
+    switchImgTab(nextType);
+  } else {
+    // All done
+    toast('Tüm görseller tamamlandı!', 'success');
+    goStep(7);
+  }
+}
+
+function updateRefThumbs(type) {
+  const config = IMG_CONFIG[type];
+  config.refs.forEach(refType => {
+    const thumbEls = document.querySelectorAll(`[id^="refThumb_${refType}"]`);
+    thumbEls.forEach(el => {
+      if (STATE.images[refType]) {
+        el.src = `data:image/png;base64,${STATE.images[refType]}`;
+      }
+    });
+  });
+}
+
+async function compressBase64(base64Data, maxDim) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      let w = img.width, h = img.height;
+      if (w > maxDim || h > maxDim) {
+        const ratio = Math.min(maxDim / w, maxDim / h);
+        w = Math.round(w * ratio);
+        h = Math.round(h * ratio);
+      }
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      const compressed = canvas.toDataURL('image/jpeg', 0.7).split(',')[1];
+      resolve(compressed);
+    };
+    img.src = 'data:image/png;base64,' + base64Data;
+  });
+}
+
+async function downloadImage(type) {
+  const base64Data = STATE.images[type];
+  if (!base64Data) { toast('İndirilecek görsel yok!', 'error'); return; }
+
+  const config = IMG_CONFIG[type];
+
+  // Resize to exact dimensions using Canvas
+  const resized = await resizeImage(base64Data, config.w, config.h);
+
+  const link = document.createElement('a');
+  link.href = resized;
+  link.download = `${STATE.channelName || 'kanal'}_${type}_${config.w}x${config.h}.png`;
+  link.click();
+  toast(`${type} indirildi! (${config.w}×${config.h})`, 'success');
+}
+
+function resizeImage(base64Data, targetW, targetH) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = targetW;
+      canvas.height = targetH;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, targetW, targetH);
+      resolve(canvas.toDataURL('image/png'));
+    };
+    img.src = 'data:image/png;base64,' + base64Data;
+  });
+}
+
+// === STEP 7: SUMMARY ===
+function buildSummary() {
+  // Content
+  const sc = document.getElementById('summaryContent');
+  sc.innerHTML = `
+    <p><strong>Kanal Adı:</strong> ${STATE.channelName || '—'}</p>
+    <p><strong>Kullanıcı Adı:</strong> ${STATE.channelHandle || '—'}</p>
+    <p><strong>Konu:</strong> ${STATE.channelTopic || '—'}</p>
+    <p><strong>Dil:</strong> ${STATE.language}</p>
+    <p style="margin-top:12px;"><strong>Açıklama:</strong></p>
+    <div style="background:var(--bg-input);padding:12px;border-radius:8px;font-size:13px;white-space:pre-wrap;margin-top:6px;max-height:200px;overflow-y:auto;">${STATE.description || '—'}</div>
+    <p style="margin-top:12px;"><strong>Etiketler:</strong> ${STATE.tags.join(', ') || '—'}</p>
+  `;
+
+  // Images
+  const si = document.getElementById('summaryImages');
+  si.innerHTML = '';
+  for (const type of IMG_ORDER) {
+    const cfg = IMG_CONFIG[type];
+    const div = document.createElement('div');
+    div.style.cssText = 'text-align:center;';
+    if (STATE.images[type]) {
+      div.innerHTML = `<img src="data:image/png;base64,${STATE.images[type]}" style="max-width:180px;max-height:120px;border-radius:8px;border:1px solid var(--border);" alt="${type}"><br><span style="font-size:11px;color:var(--text-muted);">${type} (${cfg.w}×${cfg.h})</span>`;
+    } else {
+      div.innerHTML = `<div style="width:120px;height:80px;background:var(--bg-input);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:11px;">Yok</div><span style="font-size:11px;color:var(--text-muted);">${type}</span>`;
+    }
+    si.appendChild(div);
+  }
+
+  // Checklist
+  const cl = document.getElementById('checklist');
+  const checks = [
+    { label: 'Banner yüklendi', done: !!STATE.images.banner },
+    { label: 'Profil resmi yüklendi', done: !!STATE.images.profile },
+    { label: 'Filigran yüklendi', done: !!STATE.images.watermark },
+    { label: 'Thumbnail hazır', done: !!STATE.images.thumbnail },
+    { label: 'Açıklama yazıldı', done: !!STATE.description },
+    { label: 'Etiketler eklendi', done: STATE.tags.length > 0 },
+    { label: 'Kanal adı belirlendi', done: !!STATE.channelName },
+  ];
+  cl.innerHTML = checks.map(c => `<div>${c.done ? '✅' : '⬜'} ${c.label}</div>`).join('');
+}
+
+async function downloadAllZip() {
+  showLoading('ZIP hazırlanıyor...');
+  const zip = new JSZip();
+
+  // Add images
+  for (const type of IMG_ORDER) {
+    if (STATE.images[type]) {
+      const cfg = IMG_CONFIG[type];
+      const resizedDataUrl = await resizeImage(STATE.images[type], cfg.w, cfg.h);
+      const base64 = resizedDataUrl.split(',')[1];
+      zip.file(`${type}_${cfg.w}x${cfg.h}.png`, base64, { base64: true });
+    }
+  }
+
+  // Add description
+  if (STATE.description) {
+    zip.file('kanal_aciklama.txt', STATE.description);
+  }
+
+  // Add tags
+  if (STATE.tags.length) {
+    zip.file('etiketler.txt', STATE.tags.join(', '));
+  }
+
+  // Add info
+  const info = `Kanal Adı: ${STATE.channelName}\nKullanıcı Adı: ${STATE.channelHandle}\nKonu: ${STATE.channelTopic}\nDil: ${STATE.language}`;
+  zip.file('kanal_bilgileri.txt', info);
+
+  const blob = await zip.generateAsync({ type: 'blob' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `${STATE.channelName || 'kanal'}_kurulum.zip`;
+  link.click();
+  hideLoading();
+  toast('ZIP indirildi!', 'success');
+}
+
+// === UTILITIES ===
+function copyText(id) {
+  const el = document.getElementById(id);
+  const text = el.value || el.textContent;
+  navigator.clipboard.writeText(text);
+  toast('Kopyalandı!', 'success');
+}
+</script>
+</body>
+</html>
