@@ -3,749 +3,1417 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>İleri Yaşam Desteği Quiz</title>
+<title>İleri Yaşam Desteği — Öğren & Quiz</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
---bg:#0c0f1a;--bg2:#141829;--bg3:#1a1f36;--bg4:#232845;
---text:#e4e7f1;--text2:#9ca3c4;--text3:#6b73a0;
---primary:#4f8ef7;--primary2:#3a6fd8;--primary-glow:rgba(79,142,247,0.15);
---green:#22c55e;--green-bg:rgba(34,197,94,0.12);
---red:#ef4444;--red-bg:rgba(239,68,68,0.12);
---orange:#f59e0b;--orange-bg:rgba(245,158,11,0.12);
---purple:#a855f7;--purple-bg:rgba(168,85,247,0.12);
---radius:12px;--radius-sm:8px;--radius-lg:16px;
---shadow:0 4px 24px rgba(0,0,0,0.3);
---transition:0.25s cubic-bezier(0.4,0,0.2,1);
+:root {
+  --bg-deepest: #0a0e1a;
+  --bg-deep: #0f1424;
+  --bg-card: #161c30;
+  --bg-card-hover: #1c2440;
+  --bg-surface: #1e2642;
+  --border: #2a3454;
+  --border-light: #354060;
+  --text-primary: #e8ecf4;
+  --text-secondary: #8b95b0;
+  --text-muted: #5a6580;
+  --accent: #00d4aa;
+  --accent-dim: rgba(0,212,170,0.15);
+  --accent-glow: rgba(0,212,170,0.3);
+  --red: #ff4d6a;
+  --red-dim: rgba(255,77,106,0.15);
+  --yellow: #ffb84d;
+  --yellow-dim: rgba(255,184,77,0.15);
+  --green: #00d4aa;
+  --green-dim: rgba(0,212,170,0.15);
+  --blue: #4d9fff;
+  --blue-dim: rgba(77,159,255,0.15);
+  --purple: #a37eff;
+  --purple-dim: rgba(163,126,255,0.15);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --radius-lg: 16px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.3);
+  --shadow-lg: 0 8px 48px rgba(0,0,0,0.4);
+  --font: 'Outfit', sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+  --transition: 0.25s cubic-bezier(0.4,0,0.2,1);
 }
-html{scroll-behavior:smooth}
-body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;overflow-x:hidden}
-.mono{font-family:'JetBrains Mono',monospace}
 
-/* SCROLLBAR */
-::-webkit-scrollbar{width:6px}
-::-webkit-scrollbar-track{background:var(--bg2)}
-::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px}
+* { margin:0; padding:0; box-sizing:border-box; }
 
-/* HEADER */
-.header{background:var(--bg2);border-bottom:1px solid var(--bg3);padding:16px 20px;position:sticky;top:0;z-index:100;backdrop-filter:blur(12px)}
-.header-inner{max-width:900px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
-.header-title{display:flex;align-items:center;gap:10px;cursor:pointer}
-.header-title h1{font-size:1.15rem;font-weight:700;background:linear-gradient(135deg,var(--primary),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;white-space:nowrap}
-.header-icon{font-size:1.4rem}
-.header-stats{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
-.stat-chip{display:flex;align-items:center;gap:5px;font-size:0.8rem;color:var(--text2);background:var(--bg3);padding:5px 10px;border-radius:20px}
-.stat-chip .val{color:var(--text);font-weight:600}
-.pdf-btn{display:flex;align-items:center;gap:6px;background:var(--primary);color:#fff;border:none;padding:7px 14px;border-radius:20px;font-size:0.78rem;font-weight:600;cursor:pointer;font-family:inherit;transition:var(--transition);text-decoration:none}
-.pdf-btn:hover{background:var(--primary2);transform:translateY(-1px)}
+html { scroll-behavior: smooth; }
 
-/* PROGRESS BAR */
-.progress-bar-wrap{max-width:900px;margin:0 auto;padding:12px 20px 0}
-.progress-bar-outer{background:var(--bg3);border-radius:10px;height:8px;overflow:hidden}
-.progress-bar-inner{height:100%;background:linear-gradient(90deg,var(--primary),var(--green));border-radius:10px;transition:width 0.5s ease}
-.progress-label{font-size:0.75rem;color:var(--text3);margin-top:4px;text-align:right}
+body {
+  font-family: var(--font);
+  background: var(--bg-deepest);
+  color: var(--text-primary);
+  min-height: 100vh;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
 
-/* CONTAINER */
-.container{max-width:900px;margin:0 auto;padding:20px}
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background:
+    radial-gradient(ellipse 80% 50% at 20% 0%, rgba(0,212,170,0.06) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 100%, rgba(77,159,255,0.04) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
 
-/* STATS BAR */
-.stats-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:24px}
-.stats-card{background:var(--bg2);border:1px solid var(--bg3);border-radius:var(--radius);padding:14px;text-align:center}
-.stats-card .label{font-size:0.72rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px}
-.stats-card .value{font-size:1.4rem;font-weight:700}
-.stats-card .value.green{color:var(--green)}
-.stats-card .value.orange{color:var(--orange)}
-.stats-card .value.purple{color:var(--purple)}
-.stats-card .value.primary{color:var(--primary)}
+/* ===== HEADER ===== */
+.app-header {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(10,14,26,0.85);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+}
+.header-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+  gap: 16px;
+}
+.header-brand {
+  display: flex; align-items: center; gap: 12px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.header-brand .logo {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, var(--accent), var(--blue));
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--bg-deepest);
+  flex-shrink: 0;
+}
+.header-brand h1 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+.header-brand h1 span {
+  color: var(--accent);
+}
 
-/* CHAPTER CARDS */
-.chapters-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
-.chapter-card{background:var(--bg2);border:1px solid var(--bg3);border-radius:var(--radius-lg);padding:20px;cursor:pointer;transition:var(--transition);position:relative;overflow:hidden}
-.chapter-card:hover{border-color:var(--primary);transform:translateY(-3px);box-shadow:0 8px 32px rgba(79,142,247,0.1)}
-.chapter-card .ch-num{font-size:0.7rem;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
-.chapter-card .ch-title{font-size:1rem;font-weight:600;margin-bottom:10px;line-height:1.3}
-.chapter-card .ch-meta{display:flex;align-items:center;gap:12px;font-size:0.78rem;color:var(--text2)}
-.chapter-card .ch-badge{position:absolute;top:14px;right:14px;font-size:1.3rem}
-.chapter-card .ch-bar{margin-top:12px;background:var(--bg4);border-radius:6px;height:5px;overflow:hidden}
-.chapter-card .ch-bar-fill{height:100%;border-radius:6px;transition:width 0.4s ease}
-.ch-bar-fill.green{background:var(--green)}
-.ch-bar-fill.orange{background:var(--orange)}
-.ch-bar-fill.red{background:var(--red)}
-.ch-bar-fill.none{background:var(--bg4)}
-.chapter-card .ch-score{font-size:0.75rem;color:var(--text3);margin-top:6px}
+.header-stats {
+  display: flex; align-items: center; gap: 16px;
+  flex-shrink: 0;
+}
+.stat-pill {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+.stat-pill .val { color: var(--accent); font-family: var(--mono); font-weight: 600; }
 
-/* QUIZ SCREEN */
-.quiz-screen{display:none}
-.quiz-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:10px;flex-wrap:wrap}
-.quiz-back{background:var(--bg3);border:none;color:var(--text2);padding:8px 14px;border-radius:var(--radius-sm);cursor:pointer;font-family:inherit;font-size:0.85rem;transition:var(--transition);display:flex;align-items:center;gap:6px}
-.quiz-back:hover{background:var(--bg4);color:var(--text)}
-.quiz-title{font-size:1.1rem;font-weight:600;flex:1;text-align:center}
-.quiz-counter{font-size:0.85rem;color:var(--text2)}
-.quiz-progress{background:var(--bg3);border-radius:8px;height:6px;margin-bottom:24px;overflow:hidden}
-.quiz-progress-fill{height:100%;background:linear-gradient(90deg,var(--primary),var(--purple));border-radius:8px;transition:width 0.4s ease}
+.header-actions {
+  display: flex; gap: 8px; flex-shrink: 0;
+}
+.btn-pdf {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 16px;
+  background: var(--blue-dim);
+  border: 1px solid rgba(77,159,255,0.3);
+  border-radius: 8px;
+  color: var(--blue);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font);
+  cursor: pointer;
+  text-decoration: none;
+  transition: var(--transition);
+  white-space: nowrap;
+}
+.btn-pdf:hover { background: rgba(77,159,255,0.25); }
 
-/* QUESTION */
-.question-card{background:var(--bg2);border:1px solid var(--bg3);border-radius:var(--radius-lg);padding:24px;margin-bottom:16px;animation:fadeIn 0.3s ease}
-@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-.q-type-badge{display:inline-block;font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;padding:3px 10px;border-radius:12px;margin-bottom:12px}
-.q-type-badge.multiple{background:var(--primary-glow);color:var(--primary)}
-.q-type-badge.truefalse{background:var(--purple-bg);color:var(--purple)}
-.q-type-badge.fillblank{background:var(--orange-bg);color:var(--orange)}
-.q-type-badge.matching{background:var(--green-bg);color:var(--green)}
-.q-text{font-size:1.05rem;font-weight:500;line-height:1.5;margin-bottom:18px}
+.btn-reset {
+  padding: 8px 12px;
+  background: var(--red-dim);
+  border: 1px solid rgba(255,77,106,0.3);
+  border-radius: 8px;
+  color: var(--red);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font);
+  cursor: pointer;
+  transition: var(--transition);
+}
+.btn-reset:hover { background: rgba(255,77,106,0.25); }
 
-/* OPTIONS */
-.options-list{display:flex;flex-direction:column;gap:10px}
-.option-btn{background:var(--bg3);border:2px solid transparent;border-radius:var(--radius);padding:14px 16px;cursor:pointer;font-family:inherit;font-size:0.92rem;color:var(--text);text-align:left;transition:var(--transition);display:flex;align-items:center;gap:10px}
-.option-btn:hover:not(.disabled){border-color:var(--primary);background:var(--primary-glow)}
-.option-btn.selected{border-color:var(--primary);background:var(--primary-glow)}
-.option-btn.correct{border-color:var(--green)!important;background:var(--green-bg)!important;color:var(--green)}
-.option-btn.wrong{border-color:var(--red)!important;background:var(--red-bg)!important;color:var(--red)}
-.option-btn.disabled{pointer-events:none;opacity:0.7}
-.option-btn .opt-letter{width:28px;height:28px;border-radius:50%;background:var(--bg4);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.8rem;flex-shrink:0}
-.option-btn.correct .opt-letter{background:var(--green);color:#fff}
-.option-btn.wrong .opt-letter{background:var(--red);color:#fff}
+/* ===== MAIN CONTAINER ===== */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 24px 80px;
+  position: relative;
+  z-index: 1;
+}
 
-/* TRUE/FALSE */
-.tf-options{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.tf-btn{background:var(--bg3);border:2px solid transparent;border-radius:var(--radius);padding:16px;cursor:pointer;font-family:inherit;font-size:1rem;font-weight:600;color:var(--text);text-align:center;transition:var(--transition)}
-.tf-btn:hover:not(.disabled){border-color:var(--primary)}
-.tf-btn.selected{border-color:var(--primary);background:var(--primary-glow)}
-.tf-btn.correct{border-color:var(--green)!important;background:var(--green-bg)!important;color:var(--green)}
-.tf-btn.wrong{border-color:var(--red)!important;background:var(--red-bg)!important;color:var(--red)}
-.tf-btn.disabled{pointer-events:none;opacity:0.7}
+/* ===== PROGRESS OVERVIEW ===== */
+.overview-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 32px;
+}
+.ov-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.ov-card .ov-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.ov-card .ov-value {
+  font-size: 28px;
+  font-weight: 700;
+  font-family: var(--mono);
+}
+.ov-card .ov-value.green { color: var(--green); }
+.ov-card .ov-value.yellow { color: var(--yellow); }
+.ov-card .ov-value.blue { color: var(--blue); }
+.ov-card .ov-value.purple { color: var(--purple); }
 
-/* FILL BLANK */
-.fill-blank-area{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.fill-input{background:var(--bg3);border:2px solid var(--bg4);border-radius:var(--radius);padding:12px 16px;font-family:inherit;font-size:0.95rem;color:var(--text);flex:1;min-width:200px;outline:none;transition:var(--transition)}
-.fill-input:focus{border-color:var(--primary)}
-.fill-input.correct{border-color:var(--green)!important;background:var(--green-bg)!important}
-.fill-input.wrong{border-color:var(--red)!important;background:var(--red-bg)!important}
-.fill-submit{background:var(--primary);border:none;color:#fff;padding:12px 20px;border-radius:var(--radius);cursor:pointer;font-family:inherit;font-size:0.9rem;font-weight:600;transition:var(--transition)}
-.fill-submit:hover{background:var(--primary2)}
-.fill-submit:disabled{opacity:0.5;cursor:default}
+/* ===== SECTION: BÖLÜMLER GRID ===== */
+.section-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  display: flex; align-items: center; gap: 10px;
+}
+.section-title .icon { font-size: 22px; }
 
-/* MATCHING */
-.matching-area{display:flex;flex-direction:column;gap:10px}
-.match-row{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center}
-.match-left{background:var(--bg3);border:1px solid var(--bg4);border-radius:var(--radius-sm);padding:10px 14px;font-size:0.88rem}
-.match-arrow{color:var(--text3);font-size:1.1rem}
-.match-select{background:var(--bg3);border:2px solid var(--bg4);border-radius:var(--radius-sm);padding:10px 14px;font-size:0.88rem;color:var(--text);font-family:inherit;cursor:pointer;outline:none;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 5l3 3 3-3' stroke='%239ca3c4' fill='none' stroke-width='1.5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:30px}
-.match-select:focus{border-color:var(--primary)}
-.match-select.correct{border-color:var(--green);background-color:rgba(34,197,94,0.08)}
-.match-select.wrong{border-color:var(--red);background-color:rgba(239,68,68,0.08)}
-.match-submit{background:var(--primary);border:none;color:#fff;padding:12px 24px;border-radius:var(--radius);cursor:pointer;font-family:inherit;font-size:0.9rem;font-weight:600;margin-top:8px;align-self:flex-end;transition:var(--transition)}
-.match-submit:hover{background:var(--primary2)}
-.match-submit:disabled{opacity:0.5;cursor:default}
+.chapters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 16px;
+}
 
-/* EXPLANATION */
-.explanation{margin-top:16px;padding:16px;border-radius:var(--radius);font-size:0.88rem;line-height:1.6;animation:fadeIn 0.3s ease;display:none}
-.explanation.correct{background:var(--green-bg);border-left:3px solid var(--green)}
-.explanation.wrong{background:var(--red-bg);border-left:3px solid var(--red)}
-.explanation .exp-title{font-weight:700;margin-bottom:6px}
-.explanation.correct .exp-title{color:var(--green)}
-.explanation.wrong .exp-title{color:var(--red)}
-.explanation .exp-answer{font-weight:600;color:var(--text);margin-bottom:4px}
+.chapter-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+.chapter-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--border);
+  transition: var(--transition);
+}
+.chapter-card.score-high::before { background: var(--green); }
+.chapter-card.score-mid::before { background: var(--yellow); }
+.chapter-card.score-low::before { background: var(--red); }
+.chapter-card:hover {
+  border-color: var(--border-light);
+  background: var(--bg-card-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
 
-/* NEXT BUTTON */
-.next-btn-wrap{display:flex;justify-content:center;margin-top:20px;display:none}
-.next-btn{background:var(--primary);border:none;color:#fff;padding:14px 40px;border-radius:var(--radius);cursor:pointer;font-family:inherit;font-size:1rem;font-weight:600;transition:var(--transition)}
-.next-btn:hover{background:var(--primary2);transform:translateY(-2px);box-shadow:0 4px 16px rgba(79,142,247,0.3)}
+.ch-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+.ch-num {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--accent-dim);
+  padding: 3px 10px;
+  border-radius: 6px;
+}
+.ch-badge {
+  font-size: 18px;
+}
+.ch-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  line-height: 1.4;
+}
 
-/* RESULT SCREEN */
-.result-screen{display:none}
-.result-card{background:var(--bg2);border:1px solid var(--bg3);border-radius:var(--radius-lg);padding:32px;text-align:center;margin-bottom:20px}
-.result-emoji{font-size:4rem;margin-bottom:12px}
-.result-title{font-size:1.5rem;font-weight:700;margin-bottom:8px}
-.result-score{font-size:3rem;font-weight:800;margin:12px 0}
-.result-score.green{color:var(--green)}
-.result-score.orange{color:var(--orange)}
-.result-score.red{color:var(--red)}
-.result-detail{color:var(--text2);font-size:0.9rem;margin-bottom:20px}
-.result-badges{display:flex;justify-content:center;gap:12px;margin:16px 0}
-.result-badge{background:var(--bg3);border-radius:var(--radius);padding:10px 16px;font-size:0.85rem}
-.result-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:20px}
-.result-actions button{padding:12px 24px;border-radius:var(--radius);font-family:inherit;font-size:0.9rem;font-weight:600;cursor:pointer;transition:var(--transition);border:none}
-.btn-retry{background:var(--primary);color:#fff}
-.btn-retry:hover{background:var(--primary2)}
-.btn-review{background:var(--bg3);color:var(--text)}
-.btn-review:hover{background:var(--bg4)}
-.btn-home{background:var(--bg3);color:var(--text)}
-.btn-home:hover{background:var(--bg4)}
+.ch-progress {
+  display: flex; gap: 12px; margin-bottom: 16px;
+}
+.ch-prog-item {
+  flex: 1;
+  background: var(--bg-deepest);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  text-align: center;
+}
+.ch-prog-item .label {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-bottom: 4px;
+}
+.ch-prog-item .value {
+  font-family: var(--mono);
+  font-size: 15px;
+  font-weight: 600;
+}
 
-/* REVIEW */
-.review-list{display:flex;flex-direction:column;gap:12px}
-.review-item{background:var(--bg2);border:1px solid var(--bg3);border-radius:var(--radius);padding:16px}
-.review-item.wrong-item{border-left:3px solid var(--red)}
-.review-item.correct-item{border-left:3px solid var(--green)}
-.review-q{font-weight:500;margin-bottom:8px}
-.review-answer{font-size:0.85rem;color:var(--text2)}
-.review-answer span{font-weight:600}
-.review-answer .correct-ans{color:var(--green)}
-.review-answer .wrong-ans{color:var(--red)}
+.ch-prog-bar {
+  width: 100%;
+  height: 4px;
+  background: var(--bg-deepest);
+  border-radius: 2px;
+  margin-top: 8px;
+  overflow: hidden;
+}
+.ch-prog-bar .fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.5s ease;
+}
 
-/* STREAK POPUP */
-.streak-popup{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);background:var(--bg2);border:2px solid var(--orange);border-radius:var(--radius-lg);padding:28px 40px;text-align:center;z-index:200;box-shadow:0 0 60px rgba(245,158,11,0.2);transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1)}
-.streak-popup.show{transform:translate(-50%,-50%) scale(1)}
-.streak-popup .streak-fire{font-size:3rem;margin-bottom:8px}
-.streak-popup .streak-num{font-size:2rem;font-weight:800;color:var(--orange)}
-.streak-popup .streak-text{color:var(--text2);font-size:0.9rem}
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:199;display:none}
+.ch-actions {
+  display: flex; gap: 8px;
+}
+.ch-btn {
+  flex: 1;
+  padding: 10px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.ch-btn:hover { background: var(--bg-card-hover); border-color: var(--border-light); }
+.ch-btn.learn { border-color: rgba(0,212,170,0.3); color: var(--accent); }
+.ch-btn.learn:hover { background: var(--accent-dim); }
+.ch-btn.quiz { border-color: rgba(163,126,255,0.3); color: var(--purple); }
+.ch-btn.quiz:hover { background: var(--purple-dim); }
+.ch-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-/* BADGE POPUP */
-.badge-popup{position:fixed;top:20px;right:20px;background:var(--bg2);border:2px solid var(--green);border-radius:var(--radius-lg);padding:16px 24px;z-index:201;box-shadow:var(--shadow);transform:translateX(120%);transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1);display:flex;align-items:center;gap:12px}
-.badge-popup.show{transform:translateX(0)}
-.badge-popup .bp-emoji{font-size:2rem}
-.badge-popup .bp-text{font-size:0.85rem;color:var(--text2)}
-.badge-popup .bp-title{font-weight:700;color:var(--text);font-size:0.95rem}
+/* ===== MODAL / FULLSCREEN VIEWS ===== */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: var(--bg-deepest);
+  z-index: 200;
+  overflow-y: auto;
+}
+.modal-overlay.active { display: block; }
 
-/* RESPONSIVE */
-@media(max-width:600px){
-.header-inner{flex-direction:column;align-items:flex-start}
-.header-stats{width:100%;justify-content:flex-start}
-.chapters-grid{grid-template-columns:1fr}
-.stats-bar{grid-template-columns:repeat(2,1fr)}
-.match-row{grid-template-columns:1fr;gap:4px}
-.match-arrow{display:none}
-.result-score{font-size:2.2rem}
-.question-card{padding:16px}
-.tf-options{grid-template-columns:1fr}
+.modal-header {
+  position: sticky; top: 0; z-index: 10;
+  background: rgba(10,14,26,0.9);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+}
+.modal-header-inner {
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 60px;
+}
+.modal-title {
+  font-size: 15px;
+  font-weight: 600;
+  display: flex; align-items: center; gap: 8px;
+}
+.modal-title .mode-tag {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.modal-title .mode-tag.learn { background: var(--accent-dim); color: var(--accent); }
+.modal-title .mode-tag.quiz { background: var(--purple-dim); color: var(--purple); }
+
+.modal-progress {
+  display: flex; align-items: center; gap: 10px;
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.modal-progress-bar {
+  width: 120px; height: 6px;
+  background: var(--bg-surface);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.modal-progress-bar .fill {
+  height: 100%; border-radius: 3px;
+  background: var(--accent);
+  transition: width 0.4s ease;
+}
+.modal-progress-bar.quiz .fill { background: var(--purple); }
+
+.btn-close-modal {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 14px;
+  color: var(--text-secondary);
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.btn-close-modal:hover { background: var(--bg-card-hover); color: var(--text-primary); }
+
+.modal-body {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 32px 24px 100px;
+}
+
+/* ===== LEARN MODE ===== */
+.learn-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+.learn-question {
+  padding: 28px 28px 20px;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.5;
+  cursor: pointer;
+  display: flex; align-items: flex-start; gap: 14px;
+  transition: var(--transition);
+}
+.learn-question:hover { background: rgba(255,255,255,0.02); }
+.learn-question .q-icon {
+  flex-shrink: 0;
+  width: 32px; height: 32px;
+  background: var(--accent-dim);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 14px;
+}
+.learn-answer {
+  display: none;
+  padding: 0 28px 28px;
+  padding-left: 74px;
+  font-size: 15px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  border-top: 1px solid var(--border);
+  padding-top: 20px;
+  animation: fadeSlide 0.3s ease;
+}
+.learn-answer.visible { display: block; }
+
+.learn-nav {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 8px;
+}
+.learn-nav button {
+  padding: 12px 32px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.learn-nav button:hover { background: var(--bg-card-hover); }
+.learn-nav button.primary {
+  background: var(--accent);
+  color: var(--bg-deepest);
+  border-color: var(--accent);
+}
+.learn-nav button.primary:hover { opacity: 0.9; }
+.learn-nav button:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* ===== QUIZ MODE ===== */
+.quiz-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  margin-bottom: 24px;
+}
+.quiz-type-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 3px 8px;
+  border-radius: 5px;
+  margin-bottom: 14px;
+}
+.quiz-type-tag.multiple { background: var(--blue-dim); color: var(--blue); }
+.quiz-type-tag.truefalse { background: var(--yellow-dim); color: var(--yellow); }
+.quiz-type-tag.fillblank { background: var(--green-dim); color: var(--green); }
+.quiz-type-tag.matching { background: var(--purple-dim); color: var(--purple); }
+
+.quiz-question {
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.5;
+  margin-bottom: 24px;
+}
+
+/* Multiple Choice */
+.quiz-options { display: flex; flex-direction: column; gap: 10px; }
+.quiz-option {
+  padding: 14px 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  cursor: pointer;
+  transition: var(--transition);
+  font-size: 15px;
+  display: flex; align-items: center; gap: 12px;
+}
+.quiz-option:hover:not(.disabled) { border-color: var(--border-light); background: var(--bg-card-hover); }
+.quiz-option .opt-letter {
+  flex-shrink: 0;
+  width: 28px; height: 28px;
+  border-radius: 7px;
+  background: var(--bg-deepest);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.quiz-option.correct { border-color: var(--green); background: var(--green-dim); }
+.quiz-option.correct .opt-letter { background: var(--green); color: var(--bg-deepest); }
+.quiz-option.wrong { border-color: var(--red); background: var(--red-dim); }
+.quiz-option.wrong .opt-letter { background: var(--red); color: white; }
+.quiz-option.disabled { cursor: default; opacity: 0.6; }
+
+/* True/False */
+.tf-options { display: flex; gap: 12px; }
+.tf-btn {
+  flex: 1;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  cursor: pointer;
+  transition: var(--transition);
+  font-size: 16px;
+  font-weight: 600;
+  font-family: var(--font);
+  text-align: center;
+}
+.tf-btn:hover:not(.disabled) { border-color: var(--border-light); }
+.tf-btn.correct { border-color: var(--green); background: var(--green-dim); color: var(--green); }
+.tf-btn.wrong { border-color: var(--red); background: var(--red-dim); color: var(--red); }
+.tf-btn.disabled { cursor: default; opacity: 0.6; }
+
+/* Fill Blank */
+.fill-input-wrap {
+  display: flex; gap: 10px;
+}
+.fill-input {
+  flex: 1;
+  padding: 14px 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-family: var(--font);
+  font-size: 15px;
+  outline: none;
+  transition: var(--transition);
+}
+.fill-input:focus { border-color: var(--accent); }
+.fill-input.correct { border-color: var(--green); background: var(--green-dim); }
+.fill-input.wrong { border-color: var(--red); background: var(--red-dim); }
+.fill-submit {
+  padding: 14px 24px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: var(--bg-deepest);
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.fill-submit:hover { opacity: 0.9; }
+.fill-submit:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Matching */
+.match-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.match-item {
+  padding: 12px 16px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  font-size: 14px;
+  cursor: pointer;
+  transition: var(--transition);
+  text-align: center;
+  min-height: 48px;
+  display: flex; align-items: center; justify-content: center;
+}
+.match-item:hover:not(.disabled):not(.matched) { border-color: var(--border-light); }
+.match-item.selected { border-color: var(--accent); background: var(--accent-dim); }
+.match-item.matched { border-color: var(--green); background: var(--green-dim); cursor: default; opacity: 0.7; }
+.match-item.wrong-flash { border-color: var(--red); background: var(--red-dim); }
+.match-item.disabled { cursor: default; }
+.match-check-btn {
+  grid-column: 1 / -1;
+  padding: 12px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--purple);
+  color: white;
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 8px;
+}
+.match-check-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Explanation */
+.quiz-explanation {
+  display: none;
+  margin-top: 20px;
+  padding: 18px 20px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  line-height: 1.6;
+  animation: fadeSlide 0.3s ease;
+}
+.quiz-explanation.visible { display: block; }
+.quiz-explanation.correct-exp {
+  background: var(--green-dim);
+  border: 1px solid rgba(0,212,170,0.2);
+  color: var(--text-primary);
+}
+.quiz-explanation.wrong-exp {
+  background: var(--red-dim);
+  border: 1px solid rgba(255,77,106,0.2);
+  color: var(--text-primary);
+}
+.quiz-explanation .exp-icon { font-size: 16px; margin-right: 6px; }
+
+.quiz-nav {
+  display: flex; justify-content: center; margin-top: 8px;
+}
+.quiz-nav button {
+  padding: 12px 40px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--purple);
+  color: white;
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.quiz-nav button:hover { opacity: 0.9; }
+
+/* ===== RESULT SCREEN ===== */
+.result-screen {
+  text-align: center;
+  padding: 48px 24px;
+}
+.result-score {
+  font-family: var(--mono);
+  font-size: 64px;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+.result-score.high { color: var(--green); }
+.result-score.mid { color: var(--yellow); }
+.result-score.low { color: var(--red); }
+.result-badge { font-size: 48px; margin-bottom: 12px; }
+.result-text { font-size: 18px; color: var(--text-secondary); margin-bottom: 32px; }
+
+.result-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.result-actions button {
+  padding: 12px 28px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.result-actions button:hover { background: var(--bg-card-hover); }
+.result-actions button.primary {
+  background: var(--purple);
+  border-color: var(--purple);
+  color: white;
+}
+
+/* ===== STREAK POPUP ===== */
+.streak-popup {
+  position: fixed;
+  top: 80px; right: 24px;
+  background: var(--bg-card);
+  border: 1px solid var(--yellow);
+  border-radius: var(--radius);
+  padding: 14px 20px;
+  z-index: 300;
+  display: none;
+  animation: popIn 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
+  box-shadow: 0 8px 32px rgba(255,184,77,0.2);
+}
+.streak-popup.visible { display: flex; align-items: center; gap: 10px; }
+.streak-popup .streak-fire { font-size: 24px; }
+.streak-popup .streak-count {
+  font-family: var(--mono);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--yellow);
+}
+.streak-popup .streak-label { font-size: 13px; color: var(--text-secondary); }
+
+/* ===== LEARN COMPLETE ===== */
+.learn-complete {
+  text-align: center;
+  padding: 48px 24px;
+}
+.learn-complete .check-icon {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  background: var(--green-dim);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 32px;
+  margin-bottom: 16px;
+}
+.learn-complete h2 {
+  font-size: 22px; margin-bottom: 8px;
+}
+.learn-complete p {
+  color: var(--text-secondary);
+  margin-bottom: 24px;
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeSlide {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.8) translateY(-10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.fade-in { animation: fadeIn 0.4s ease; }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .header-inner { height: 56px; }
+  .header-brand h1 { font-size: 14px; }
+  .header-stats { display: none; }
+  .container { padding: 20px 16px 60px; }
+  .chapters-grid { grid-template-columns: 1fr; }
+  .overview-bar { grid-template-columns: repeat(2, 1fr); }
+  .ch-progress { flex-direction: column; gap: 8px; }
+  .quiz-card { padding: 24px 20px; }
+  .learn-question { padding: 20px; font-size: 15px; }
+  .learn-answer { padding: 16px 20px; padding-left: 20px; }
+  .match-container { grid-template-columns: 1fr; }
+  .tf-options { flex-direction: column; }
+  .modal-header-inner { flex-wrap: wrap; height: auto; padding: 10px 0; gap: 8px; }
+  .result-score { font-size: 48px; }
+  .fill-input-wrap { flex-direction: column; }
+}
+@media (max-width: 480px) {
+  .overview-bar { grid-template-columns: 1fr; }
+  .ch-actions { flex-direction: column; }
 }
 </style>
 </head>
 <body>
 
 <!-- HEADER -->
-<div class="header">
-<div class="header-inner">
-<div class="header-title" onclick="showHome()">
-<span class="header-icon">🫀</span>
-<h1>İleri Yaşam Desteği Quiz</h1>
-</div>
-<div class="header-stats">
-<div class="stat-chip">🔥 Streak: <span class="val" id="headerStreak">0</span></div>
-<div class="stat-chip">✅ Doğru: <span class="val" id="headerCorrect">0</span></div>
-<a href="ilyadegitimkitabipdf.pdf" download class="pdf-btn">📥 PDF İndir</a>
-</div>
-</div>
-</div>
+<header class="app-header">
+  <div class="header-inner">
+    <div class="header-brand" onclick="showHome()">
+      <div class="logo">İYD</div>
+      <h1>İleri Yaşam Desteği <span>Öğren & Quiz</span></h1>
+    </div>
+    <div class="header-stats">
+      <div class="stat-pill">📊 Hakimiyet: <span class="val" id="headerScore">0%</span></div>
+      <div class="stat-pill">🔥 Seri: <span class="val" id="headerStreak">0</span></div>
+    </div>
+    <div class="header-actions">
+      <a href="ilyadegitimkitabipdf.pdf" download class="btn-pdf">📥 PDF İndir</a>
+      <button class="btn-reset" onclick="resetAll()">Sıfırla</button>
+    </div>
+  </div>
+</header>
 
-<!-- OVERLAY -->
-<div class="overlay" id="overlay"></div>
 <!-- STREAK POPUP -->
 <div class="streak-popup" id="streakPopup">
-<div class="streak-fire">🔥</div>
-<div class="streak-num" id="streakNum">5</div>
-<div class="streak-text">art arda doğru!</div>
-</div>
-<!-- BADGE POPUP -->
-<div class="badge-popup" id="badgePopup">
-<div class="bp-emoji" id="bpEmoji">🥇</div>
-<div>
-<div class="bp-title" id="bpTitle">Altın Rozet!</div>
-<div class="bp-text" id="bpText">Bölümü %95+ ile tamamladın</div>
-</div>
+  <span class="streak-fire">🔥</span>
+  <span class="streak-count" id="streakCount">0</span>
+  <span class="streak-label">Art arda doğru!</span>
 </div>
 
 <!-- HOME -->
-<div id="homeScreen">
-<div class="progress-bar-wrap">
-<div class="progress-bar-outer"><div class="progress-bar-inner" id="mainProgress" style="width:0%"></div></div>
-<div class="progress-label" id="mainProgressLabel">0 / 14 bölüm tamamlandı</div>
-</div>
-<div class="container">
-<div class="stats-bar" id="statsBar">
-<div class="stats-card"><div class="label">Toplam Soru</div><div class="value primary" id="sTotalQ">0</div></div>
-<div class="stats-card"><div class="label">Doğru Oran</div><div class="value green" id="sCorrectRate">-%</div></div>
-<div class="stats-card"><div class="label">En İyi Streak</div><div class="value orange" id="sBestStreak">0</div></div>
-<div class="stats-card"><div class="label">Rozetler</div><div class="value purple" id="sBadges">0 / 14</div></div>
-</div>
-<div class="chapters-grid" id="chaptersGrid"></div>
-</div>
+<main class="container" id="homeView">
+  <div class="overview-bar" id="overviewBar"></div>
+  <div class="section-title"><span class="icon">📚</span> Bölümler</div>
+  <div class="chapters-grid" id="chaptersGrid"></div>
+</main>
+
+<!-- LEARN MODAL -->
+<div class="modal-overlay" id="learnModal">
+  <div class="modal-header">
+    <div class="modal-header-inner">
+      <div class="modal-title">
+        <span class="mode-tag learn">📖 ÖĞREN</span>
+        <span id="learnChapterTitle"></span>
+      </div>
+      <div class="modal-progress">
+        <span id="learnProgressText">0/0</span>
+        <div class="modal-progress-bar"><div class="fill" id="learnProgressFill"></div></div>
+      </div>
+      <button class="btn-close-modal" onclick="closeLearn()">✕ Kapat</button>
+    </div>
+  </div>
+  <div class="modal-body" id="learnBody"></div>
 </div>
 
-<!-- QUIZ -->
-<div class="quiz-screen" id="quizScreen">
-<div class="container">
-<div class="quiz-header">
-<button class="quiz-back" onclick="confirmExit()">← Geri</button>
-<div class="quiz-title" id="quizTitle"></div>
-<div class="quiz-counter mono" id="quizCounter"></div>
-</div>
-<div class="quiz-progress"><div class="quiz-progress-fill" id="quizProgress" style="width:0%"></div></div>
-<div id="questionArea"></div>
-<div class="next-btn-wrap" id="nextWrap"><button class="next-btn" id="nextBtn" onclick="nextQuestion()">Sonraki Soru →</button></div>
-</div>
-</div>
-
-<!-- RESULT -->
-<div class="result-screen" id="resultScreen">
-<div class="container">
-<div class="result-card">
-<div class="result-emoji" id="resEmoji">🎉</div>
-<div class="result-title" id="resTitle">Tebrikler!</div>
-<div class="result-score" id="resScore">85%</div>
-<div class="result-detail" id="resDetail"></div>
-<div class="result-badges" id="resBadges"></div>
-<div class="result-actions">
-<button class="btn-retry" onclick="retryQuiz()">🔄 Tekrar Dene</button>
-<button class="btn-review" onclick="showReview()">📋 Yanlışları Gör</button>
-<button class="btn-home" onclick="showHome()">🏠 Ana Sayfa</button>
-</div>
-</div>
-<div class="review-list" id="reviewList" style="display:none"></div>
-</div>
+<!-- QUIZ MODAL -->
+<div class="modal-overlay" id="quizModal">
+  <div class="modal-header">
+    <div class="modal-header-inner">
+      <div class="modal-title">
+        <span class="mode-tag quiz">📝 QUIZ</span>
+        <span id="quizChapterTitle"></span>
+      </div>
+      <div class="modal-progress">
+        <span id="quizProgressText">0/0</span>
+        <div class="modal-progress-bar quiz"><div class="fill" id="quizProgressFill"></div></div>
+      </div>
+      <button class="btn-close-modal" onclick="closeQuiz()">✕ Kapat</button>
+    </div>
+  </div>
+  <div class="modal-body" id="quizBody"></div>
 </div>
 
 <script>
-// ============ DATA & STATE ============
-window.CHAPTERS = [
-{id:1, file:"js/bolum01.js", title:"Acil Olgu Yönetimi", varName:"bolum01_sorular"},
-{id:2, file:"js/bolum02.js", title:"Arrest Yönetimi", varName:"bolum02_sorular"},
-{id:3, file:"js/bolum03.js", title:"Ritim Bozuklukları", varName:"bolum03_sorular"},
-{id:4, file:"js/bolum04.js", title:"Periarrest Aritmiler", varName:"bolum04_sorular"},
-{id:5, file:"js/bolum05.js", title:"Göğüs Ağrısı ve AKS", varName:"bolum05_sorular"},
-{id:6, file:"js/bolum06.js", title:"Anaflaksi", varName:"bolum06_sorular"},
-{id:7, file:"js/bolum07.js", title:"Astım", varName:"bolum07_sorular"},
-{id:8, file:"js/bolum08.js", title:"Suda Boğulma", varName:"bolum08_sorular"},
-{id:9, file:"js/bolum09.js", title:"İnme (SVO)", varName:"bolum09_sorular"},
-{id:10, file:"js/bolum10.js", title:"Hipo-Hiperglisemi", varName:"bolum10_sorular"},
-{id:11, file:"js/bolum11.js", title:"Hipotermi", varName:"bolum11_sorular"},
-{id:12, file:"js/bolum12.js", title:"Elektrik ve Yıldırım Çarpması", varName:"bolum12_sorular"},
-{id:13, file:"js/bolum13.js", title:"Gebelikte Kardiak Arrest", varName:"bolum13_sorular"},
-{id:14, file:"js/bolum14.js", title:"Zehirlenmelere Genel Yaklaşım", varName:"bolum14_sorular"}
+/* ========================================
+   İLERİ YAŞAM DESTEĞİ - QUIZ MOTORU v4
+   ======================================== */
+
+var CHAPTERS = [
+  { id: 1, title: "Acil Olgu Yönetimi", js: "js/bolum01.js", learnVar: "bolum01_learn", quizVar: "bolum01_sorular" },
+  { id: 2, title: "Arrest Yönetimi", js: "js/bolum02.js", learnVar: "bolum02_learn", quizVar: "bolum02_sorular" },
+  { id: 3, title: "Ritim Bozuklukları", js: "js/bolum03.js", learnVar: "bolum03_learn", quizVar: "bolum03_sorular" },
+  { id: 4, title: "Periarrest Aritmiler", js: "js/bolum04.js", learnVar: "bolum04_learn", quizVar: "bolum04_sorular" },
+  { id: 5, title: "Acil Göğüs Ağrısı ve Akut Koroner Sendrom", js: "js/bolum05.js", learnVar: "bolum05_learn", quizVar: "bolum05_sorular" },
+  { id: 6, title: "Anafilaksi, Astım ve Suda Boğulma", js: "js/bolum06.js", learnVar: "bolum06_learn", quizVar: "bolum06_sorular" },
+  { id: 7, title: "İnme, Hipo/Hiperglisemi ve Hipotermi", js: "js/bolum07.js", learnVar: "bolum07_learn", quizVar: "bolum07_sorular" },
+  { id: 8, title: "Elektrik/Yıldırım, Gebelikte Arrest ve Zehirlenme", js: "js/bolum08.js", learnVar: "bolum08_learn", quizVar: "bolum08_sorular" }
 ];
 
-var state = {
-currentChapter: null,
-questions: [],
-currentQ: 0,
-score: 0,
-answers: [],
-streak: 0,
-sessionStreak: 0
-};
-
-function getStorage() {
-try {
-var d = localStorage.getItem("iyd_quiz_data");
-return d ? JSON.parse(d) : {};
-} catch(e) { return {}; }
+/* ===== STORAGE ===== */
+function getStore() {
+  try {
+    return JSON.parse(localStorage.getItem("iyd_data")) || {};
+  } catch(e) { return {}; }
 }
-function saveStorage(data) {
-try { localStorage.setItem("iyd_quiz_data", JSON.stringify(data)); } catch(e) {}
+function setStore(data) {
+  localStorage.setItem("iyd_data", JSON.stringify(data));
 }
 function getChapterData(chId) {
-var d = getStorage();
-return d["ch_" + chId] || {bestScore:0, attempts:0, badge:""};
+  var s = getStore();
+  if (!s["ch_" + chId]) s["ch_" + chId] = { bestScore: 0, attempts: 0, learnDone: false, learnPos: 0 };
+  return s["ch_" + chId];
 }
-function saveChapterData(chId, obj) {
-var d = getStorage();
-d["ch_" + chId] = obj;
-saveStorage(d);
+function saveChapterData(chId, data) {
+  var s = getStore();
+  s["ch_" + chId] = data;
+  setStore(s);
 }
-function getGlobalData() {
-var d = getStorage();
-return d.global || {totalCorrect:0, totalAnswered:0, bestStreak:0};
+function getGlobalStreak() {
+  var s = getStore();
+  return s.streak || 0;
 }
-function saveGlobalData(obj) {
-var d = getStorage();
-d.global = obj;
-saveStorage(d);
-}
-
-// ============ SHUFFLE ============
-function shuffle(arr) {
-var a = arr.slice();
-for (var i = a.length - 1; i > 0; i--) {
-var j = Math.floor(Math.random() * (i + 1));
-var t = a[i]; a[i] = a[j]; a[j] = t;
-}
-return a;
+function setGlobalStreak(v) {
+  var s = getStore();
+  s.streak = v;
+  setStore(s);
 }
 
-// ============ RENDER HOME ============
+/* ===== SCRIPT LOADER ===== */
+var loadedScripts = {};
+function loadChapterJS(ch, cb) {
+  if (loadedScripts[ch.id]) return cb();
+  var sc = document.createElement("script");
+  sc.src = ch.js;
+  sc.onload = function() { loadedScripts[ch.id] = true; cb(); };
+  sc.onerror = function() { alert("Bölüm dosyası yüklenemedi: " + ch.js); };
+  document.head.appendChild(sc);
+}
+
+/* ===== RENDER HOME ===== */
 function renderHome() {
-var grid = document.getElementById("chaptersGrid");
-var html = "";
-CHAPTERS.forEach(function(ch) {
-var cd = getChapterData(ch.id);
-var badge = cd.badge || "";
-var score = cd.bestScore || 0;
-var attempts = cd.attempts || 0;
-var barClass = score >= 95 ? "green" : score >= 60 ? "orange" : score > 0 ? "red" : "none";
-html += '<div class="chapter-card" onclick="startChapter(' + ch.id + ')">' +
-'<div class="ch-num">Bölüm ' + ch.id + '</div>' +
-(badge ? '<div class="ch-badge">' + badge + '</div>' : '') +
-'<div class="ch-title">' + ch.title + '</div>' +
-'<div class="ch-meta">' +
-'<span>📝 ' + attempts + ' deneme</span>' +
-(score > 0 ? '<span>🏆 %' + score + '</span>' : '<span>Henüz çözülmedi</span>') +
-'</div>' +
-'<div class="ch-bar"><div class="ch-bar-fill ' + barClass + '" style="width:' + score + '%"></div></div>' +
-(score > 0 ? '<div class="ch-score">En iyi: %' + score + '</div>' : '') +
-'</div>';
-});
-grid.innerHTML = html;
-updateGlobalStats();
+  renderOverview();
+  renderChapters();
+  updateHeaderStats();
 }
 
-function updateGlobalStats() {
-var g = getGlobalData();
-var completed = 0;
-var totalBadges = 0;
-CHAPTERS.forEach(function(ch) {
-var cd = getChapterData(ch.id);
-if (cd.attempts > 0) completed++;
-if (cd.badge) totalBadges++;
-});
-document.getElementById("sTotalQ").textContent = g.totalAnswered || 0;
-var rate = g.totalAnswered > 0 ? Math.round((g.totalCorrect / g.totalAnswered) * 100) : 0;
-document.getElementById("sCorrectRate").textContent = (g.totalAnswered > 0 ? "%" + rate : "-%");
-document.getElementById("sBestStreak").textContent = g.bestStreak || 0;
-document.getElementById("sBadges").textContent = totalBadges + " / 14";
-document.getElementById("headerCorrect").textContent = g.totalCorrect || 0;
-document.getElementById("headerStreak").textContent = g.bestStreak || 0;
-var pct = Math.round((completed / 14) * 100);
-document.getElementById("mainProgress").style.width = pct + "%";
-document.getElementById("mainProgressLabel").textContent = completed + " / 14 bölüm tamamlandı";
+function renderOverview() {
+  var totalBest = 0, totalCh = CHAPTERS.length, learnedCount = 0, totalAttempts = 0;
+  CHAPTERS.forEach(function(ch) {
+    var d = getChapterData(ch.id);
+    totalBest += d.bestScore || 0;
+    totalAttempts += d.attempts || 0;
+    if (d.learnDone) learnedCount++;
+  });
+  var avgScore = totalCh > 0 ? Math.round(totalBest / totalCh) : 0;
+
+  document.getElementById("overviewBar").innerHTML =
+    '<div class="ov-card"><div class="ov-label">Genel Hakimiyet</div><div class="ov-value ' + scoreColor(avgScore) + '">' + avgScore + '%</div></div>' +
+    '<div class="ov-card"><div class="ov-label">Öğrenilen</div><div class="ov-value blue">' + learnedCount + '/' + totalCh + '</div></div>' +
+    '<div class="ov-card"><div class="ov-label">Toplam Deneme</div><div class="ov-value purple">' + totalAttempts + '</div></div>' +
+    '<div class="ov-card"><div class="ov-label">Aktif Seri</div><div class="ov-value yellow">' + getGlobalStreak() + ' 🔥</div></div>';
 }
 
-// ============ START QUIZ ============
-function startChapter(chId) {
-var ch = CHAPTERS.find(function(c) { return c.id === chId; });
-if (!ch) return;
-// Load JS if not loaded
-if (!window[ch.varName]) {
-var s = document.createElement("script");
-s.src = ch.file;
-s.onload = function() {
-if (window[ch.varName]) {
-initQuiz(ch);
-} else {
-alert("Bölüm dosyası yüklenemedi: " + ch.file);
+function scoreColor(s) {
+  if (s >= 80) return "green";
+  if (s >= 60) return "yellow";
+  return "low";
 }
-};
-s.onerror = function() {
-alert("Bölüm dosyası bulunamadı: " + ch.file + "\nDosyanın doğru konumda olduğundan emin olun.");
-};
-document.head.appendChild(s);
-} else {
-initQuiz(ch);
+function scoreClass(s) {
+  if (s >= 80) return "score-high";
+  if (s >= 60) return "score-mid";
+  if (s > 0) return "score-low";
+  return "";
 }
+function badgeFor(s) {
+  if (s >= 95) return "🥇";
+  if (s >= 80) return "🥈";
+  if (s >= 60) return "🥉";
+  return "";
 }
 
-function initQuiz(ch) {
-state.currentChapter = ch;
-state.questions = shuffle(window[ch.varName].slice());
-state.currentQ = 0;
-state.score = 0;
-state.answers = [];
-state.streak = 0;
-state.sessionStreak = 0;
-document.getElementById("homeScreen").style.display = "none";
-document.getElementById("resultScreen").style.display = "none";
-document.getElementById("quizScreen").style.display = "block";
-document.getElementById("quizTitle").textContent = ch.title;
-renderQuestion();
-window.scrollTo(0, 0);
+function renderChapters() {
+  var html = "";
+  CHAPTERS.forEach(function(ch) {
+    var d = getChapterData(ch.id);
+    var badge = badgeFor(d.bestScore);
+    var sc = scoreClass(d.bestScore);
+    html += '<div class="chapter-card ' + sc + '">' +
+      '<div class="ch-header"><span class="ch-num">BÖLÜM ' + ch.id + '</span><span class="ch-badge">' + badge + '</span></div>' +
+      '<div class="ch-title">' + ch.title + '</div>' +
+      '<div class="ch-progress">' +
+        '<div class="ch-prog-item"><div class="label">Öğren</div><div class="value" style="color:' + (d.learnDone ? 'var(--green)' : 'var(--text-muted)') + '">' + (d.learnDone ? '✓ Tamam' : (d.learnPos > 0 ? 'Devam' : 'Başla')) + '</div>' +
+        '<div class="ch-prog-bar"><div class="fill" style="width:' + (d.learnDone ? 100 : 0) + '%; background:var(--green)"></div></div></div>' +
+        '<div class="ch-prog-item"><div class="label">Quiz Skor</div><div class="value" style="color:' + (d.bestScore > 0 ? 'var(--purple)' : 'var(--text-muted)') + '">' + (d.bestScore > 0 ? d.bestScore + '%' : '—') + '</div>' +
+        '<div class="ch-prog-bar"><div class="fill" style="width:' + d.bestScore + '%; background:var(--purple)"></div></div></div>' +
+      '</div>' +
+      '<div class="ch-actions">' +
+        '<button class="ch-btn learn" onclick="startLearn(' + ch.id + ')">📖 Öğren</button>' +
+        '<button class="ch-btn quiz" onclick="startQuiz(' + ch.id + ')">📝 Quiz</button>' +
+      '</div></div>';
+  });
+  document.getElementById("chaptersGrid").innerHTML = html;
 }
 
-// ============ RENDER QUESTION ============
-function renderQuestion() {
-var q = state.questions[state.currentQ];
-var total = state.questions.length;
-var idx = state.currentQ + 1;
-document.getElementById("quizCounter").textContent = idx + " / " + total;
-document.getElementById("quizProgress").style.width = ((idx / total) * 100) + "%";
-document.getElementById("nextWrap").style.display = "none";
-var area = document.getElementById("questionArea");
-var typeLabels = {multiple:"Çoktan Seçmeli", truefalse:"Doğru / Yanlış", fillblank:"Boşluk Doldurma", matching:"Eşleştirme"};
-var html = '<div class="question-card">';
-html += '<span class="q-type-badge ' + q.type + '">' + (typeLabels[q.type] || q.type) + '</span>';
-html += '<div class="q-text">' + q.question + '</div>';
-
-if (q.type === "multiple") {
-html += '<div class="options-list">';
-var letters = ["A","B","C","D"];
-q.options.forEach(function(opt, i) {
-html += '<button class="option-btn" data-idx="' + i + '" onclick="selectOption(this,' + i + ',' + q.correct + ')">' +
-'<span class="opt-letter">' + letters[i] + '</span><span>' + opt + '</span></button>';
-});
-html += '</div>';
-} else if (q.type === "truefalse") {
-html += '<div class="tf-options">';
-html += '<button class="tf-btn" data-val="true" onclick="selectTF(this,true,' + q.correct + ')">✓ Doğru</button>';
-html += '<button class="tf-btn" data-val="false" onclick="selectTF(this,false,' + q.correct + ')">✗ Yanlış</button>';
-html += '</div>';
-} else if (q.type === "fillblank") {
-html += '<div class="fill-blank-area">';
-html += '<input class="fill-input" id="fillInput" type="text" placeholder="Cevabınızı yazın..." autocomplete="off">';
-html += '<button class="fill-submit" id="fillSubmit" onclick="checkFillBlank()">Kontrol Et</button>';
-html += '</div>';
-} else if (q.type === "matching") {
-var shuffledRight = shuffle(q.pairs.map(function(p) { return p.right; }));
-html += '<div class="matching-area">';
-q.pairs.forEach(function(p, i) {
-html += '<div class="match-row">';
-html += '<div class="match-left">' + p.left + '</div>';
-html += '<div class="match-arrow">→</div>';
-html += '<select class="match-select" id="match_' + i + '">';
-html += '<option value="">Seçiniz...</option>';
-shuffledRight.forEach(function(r) {
-html += '<option value="' + r.replace(/"/g, '&quot;') + '">' + r + '</option>';
-});
-html += '</select></div>';
-});
-html += '<button class="match-submit" id="matchSubmit" onclick="checkMatching()">Kontrol Et</button>';
-html += '</div>';
-}
-
-html += '<div class="explanation" id="explanation"></div>';
-html += '</div>';
-area.innerHTML = html;
-
-if (q.type === "fillblank") {
-document.getElementById("fillInput").addEventListener("keydown", function(e) {
-if (e.key === "Enter") checkFillBlank();
-});
-}
-}
-
-// ============ ANSWER HANDLERS ============
-function selectOption(btn, idx, correct) {
-var btns = document.querySelectorAll(".option-btn");
-btns.forEach(function(b) { b.classList.add("disabled"); });
-btn.classList.add("selected");
-var isCorrect = idx === correct;
-if (isCorrect) {
-btn.classList.add("correct");
-} else {
-btn.classList.add("wrong");
-btns[correct].classList.add("correct");
-}
-recordAnswer(isCorrect);
-showExplanation(isCorrect);
-}
-
-function selectTF(btn, val, correct) {
-var btns = document.querySelectorAll(".tf-btn");
-btns.forEach(function(b) { b.classList.add("disabled"); });
-btn.classList.add("selected");
-var isCorrect = val === correct;
-if (isCorrect) {
-btn.classList.add("correct");
-} else {
-btn.classList.add("wrong");
-btns.forEach(function(b) {
-if (String(b.dataset.val) === String(correct)) b.classList.add("correct");
-});
-}
-recordAnswer(isCorrect);
-showExplanation(isCorrect);
-}
-
-function checkFillBlank() {
-var q = state.questions[state.currentQ];
-var input = document.getElementById("fillInput");
-var btn = document.getElementById("fillSubmit");
-var val = input.value.trim().toLowerCase().replace(/\s+/g,' ');
-if (!val) return;
-btn.disabled = true;
-input.readOnly = true;
-var correct = q.answer.trim().toLowerCase();
-var alts = (q.alternatives || []).map(function(a) { return a.trim().toLowerCase(); });
-var isCorrect = val === correct || alts.indexOf(val) !== -1;
-input.classList.add(isCorrect ? "correct" : "wrong");
-recordAnswer(isCorrect);
-showExplanation(isCorrect, isCorrect ? null : "Doğru cevap: " + q.answer);
-}
-
-function checkMatching() {
-var q = state.questions[state.currentQ];
-var btn = document.getElementById("matchSubmit");
-btn.disabled = true;
-var allCorrect = true;
-q.pairs.forEach(function(p, i) {
-var sel = document.getElementById("match_" + i);
-sel.disabled = true;
-if (sel.value === p.right) {
-sel.classList.add("correct");
-} else {
-sel.classList.add("wrong");
-allCorrect = false;
-}
-});
-recordAnswer(allCorrect);
-var detail = allCorrect ? null : "Doğru eşleştirmeler: " + q.pairs.map(function(p) { return p.left + " → " + p.right; }).join(" | ");
-showExplanation(allCorrect, detail);
-}
-
-function recordAnswer(isCorrect) {
-var q = state.questions[state.currentQ];
-state.answers.push({question: q.question, correct: isCorrect, type: q.type});
-if (isCorrect) {
-state.score++;
-state.streak++;
-state.sessionStreak++;
-checkStreakPopup();
-} else {
-state.streak = 0;
-}
-}
-
-function showExplanation(isCorrect, extra) {
-var q = state.questions[state.currentQ];
-var el = document.getElementById("explanation");
-el.className = "explanation " + (isCorrect ? "correct" : "wrong");
-var html = '<div class="exp-title">' + (isCorrect ? "✓ Doğru!" : "✗ Yanlış!") + '</div>';
-if (extra) html += '<div class="exp-answer">' + extra + '</div>';
-html += '<div>' + q.explanation + '</div>';
-el.innerHTML = html;
-el.style.display = "block";
-document.getElementById("nextWrap").style.display = "flex";
-var isLast = state.currentQ >= state.questions.length - 1;
-document.getElementById("nextBtn").textContent = isLast ? "Sonuçları Gör →" : "Sonraki Soru →";
-}
-
-function checkStreakPopup() {
-var s = state.streak;
-if (s === 3 || s === 5 || s === 10 || s === 15 || s === 20) {
-document.getElementById("streakNum").textContent = s;
-document.getElementById("streakPopup").classList.add("show");
-document.getElementById("overlay").style.display = "block";
-setTimeout(function() {
-document.getElementById("streakPopup").classList.remove("show");
-document.getElementById("overlay").style.display = "none";
-}, 1500);
-}
-}
-
-// ============ NEXT / RESULTS ============
-function nextQuestion() {
-state.currentQ++;
-if (state.currentQ >= state.questions.length) {
-showResults();
-} else {
-renderQuestion();
-window.scrollTo(0, 0);
-}
-}
-
-function showResults() {
-document.getElementById("quizScreen").style.display = "none";
-document.getElementById("resultScreen").style.display = "block";
-document.getElementById("reviewList").style.display = "none";
-var total = state.questions.length;
-var pct = Math.round((state.score / total) * 100);
-var ch = state.currentChapter;
-
-// Badge
-var badge = "";
-var badgeText = "";
-if (pct >= 95) { badge = "🥇"; badgeText = "Altın Rozet!"; }
-else if (pct >= 80) { badge = "🥈"; badgeText = "Gümüş Rozet!"; }
-else if (pct >= 60) { badge = "🥉"; badgeText = "Bronz Rozet!"; }
-
-// Save
-var cd = getChapterData(ch.id);
-cd.attempts = (cd.attempts || 0) + 1;
-if (pct > (cd.bestScore || 0)) {
-cd.bestScore = pct;
-cd.badge = badge;
-}
-saveChapterData(ch.id, cd);
-
-var g = getGlobalData();
-g.totalAnswered = (g.totalAnswered || 0) + total;
-g.totalCorrect = (g.totalCorrect || 0) + state.score;
-if (state.sessionStreak > (g.bestStreak || 0)) g.bestStreak = state.sessionStreak;
-saveGlobalData(g);
-
-// Render
-var emoji = pct >= 95 ? "🏆" : pct >= 80 ? "🎉" : pct >= 60 ? "👍" : "💪";
-var title = pct >= 95 ? "Mükemmel!" : pct >= 80 ? "Harika!" : pct >= 60 ? "İyi!" : "Tekrar Dene";
-var colorClass = pct >= 80 ? "green" : pct >= 60 ? "orange" : "red";
-document.getElementById("resEmoji").textContent = emoji;
-document.getElementById("resTitle").textContent = title;
-document.getElementById("resScore").textContent = "%" + pct;
-document.getElementById("resScore").className = "result-score " + colorClass;
-document.getElementById("resDetail").textContent = state.score + " / " + total + " doğru • En iyi streak: " + state.sessionStreak;
-var badgesHtml = "";
-if (badge) badgesHtml += '<div class="result-badge">' + badge + ' ' + badgeText + '</div>';
-document.getElementById("resBadges").innerHTML = badgesHtml;
-
-// Badge popup
-if (badge && pct >= (cd.bestScore || 0)) {
-setTimeout(function() {
-document.getElementById("bpEmoji").textContent = badge;
-document.getElementById("bpTitle").textContent = badgeText;
-document.getElementById("bpText").textContent = ch.title;
-document.getElementById("badgePopup").classList.add("show");
-setTimeout(function() {
-document.getElementById("badgePopup").classList.remove("show");
-}, 3000);
-}, 500);
-}
-window.scrollTo(0, 0);
-}
-
-function retryQuiz() {
-initQuiz(state.currentChapter);
-}
-
-function showReview() {
-var list = document.getElementById("reviewList");
-if (list.style.display === "none") {
-list.style.display = "block";
-var html = "";
-state.answers.forEach(function(a, i) {
-var q = state.questions[i];
-var cls = a.correct ? "correct-item" : "wrong-item";
-html += '<div class="review-item ' + cls + '">';
-html += '<div class="review-q">' + (i+1) + '. ' + q.question + '</div>';
-html += '<div class="review-answer">';
-if (q.type === "multiple") {
-html += 'Doğru: <span class="correct-ans">' + q.options[q.correct] + '</span>';
-} else if (q.type === "truefalse") {
-html += 'Doğru: <span class="correct-ans">' + (q.correct ? "Doğru" : "Yanlış") + '</span>';
-} else if (q.type === "fillblank") {
-html += 'Doğru: <span class="correct-ans">' + q.answer + '</span>';
-} else if (q.type === "matching") {
-html += 'Eşleştirmeler: ' + q.pairs.map(function(p) { return '<span class="correct-ans">' + p.left + ' → ' + p.right + '</span>'; }).join(', ');
-}
-html += '</div>';
-html += '<div style="margin-top:8px;font-size:0.82rem;color:var(--text3)">' + q.explanation + '</div>';
-html += '</div>';
-});
-list.innerHTML = html;
-} else {
-list.style.display = "none";
-}
+function updateHeaderStats() {
+  var total = 0;
+  CHAPTERS.forEach(function(ch) { total += getChapterData(ch.id).bestScore || 0; });
+  var avg = CHAPTERS.length > 0 ? Math.round(total / CHAPTERS.length) : 0;
+  document.getElementById("headerScore").textContent = avg + "%";
+  document.getElementById("headerStreak").textContent = getGlobalStreak();
 }
 
 function showHome() {
-document.getElementById("homeScreen").style.display = "block";
-document.getElementById("quizScreen").style.display = "none";
-document.getElementById("resultScreen").style.display = "none";
-renderHome();
-window.scrollTo(0, 0);
+  document.getElementById("learnModal").classList.remove("active");
+  document.getElementById("quizModal").classList.remove("active");
+  renderHome();
 }
 
-function confirmExit() {
-if (state.currentQ > 0 && state.currentQ < state.questions.length) {
-if (confirm("Quizden çıkmak istediğine emin misin? İlerleme kaydedilmeyecek.")) {
-showHome();
-}
-} else {
-showHome();
-}
+/* ===== LEARN MODE ===== */
+var currentLearnCh = null;
+var currentLearnIdx = 0;
+var currentLearnData = [];
+
+function startLearn(chId) {
+  var ch = CHAPTERS[chId - 1];
+  loadChapterJS(ch, function() {
+    currentLearnData = window[ch.learnVar] || [];
+    if (currentLearnData.length === 0) { alert("Bu bölüm henüz yüklenmedi."); return; }
+    currentLearnCh = ch;
+    var d = getChapterData(ch.id);
+    currentLearnIdx = d.learnDone ? 0 : (d.learnPos || 0);
+    document.getElementById("learnChapterTitle").textContent = ch.title;
+    document.getElementById("learnModal").classList.add("active");
+    renderLearnCard();
+  });
 }
 
-// ============ INIT ============
+function renderLearnCard() {
+  if (currentLearnIdx >= currentLearnData.length) {
+    showLearnComplete();
+    return;
+  }
+  var item = currentLearnData[currentLearnIdx];
+  var total = currentLearnData.length;
+  document.getElementById("learnProgressText").textContent = (currentLearnIdx + 1) + "/" + total;
+  document.getElementById("learnProgressFill").style.width = ((currentLearnIdx + 1) / total * 100) + "%";
+
+  var html = '<div class="learn-card fade-in">' +
+    '<div class="learn-question" onclick="toggleAnswer()">' +
+    '<span class="q-icon">S</span><span>' + escHtml(item.q) + '</span></div>' +
+    '<div class="learn-answer" id="learnAnswer"><strong>Cevap:</strong> ' + escHtml(item.a) + '</div></div>' +
+    '<div class="learn-nav">' +
+    '<button onclick="prevLearn()" ' + (currentLearnIdx === 0 ? 'disabled' : '') + '>← Önceki</button>' +
+    '<button onclick="toggleAnswer()" id="showAnswerBtn">Cevabı Göster</button>' +
+    '<button class="primary" onclick="nextLearn()">' + (currentLearnIdx === total - 1 ? 'Tamamla ✓' : 'Sonraki →') + '</button></div>';
+  document.getElementById("learnBody").innerHTML = html;
+  document.getElementById("learnBody").scrollTop = 0;
+  window.scrollTo(0, 0);
+}
+
+function toggleAnswer() {
+  var el = document.getElementById("learnAnswer");
+  var btn = document.getElementById("showAnswerBtn");
+  if (el.classList.contains("visible")) {
+    el.classList.remove("visible");
+    if (btn) btn.textContent = "Cevabı Göster";
+  } else {
+    el.classList.add("visible");
+    if (btn) btn.textContent = "Cevabı Gizle";
+  }
+}
+
+function nextLearn() {
+  currentLearnIdx++;
+  var d = getChapterData(currentLearnCh.id);
+  if (currentLearnIdx > (d.learnPos || 0)) d.learnPos = currentLearnIdx;
+  if (currentLearnIdx >= currentLearnData.length) d.learnDone = true;
+  saveChapterData(currentLearnCh.id, d);
+  renderLearnCard();
+}
+function prevLearn() {
+  if (currentLearnIdx > 0) { currentLearnIdx--; renderLearnCard(); }
+}
+
+function showLearnComplete() {
+  document.getElementById("learnBody").innerHTML =
+    '<div class="learn-complete fade-in">' +
+    '<div class="check-icon">✓</div>' +
+    '<h2>Bölüm Tamamlandı! 🎉</h2>' +
+    '<p>' + currentLearnCh.title + ' bölümündeki tüm kavramları gözden geçirdiniz.</p>' +
+    '<div class="result-actions">' +
+    '<button onclick="currentLearnIdx=0;renderLearnCard()">🔄 Baştan Gözden Geçir</button>' +
+    '<button class="primary" onclick="closeLearn();startQuiz(' + currentLearnCh.id + ')">📝 Quiz\'e Geç</button>' +
+    '<button onclick="closeLearn()">Ana Sayfa</button></div></div>';
+}
+
+function closeLearn() {
+  document.getElementById("learnModal").classList.remove("active");
+  renderHome();
+}
+
+/* ===== QUIZ MODE ===== */
+var currentQuizCh = null;
+var currentQuizIdx = 0;
+var quizQuestions = [];
+var quizCorrectCount = 0;
+var quizAnswered = false;
+var wrongQuestions = [];
+var currentStreak = 0;
+var isRetryMode = false;
+
+function startQuiz(chId) {
+  var ch = CHAPTERS[chId - 1];
+  loadChapterJS(ch, function() {
+    var allQ = window[ch.quizVar] || [];
+    if (allQ.length === 0) { alert("Bu bölüm henüz yüklenmedi."); return; }
+    currentQuizCh = ch;
+    quizQuestions = shuffleArray(allQ.slice());
+    currentQuizIdx = 0;
+    quizCorrectCount = 0;
+    quizAnswered = false;
+    wrongQuestions = [];
+    currentStreak = getGlobalStreak();
+    isRetryMode = false;
+    document.getElementById("quizChapterTitle").textContent = ch.title;
+    document.getElementById("quizModal").classList.add("active");
+    renderQuizQuestion();
+  });
+}
+
+function startRetry() {
+  if (wrongQuestions.length === 0) return;
+  quizQuestions = shuffleArray(wrongQuestions.slice());
+  currentQuizIdx = 0;
+  quizCorrectCount = 0;
+  quizAnswered = false;
+  wrongQuestions = [];
+  isRetryMode = true;
+  renderQuizQuestion();
+}
+
+function renderQuizQuestion() {
+  if (currentQuizIdx >= quizQuestions.length) {
+    showQuizResult();
+    return;
+  }
+  var q = quizQuestions[currentQuizIdx];
+  var total = quizQuestions.length;
+  document.getElementById("quizProgressText").textContent = (currentQuizIdx + 1) + "/" + total;
+  document.getElementById("quizProgressFill").style.width = ((currentQuizIdx + 1) / total * 100) + "%";
+  quizAnswered = false;
+
+  var html = '<div class="quiz-card fade-in">';
+
+  if (q.type === "multiple") {
+    html += '<span class="quiz-type-tag multiple">Çoktan Seçmeli</span>';
+    html += '<div class="quiz-question">' + escHtml(q.question) + '</div>';
+    html += '<div class="quiz-options" id="quizOptions">';
+    var letters = ["A", "B", "C", "D"];
+    q.options.forEach(function(opt, i) {
+      html += '<div class="quiz-option" data-idx="' + i + '" onclick="answerMultiple(' + i + ',' + q.correct + ')">' +
+        '<span class="opt-letter">' + letters[i] + '</span><span>' + escHtml(opt) + '</span></div>';
+    });
+    html += '</div>';
+
+  } else if (q.type === "truefalse") {
+    html += '<span class="quiz-type-tag truefalse">Doğru / Yanlış</span>';
+    html += '<div class="quiz-question">' + escHtml(q.question) + '</div>';
+    html += '<div class="tf-options" id="quizOptions">';
+    html += '<div class="tf-btn" onclick="answerTF(true,' + q.correct + ')">✓ Doğru</div>';
+    html += '<div class="tf-btn" onclick="answerTF(false,' + q.correct + ')">✗ Yanlış</div>';
+    html += '</div>';
+
+  } else if (q.type === "fillblank") {
+    html += '<span class="quiz-type-tag fillblank">Boşluk Doldurma</span>';
+    html += '<div class="quiz-question">' + escHtml(q.question) + '</div>';
+    html += '<div class="fill-input-wrap" id="quizOptions">';
+    html += '<input type="text" class="fill-input" id="fillInput" placeholder="Cevabınızı yazın..." onkeydown="if(event.key===\'Enter\')answerFill()">';
+    html += '<button class="fill-submit" id="fillBtn" onclick="answerFill()">Kontrol Et</button>';
+    html += '</div>';
+
+  } else if (q.type === "matching") {
+    html += '<span class="quiz-type-tag matching">Eşleştirme</span>';
+    html += '<div class="quiz-question">' + escHtml(q.question) + '</div>';
+    html += renderMatching(q);
+  }
+
+  html += '<div class="quiz-explanation" id="quizExplanation"></div>';
+  html += '</div>';
+  html += '<div class="quiz-nav"><button id="quizNextBtn" onclick="nextQuiz()" style="display:none">Sonraki Soru →</button></div>';
+
+  document.getElementById("quizBody").innerHTML = html;
+  document.getElementById("quizBody").scrollTop = 0;
+  window.scrollTo(0, 0);
+
+  if (q.type === "matching") initMatching(q);
+  if (q.type === "fillblank") setTimeout(function(){ var el = document.getElementById("fillInput"); if(el) el.focus(); }, 100);
+}
+
+/* Multiple Choice */
+function answerMultiple(selected, correct) {
+  if (quizAnswered) return;
+  quizAnswered = true;
+  var opts = document.querySelectorAll(".quiz-option");
+  opts.forEach(function(o) {
+    o.classList.add("disabled");
+    var idx = parseInt(o.getAttribute("data-idx"));
+    if (idx === correct) o.classList.add("correct");
+    if (idx === selected && idx !== correct) o.classList.add("wrong");
+  });
+  processAnswer(selected === correct);
+}
+
+/* True/False */
+function answerTF(selected, correct) {
+  if (quizAnswered) return;
+  quizAnswered = true;
+  var btns = document.querySelectorAll(".tf-btn");
+  btns.forEach(function(b, i) {
+    b.classList.add("disabled");
+    var val = i === 0;
+    if (val === correct) b.classList.add("correct");
+    if (val === selected && val !== correct) b.classList.add("wrong");
+  });
+  processAnswer(selected === correct);
+}
+
+/* Fill Blank */
+function answerFill() {
+  if (quizAnswered) return;
+  var input = document.getElementById("fillInput");
+  var btn = document.getElementById("fillBtn");
+  if (!input || !input.value.trim()) return;
+  quizAnswered = true;
+  btn.disabled = true;
+  input.disabled = true;
+
+  var q = quizQuestions[currentQuizIdx];
+  var userAns = input.value.trim().toLowerCase().replace(/\s+/g, " ");
+  var correctAns = q.answer.toLowerCase().replace(/\s+/g, " ");
+  var alts = (q.alternatives || []).map(function(a) { return a.toLowerCase().replace(/\s+/g, " "); });
+  var isCorrect = userAns === correctAns || alts.indexOf(userAns) !== -1;
+
+  input.classList.add(isCorrect ? "correct" : "wrong");
+  if (!isCorrect) {
+    var hint = document.createElement("div");
+    hint.style.cssText = "margin-top:10px;font-size:14px;color:var(--green);font-weight:600;";
+    hint.textContent = "Doğru cevap: " + q.answer;
+    document.getElementById("quizOptions").appendChild(hint);
+  }
+  processAnswer(isCorrect);
+}
+
+/* Matching */
+var matchState = { selectedLeft: null, selectedRight: null, matched: [], pairs: [], wrongCount: 0 };
+
+function renderMatching(q) {
+  var shuffledRight = shuffleArray(q.pairs.map(function(p, i) { return { text: p.right, origIdx: i }; }));
+  var html = '<div class="match-container" id="matchContainer">';
+  q.pairs.forEach(function(p, i) {
+    html += '<div class="match-item match-left" data-idx="' + i + '" onclick="selectMatch(\'left\',' + i + ')">' + escHtml(p.left) + '</div>';
+  });
+  shuffledRight.forEach(function(r) {
+    html += '<div class="match-item match-right" data-idx="' + r.origIdx + '" onclick="selectMatch(\'right\',' + r.origIdx + ')">' + escHtml(r.text) + '</div>';
+  });
+  html += '</div>';
+  return html;
+}
+
+function initMatching(q) {
+  matchState = { selectedLeft: null, selectedRight: null, matched: [], pairs: q.pairs, wrongCount: 0 };
+  // Reorder: left items first, then right items
+  var container = document.getElementById("matchContainer");
+  if (!container) return;
+  var lefts = container.querySelectorAll(".match-left");
+  var rights = container.querySelectorAll(".match-right");
+  container.innerHTML = "";
+  for (var i = 0; i < lefts.length; i++) {
+    container.appendChild(lefts[i]);
+    if (rights[i]) container.appendChild(rights[i]);
+  }
+}
+
+function selectMatch(side, idx) {
+  if (quizAnswered) return;
+  if (matchState.matched.indexOf(idx) !== -1 && side === "left") return;
+
+  var items = document.querySelectorAll(".match-" + side);
+  items.forEach(function(el) { if (!el.classList.contains("matched")) el.classList.remove("selected"); });
+
+  if (side === "left") {
+    if (matchState.matched.indexOf(idx) !== -1) return;
+    matchState.selectedLeft = idx;
+  } else {
+    var alreadyMatchedRight = matchState.matched.some(function(mIdx) {
+      return mIdx === idx;
+    });
+    // Check by right index in matched pairs
+    matchState.selectedRight = idx;
+  }
+
+  var clicked = document.querySelector(".match-" + side + "[data-idx='" + idx + "']");
+  if (clicked && !clicked.classList.contains("matched")) clicked.classList.add("selected");
+
+  if (matchState.selectedLeft !== null && matchState.selectedRight !== null) {
+    checkMatchPair();
+  }
+}
+
+function checkMatchPair() {
+  var lIdx = matchState.selectedLeft;
+  var rIdx = matchState.selectedRight;
+  var leftEl = document.querySelector(".match-left[data-idx='" + lIdx + "']");
+  var rightEl = document.querySelector(".match-right[data-idx='" + rIdx + "']");
+
+  if (lIdx === rIdx) {
+    // Correct match
+    leftEl.classList.remove("selected");
+    rightEl.classList.remove("selected");
+    leftEl.classList.add("matched");
+    rightEl.classList.add("matched");
+    matchState.matched.push(lIdx);
+  } else {
+    // Wrong match
+    matchState.wrongCount++;
+    leftEl.classList.add("wrong-flash");
+    rightEl.classList.add("wrong-flash");
+    setTimeout(function() {
+      leftEl.classList.remove("wrong-flash", "selected");
+      rightEl.classList.remove("wrong-flash", "selected");
+    }, 600);
+  }
+
+  matchState.selectedLeft = null;
+  matchState.selectedRight = null;
+
+  if (matchState.matched.length === matchState.pairs.length) {
+    quizAnswered = true;
+    processAnswer(matchState.wrongCount === 0);
+  }
+}
+
+/* Process Answer */
+function processAnswer(isCorrect) {
+  var q = quizQuestions[currentQuizIdx];
+  if (isCorrect) {
+    quizCorrectCount++;
+    currentStreak++;
+    setGlobalStreak(currentStreak);
+    showStreak(currentStreak);
+  } else {
+    currentStreak = 0;
+    setGlobalStreak(0);
+    wrongQuestions.push(q);
+  }
+
+  var expEl = document.getElementById("quizExplanation");
+  if (expEl && q.explanation) {
+    expEl.className = "quiz-explanation visible " + (isCorrect ? "correct-exp" : "wrong-exp");
+    expEl.innerHTML = '<span class="exp-icon">' + (isCorrect ? "✓" : "✗") + '</span> ' + escHtml(q.explanation);
+  }
+
+  document.getElementById("quizNextBtn").style.display = "inline-block";
+  updateHeaderStats();
+}
+
+function nextQuiz() {
+  currentQuizIdx++;
+  renderQuizQuestion();
+}
+
+function showQuizResult() {
+  var total = quizQuestions.length;
+  var pct = total > 0 ? Math.round(quizCorrectCount / total * 100) : 0;
+  var cls = pct >= 80 ? "high" : (pct >= 60 ? "mid" : "low");
+  var badge = badgeFor(pct);
+  var rBadge = pct >= 95 ? "🥇" : (pct >= 80 ? "🥈" : (pct >= 60 ? "🥉" : "😔"));
+  var msg = pct >= 95 ? "Mükemmel! Tam hakimiyet!" : (pct >= 80 ? "Çok iyi! Harika gidiyorsun!" : (pct >= 60 ? "İyi, biraz daha çalışma ile mükemmel olacak!" : "Tekrar etmeni öneririz."));
+
+  if (!isRetryMode) {
+    var d = getChapterData(currentQuizCh.id);
+    d.attempts = (d.attempts || 0) + 1;
+    if (pct > (d.bestScore || 0)) d.bestScore = pct;
+    saveChapterData(currentQuizCh.id, d);
+  }
+
+  var html = '<div class="result-screen fade-in">' +
+    '<div class="result-badge">' + rBadge + '</div>' +
+    '<div class="result-score ' + cls + '">' + pct + '%</div>' +
+    '<div class="result-text">' + quizCorrectCount + '/' + total + ' doğru — ' + msg + '</div>' +
+    '<div class="result-actions">';
+
+  if (wrongQuestions.length > 0) {
+    html += '<button class="primary" onclick="startRetry()">🔄 Yanlışları Tekrar Et (' + wrongQuestions.length + ')</button>';
+  }
+  html += '<button onclick="startQuiz(' + currentQuizCh.id + ')">Yeniden Başla</button>' +
+    '<button onclick="closeQuiz()">Ana Sayfa</button></div></div>';
+
+  document.getElementById("quizBody").innerHTML = html;
+}
+
+function closeQuiz() {
+  document.getElementById("quizModal").classList.remove("active");
+  renderHome();
+}
+
+/* ===== STREAK POPUP ===== */
+function showStreak(count) {
+  if (count < 3) return;
+  var popup = document.getElementById("streakPopup");
+  document.getElementById("streakCount").textContent = count;
+  popup.classList.add("visible");
+  clearTimeout(popup._timer);
+  popup._timer = setTimeout(function() { popup.classList.remove("visible"); }, 2000);
+}
+
+/* ===== UTILS ===== */
+function shuffleArray(arr) {
+  for (var i = arr.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
+  }
+  return arr;
+}
+
+function escHtml(str) {
+  if (!str) return "";
+  var d = document.createElement("div");
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+function resetAll() {
+  if (confirm("Tüm ilerleme verileri silinecek. Emin misiniz?")) {
+    localStorage.removeItem("iyd_data");
+    renderHome();
+  }
+}
+
+/* ===== INIT ===== */
 renderHome();
 </script>
 </body>

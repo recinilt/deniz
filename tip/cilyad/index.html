@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ÇİLYAD - Çocuklarda İleri Yaşam Desteği Quiz</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-primary: #0a0e1a;
+  --bg-secondary: #111827;
+  --bg-card: #1a2236;
+  --bg-card-hover: #1f2a42;
+  --bg-elevated: #243050;
+  --text-primary: #e8edf5;
+  --text-secondary: #8b95a8;
+  --text-muted: #5a6478;
+  --accent: #00d4aa;
+  --accent-glow: rgba(0,212,170,0.15);
+  --accent-dark: #00a885;
+  --danger: #ff4757;
+  --danger-glow: rgba(255,71,87,0.15);
+  --warning: #ffa502;
+  --warning-glow: rgba(255,165,2,0.15);
+  --success: #2ed573;
+  --success-glow: rgba(46,213,115,0.15);
+  --info: #3b82f6;
+  --info-glow: rgba(59,130,246,0.15);
+  --border: rgba(255,255,255,0.06);
+  --radius: 14px;
+  --radius-sm: 8px;
+  --radius-lg: 20px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.3);
+  --shadow-lg: 0 8px 40px rgba(0,0,0,0.4);
+  --font-main: 'Outfit', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --transition: 0.25s cubic-bezier(0.4,0,0.2,1);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--font-main);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-primary); }
+::-webkit-scrollbar-thumb { background: var(--bg-elevated); border-radius: 3px; }
+
+/* HEADER */
+.header {
+  background: linear-gradient(180deg, rgba(17,24,39,0.98) 0%, rgba(10,14,26,0.95) 100%);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 100;
+  padding: 0 20px;
+}
+.header-inner {
+  max-width: 1100px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 0;
+  gap: 16px;
+}
+.logo {
+  display: flex; align-items: center; gap: 12px;
+  cursor: pointer;
+}
+.logo-icon {
+  width: 40px; height: 40px;
+  background: linear-gradient(135deg, var(--accent), #00b894);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; font-weight: 700; color: var(--bg-primary);
+}
+.logo-text { font-weight: 700; font-size: 1.15rem; letter-spacing: -0.02em; }
+.logo-text span { color: var(--accent); }
+
+.header-stats {
+  display: flex; align-items: center; gap: 16px;
+}
+.progress-mini {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 0.82rem; color: var(--text-secondary);
+}
+.progress-mini-bar {
+  width: 100px; height: 5px;
+  background: var(--bg-elevated);
+  border-radius: 3px; overflow: hidden;
+}
+.progress-mini-fill {
+  height: 100%; background: var(--accent);
+  border-radius: 3px; transition: width 0.5s ease;
+}
+.pdf-link {
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 14px;
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem; font-weight: 500;
+  transition: var(--transition);
+  white-space: nowrap;
+}
+.pdf-link:hover { background: var(--bg-card-hover); color: var(--text-primary); }
+
+/* MAIN */
+.main { max-width: 1100px; margin: 0 auto; padding: 28px 20px 60px; }
+
+/* HOME VIEW */
+.home-hero {
+  text-align: center; padding: 40px 0 32px;
+}
+.home-hero h1 {
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  font-weight: 800; letter-spacing: -0.03em;
+  background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  margin-bottom: 10px;
+}
+.home-hero p {
+  color: var(--text-secondary); font-size: 1rem; max-width: 600px; margin: 0 auto;
+}
+
+/* STAT CARDS */
+.stats-row {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px; margin: 24px 0;
+}
+.stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px; text-align: center;
+}
+.stat-card .stat-value {
+  font-size: 1.6rem; font-weight: 700;
+  font-family: var(--font-mono);
+}
+.stat-card .stat-label {
+  font-size: 0.75rem; color: var(--text-secondary);
+  margin-top: 2px; text-transform: uppercase; letter-spacing: 0.05em;
+}
+.stat-card.accent .stat-value { color: var(--accent); }
+.stat-card.warning .stat-value { color: var(--warning); }
+.stat-card.info .stat-value { color: var(--info); }
+
+/* CHAPTER GRID */
+.chapters-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px; margin-top: 24px;
+}
+.chapter-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  transition: var(--transition);
+  position: relative; overflow: hidden;
+}
+.chapter-card:hover {
+  border-color: rgba(0,212,170,0.2);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+.chapter-card .ch-num {
+  font-family: var(--font-mono); font-size: 0.72rem;
+  color: var(--accent); font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  margin-bottom: 8px;
+}
+.chapter-card h3 {
+  font-size: 1.05rem; font-weight: 600;
+  line-height: 1.4; margin-bottom: 14px;
+  letter-spacing: -0.01em;
+}
+.ch-progress {
+  display: flex; gap: 12px; margin-bottom: 16px;
+}
+.ch-progress-item {
+  flex: 1; display: flex; flex-direction: column; gap: 4px;
+}
+.ch-progress-label {
+  font-size: 0.7rem; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.05em;
+}
+.ch-progress-bar {
+  height: 4px; background: var(--bg-elevated);
+  border-radius: 2px; overflow: hidden;
+}
+.ch-progress-fill { height: 100%; border-radius: 2px; transition: width 0.5s ease; }
+.ch-progress-fill.learn { background: var(--info); }
+.ch-progress-fill.quiz { background: var(--accent); }
+
+.ch-badge {
+  position: absolute; top: 16px; right: 16px;
+  font-size: 1.4rem;
+}
+
+.ch-actions {
+  display: flex; gap: 10px;
+}
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 10px 18px;
+  border: none; border-radius: var(--radius-sm);
+  font-family: var(--font-main);
+  font-size: 0.85rem; font-weight: 600;
+  cursor: pointer; transition: var(--transition);
+  text-decoration: none;
+}
+.btn-learn {
+  flex: 1;
+  background: var(--info-glow); color: var(--info);
+  border: 1px solid rgba(59,130,246,0.2);
+}
+.btn-learn:hover { background: rgba(59,130,246,0.25); }
+.btn-quiz {
+  flex: 1;
+  background: var(--accent-glow); color: var(--accent);
+  border: 1px solid rgba(0,212,170,0.2);
+}
+.btn-quiz:hover { background: rgba(0,212,170,0.25); }
+.btn-primary {
+  background: var(--accent); color: var(--bg-primary);
+}
+.btn-primary:hover { background: var(--accent-dark); }
+.btn-secondary {
+  background: var(--bg-elevated); color: var(--text-primary);
+}
+.btn-secondary:hover { background: var(--bg-card-hover); }
+.btn-danger {
+  background: var(--danger-glow); color: var(--danger);
+  border: 1px solid rgba(255,71,87,0.2);
+}
+.btn-danger:hover { background: rgba(255,71,87,0.25); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.ch-score-text {
+  font-size: 0.75rem; color: var(--text-muted);
+  margin-top: 8px; text-align: center;
+}
+
+/* VIEW CONTAINERS */
+.view { display: none; }
+.view.active { display: block; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* BACK NAV */
+.back-nav {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 20px;
+}
+.back-btn {
+  background: var(--bg-card); border: 1px solid var(--border);
+  color: var(--text-secondary); padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  cursor: pointer; font-family: var(--font-main);
+  font-size: 0.82rem; font-weight: 500;
+  transition: var(--transition);
+  display: flex; align-items: center; gap: 6px;
+}
+.back-btn:hover { background: var(--bg-card-hover); color: var(--text-primary); }
+.view-title {
+  font-size: 1.2rem; font-weight: 700;
+}
+
+/* LEARN MODE */
+.learn-container {
+  max-width: 680px; margin: 0 auto;
+}
+.learn-progress {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 20px;
+  font-size: 0.82rem; color: var(--text-secondary);
+}
+.learn-progress-bar {
+  flex: 1; height: 6px;
+  background: var(--bg-elevated);
+  border-radius: 3px; overflow: hidden;
+}
+.learn-progress-fill {
+  height: 100%; background: var(--info);
+  border-radius: 3px; transition: width 0.3s ease;
+}
+.learn-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  min-height: 220px;
+  transition: var(--transition);
+}
+.learn-question {
+  font-size: 1.1rem; font-weight: 600;
+  line-height: 1.5; margin-bottom: 20px;
+  color: var(--text-primary);
+}
+.learn-answer {
+  background: var(--bg-elevated);
+  border-radius: var(--radius);
+  padding: 20px;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--accent);
+  display: none;
+  animation: slideUp 0.3s ease;
+}
+@keyframes slideUp { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
+.learn-answer.visible { display: block; }
+
+.learn-actions {
+  display: flex; gap: 10px; margin-top: 20px; justify-content: center;
+}
+.learn-complete {
+  text-align: center; padding: 40px;
+}
+.learn-complete h2 { font-size: 1.5rem; margin-bottom: 10px; }
+.learn-complete p { color: var(--text-secondary); margin-bottom: 24px; }
+
+/* QUIZ MODE */
+.quiz-container { max-width: 720px; margin: 0 auto; }
+.quiz-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 20px; gap: 12px; flex-wrap: wrap;
+}
+.quiz-progress-text { font-size: 0.82rem; color: var(--text-secondary); }
+.quiz-streak {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 0.82rem; font-weight: 600; color: var(--warning);
+}
+.quiz-progress-bar {
+  width: 100%; height: 6px;
+  background: var(--bg-elevated);
+  border-radius: 3px; overflow: hidden; margin-bottom: 20px;
+}
+.quiz-progress-fill {
+  height: 100%; background: var(--accent);
+  border-radius: 3px; transition: width 0.3s ease;
+}
+
+.quiz-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+}
+.quiz-type-badge {
+  display: inline-block; padding: 3px 10px;
+  background: var(--bg-elevated);
+  border-radius: 20px;
+  font-size: 0.7rem; font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase; letter-spacing: 0.05em;
+  margin-bottom: 14px;
+}
+.quiz-question {
+  font-size: 1.05rem; font-weight: 600;
+  line-height: 1.5; margin-bottom: 20px;
+}
+
+/* MCQ OPTIONS */
+.quiz-options { display: flex; flex-direction: column; gap: 10px; }
+.quiz-option {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 18px;
+  background: var(--bg-elevated);
+  border: 2px solid transparent;
+  border-radius: var(--radius);
+  cursor: pointer; transition: var(--transition);
+  font-size: 0.92rem;
+}
+.quiz-option:hover:not(.disabled) { border-color: rgba(255,255,255,0.1); background: var(--bg-card-hover); }
+.quiz-option.selected { border-color: var(--info); background: var(--info-glow); }
+.quiz-option.correct { border-color: var(--success); background: var(--success-glow); }
+.quiz-option.wrong { border-color: var(--danger); background: var(--danger-glow); }
+.quiz-option.disabled { cursor: default; opacity: 0.7; }
+.quiz-option .opt-letter {
+  width: 28px; height: 28px; min-width: 28px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%; background: rgba(255,255,255,0.06);
+  font-size: 0.78rem; font-weight: 700;
+  font-family: var(--font-mono);
+}
+
+/* TRUE/FALSE */
+.tf-options { display: flex; gap: 12px; }
+.tf-btn {
+  flex: 1; padding: 16px;
+  background: var(--bg-elevated);
+  border: 2px solid transparent;
+  border-radius: var(--radius);
+  cursor: pointer; font-family: var(--font-main);
+  font-size: 1rem; font-weight: 600;
+  color: var(--text-primary);
+  transition: var(--transition);
+  text-align: center;
+}
+.tf-btn:hover:not(.disabled) { border-color: rgba(255,255,255,0.1); }
+.tf-btn.selected { border-color: var(--info); background: var(--info-glow); }
+.tf-btn.correct { border-color: var(--success); background: var(--success-glow); }
+.tf-btn.wrong { border-color: var(--danger); background: var(--danger-glow); }
+.tf-btn.disabled { cursor: default; }
+
+/* FILL BLANK */
+.fill-input-wrap {
+  display: flex; gap: 10px; align-items: center;
+}
+.fill-input {
+  flex: 1; padding: 14px 18px;
+  background: var(--bg-elevated);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font-family: var(--font-main);
+  font-size: 1rem; outline: none;
+  transition: var(--transition);
+}
+.fill-input:focus { border-color: var(--accent); }
+.fill-input.correct { border-color: var(--success); }
+.fill-input.wrong { border-color: var(--danger); }
+.fill-submit {
+  padding: 14px 24px;
+  background: var(--accent); color: var(--bg-primary);
+  border: none; border-radius: var(--radius);
+  font-family: var(--font-main);
+  font-size: 0.9rem; font-weight: 600;
+  cursor: pointer; transition: var(--transition);
+}
+.fill-submit:hover { background: var(--accent-dark); }
+.fill-submit:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* MATCHING */
+.matching-area { display: flex; gap: 16px; flex-wrap: wrap; }
+.matching-col { flex: 1; min-width: 200px; display: flex; flex-direction: column; gap: 8px; }
+.matching-col-title {
+  font-size: 0.72rem; font-weight: 600; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;
+}
+.match-item {
+  padding: 12px 16px;
+  background: var(--bg-elevated);
+  border: 2px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer; transition: var(--transition);
+  font-size: 0.88rem;
+}
+.match-item:hover:not(.disabled):not(.matched) { border-color: rgba(255,255,255,0.1); }
+.match-item.active { border-color: var(--info); background: var(--info-glow); }
+.match-item.matched { border-color: var(--success); background: var(--success-glow); cursor: default; opacity: 0.7; }
+.match-item.wrong-flash { border-color: var(--danger); background: var(--danger-glow); }
+.match-item.disabled { cursor: default; }
+
+/* EXPLANATION */
+.explanation {
+  margin-top: 16px; padding: 16px 20px;
+  border-radius: var(--radius);
+  font-size: 0.88rem; line-height: 1.6;
+  animation: slideUp 0.3s ease;
+}
+.explanation.correct-exp { background: var(--success-glow); border-left: 3px solid var(--success); }
+.explanation.wrong-exp { background: var(--danger-glow); border-left: 3px solid var(--danger); }
+.explanation .exp-title { font-weight: 700; margin-bottom: 4px; }
+
+.quiz-next-wrap { display: flex; justify-content: center; margin-top: 20px; }
+
+/* RESULTS */
+.results-container { max-width: 600px; margin: 0 auto; text-align: center; }
+.results-score {
+  font-size: 4rem; font-weight: 800;
+  font-family: var(--font-mono);
+  margin: 20px 0 4px;
+}
+.results-score.high { color: var(--success); }
+.results-score.mid { color: var(--warning); }
+.results-score.low { color: var(--danger); }
+.results-label { font-size: 1rem; color: var(--text-secondary); margin-bottom: 24px; }
+.results-detail {
+  display: flex; justify-content: center; gap: 24px;
+  margin-bottom: 28px; font-size: 0.88rem;
+}
+.results-detail span { color: var(--text-secondary); }
+.results-detail strong { color: var(--text-primary); }
+.results-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+/* STREAK POPUP */
+.streak-popup {
+  position: fixed; top: 80px; right: 20px;
+  background: var(--bg-card);
+  border: 1px solid rgba(255,165,2,0.3);
+  border-radius: var(--radius);
+  padding: 14px 20px;
+  z-index: 200;
+  animation: popIn 0.4s ease, popOut 0.4s ease 1.6s forwards;
+  box-shadow: 0 4px 30px rgba(255,165,2,0.15);
+}
+@keyframes popIn { from { opacity:0; transform: translateX(40px) scale(0.9); } to { opacity:1; transform: translateX(0) scale(1); } }
+@keyframes popOut { from { opacity:1; } to { opacity:0; transform: translateY(-10px); } }
+.streak-popup .streak-num { font-size: 1.4rem; font-weight: 800; color: var(--warning); }
+.streak-popup .streak-text { font-size: 0.78rem; color: var(--text-secondary); }
+
+/* FOOTER */
+.footer {
+  text-align: center; padding: 32px 20px;
+  color: var(--text-muted); font-size: 0.75rem;
+  border-top: 1px solid var(--border);
+  margin-top: 40px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 640px) {
+  .header-inner { padding: 10px 0; }
+  .progress-mini { display: none; }
+  .chapters-grid { grid-template-columns: 1fr; }
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+  .matching-area { flex-direction: column; }
+  .tf-options { flex-direction: column; }
+  .learn-card { padding: 20px; }
+  .quiz-card { padding: 20px; }
+  .home-hero { padding: 24px 0 20px; }
+  .fill-input-wrap { flex-direction: column; }
+}
+
+.hidden { display: none !important; }
+
+/* COLOR CODED CHAPTERS */
+.ch-color-red { border-left: 3px solid var(--danger); }
+.ch-color-yellow { border-left: 3px solid var(--warning); }
+.ch-color-green { border-left: 3px solid var(--success); }
+.ch-color-none { border-left: 3px solid var(--border); }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-inner">
+    <div class="logo" onclick="showHome()">
+      <div class="logo-icon">Ç</div>
+      <div class="logo-text"><span>ÇİLYAD</span> Quiz</div>
+    </div>
+    <div class="header-stats">
+      <div class="progress-mini">
+        <span id="headerProgressText">0%</span>
+        <div class="progress-mini-bar">
+          <div class="progress-mini-fill" id="headerProgressBar" style="width:0%"></div>
+        </div>
+      </div>
+      <a href="cilyadegitimkitabipdf.pdf" download class="pdf-link">📥 PDF İndir</a>
+    </div>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- HOME VIEW -->
+  <div id="homeView" class="view active">
+    <div class="home-hero">
+      <h1>Çocuklarda İleri Yaşam Desteği</h1>
+      <p>T.C. Sağlık Bakanlığı eğitim kitabından 7 bölüm, 350+ öğrenme kartı ve 130+ quiz sorusu</p>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card accent">
+        <div class="stat-value" id="statCompleted">0</div>
+        <div class="stat-label">Tamamlanan</div>
+      </div>
+      <div class="stat-card info">
+        <div class="stat-value" id="statLearn">0%</div>
+        <div class="stat-label">Öğrenme</div>
+      </div>
+      <div class="stat-card warning">
+        <div class="stat-value" id="statAvgScore">-</div>
+        <div class="stat-label">Ort. Skor</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="statStreak">0</div>
+        <div class="stat-label">En İyi Seri</div>
+      </div>
+    </div>
+
+    <div class="chapters-grid" id="chaptersGrid"></div>
+  </div>
+
+  <!-- LEARN VIEW -->
+  <div id="learnView" class="view">
+    <div class="back-nav">
+      <button class="back-btn" onclick="showHome()">← Geri</button>
+      <div class="view-title" id="learnTitle"></div>
+    </div>
+    <div class="learn-container">
+      <div class="learn-progress">
+        <span id="learnProgressText">0/0</span>
+        <div class="learn-progress-bar">
+          <div class="learn-progress-fill" id="learnProgressBar" style="width:0%"></div>
+        </div>
+      </div>
+      <div id="learnContent"></div>
+    </div>
+  </div>
+
+  <!-- QUIZ VIEW -->
+  <div id="quizView" class="view">
+    <div class="back-nav">
+      <button class="back-btn" onclick="confirmQuitQuiz()">← Çık</button>
+      <div class="view-title" id="quizTitle"></div>
+    </div>
+    <div class="quiz-container">
+      <div class="quiz-header">
+        <span class="quiz-progress-text" id="quizProgressText">Soru 1/20</span>
+        <span class="quiz-streak" id="quizStreakDisplay">🔥 0</span>
+      </div>
+      <div class="quiz-progress-bar">
+        <div class="quiz-progress-fill" id="quizProgressBar" style="width:0%"></div>
+      </div>
+      <div id="quizContent"></div>
+    </div>
+  </div>
+
+  <!-- RESULTS VIEW -->
+  <div id="resultsView" class="view">
+    <div class="back-nav">
+      <button class="back-btn" onclick="showHome()">← Ana Sayfa</button>
+      <div class="view-title">Sonuçlar</div>
+    </div>
+    <div class="results-container" id="resultsContent"></div>
+  </div>
+
+</main>
+
+<footer class="footer">
+  T.C. Sağlık Bakanlığı - Çocuklarda İleri Yaşam Desteği Eğitim Kitabı · Quiz Uygulaması
+</footer>
+
+<script>
+// ==================== APP STATE ====================
+const APP = {
+  chapters: [
+    { id: 1, title: "Bebek ve Çocuklarda Acil Olgu Yönetimi", jsFile: "js/bolum01.js", learnVar: "bolum01_learn", quizVar: "bolum01_sorular" },
+    { id: 2, title: "Bebek ve Çocuklarda Solunum Acilleri", jsFile: "js/bolum02.js", learnVar: "bolum02_learn", quizVar: "bolum02_sorular" },
+    { id: 3, title: "Şok ve Tedavisi", jsFile: "js/bolum03.js", learnVar: "bolum03_learn", quizVar: "bolum03_sorular" },
+    { id: 4, title: "Bebek ve Çocuklarda Ritim Bozuklukları ve Yönetimi", jsFile: "js/bolum04.js", learnVar: "bolum04_learn", quizVar: "bolum04_sorular" },
+    { id: 5, title: "Arrest Ritimlerinin Yönetimi", jsFile: "js/bolum05.js", learnVar: "bolum05_learn", quizVar: "bolum05_sorular" },
+    { id: 6, title: "Bebek ve Çocuklarda Nöbet Yönetimi", jsFile: "js/bolum06.js", learnVar: "bolum06_learn", quizVar: "bolum06_sorular" },
+    { id: 7, title: "Travma Yönetimi", jsFile: "js/bolum07.js", learnVar: "bolum07_learn", quizVar: "bolum07_sorular" }
+  ],
+  loadedChapters: {},
+  currentView: 'home',
+  currentChapter: null,
+  learnState: { index: 0, revealed: false },
+  quizState: { questions: [], index: 0, score: 0, streak: 0, maxStreak: 0, answers: [], answered: false, matchState: null }
+};
+
+// ==================== STORAGE ====================
+function getStorage() {
+  try {
+    let data = localStorage.getItem('cilyad_progress');
+    return data ? JSON.parse(data) : {};
+  } catch(e) { return {}; }
+}
+function setStorage(data) {
+  try { localStorage.setItem('cilyad_progress', JSON.stringify(data)); } catch(e) {}
+}
+function getChapterProgress(chId) {
+  let s = getStorage();
+  return s['ch_' + chId] || { learnDone: false, learnIndex: 0, bestScore: 0, attempts: 0, bestStreak: 0, wrongIds: [] };
+}
+function saveChapterProgress(chId, progress) {
+  let s = getStorage();
+  s['ch_' + chId] = progress;
+  setStorage(s);
+}
+
+// ==================== CHAPTER LOADING ====================
+function loadChapter(chId, callback) {
+  if (APP.loadedChapters[chId]) { callback(); return; }
+  let ch = APP.chapters.find(c => c.id === chId);
+  let script = document.createElement('script');
+  script.src = ch.jsFile;
+  script.onload = function() { APP.loadedChapters[chId] = true; callback(); };
+  script.onerror = function() { alert('Bölüm dosyası yüklenemedi: ' + ch.jsFile); };
+  document.head.appendChild(script);
+}
+
+function getLearnData(chId) {
+  let ch = APP.chapters.find(c => c.id === chId);
+  return window[ch.learnVar] || [];
+}
+function getQuizData(chId) {
+  let ch = APP.chapters.find(c => c.id === chId);
+  return window[ch.quizVar] || [];
+}
+
+// ==================== VIEW MANAGEMENT ====================
+function showView(viewId) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById(viewId).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function showHome() {
+  APP.currentView = 'home';
+  showView('homeView');
+  renderChapters();
+  updateGlobalStats();
+}
+
+// ==================== RENDER CHAPTERS ====================
+function renderChapters() {
+  let grid = document.getElementById('chaptersGrid');
+  grid.innerHTML = '';
+  APP.chapters.forEach(ch => {
+    let prog = getChapterProgress(ch.id);
+    let learnData = APP.loadedChapters[ch.id] ? getLearnData(ch.id) : [];
+    let quizData = APP.loadedChapters[ch.id] ? getQuizData(ch.id) : [];
+    let learnTotal = learnData.length || 1;
+    let learnPct = prog.learnDone ? 100 : Math.round((prog.learnIndex / learnTotal) * 100);
+    let quizPct = prog.bestScore || 0;
+
+    let colorClass = 'ch-color-none';
+    if (prog.attempts > 0) {
+      if (quizPct >= 80) colorClass = 'ch-color-green';
+      else if (quizPct >= 60) colorClass = 'ch-color-yellow';
+      else colorClass = 'ch-color-red';
+    }
+
+    let badge = '';
+    if (quizPct >= 95) badge = '🥇';
+    else if (quizPct >= 80) badge = '🥈';
+    else if (quizPct >= 60) badge = '🥉';
+
+    let scoreText = '';
+    if (prog.attempts > 0) {
+      scoreText = `En iyi: %${quizPct} · ${prog.attempts} deneme`;
+    }
+
+    let card = document.createElement('div');
+    card.className = 'chapter-card ' + colorClass;
+    card.innerHTML = `
+      <div class="ch-num">Bölüm ${ch.id}</div>
+      ${badge ? `<div class="ch-badge">${badge}</div>` : ''}
+      <h3>${ch.title}</h3>
+      <div class="ch-progress">
+        <div class="ch-progress-item">
+          <span class="ch-progress-label">📖 Öğren</span>
+          <div class="ch-progress-bar"><div class="ch-progress-fill learn" style="width:${learnPct}%"></div></div>
+        </div>
+        <div class="ch-progress-item">
+          <span class="ch-progress-label">📝 Quiz</span>
+          <div class="ch-progress-bar"><div class="ch-progress-fill quiz" style="width:${quizPct}%"></div></div>
+        </div>
+      </div>
+      <div class="ch-actions">
+        <button class="btn btn-learn" onclick="startLearn(${ch.id})">📖 Öğren</button>
+        <button class="btn btn-quiz" onclick="startQuiz(${ch.id})">📝 Quiz</button>
+      </div>
+      ${scoreText ? `<div class="ch-score-text">${scoreText}</div>` : ''}
+    `;
+    grid.appendChild(card);
+  });
+}
+
+// ==================== GLOBAL STATS ====================
+function updateGlobalStats() {
+  let totalChapters = APP.chapters.length;
+  let completed = 0;
+  let totalLearnPct = 0;
+  let totalQuizScore = 0;
+  let quizAttempted = 0;
+  let bestStreak = 0;
+
+  APP.chapters.forEach(ch => {
+    let prog = getChapterProgress(ch.id);
+    if (prog.learnDone && prog.bestScore >= 60) completed++;
+    totalLearnPct += prog.learnDone ? 100 : 0;
+    if (prog.attempts > 0) {
+      totalQuizScore += prog.bestScore;
+      quizAttempted++;
+    }
+    if (prog.bestStreak > bestStreak) bestStreak = prog.bestStreak;
+  });
+
+  document.getElementById('statCompleted').textContent = completed + '/' + totalChapters;
+  document.getElementById('statLearn').textContent = Math.round(totalLearnPct / totalChapters) + '%';
+  document.getElementById('statAvgScore').textContent = quizAttempted > 0 ? '%' + Math.round(totalQuizScore / quizAttempted) : '-';
+  document.getElementById('statStreak').textContent = bestStreak;
+
+  let overallPct = Math.round(((completed / totalChapters) * 100));
+  document.getElementById('headerProgressBar').style.width = overallPct + '%';
+  document.getElementById('headerProgressText').textContent = overallPct + '%';
+}
+
+// ==================== LEARN MODE ====================
+function startLearn(chId) {
+  loadChapter(chId, function() {
+    APP.currentChapter = chId;
+    APP.currentView = 'learn';
+    let ch = APP.chapters.find(c => c.id === chId);
+    let prog = getChapterProgress(chId);
+    APP.learnState = { index: prog.learnDone ? 0 : prog.learnIndex, revealed: false };
+    document.getElementById('learnTitle').textContent = '📖 ' + ch.title;
+    showView('learnView');
+    renderLearnCard();
+  });
+}
+
+function renderLearnCard() {
+  let data = getLearnData(APP.currentChapter);
+  let idx = APP.learnState.index;
+  let total = data.length;
+  let pct = Math.round(((idx) / total) * 100);
+
+  document.getElementById('learnProgressText').textContent = (idx + 1) + '/' + total;
+  document.getElementById('learnProgressBar').style.width = pct + '%';
+
+  if (idx >= total) {
+    // Completed
+    let prog = getChapterProgress(APP.currentChapter);
+    prog.learnDone = true;
+    prog.learnIndex = total;
+    saveChapterProgress(APP.currentChapter, prog);
+    document.getElementById('learnContent').innerHTML = `
+      <div class="learn-complete">
+        <div style="font-size:3rem;margin-bottom:16px">🎉</div>
+        <h2>Bölüm Tamamlandı!</h2>
+        <p>Tüm ${total} konu kartını incelediniz. Şimdi quiz ile bilginizi test edebilirsiniz.</p>
+        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+          <button class="btn btn-secondary" onclick="APP.learnState.index=0;renderLearnCard()">🔄 Baştan Oku</button>
+          <button class="btn btn-primary" onclick="startQuiz(${APP.currentChapter})">📝 Quiz'e Geç</button>
+          <button class="btn btn-secondary" onclick="showHome()">Ana Sayfa</button>
+        </div>
+      </div>`;
+    document.getElementById('learnProgressBar').style.width = '100%';
+    document.getElementById('learnProgressText').textContent = total + '/' + total;
+    return;
+  }
+
+  let item = data[idx];
+  APP.learnState.revealed = false;
+
+  document.getElementById('learnContent').innerHTML = `
+    <div class="learn-card">
+      <div class="learn-question">${item.q}</div>
+      <div class="learn-answer" id="learnAnswer">${item.a}</div>
+      <div class="learn-actions">
+        <button class="btn btn-primary" id="learnRevealBtn" onclick="revealAnswer()">Cevabı Göster</button>
+        <button class="btn btn-secondary hidden" id="learnNextBtn" onclick="nextLearnCard()">Sonraki →</button>
+      </div>
+    </div>`;
+}
+
+function revealAnswer() {
+  APP.learnState.revealed = true;
+  document.getElementById('learnAnswer').classList.add('visible');
+  document.getElementById('learnRevealBtn').classList.add('hidden');
+  document.getElementById('learnNextBtn').classList.remove('hidden');
+}
+
+function nextLearnCard() {
+  APP.learnState.index++;
+  let prog = getChapterProgress(APP.currentChapter);
+  if (APP.learnState.index > prog.learnIndex) {
+    prog.learnIndex = APP.learnState.index;
+    saveChapterProgress(APP.currentChapter, prog);
+  }
+  renderLearnCard();
+}
+
+// ==================== QUIZ MODE ====================
+function startQuiz(chId, retryWrong) {
+  loadChapter(chId, function() {
+    APP.currentChapter = chId;
+    APP.currentView = 'quiz';
+    let ch = APP.chapters.find(c => c.id === chId);
+    let allQ = getQuizData(chId);
+
+    let questions;
+    if (retryWrong) {
+      let prog = getChapterProgress(chId);
+      questions = allQ.filter((q, i) => prog.wrongIds && prog.wrongIds.includes(i));
+      if (questions.length === 0) questions = allQ;
+    } else {
+      questions = [...allQ];
+    }
+    // Shuffle
+    for (let i = questions.length - 1; i > 0; i--) {
+      let j = Math.floor(Math.random() * (i + 1));
+      [questions[i], questions[j]] = [questions[j], questions[i]];
+    }
+
+    APP.quizState = {
+      questions: questions,
+      allQuestions: allQ,
+      index: 0,
+      score: 0,
+      streak: 0,
+      maxStreak: 0,
+      answers: [],
+      answered: false,
+      matchState: null
+    };
+
+    document.getElementById('quizTitle').textContent = '📝 ' + ch.title;
+    showView('quizView');
+    renderQuizQuestion();
+  });
+}
+
+function confirmQuitQuiz() {
+  if (APP.quizState.index > 0 && APP.quizState.index < APP.quizState.questions.length) {
+    if (!confirm('Quiz\'den çıkmak istediğinize emin misiniz? İlerlemeniz kaydedilmeyecek.')) return;
+  }
+  showHome();
+}
+
+function renderQuizQuestion() {
+  let qs = APP.quizState;
+  let total = qs.questions.length;
+  let idx = qs.index;
+
+  if (idx >= total) { showQuizResults(); return; }
+
+  let q = qs.questions[idx];
+  let pct = Math.round((idx / total) * 100);
+
+  document.getElementById('quizProgressText').textContent = `Soru ${idx + 1}/${total}`;
+  document.getElementById('quizProgressBar').style.width = pct + '%';
+  document.getElementById('quizStreakDisplay').textContent = '🔥 ' + qs.streak;
+
+  qs.answered = false;
+  qs.matchState = null;
+
+  let typeLabels = { multiple: 'Çoktan Seçmeli', truefalse: 'Doğru / Yanlış', fillblank: 'Boşluk Doldurma', matching: 'Eşleştirme' };
+  let html = `<div class="quiz-card">
+    <div class="quiz-type-badge">${typeLabels[q.type] || q.type}</div>
+    <div class="quiz-question">${q.question}</div>`;
+
+  if (q.type === 'multiple') {
+    html += '<div class="quiz-options">';
+    let letters = ['A', 'B', 'C', 'D'];
+    q.options.forEach((opt, i) => {
+      html += `<div class="quiz-option" data-idx="${i}" onclick="selectMCQ(this, ${i})">
+        <div class="opt-letter">${letters[i]}</div>
+        <div>${opt}</div>
+      </div>`;
+    });
+    html += '</div>';
+  }
+  else if (q.type === 'truefalse') {
+    html += `<div class="tf-options">
+      <button class="tf-btn" onclick="selectTF(this, true)">✓ Doğru</button>
+      <button class="tf-btn" onclick="selectTF(this, false)">✗ Yanlış</button>
+    </div>`;
+  }
+  else if (q.type === 'fillblank') {
+    html += `<div class="fill-input-wrap">
+      <input type="text" class="fill-input" id="fillInput" placeholder="Cevabınızı yazın..." onkeydown="if(event.key==='Enter')checkFill()">
+      <button class="fill-submit" id="fillSubmitBtn" onclick="checkFill()">Kontrol</button>
+    </div>`;
+  }
+  else if (q.type === 'matching') {
+    let shuffledRight = [...q.pairs];
+    for (let i = shuffledRight.length - 1; i > 0; i--) {
+      let j = Math.floor(Math.random() * (i + 1));
+      [shuffledRight[i], shuffledRight[j]] = [shuffledRight[j], shuffledRight[i]];
+    }
+    qs.matchState = { pairs: q.pairs, shuffledRight: shuffledRight, selectedLeft: null, matched: [], wrongCount: 0 };
+    html += `<div class="matching-area">
+      <div class="matching-col"><div class="matching-col-title">Kavram</div>`;
+    q.pairs.forEach((p, i) => {
+      html += `<div class="match-item" data-side="left" data-idx="${i}" onclick="selectMatch('left',${i},this)">${p.left}</div>`;
+    });
+    html += `</div><div class="matching-col"><div class="matching-col-title">Tanım</div>`;
+    shuffledRight.forEach((p, i) => {
+      html += `<div class="match-item" data-side="right" data-idx="${i}" onclick="selectMatch('right',${i},this)">${p.right}</div>`;
+    });
+    html += '</div></div>';
+  }
+
+  html += '<div id="quizExplanation"></div>';
+  html += '<div class="quiz-next-wrap" id="quizNextWrap" style="display:none"><button class="btn btn-primary" onclick="nextQuizQuestion()">Sonraki →</button></div>';
+  html += '</div>';
+
+  document.getElementById('quizContent').innerHTML = html;
+}
+
+// MCQ
+function selectMCQ(el, idx) {
+  if (APP.quizState.answered) return;
+  APP.quizState.answered = true;
+  let q = APP.quizState.questions[APP.quizState.index];
+  let correct = q.correct === idx;
+
+  document.querySelectorAll('.quiz-option').forEach(o => o.classList.add('disabled'));
+  el.classList.add('selected');
+
+  if (correct) {
+    el.classList.add('correct');
+    onCorrect();
+  } else {
+    el.classList.add('wrong');
+    document.querySelector(`.quiz-option[data-idx="${q.correct}"]`).classList.add('correct');
+    onWrong();
+  }
+  showExplanation(correct, q.explanation);
+}
+
+// TF
+function selectTF(el, val) {
+  if (APP.quizState.answered) return;
+  APP.quizState.answered = true;
+  let q = APP.quizState.questions[APP.quizState.index];
+  let correct = q.correct === val;
+
+  document.querySelectorAll('.tf-btn').forEach(b => b.classList.add('disabled'));
+  el.classList.add('selected');
+
+  if (correct) {
+    el.classList.add('correct');
+    onCorrect();
+  } else {
+    el.classList.add('wrong');
+    document.querySelectorAll('.tf-btn').forEach(b => {
+      if (!b.classList.contains('selected')) b.classList.add('correct');
+    });
+    onWrong();
+  }
+  showExplanation(correct, q.explanation);
+}
+
+// FILL
+function checkFill() {
+  if (APP.quizState.answered) return;
+  let input = document.getElementById('fillInput');
+  let val = input.value.trim().toLowerCase();
+  if (!val) return;
+
+  APP.quizState.answered = true;
+  let q = APP.quizState.questions[APP.quizState.index];
+  let correctAns = q.answer.toLowerCase();
+  let alts = (q.alternatives || []).map(a => a.toLowerCase());
+  let correct = val === correctAns || alts.includes(val);
+
+  input.disabled = true;
+  document.getElementById('fillSubmitBtn').disabled = true;
+
+  if (correct) {
+    input.classList.add('correct');
+    onCorrect();
+  } else {
+    input.classList.add('wrong');
+    onWrong();
+  }
+  showExplanation(correct, q.explanation + (correct ? '' : ` <strong>Doğru cevap: ${q.answer}</strong>`));
+}
+
+// MATCHING
+function selectMatch(side, idx, el) {
+  let ms = APP.quizState.matchState;
+  if (!ms || el.classList.contains('matched') || el.classList.contains('disabled')) return;
+
+  if (side === 'left') {
+    document.querySelectorAll('.match-item[data-side="left"]').forEach(m => m.classList.remove('active'));
+    el.classList.add('active');
+    ms.selectedLeft = idx;
+  } else if (side === 'right' && ms.selectedLeft !== null) {
+    let leftPair = ms.pairs[ms.selectedLeft];
+    let rightPair = ms.shuffledRight[idx];
+    if (leftPair.right === rightPair.right) {
+      // Correct match
+      document.querySelector(`.match-item[data-side="left"][data-idx="${ms.selectedLeft}"]`).classList.remove('active');
+      document.querySelector(`.match-item[data-side="left"][data-idx="${ms.selectedLeft}"]`).classList.add('matched');
+      el.classList.add('matched');
+      ms.matched.push(ms.selectedLeft);
+      ms.selectedLeft = null;
+
+      if (ms.matched.length === ms.pairs.length) {
+        // All matched
+        APP.quizState.answered = true;
+        let q = APP.quizState.questions[APP.quizState.index];
+        let correct = ms.wrongCount === 0;
+        if (ms.wrongCount <= 1) onCorrect(); else onWrong();
+        showExplanation(ms.wrongCount <= 1, q.explanation);
+      }
+    } else {
+      // Wrong match
+      ms.wrongCount++;
+      el.classList.add('wrong-flash');
+      setTimeout(() => el.classList.remove('wrong-flash'), 600);
+      document.querySelector(`.match-item[data-side="left"][data-idx="${ms.selectedLeft}"]`).classList.remove('active');
+      ms.selectedLeft = null;
+    }
+  }
+}
+
+// SCORING
+function onCorrect() {
+  APP.quizState.score++;
+  APP.quizState.streak++;
+  if (APP.quizState.streak > APP.quizState.maxStreak) APP.quizState.maxStreak = APP.quizState.streak;
+  APP.quizState.answers.push(true);
+  if (APP.quizState.streak >= 3 && APP.quizState.streak % 3 === 0) showStreakPopup(APP.quizState.streak);
+}
+function onWrong() {
+  APP.quizState.streak = 0;
+  APP.quizState.answers.push(false);
+}
+
+function showExplanation(correct, text) {
+  let expDiv = document.getElementById('quizExplanation');
+  expDiv.innerHTML = `<div class="explanation ${correct ? 'correct-exp' : 'wrong-exp'}">
+    <div class="exp-title">${correct ? '✓ Doğru!' : '✗ Yanlış'}</div>
+    <div>${text}</div>
+  </div>`;
+  document.getElementById('quizNextWrap').style.display = 'flex';
+}
+
+function nextQuizQuestion() {
+  APP.quizState.index++;
+  renderQuizQuestion();
+}
+
+function showStreakPopup(count) {
+  let existing = document.querySelector('.streak-popup');
+  if (existing) existing.remove();
+  let popup = document.createElement('div');
+  popup.className = 'streak-popup';
+  popup.innerHTML = `<div class="streak-num">🔥 ${count} Seri!</div><div class="streak-text">Art arda doğru cevap</div>`;
+  document.body.appendChild(popup);
+  setTimeout(() => { if (popup.parentNode) popup.remove(); }, 2200);
+}
+
+// RESULTS
+function showQuizResults() {
+  let qs = APP.quizState;
+  let total = qs.questions.length;
+  let score = qs.score;
+  let pct = Math.round((score / total) * 100);
+  let scoreClass = pct >= 80 ? 'high' : pct >= 60 ? 'mid' : 'low';
+
+  let badge = '';
+  if (pct >= 95) badge = '🥇';
+  else if (pct >= 80) badge = '🥈';
+  else if (pct >= 60) badge = '🥉';
+
+  // Save progress
+  let prog = getChapterProgress(APP.currentChapter);
+  prog.attempts = (prog.attempts || 0) + 1;
+  if (pct > (prog.bestScore || 0)) prog.bestScore = pct;
+  if (qs.maxStreak > (prog.bestStreak || 0)) prog.bestStreak = qs.maxStreak;
+  // Track wrong question indices
+  let wrongIds = [];
+  qs.answers.forEach((a, i) => {
+    if (!a) {
+      let origIdx = qs.allQuestions.indexOf(qs.questions[i]);
+      if (origIdx >= 0) wrongIds.push(origIdx);
+    }
+  });
+  prog.wrongIds = wrongIds;
+  saveChapterProgress(APP.currentChapter, prog);
+
+  let html = `
+    <div style="font-size:3rem;margin-top:20px">${badge || (pct >= 50 ? '📊' : '📚')}</div>
+    <div class="results-score ${scoreClass}">%${pct}</div>
+    <div class="results-label">${score}/${total} doğru cevap</div>
+    <div class="results-detail">
+      <div><span>En İyi Seri</span><br><strong>🔥 ${qs.maxStreak}</strong></div>
+      <div><span>Doğru</span><br><strong style="color:var(--success)">${score}</strong></div>
+      <div><span>Yanlış</span><br><strong style="color:var(--danger)">${total - score}</strong></div>
+    </div>
+    <div class="results-actions">
+      <button class="btn btn-primary" onclick="startQuiz(${APP.currentChapter})">🔄 Tekrar Dene</button>
+      ${wrongIds.length > 0 ? `<button class="btn btn-danger" onclick="startQuiz(${APP.currentChapter}, true)">❌ Yanlışları Tekrar (${wrongIds.length})</button>` : ''}
+      <button class="btn btn-secondary" onclick="showHome()">Ana Sayfa</button>
+    </div>`;
+
+  document.getElementById('resultsContent').innerHTML = html;
+  showView('resultsView');
+  updateGlobalStats();
+}
+
+// ==================== INIT ====================
+document.addEventListener('DOMContentLoaded', function() {
+  renderChapters();
+  updateGlobalStats();
+  // Preload all chapter scripts
+  APP.chapters.forEach(ch => {
+    loadChapter(ch.id, function() { renderChapters(); });
+  });
+});
+</script>
+</body>
+</html>
