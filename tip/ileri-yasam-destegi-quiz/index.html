@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>İleri Yaşam Desteği Quiz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+--bg:#0c0f1a;--bg2:#141829;--bg3:#1a1f36;--bg4:#232845;
+--text:#e4e7f1;--text2:#9ca3c4;--text3:#6b73a0;
+--primary:#4f8ef7;--primary2:#3a6fd8;--primary-glow:rgba(79,142,247,0.15);
+--green:#22c55e;--green-bg:rgba(34,197,94,0.12);
+--red:#ef4444;--red-bg:rgba(239,68,68,0.12);
+--orange:#f59e0b;--orange-bg:rgba(245,158,11,0.12);
+--purple:#a855f7;--purple-bg:rgba(168,85,247,0.12);
+--radius:12px;--radius-sm:8px;--radius-lg:16px;
+--shadow:0 4px 24px rgba(0,0,0,0.3);
+--transition:0.25s cubic-bezier(0.4,0,0.2,1);
+}
+html{scroll-behavior:smooth}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;overflow-x:hidden}
+.mono{font-family:'JetBrains Mono',monospace}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px}
+
+/* HEADER */
+.header{background:var(--bg2);border-bottom:1px solid var(--bg3);padding:16px 20px;position:sticky;top:0;z-index:100;backdrop-filter:blur(12px)}
+.header-inner{max-width:900px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.header-title{display:flex;align-items:center;gap:10px;cursor:pointer}
+.header-title h1{font-size:1.15rem;font-weight:700;background:linear-gradient(135deg,var(--primary),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;white-space:nowrap}
+.header-icon{font-size:1.4rem}
+.header-stats{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.stat-chip{display:flex;align-items:center;gap:5px;font-size:0.8rem;color:var(--text2);background:var(--bg3);padding:5px 10px;border-radius:20px}
+.stat-chip .val{color:var(--text);font-weight:600}
+.pdf-btn{display:flex;align-items:center;gap:6px;background:var(--primary);color:#fff;border:none;padding:7px 14px;border-radius:20px;font-size:0.78rem;font-weight:600;cursor:pointer;font-family:inherit;transition:var(--transition);text-decoration:none}
+.pdf-btn:hover{background:var(--primary2);transform:translateY(-1px)}
+
+/* PROGRESS BAR */
+.progress-bar-wrap{max-width:900px;margin:0 auto;padding:12px 20px 0}
+.progress-bar-outer{background:var(--bg3);border-radius:10px;height:8px;overflow:hidden}
+.progress-bar-inner{height:100%;background:linear-gradient(90deg,var(--primary),var(--green));border-radius:10px;transition:width 0.5s ease}
+.progress-label{font-size:0.75rem;color:var(--text3);margin-top:4px;text-align:right}
+
+/* CONTAINER */
+.container{max-width:900px;margin:0 auto;padding:20px}
+
+/* STATS BAR */
+.stats-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:24px}
+.stats-card{background:var(--bg2);border:1px solid var(--bg3);border-radius:var(--radius);padding:14px;text-align:center}
+.stats-card .label{font-size:0.72rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px}
+.stats-card .value{font-size:1.4rem;font-weight:700}
+.stats-card .value.green{color:var(--green)}
+.stats-card .value.orange{color:var(--orange)}
+.stats-card .value.purple{color:var(--purple)}
+.stats-card .value.primary{color:var(--primary)}
+
+/* CHAPTER CARDS */
+.chapters-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.chapter-card{background:var(--bg2);border:1px solid var(--bg3);border-radius:var(--radius-lg);padding:20px;cursor:pointer;transition:var(--transition);position:relative;overflow:hidden}
+.chapter-card:hover{border-color:var(--primary);transform:translateY(-3px);box-shadow:0 8px 32px rgba(79,142,247,0.1)}
+.chapter-card .ch-num{font-size:0.7rem;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.chapter-card .ch-title{font-size:1rem;font-weight:600;margin-bottom:10px;line-height:1.3}
+.chapter-card .ch-meta{display:flex;align-items:center;gap:12px;font-size:0.78rem;color:var(--text2)}
+.chapter-card .ch-badge{position:absolute;top:14px;right:14px;font-size:1.3rem}
+.chapter-card .ch-bar{margin-top:12px;background:var(--bg4);border-radius:6px;height:5px;overflow:hidden}
+.chapter-card .ch-bar-fill{height:100%;border-radius:6px;transition:width 0.4s ease}
+.ch-bar-fill.green{background:var(--green)}
+.ch-bar-fill.orange{background:var(--orange)}
+.ch-bar-fill.red{background:var(--red)}
+.ch-bar-fill.none{background:var(--bg4)}
+.chapter-card .ch-score{font-size:0.75rem;color:var(--text3);margin-top:6px}
+
+/* QUIZ SCREEN */
+.quiz-screen{display:none}
+.quiz-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:10px;flex-wrap:wrap}
+.quiz-back{background:var(--bg3);border:none;color:var(--text2);padding:8px 14px;border-radius:var(--radius-sm);cursor:pointer;font-family:inherit;font-size:0.85rem;transition:var(--transition);display:flex;align-items:center;gap:6px}
+.quiz-back:hover{background:var(--bg4);color:var(--text)}
+.quiz-title{font-size:1.1rem;font-weight:600;flex:1;text-align:center}
+.quiz-counter{font-size:0.85rem;color:var(--text2)}
+.quiz-progress{background:var(--bg3);border-radius:8px;height:6px;margin-bottom:24px;overflow:hidden}
+.quiz-progress-fill{height:100%;background:linear-gradient(90deg,var(--primary),var(--purple));border-radius:8px;transition:width 0.4s ease}
+
+/* QUESTION */
+.question-card{background:var(--bg2);border:1px solid var(--bg3);border-radius:var(--radius-lg);padding:24px;margin-bottom:16px;animation:fadeIn 0.3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.q-type-badge{display:inline-block;font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;padding:3px 10px;border-radius:12px;margin-bottom:12px}
+.q-type-badge.multiple{background:var(--primary-glow);color:var(--primary)}
+.q-type-badge.truefalse{background:var(--purple-bg);color:var(--purple)}
+.q-type-badge.fillblank{background:var(--orange-bg);color:var(--orange)}
+.q-type-badge.matching{background:var(--green-bg);color:var(--green)}
+.q-text{font-size:1.05rem;font-weight:500;line-height:1.5;margin-bottom:18px}
+
+/* OPTIONS */
+.options-list{display:flex;flex-direction:column;gap:10px}
+.option-btn{background:var(--bg3);border:2px solid transparent;border-radius:var(--radius);padding:14px 16px;cursor:pointer;font-family:inherit;font-size:0.92rem;color:var(--text);text-align:left;transition:var(--transition);display:flex;align-items:center;gap:10px}
+.option-btn:hover:not(.disabled){border-color:var(--primary);background:var(--primary-glow)}
+.option-btn.selected{border-color:var(--primary);background:var(--primary-glow)}
+.option-btn.correct{border-color:var(--green)!important;background:var(--green-bg)!important;color:var(--green)}
+.option-btn.wrong{border-color:var(--red)!important;background:var(--red-bg)!important;color:var(--red)}
+.option-btn.disabled{pointer-events:none;opacity:0.7}
+.option-btn .opt-letter{width:28px;height:28px;border-radius:50%;background:var(--bg4);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.8rem;flex-shrink:0}
+.option-btn.correct .opt-letter{background:var(--green);color:#fff}
+.option-btn.wrong .opt-letter{background:var(--red);color:#fff}
+
+/* TRUE/FALSE */
+.tf-options{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tf-btn{background:var(--bg3);border:2px solid transparent;border-radius:var(--radius);padding:16px;cursor:pointer;font-family:inherit;font-size:1rem;font-weight:600;color:var(--text);text-align:center;transition:var(--transition)}
+.tf-btn:hover:not(.disabled){border-color:var(--primary)}
+.tf-btn.selected{border-color:var(--primary);background:var(--primary-glow)}
+.tf-btn.correct{border-color:var(--green)!important;background:var(--green-bg)!important;color:var(--green)}
+.tf-btn.wrong{border-color:var(--red)!important;background:var(--red-bg)!important;color:var(--red)}
+.tf-btn.disabled{pointer-events:none;opacity:0.7}
+
+/* FILL BLANK */
+.fill-blank-area{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.fill-input{background:var(--bg3);border:2px solid var(--bg4);border-radius:var(--radius);padding:12px 16px;font-family:inherit;font-size:0.95rem;color:var(--text);flex:1;min-width:200px;outline:none;transition:var(--transition)}
+.fill-input:focus{border-color:var(--primary)}
+.fill-input.correct{border-color:var(--green)!important;background:var(--green-bg)!important}
+.fill-input.wrong{border-color:var(--red)!important;background:var(--red-bg)!important}
+.fill-submit{background:var(--primary);border:none;color:#fff;padding:12px 20px;border-radius:var(--radius);cursor:pointer;font-family:inherit;font-size:0.9rem;font-weight:600;transition:var(--transition)}
+.fill-submit:hover{background:var(--primary2)}
+.fill-submit:disabled{opacity:0.5;cursor:default}
+
+/* MATCHING */
+.matching-area{display:flex;flex-direction:column;gap:10px}
+.match-row{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center}
+.match-left{background:var(--bg3);border:1px solid var(--bg4);border-radius:var(--radius-sm);padding:10px 14px;font-size:0.88rem}
+.match-arrow{color:var(--text3);font-size:1.1rem}
+.match-select{background:var(--bg3);border:2px solid var(--bg4);border-radius:var(--radius-sm);padding:10px 14px;font-size:0.88rem;color:var(--text);font-family:inherit;cursor:pointer;outline:none;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 5l3 3 3-3' stroke='%239ca3c4' fill='none' stroke-width='1.5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:30px}
+.match-select:focus{border-color:var(--primary)}
+.match-select.correct{border-color:var(--green);background-color:rgba(34,197,94,0.08)}
+.match-select.wrong{border-color:var(--red);background-color:rgba(239,68,68,0.08)}
+.match-submit{background:var(--primary);border:none;color:#fff;padding:12px 24px;border-radius:var(--radius);cursor:pointer;font-family:inherit;font-size:0.9rem;font-weight:600;margin-top:8px;align-self:flex-end;transition:var(--transition)}
+.match-submit:hover{background:var(--primary2)}
+.match-submit:disabled{opacity:0.5;cursor:default}
+
+/* EXPLANATION */
+.explanation{margin-top:16px;padding:16px;border-radius:var(--radius);font-size:0.88rem;line-height:1.6;animation:fadeIn 0.3s ease;display:none}
+.explanation.correct{background:var(--green-bg);border-left:3px solid var(--green)}
+.explanation.wrong{background:var(--red-bg);border-left:3px solid var(--red)}
+.explanation .exp-title{font-weight:700;margin-bottom:6px}
+.explanation.correct .exp-title{color:var(--green)}
+.explanation.wrong .exp-title{color:var(--red)}
+.explanation .exp-answer{font-weight:600;color:var(--text);margin-bottom:4px}
+
+/* NEXT BUTTON */
+.next-btn-wrap{display:flex;justify-content:center;margin-top:20px;display:none}
+.next-btn{background:var(--primary);border:none;color:#fff;padding:14px 40px;border-radius:var(--radius);cursor:pointer;font-family:inherit;font-size:1rem;font-weight:600;transition:var(--transition)}
+.next-btn:hover{background:var(--primary2);transform:translateY(-2px);box-shadow:0 4px 16px rgba(79,142,247,0.3)}
+
+/* RESULT SCREEN */
+.result-screen{display:none}
+.result-card{background:var(--bg2);border:1px solid var(--bg3);border-radius:var(--radius-lg);padding:32px;text-align:center;margin-bottom:20px}
+.result-emoji{font-size:4rem;margin-bottom:12px}
+.result-title{font-size:1.5rem;font-weight:700;margin-bottom:8px}
+.result-score{font-size:3rem;font-weight:800;margin:12px 0}
+.result-score.green{color:var(--green)}
+.result-score.orange{color:var(--orange)}
+.result-score.red{color:var(--red)}
+.result-detail{color:var(--text2);font-size:0.9rem;margin-bottom:20px}
+.result-badges{display:flex;justify-content:center;gap:12px;margin:16px 0}
+.result-badge{background:var(--bg3);border-radius:var(--radius);padding:10px 16px;font-size:0.85rem}
+.result-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:20px}
+.result-actions button{padding:12px 24px;border-radius:var(--radius);font-family:inherit;font-size:0.9rem;font-weight:600;cursor:pointer;transition:var(--transition);border:none}
+.btn-retry{background:var(--primary);color:#fff}
+.btn-retry:hover{background:var(--primary2)}
+.btn-review{background:var(--bg3);color:var(--text)}
+.btn-review:hover{background:var(--bg4)}
+.btn-home{background:var(--bg3);color:var(--text)}
+.btn-home:hover{background:var(--bg4)}
+
+/* REVIEW */
+.review-list{display:flex;flex-direction:column;gap:12px}
+.review-item{background:var(--bg2);border:1px solid var(--bg3);border-radius:var(--radius);padding:16px}
+.review-item.wrong-item{border-left:3px solid var(--red)}
+.review-item.correct-item{border-left:3px solid var(--green)}
+.review-q{font-weight:500;margin-bottom:8px}
+.review-answer{font-size:0.85rem;color:var(--text2)}
+.review-answer span{font-weight:600}
+.review-answer .correct-ans{color:var(--green)}
+.review-answer .wrong-ans{color:var(--red)}
+
+/* STREAK POPUP */
+.streak-popup{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);background:var(--bg2);border:2px solid var(--orange);border-radius:var(--radius-lg);padding:28px 40px;text-align:center;z-index:200;box-shadow:0 0 60px rgba(245,158,11,0.2);transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1)}
+.streak-popup.show{transform:translate(-50%,-50%) scale(1)}
+.streak-popup .streak-fire{font-size:3rem;margin-bottom:8px}
+.streak-popup .streak-num{font-size:2rem;font-weight:800;color:var(--orange)}
+.streak-popup .streak-text{color:var(--text2);font-size:0.9rem}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:199;display:none}
+
+/* BADGE POPUP */
+.badge-popup{position:fixed;top:20px;right:20px;background:var(--bg2);border:2px solid var(--green);border-radius:var(--radius-lg);padding:16px 24px;z-index:201;box-shadow:var(--shadow);transform:translateX(120%);transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1);display:flex;align-items:center;gap:12px}
+.badge-popup.show{transform:translateX(0)}
+.badge-popup .bp-emoji{font-size:2rem}
+.badge-popup .bp-text{font-size:0.85rem;color:var(--text2)}
+.badge-popup .bp-title{font-weight:700;color:var(--text);font-size:0.95rem}
+
+/* RESPONSIVE */
+@media(max-width:600px){
+.header-inner{flex-direction:column;align-items:flex-start}
+.header-stats{width:100%;justify-content:flex-start}
+.chapters-grid{grid-template-columns:1fr}
+.stats-bar{grid-template-columns:repeat(2,1fr)}
+.match-row{grid-template-columns:1fr;gap:4px}
+.match-arrow{display:none}
+.result-score{font-size:2.2rem}
+.question-card{padding:16px}
+.tf-options{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+<div class="header-inner">
+<div class="header-title" onclick="showHome()">
+<span class="header-icon">🫀</span>
+<h1>İleri Yaşam Desteği Quiz</h1>
+</div>
+<div class="header-stats">
+<div class="stat-chip">🔥 Streak: <span class="val" id="headerStreak">0</span></div>
+<div class="stat-chip">✅ Doğru: <span class="val" id="headerCorrect">0</span></div>
+<a href="ilyadegitimkitabipdf.pdf" download class="pdf-btn">📥 PDF İndir</a>
+</div>
+</div>
+</div>
+
+<!-- OVERLAY -->
+<div class="overlay" id="overlay"></div>
+<!-- STREAK POPUP -->
+<div class="streak-popup" id="streakPopup">
+<div class="streak-fire">🔥</div>
+<div class="streak-num" id="streakNum">5</div>
+<div class="streak-text">art arda doğru!</div>
+</div>
+<!-- BADGE POPUP -->
+<div class="badge-popup" id="badgePopup">
+<div class="bp-emoji" id="bpEmoji">🥇</div>
+<div>
+<div class="bp-title" id="bpTitle">Altın Rozet!</div>
+<div class="bp-text" id="bpText">Bölümü %95+ ile tamamladın</div>
+</div>
+</div>
+
+<!-- HOME -->
+<div id="homeScreen">
+<div class="progress-bar-wrap">
+<div class="progress-bar-outer"><div class="progress-bar-inner" id="mainProgress" style="width:0%"></div></div>
+<div class="progress-label" id="mainProgressLabel">0 / 14 bölüm tamamlandı</div>
+</div>
+<div class="container">
+<div class="stats-bar" id="statsBar">
+<div class="stats-card"><div class="label">Toplam Soru</div><div class="value primary" id="sTotalQ">0</div></div>
+<div class="stats-card"><div class="label">Doğru Oran</div><div class="value green" id="sCorrectRate">-%</div></div>
+<div class="stats-card"><div class="label">En İyi Streak</div><div class="value orange" id="sBestStreak">0</div></div>
+<div class="stats-card"><div class="label">Rozetler</div><div class="value purple" id="sBadges">0 / 14</div></div>
+</div>
+<div class="chapters-grid" id="chaptersGrid"></div>
+</div>
+</div>
+
+<!-- QUIZ -->
+<div class="quiz-screen" id="quizScreen">
+<div class="container">
+<div class="quiz-header">
+<button class="quiz-back" onclick="confirmExit()">← Geri</button>
+<div class="quiz-title" id="quizTitle"></div>
+<div class="quiz-counter mono" id="quizCounter"></div>
+</div>
+<div class="quiz-progress"><div class="quiz-progress-fill" id="quizProgress" style="width:0%"></div></div>
+<div id="questionArea"></div>
+<div class="next-btn-wrap" id="nextWrap"><button class="next-btn" id="nextBtn" onclick="nextQuestion()">Sonraki Soru →</button></div>
+</div>
+</div>
+
+<!-- RESULT -->
+<div class="result-screen" id="resultScreen">
+<div class="container">
+<div class="result-card">
+<div class="result-emoji" id="resEmoji">🎉</div>
+<div class="result-title" id="resTitle">Tebrikler!</div>
+<div class="result-score" id="resScore">85%</div>
+<div class="result-detail" id="resDetail"></div>
+<div class="result-badges" id="resBadges"></div>
+<div class="result-actions">
+<button class="btn-retry" onclick="retryQuiz()">🔄 Tekrar Dene</button>
+<button class="btn-review" onclick="showReview()">📋 Yanlışları Gör</button>
+<button class="btn-home" onclick="showHome()">🏠 Ana Sayfa</button>
+</div>
+</div>
+<div class="review-list" id="reviewList" style="display:none"></div>
+</div>
+</div>
+
+<script>
+// ============ DATA & STATE ============
+window.CHAPTERS = [
+{id:1, file:"js/bolum01.js", title:"Acil Olgu Yönetimi", varName:"bolum01_sorular"},
+{id:2, file:"js/bolum02.js", title:"Arrest Yönetimi", varName:"bolum02_sorular"},
+{id:3, file:"js/bolum03.js", title:"Ritim Bozuklukları", varName:"bolum03_sorular"},
+{id:4, file:"js/bolum04.js", title:"Periarrest Aritmiler", varName:"bolum04_sorular"},
+{id:5, file:"js/bolum05.js", title:"Göğüs Ağrısı ve AKS", varName:"bolum05_sorular"},
+{id:6, file:"js/bolum06.js", title:"Anaflaksi", varName:"bolum06_sorular"},
+{id:7, file:"js/bolum07.js", title:"Astım", varName:"bolum07_sorular"},
+{id:8, file:"js/bolum08.js", title:"Suda Boğulma", varName:"bolum08_sorular"},
+{id:9, file:"js/bolum09.js", title:"İnme (SVO)", varName:"bolum09_sorular"},
+{id:10, file:"js/bolum10.js", title:"Hipo-Hiperglisemi", varName:"bolum10_sorular"},
+{id:11, file:"js/bolum11.js", title:"Hipotermi", varName:"bolum11_sorular"},
+{id:12, file:"js/bolum12.js", title:"Elektrik ve Yıldırım Çarpması", varName:"bolum12_sorular"},
+{id:13, file:"js/bolum13.js", title:"Gebelikte Kardiak Arrest", varName:"bolum13_sorular"},
+{id:14, file:"js/bolum14.js", title:"Zehirlenmelere Genel Yaklaşım", varName:"bolum14_sorular"}
+];
+
+var state = {
+currentChapter: null,
+questions: [],
+currentQ: 0,
+score: 0,
+answers: [],
+streak: 0,
+sessionStreak: 0
+};
+
+function getStorage() {
+try {
+var d = localStorage.getItem("iyd_quiz_data");
+return d ? JSON.parse(d) : {};
+} catch(e) { return {}; }
+}
+function saveStorage(data) {
+try { localStorage.setItem("iyd_quiz_data", JSON.stringify(data)); } catch(e) {}
+}
+function getChapterData(chId) {
+var d = getStorage();
+return d["ch_" + chId] || {bestScore:0, attempts:0, badge:""};
+}
+function saveChapterData(chId, obj) {
+var d = getStorage();
+d["ch_" + chId] = obj;
+saveStorage(d);
+}
+function getGlobalData() {
+var d = getStorage();
+return d.global || {totalCorrect:0, totalAnswered:0, bestStreak:0};
+}
+function saveGlobalData(obj) {
+var d = getStorage();
+d.global = obj;
+saveStorage(d);
+}
+
+// ============ SHUFFLE ============
+function shuffle(arr) {
+var a = arr.slice();
+for (var i = a.length - 1; i > 0; i--) {
+var j = Math.floor(Math.random() * (i + 1));
+var t = a[i]; a[i] = a[j]; a[j] = t;
+}
+return a;
+}
+
+// ============ RENDER HOME ============
+function renderHome() {
+var grid = document.getElementById("chaptersGrid");
+var html = "";
+CHAPTERS.forEach(function(ch) {
+var cd = getChapterData(ch.id);
+var badge = cd.badge || "";
+var score = cd.bestScore || 0;
+var attempts = cd.attempts || 0;
+var barClass = score >= 95 ? "green" : score >= 60 ? "orange" : score > 0 ? "red" : "none";
+html += '<div class="chapter-card" onclick="startChapter(' + ch.id + ')">' +
+'<div class="ch-num">Bölüm ' + ch.id + '</div>' +
+(badge ? '<div class="ch-badge">' + badge + '</div>' : '') +
+'<div class="ch-title">' + ch.title + '</div>' +
+'<div class="ch-meta">' +
+'<span>📝 ' + attempts + ' deneme</span>' +
+(score > 0 ? '<span>🏆 %' + score + '</span>' : '<span>Henüz çözülmedi</span>') +
+'</div>' +
+'<div class="ch-bar"><div class="ch-bar-fill ' + barClass + '" style="width:' + score + '%"></div></div>' +
+(score > 0 ? '<div class="ch-score">En iyi: %' + score + '</div>' : '') +
+'</div>';
+});
+grid.innerHTML = html;
+updateGlobalStats();
+}
+
+function updateGlobalStats() {
+var g = getGlobalData();
+var completed = 0;
+var totalBadges = 0;
+CHAPTERS.forEach(function(ch) {
+var cd = getChapterData(ch.id);
+if (cd.attempts > 0) completed++;
+if (cd.badge) totalBadges++;
+});
+document.getElementById("sTotalQ").textContent = g.totalAnswered || 0;
+var rate = g.totalAnswered > 0 ? Math.round((g.totalCorrect / g.totalAnswered) * 100) : 0;
+document.getElementById("sCorrectRate").textContent = (g.totalAnswered > 0 ? "%" + rate : "-%");
+document.getElementById("sBestStreak").textContent = g.bestStreak || 0;
+document.getElementById("sBadges").textContent = totalBadges + " / 14";
+document.getElementById("headerCorrect").textContent = g.totalCorrect || 0;
+document.getElementById("headerStreak").textContent = g.bestStreak || 0;
+var pct = Math.round((completed / 14) * 100);
+document.getElementById("mainProgress").style.width = pct + "%";
+document.getElementById("mainProgressLabel").textContent = completed + " / 14 bölüm tamamlandı";
+}
+
+// ============ START QUIZ ============
+function startChapter(chId) {
+var ch = CHAPTERS.find(function(c) { return c.id === chId; });
+if (!ch) return;
+// Load JS if not loaded
+if (!window[ch.varName]) {
+var s = document.createElement("script");
+s.src = ch.file;
+s.onload = function() {
+if (window[ch.varName]) {
+initQuiz(ch);
+} else {
+alert("Bölüm dosyası yüklenemedi: " + ch.file);
+}
+};
+s.onerror = function() {
+alert("Bölüm dosyası bulunamadı: " + ch.file + "\nDosyanın doğru konumda olduğundan emin olun.");
+};
+document.head.appendChild(s);
+} else {
+initQuiz(ch);
+}
+}
+
+function initQuiz(ch) {
+state.currentChapter = ch;
+state.questions = shuffle(window[ch.varName].slice());
+state.currentQ = 0;
+state.score = 0;
+state.answers = [];
+state.streak = 0;
+state.sessionStreak = 0;
+document.getElementById("homeScreen").style.display = "none";
+document.getElementById("resultScreen").style.display = "none";
+document.getElementById("quizScreen").style.display = "block";
+document.getElementById("quizTitle").textContent = ch.title;
+renderQuestion();
+window.scrollTo(0, 0);
+}
+
+// ============ RENDER QUESTION ============
+function renderQuestion() {
+var q = state.questions[state.currentQ];
+var total = state.questions.length;
+var idx = state.currentQ + 1;
+document.getElementById("quizCounter").textContent = idx + " / " + total;
+document.getElementById("quizProgress").style.width = ((idx / total) * 100) + "%";
+document.getElementById("nextWrap").style.display = "none";
+var area = document.getElementById("questionArea");
+var typeLabels = {multiple:"Çoktan Seçmeli", truefalse:"Doğru / Yanlış", fillblank:"Boşluk Doldurma", matching:"Eşleştirme"};
+var html = '<div class="question-card">';
+html += '<span class="q-type-badge ' + q.type + '">' + (typeLabels[q.type] || q.type) + '</span>';
+html += '<div class="q-text">' + q.question + '</div>';
+
+if (q.type === "multiple") {
+html += '<div class="options-list">';
+var letters = ["A","B","C","D"];
+q.options.forEach(function(opt, i) {
+html += '<button class="option-btn" data-idx="' + i + '" onclick="selectOption(this,' + i + ',' + q.correct + ')">' +
+'<span class="opt-letter">' + letters[i] + '</span><span>' + opt + '</span></button>';
+});
+html += '</div>';
+} else if (q.type === "truefalse") {
+html += '<div class="tf-options">';
+html += '<button class="tf-btn" data-val="true" onclick="selectTF(this,true,' + q.correct + ')">✓ Doğru</button>';
+html += '<button class="tf-btn" data-val="false" onclick="selectTF(this,false,' + q.correct + ')">✗ Yanlış</button>';
+html += '</div>';
+} else if (q.type === "fillblank") {
+html += '<div class="fill-blank-area">';
+html += '<input class="fill-input" id="fillInput" type="text" placeholder="Cevabınızı yazın..." autocomplete="off">';
+html += '<button class="fill-submit" id="fillSubmit" onclick="checkFillBlank()">Kontrol Et</button>';
+html += '</div>';
+} else if (q.type === "matching") {
+var shuffledRight = shuffle(q.pairs.map(function(p) { return p.right; }));
+html += '<div class="matching-area">';
+q.pairs.forEach(function(p, i) {
+html += '<div class="match-row">';
+html += '<div class="match-left">' + p.left + '</div>';
+html += '<div class="match-arrow">→</div>';
+html += '<select class="match-select" id="match_' + i + '">';
+html += '<option value="">Seçiniz...</option>';
+shuffledRight.forEach(function(r) {
+html += '<option value="' + r.replace(/"/g, '&quot;') + '">' + r + '</option>';
+});
+html += '</select></div>';
+});
+html += '<button class="match-submit" id="matchSubmit" onclick="checkMatching()">Kontrol Et</button>';
+html += '</div>';
+}
+
+html += '<div class="explanation" id="explanation"></div>';
+html += '</div>';
+area.innerHTML = html;
+
+if (q.type === "fillblank") {
+document.getElementById("fillInput").addEventListener("keydown", function(e) {
+if (e.key === "Enter") checkFillBlank();
+});
+}
+}
+
+// ============ ANSWER HANDLERS ============
+function selectOption(btn, idx, correct) {
+var btns = document.querySelectorAll(".option-btn");
+btns.forEach(function(b) { b.classList.add("disabled"); });
+btn.classList.add("selected");
+var isCorrect = idx === correct;
+if (isCorrect) {
+btn.classList.add("correct");
+} else {
+btn.classList.add("wrong");
+btns[correct].classList.add("correct");
+}
+recordAnswer(isCorrect);
+showExplanation(isCorrect);
+}
+
+function selectTF(btn, val, correct) {
+var btns = document.querySelectorAll(".tf-btn");
+btns.forEach(function(b) { b.classList.add("disabled"); });
+btn.classList.add("selected");
+var isCorrect = val === correct;
+if (isCorrect) {
+btn.classList.add("correct");
+} else {
+btn.classList.add("wrong");
+btns.forEach(function(b) {
+if (String(b.dataset.val) === String(correct)) b.classList.add("correct");
+});
+}
+recordAnswer(isCorrect);
+showExplanation(isCorrect);
+}
+
+function checkFillBlank() {
+var q = state.questions[state.currentQ];
+var input = document.getElementById("fillInput");
+var btn = document.getElementById("fillSubmit");
+var val = input.value.trim().toLowerCase().replace(/\s+/g,' ');
+if (!val) return;
+btn.disabled = true;
+input.readOnly = true;
+var correct = q.answer.trim().toLowerCase();
+var alts = (q.alternatives || []).map(function(a) { return a.trim().toLowerCase(); });
+var isCorrect = val === correct || alts.indexOf(val) !== -1;
+input.classList.add(isCorrect ? "correct" : "wrong");
+recordAnswer(isCorrect);
+showExplanation(isCorrect, isCorrect ? null : "Doğru cevap: " + q.answer);
+}
+
+function checkMatching() {
+var q = state.questions[state.currentQ];
+var btn = document.getElementById("matchSubmit");
+btn.disabled = true;
+var allCorrect = true;
+q.pairs.forEach(function(p, i) {
+var sel = document.getElementById("match_" + i);
+sel.disabled = true;
+if (sel.value === p.right) {
+sel.classList.add("correct");
+} else {
+sel.classList.add("wrong");
+allCorrect = false;
+}
+});
+recordAnswer(allCorrect);
+var detail = allCorrect ? null : "Doğru eşleştirmeler: " + q.pairs.map(function(p) { return p.left + " → " + p.right; }).join(" | ");
+showExplanation(allCorrect, detail);
+}
+
+function recordAnswer(isCorrect) {
+var q = state.questions[state.currentQ];
+state.answers.push({question: q.question, correct: isCorrect, type: q.type});
+if (isCorrect) {
+state.score++;
+state.streak++;
+state.sessionStreak++;
+checkStreakPopup();
+} else {
+state.streak = 0;
+}
+}
+
+function showExplanation(isCorrect, extra) {
+var q = state.questions[state.currentQ];
+var el = document.getElementById("explanation");
+el.className = "explanation " + (isCorrect ? "correct" : "wrong");
+var html = '<div class="exp-title">' + (isCorrect ? "✓ Doğru!" : "✗ Yanlış!") + '</div>';
+if (extra) html += '<div class="exp-answer">' + extra + '</div>';
+html += '<div>' + q.explanation + '</div>';
+el.innerHTML = html;
+el.style.display = "block";
+document.getElementById("nextWrap").style.display = "flex";
+var isLast = state.currentQ >= state.questions.length - 1;
+document.getElementById("nextBtn").textContent = isLast ? "Sonuçları Gör →" : "Sonraki Soru →";
+}
+
+function checkStreakPopup() {
+var s = state.streak;
+if (s === 3 || s === 5 || s === 10 || s === 15 || s === 20) {
+document.getElementById("streakNum").textContent = s;
+document.getElementById("streakPopup").classList.add("show");
+document.getElementById("overlay").style.display = "block";
+setTimeout(function() {
+document.getElementById("streakPopup").classList.remove("show");
+document.getElementById("overlay").style.display = "none";
+}, 1500);
+}
+}
+
+// ============ NEXT / RESULTS ============
+function nextQuestion() {
+state.currentQ++;
+if (state.currentQ >= state.questions.length) {
+showResults();
+} else {
+renderQuestion();
+window.scrollTo(0, 0);
+}
+}
+
+function showResults() {
+document.getElementById("quizScreen").style.display = "none";
+document.getElementById("resultScreen").style.display = "block";
+document.getElementById("reviewList").style.display = "none";
+var total = state.questions.length;
+var pct = Math.round((state.score / total) * 100);
+var ch = state.currentChapter;
+
+// Badge
+var badge = "";
+var badgeText = "";
+if (pct >= 95) { badge = "🥇"; badgeText = "Altın Rozet!"; }
+else if (pct >= 80) { badge = "🥈"; badgeText = "Gümüş Rozet!"; }
+else if (pct >= 60) { badge = "🥉"; badgeText = "Bronz Rozet!"; }
+
+// Save
+var cd = getChapterData(ch.id);
+cd.attempts = (cd.attempts || 0) + 1;
+if (pct > (cd.bestScore || 0)) {
+cd.bestScore = pct;
+cd.badge = badge;
+}
+saveChapterData(ch.id, cd);
+
+var g = getGlobalData();
+g.totalAnswered = (g.totalAnswered || 0) + total;
+g.totalCorrect = (g.totalCorrect || 0) + state.score;
+if (state.sessionStreak > (g.bestStreak || 0)) g.bestStreak = state.sessionStreak;
+saveGlobalData(g);
+
+// Render
+var emoji = pct >= 95 ? "🏆" : pct >= 80 ? "🎉" : pct >= 60 ? "👍" : "💪";
+var title = pct >= 95 ? "Mükemmel!" : pct >= 80 ? "Harika!" : pct >= 60 ? "İyi!" : "Tekrar Dene";
+var colorClass = pct >= 80 ? "green" : pct >= 60 ? "orange" : "red";
+document.getElementById("resEmoji").textContent = emoji;
+document.getElementById("resTitle").textContent = title;
+document.getElementById("resScore").textContent = "%" + pct;
+document.getElementById("resScore").className = "result-score " + colorClass;
+document.getElementById("resDetail").textContent = state.score + " / " + total + " doğru • En iyi streak: " + state.sessionStreak;
+var badgesHtml = "";
+if (badge) badgesHtml += '<div class="result-badge">' + badge + ' ' + badgeText + '</div>';
+document.getElementById("resBadges").innerHTML = badgesHtml;
+
+// Badge popup
+if (badge && pct >= (cd.bestScore || 0)) {
+setTimeout(function() {
+document.getElementById("bpEmoji").textContent = badge;
+document.getElementById("bpTitle").textContent = badgeText;
+document.getElementById("bpText").textContent = ch.title;
+document.getElementById("badgePopup").classList.add("show");
+setTimeout(function() {
+document.getElementById("badgePopup").classList.remove("show");
+}, 3000);
+}, 500);
+}
+window.scrollTo(0, 0);
+}
+
+function retryQuiz() {
+initQuiz(state.currentChapter);
+}
+
+function showReview() {
+var list = document.getElementById("reviewList");
+if (list.style.display === "none") {
+list.style.display = "block";
+var html = "";
+state.answers.forEach(function(a, i) {
+var q = state.questions[i];
+var cls = a.correct ? "correct-item" : "wrong-item";
+html += '<div class="review-item ' + cls + '">';
+html += '<div class="review-q">' + (i+1) + '. ' + q.question + '</div>';
+html += '<div class="review-answer">';
+if (q.type === "multiple") {
+html += 'Doğru: <span class="correct-ans">' + q.options[q.correct] + '</span>';
+} else if (q.type === "truefalse") {
+html += 'Doğru: <span class="correct-ans">' + (q.correct ? "Doğru" : "Yanlış") + '</span>';
+} else if (q.type === "fillblank") {
+html += 'Doğru: <span class="correct-ans">' + q.answer + '</span>';
+} else if (q.type === "matching") {
+html += 'Eşleştirmeler: ' + q.pairs.map(function(p) { return '<span class="correct-ans">' + p.left + ' → ' + p.right + '</span>'; }).join(', ');
+}
+html += '</div>';
+html += '<div style="margin-top:8px;font-size:0.82rem;color:var(--text3)">' + q.explanation + '</div>';
+html += '</div>';
+});
+list.innerHTML = html;
+} else {
+list.style.display = "none";
+}
+}
+
+function showHome() {
+document.getElementById("homeScreen").style.display = "block";
+document.getElementById("quizScreen").style.display = "none";
+document.getElementById("resultScreen").style.display = "none";
+renderHome();
+window.scrollTo(0, 0);
+}
+
+function confirmExit() {
+if (state.currentQ > 0 && state.currentQ < state.questions.length) {
+if (confirm("Quizden çıkmak istediğine emin misin? İlerleme kaydedilmeyecek.")) {
+showHome();
+}
+} else {
+showHome();
+}
+}
+
+// ============ INIT ============
+renderHome();
+</script>
+</body>
+</html>

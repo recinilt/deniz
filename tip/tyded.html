@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TYD & İlk Yardım Adım Eğitmeni</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap');
+
+*{margin:0;padding:0;box-sizing:border-box}
+
+:root{
+  --bg:#0b0b1a;
+  --surface:#131332;
+  --surface2:#1a1a42;
+  --card:#1e1e4a;
+  --accent:#e94560;
+  --accent2:#ff6b81;
+  --success:#2ecc71;
+  --success-dim:#1a7a42;
+  --warning:#f39c12;
+  --text:#eaeaea;
+  --text2:#a0a0c0;
+  --text3:#6a6a8a;
+  --border:#2a2a5a;
+  --glow:rgba(233,69,96,0.15);
+  --quiz-correct:#2ecc71;
+  --quiz-wrong:#e74c3c;
+  --radius:14px;
+  --transition:0.3s cubic-bezier(0.4,0,0.2,1);
+  --font:'Outfit',sans-serif;
+  --mono:'JetBrains Mono',monospace;
+}
+
+[data-theme="light"]{
+  --bg:#f0f2f5;
+  --surface:#ffffff;
+  --surface2:#f8f9fa;
+  --card:#ffffff;
+  --accent:#d63031;
+  --accent2:#e17055;
+  --success:#00b894;
+  --success-dim:#b8f0d8;
+  --warning:#fdcb6e;
+  --text:#1a1a2e;
+  --text2:#4a4a6a;
+  --text3:#8a8aaa;
+  --border:#dfe6e9;
+  --glow:rgba(214,48,49,0.08);
+}
+
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--font);
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  transition:background var(--transition),color var(--transition);
+  overflow-x:hidden;
+}
+
+/* ========= TOP BAR ========= */
+.topbar{
+  position:sticky;top:0;z-index:100;
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  backdrop-filter:blur(20px);
+  padding:12px 24px;
+  display:flex;align-items:center;justify-content:space-between;
+  gap:12px;
+}
+.topbar-title{
+  font-size:1.1rem;font-weight:700;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+  white-space:nowrap;
+}
+.topbar-subtitle{font-size:0.75rem;color:var(--text3);font-weight:400}
+.topbar-right{display:flex;align-items:center;gap:10px}
+
+.theme-toggle{
+  width:44px;height:44px;border-radius:50%;
+  background:var(--surface2);border:1px solid var(--border);
+  cursor:pointer;font-size:1.2rem;
+  display:flex;align-items:center;justify-content:center;
+  transition:all var(--transition);
+  color:var(--text);
+}
+.theme-toggle:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+.menu-toggle{
+  display:none;
+  width:44px;height:44px;border-radius:50%;
+  background:var(--surface2);border:1px solid var(--border);
+  cursor:pointer;font-size:1.3rem;
+  align-items:center;justify-content:center;
+  color:var(--text);transition:all var(--transition);
+}
+.menu-toggle:hover{background:var(--accent);color:#fff}
+
+/* ========= LAYOUT ========= */
+.app{display:flex;min-height:calc(100vh - 69px)}
+
+/* ========= SIDEBAR ========= */
+.sidebar{
+  width:300px;min-width:300px;
+  background:var(--surface);
+  border-right:1px solid var(--border);
+  overflow-y:auto;
+  padding:16px;
+  transition:transform 0.4s cubic-bezier(0.4,0,0.2,1);
+}
+.sidebar-header{
+  font-size:0.7rem;text-transform:uppercase;
+  letter-spacing:2px;color:var(--text3);
+  font-weight:600;margin-bottom:12px;padding:0 4px;
+}
+.rehber-card{
+  padding:14px 16px;
+  border-radius:var(--radius);
+  cursor:pointer;
+  margin-bottom:6px;
+  border:1px solid transparent;
+  transition:all var(--transition);
+  display:flex;align-items:center;gap:12px;
+  position:relative;overflow:hidden;
+}
+.rehber-card::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;
+  width:3px;background:var(--accent);
+  transform:scaleY(0);transition:transform var(--transition);
+  border-radius:0 3px 3px 0;
+}
+.rehber-card:hover{background:var(--surface2);border-color:var(--border)}
+.rehber-card.active{background:var(--glow);border-color:var(--accent)}
+.rehber-card.active::before{transform:scaleY(1)}
+
+.rehber-emoji{font-size:1.6rem;flex-shrink:0;width:36px;text-align:center}
+.rehber-info{flex:1;min-width:0}
+.rehber-name{font-size:0.85rem;font-weight:600;line-height:1.3;color:var(--text)}
+.rehber-meta{font-size:0.7rem;color:var(--text3);margin-top:2px}
+.rehber-progress-mini{
+  height:3px;background:var(--border);border-radius:3px;margin-top:6px;overflow:hidden;
+}
+.rehber-progress-fill{
+  height:100%;background:var(--success);border-radius:3px;
+  transition:width 0.6s ease;
+}
+
+/* ========= MAIN CONTENT ========= */
+.main{flex:1;padding:24px;max-width:900px;margin:0 auto}
+
+/* Progress Bar */
+.progress-section{margin-bottom:24px}
+.progress-header{
+  display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;
+}
+.progress-label{font-size:0.8rem;color:var(--text2);font-weight:500}
+.progress-count{
+  font-family:var(--mono);font-size:0.8rem;color:var(--accent);font-weight:600;
+}
+.progress-bar{
+  height:8px;background:var(--surface2);border-radius:8px;overflow:hidden;
+  position:relative;
+}
+.progress-fill{
+  height:100%;border-radius:8px;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));
+  transition:width 0.6s cubic-bezier(0.4,0,0.2,1);
+  position:relative;
+}
+.progress-fill::after{
+  content:'';position:absolute;right:0;top:0;bottom:0;
+  width:20px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.3));
+  border-radius:8px;
+}
+
+/* Step Card */
+.step-card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:calc(var(--radius) + 4px);
+  padding:32px;
+  position:relative;
+  overflow:hidden;
+  animation:fadeSlideUp 0.4s ease;
+}
+@keyframes fadeSlideUp{
+  from{opacity:0;transform:translateY(20px)}
+  to{opacity:1;transform:translateY(0)}
+}
+.step-number-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--glow);
+  border:1px solid var(--accent);
+  border-radius:100px;
+  padding:6px 16px;
+  font-size:0.8rem;font-weight:700;
+  color:var(--accent);
+  margin-bottom:20px;
+}
+.step-title{
+  font-size:1.5rem;font-weight:800;
+  line-height:1.3;margin-bottom:16px;
+  color:var(--text);
+}
+.step-description{
+  font-size:1rem;line-height:1.8;color:var(--text2);
+  margin-bottom:20px;
+}
+.step-description strong{color:var(--text);font-weight:600}
+.step-description em{color:var(--accent2);font-style:normal;font-weight:500}
+
+/* Hint Toggle */
+.hint-toggle{
+  display:flex;align-items:center;gap:10px;
+  padding:12px 18px;
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  cursor:pointer;
+  font-size:0.85rem;font-weight:500;color:var(--text2);
+  transition:all var(--transition);
+  margin-bottom:16px;
+  user-select:none;
+}
+.hint-toggle:hover{border-color:var(--accent);color:var(--text)}
+.hint-toggle .arrow{transition:transform var(--transition);font-size:0.7rem}
+.hint-toggle.open .arrow{transform:rotate(90deg)}
+
+.hint-content{
+  overflow:hidden;
+  max-height:0;
+  transition:max-height 0.5s ease,padding 0.3s ease,opacity 0.3s ease;
+  opacity:0;
+  background:linear-gradient(135deg,var(--surface2),var(--surface));
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:0 18px;
+  margin-bottom:16px;
+}
+.hint-content.open{
+  max-height:500px;
+  padding:18px;
+  opacity:1;
+}
+.hint-label{
+  font-size:0.7rem;text-transform:uppercase;letter-spacing:1.5px;
+  color:var(--accent);font-weight:700;margin-bottom:8px;
+}
+.hint-text{font-size:0.9rem;line-height:1.7;color:var(--text2)}
+.hint-text strong{color:var(--warning);font-weight:600}
+
+/* Step Complete Checkbox */
+.step-complete{
+  display:flex;align-items:center;gap:12px;
+  padding:14px 18px;
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  cursor:pointer;
+  transition:all var(--transition);
+  user-select:none;
+}
+.step-complete:hover{border-color:var(--success)}
+.step-complete.checked{
+  background:var(--success-dim);
+  border-color:var(--success);
+}
+.step-checkbox{
+  width:24px;height:24px;
+  border:2px solid var(--border);
+  border-radius:6px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.9rem;
+  transition:all var(--transition);
+  flex-shrink:0;
+}
+.step-complete.checked .step-checkbox{
+  background:var(--success);
+  border-color:var(--success);
+}
+.step-complete-text{font-size:0.85rem;font-weight:500;color:var(--text2)}
+.step-complete.checked .step-complete-text{color:var(--success)}
+
+/* Navigation Buttons */
+.nav-buttons{
+  display:flex;gap:12px;margin-top:24px;
+}
+.nav-btn{
+  flex:1;padding:16px;
+  border-radius:var(--radius);
+  border:1px solid var(--border);
+  background:var(--surface2);
+  color:var(--text);
+  font-family:var(--font);
+  font-size:0.9rem;font-weight:600;
+  cursor:pointer;
+  transition:all var(--transition);
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.nav-btn:hover{border-color:var(--accent);color:var(--accent)}
+.nav-btn:disabled{opacity:0.3;cursor:not-allowed}
+.nav-btn:disabled:hover{border-color:var(--border);color:var(--text)}
+.nav-btn.primary{
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  border-color:transparent;color:#fff;
+}
+.nav-btn.primary:hover{filter:brightness(1.1);transform:translateY(-1px)}
+.nav-btn.primary:disabled{filter:none;transform:none}
+
+/* ========= QUIZ MODE ========= */
+.quiz-container{animation:fadeSlideUp 0.4s ease}
+.quiz-header{
+  text-align:center;margin-bottom:28px;
+}
+.quiz-title{font-size:1.4rem;font-weight:800;margin-bottom:6px}
+.quiz-subtitle{font-size:0.85rem;color:var(--text3)}
+
+.quiz-question{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:calc(var(--radius) + 4px);
+  padding:28px;
+  margin-bottom:16px;
+  animation:fadeSlideUp 0.3s ease;
+}
+.quiz-q-number{
+  font-family:var(--mono);font-size:0.75rem;
+  color:var(--accent);font-weight:600;margin-bottom:10px;
+}
+.quiz-q-text{font-size:1.05rem;font-weight:600;line-height:1.5;margin-bottom:20px}
+
+.quiz-option{
+  display:block;width:100%;text-align:left;
+  padding:14px 18px;
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  cursor:pointer;
+  font-family:var(--font);
+  font-size:0.9rem;color:var(--text);
+  margin-bottom:8px;
+  transition:all var(--transition);
+}
+.quiz-option:hover:not(:disabled){border-color:var(--accent);background:var(--glow)}
+.quiz-option.correct{
+  background:rgba(46,204,113,0.15);
+  border-color:var(--quiz-correct);
+  color:var(--quiz-correct);
+}
+.quiz-option.wrong{
+  background:rgba(231,76,60,0.15);
+  border-color:var(--quiz-wrong);
+  color:var(--quiz-wrong);
+}
+.quiz-option:disabled{cursor:default}
+
+.quiz-result{
+  text-align:center;padding:40px;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:calc(var(--radius) + 4px);
+  animation:fadeSlideUp 0.4s ease;
+}
+.quiz-score{font-size:3rem;font-weight:900;color:var(--accent);margin-bottom:8px}
+.quiz-score-text{font-size:1rem;color:var(--text2);margin-bottom:24px}
+.quiz-result-emoji{font-size:4rem;margin-bottom:16px;display:block}
+
+/* Tips Section */
+.tips-section{
+  margin-top:32px;
+  border-top:1px solid var(--border);
+  padding-top:24px;
+}
+.tips-toggle{
+  display:flex;align-items:center;gap:10px;
+  cursor:pointer;user-select:none;
+  font-size:0.85rem;font-weight:600;color:var(--text3);
+  transition:color var(--transition);
+}
+.tips-toggle:hover{color:var(--text)}
+.tips-content{
+  max-height:0;overflow:hidden;opacity:0;
+  transition:all 0.5s ease;
+}
+.tips-content.open{max-height:600px;opacity:1;margin-top:16px}
+.tip-item{
+  display:flex;gap:12px;padding:10px 0;
+  border-bottom:1px solid var(--border);
+  font-size:0.85rem;color:var(--text2);line-height:1.6;
+}
+.tip-item:last-child{border:none}
+.tip-num{
+  font-family:var(--mono);font-size:0.7rem;
+  color:var(--accent);font-weight:600;flex-shrink:0;
+  width:20px;text-align:right;padding-top:2px;
+}
+
+/* ========= RESPONSIVE ========= */
+@media(max-width:768px){
+  .sidebar{
+    position:fixed;left:0;top:69px;bottom:0;z-index:90;
+    transform:translateX(-100%);
+    width:85%;min-width:unset;
+  }
+  .sidebar.open{transform:translateX(0)}
+  .sidebar-overlay{
+    display:none;position:fixed;inset:0;top:69px;
+    background:rgba(0,0,0,0.6);z-index:89;
+  }
+  .sidebar-overlay.open{display:block}
+  .menu-toggle{display:flex}
+  .main{padding:16px}
+  .step-card{padding:20px}
+  .step-title{font-size:1.2rem}
+  .topbar-subtitle{display:none}
+}
+@media(max-width:480px){
+  .nav-buttons{flex-direction:column}
+  .step-title{font-size:1.1rem}
+}
+
+/* ========= SCROLLBAR ========= */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:6px}
+::-webkit-scrollbar-thumb:hover{background:var(--text3)}
+
+/* Selection */
+::selection{background:var(--accent);color:#fff}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <div class="topbar-title">🩺 TYD & İlk Yardım Eğitmeni</div>
+    <div class="topbar-subtitle">Adım adım interaktif öğrenme</div>
+  </div>
+  <div class="topbar-right">
+    <button class="menu-toggle" onclick="toggleSidebar()" aria-label="Menü">☰</button>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Tema değiştir">🌙</button>
+  </div>
+</div>
+
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">📋 Rehberler</div>
+    <div id="rehberList"></div>
+  </aside>
+
+  <main class="main" id="mainContent">
+    <!-- Content rendered by JS -->
+  </main>
+</div>
+
+<script>
+// ============================================================
+//  DATA: 7 Rehber + Adımlar + Hikaye İpuçları + Quiz
+// ============================================================
+const DATA = [
+{
+  id:"eriskin-tyd",
+  emoji:"🧑‍⚕️",
+  name:"Erişkinlerde Temel Yaşam Desteği",
+  meta:"18 adım · Yetişkin maketi",
+  steps:[
+    {title:"Çevre Güvenliği",desc:"Çevrenin <strong>kendisinin</strong> ve <strong>hastanın güvenliğini</strong> kontrol et. Tehlike var mı? Trafik, elektrik, gaz kaçağı — önce kendin güvende ol.",hint:"<strong>Parkta yürüyüş hikayesi başlıyor:</strong> Parkta yürüyorsun. Etrafına bakınıyorsun — araba gelir mi, elektrik teli var mı? Güvenli!"},
+    {title:"Bilinç Kontrolü",desc:"Hasta/yaralının omuzlarına <strong>hafifçe dokunarak</strong> ve <em>\"Nasılsınız? İyi misiniz?\"</em> diye sorarak <strong>bilincini kontrol et</strong>.",hint:"Bankta yatan adama omzuna dokunup \"İyi misin abi?\" diyorsun. Cevap yok..."},
+    {title:"Yardım Çağır & 112",desc:"<strong>Bilinç kapalıysa;</strong> çevreden yardım çağırma ve <em>\"112 ara\"</em> komutu ver. Birini göster ve 'Sen 112'yi ara!' de.",hint:"Çevreden koşan birine bağırıyorsun: <strong>\"Sen! Evet sen! 112'yi ara!\"</strong> — parmakla göster ki herkes baksın."},
+    {title:"Ağız İçi Kontrol",desc:"Ağız içini kontrol et, <strong>yabancı cisim varsa çıkar</strong>. Görünür bir cisim yoksa elleme.",hint:"Ağzını açıp bakıyorsun — sakız, protez, yiyecek var mı? Temiz, devam!"},
+    {title:"Havayolu Açma",desc:"<em>\"Baş geri-çene yukarı manevrası\"</em> ile hava yolunu aç: <strong>Bir eli hastanın alnına</strong> yerleştirerek başı nazikçe geriye doğru iterken, diğer elin parmak uçlarını alt çene kemiğine (mandibula) yerleştirerek <strong>çeneyi öne-yukarıya</strong> doğru kaldırma.<br><br><em>(NOT: Sağlık personeli travma şüphesinde öncelikle \"çene itme\" manevrası denemelidir)</em>",hint:"Alnına bir elinle dokunup başını geriye yatırıyorsun, diğer elinle çenesini kaldırıyorsun — <strong>kapı açılıyor gibi</strong> düşün."},
+    {title:"Bak-Dinle-Hisset (10 sn)",desc:"<em>\"Bak-dinle-hisset\"</em> yöntemiyle <strong>10 saniyeyi aşmayacak</strong> şekilde solunumu değerlendirirken <strong>karotis arterden nabza bak</strong>.<br><br><strong>Solunum ve dolaşım yoksa</strong> (karotis nabzı alınamamışsa) olay yerinde yalnızsan 112'yi ara.",hint:"Kulağını ağzına yaklaştır, gözün göğüste — <strong>BAK</strong> (göğüs kalkar mı?), <strong>DİNLE</strong> (nefes sesi?), <strong>HİSSET</strong> (yüzüne hava gelir mi?). Saat tıklar: 1...2...3...10. Nabız yok!"},
+    {title:"Diz Çökme Pozisyonu",desc:"Hastanın gövdesine <strong>mümkün olduğunca yakın</strong> olarak yanına diz çökme. Baş tarafındaki diz, hastanın <strong>omuz hizasında</strong> olacak şekilde.",hint:"Hemen yanına çöküyorsun — dizin omuz hizasında. Uzanıp basabilecek kadar yakın olmalısın."},
+    {title:"El Yerleştirme",desc:"Bir elin topuğunu sternumun <strong>½ alt yarısına</strong>, ksifoide bası yapmayacak şekilde yerleştirme.",hint:"Göğsünün tam ortası — <strong>meme uçları hizasının biraz altı</strong>. El topuğunu koy."},
+    {title:"Eller Üst Üste",desc:"Diğer eli bu elin üzerine yerleştirme ve her iki elin parmaklarını <strong>birbirine kenetleme</strong>.",hint:"İki tabağı üst üste koyar gibi — parmakları birbirine kenetle, <strong>kilitli eller</strong>."},
+    {title:"Vücut Pozisyonu",desc:"Parmaklar ve avuç içi göğüs kafesiyle <strong>temas etmeyecek</strong> şekilde, dirsekleri bükmeden ve kollar göğüs üzerinde <strong>vücuda dik</strong> olarak yerleşme.",hint:"Bir sütun gibi dimdik — dirsekler kilitli, omuzlar tam eller üstünde. <strong>Eğilme, bükülme yok!</strong>"},
+    {title:"30 Göğüs Kompresyonu",desc:"Göğüs kemiğini en az <strong>5, en fazla 6 cm</strong> (yandan bakıldığında göğüs yüksekliğinin 1/3'ü kadar) çöktürerek ve göğsün normal pozisyonuna dönmesine izin vererek <strong>yukarıdan aşağıya 30 kez</strong> göğüs kompresyonu uygulama.<br><br><em>Kompresyon hızı en az 100, en fazla 120 bası/dk olmalı.</em>",hint:"<strong>30 kitabı rafa dizersin gibi</strong> — hızlı ve kararlı. \"Stayin' Alive\" şarkısının ritmi tam 100-120/dk!"},
+    {title:"Baş Pozisyonu & Burun Kapatma",desc:"Baş çene pozisyonu vererek hastanın alnının üzerine konulan elin <strong>baş ve işaret parmağını kullanarak burun kanatlarını kapatma</strong>.",hint:"Alnındaki elin parmaklarıyla burnunu sık — <strong>mandal takar gibi</strong>."},
+    {title:"Ağız Açma & Mühürleme",desc:"Çene kemiğindeki elin baş parmağıyla hastanın ağzını <strong>hafifçe açıp</strong>, derin soluk alarak ağzını, hastanın ağzına, <strong>hava kaçağı olmayacak şekilde</strong> iyice yerleştirme.",hint:"Ağzını bardağın ağzına kapatır gibi — <strong>hava kaçmamalı, tam mühür!</strong>"},
+    {title:"Soluk Verme",desc:"Göğse bakarak <strong>göğüs kafesini yükseltmeye yetecek kadar</strong> soluk verme <em>(yaklaşık 1 sn)</em>.",hint:"Balon şişirir gibi üfle — gözün <strong>göğüste</strong>: yükseliyor mu? 1 saniye yeter."},
+    {title:"Göğüs Gözlemi",desc:"<em>\"Baş geri çene yukarı\"</em> pozisyonunu devam ettirme ve göğüs kafesinin <strong>eski haline dönüşünü gözleme</strong>.",hint:"Göğüs indi mi? İndi! Hava çıktı demek. Pencereden dışarı bakar gibi <strong>göğsü izle</strong>."},
+    {title:"İkinci Soluk",desc:"Yeniden derin nefes alarak aynı işlemi tekrarlama. <strong>5 saniye içinde toplam 2 solunum</strong> tamamlanmalıdır.",hint:"İkiz balon — birincisi bitti, ikincisini de şişir. <strong>5 saniye = 2 soluk, daha fazla değil!</strong>"},
+    {title:"Döngüyü Tekrarla",desc:"Gecikme olmaksızın tekrar <strong>30 göğüs kompresyonu</strong> uygulama. 30:2 oranında devam et.",hint:"Kapıdan başa dön — <strong>30 baskı → 2 soluk → 30 baskı → 2 soluk...</strong> Durmak yok!"},
+    {title:"Sürdürme",desc:"Hastanın solunum ve dolaşım fonksiyonları <strong>geri dönene</strong> veya sağlık ekibi hastayı devralana kadar <strong>kardiyopulmoner resüsitasyona devam etme</strong>.",hint:"Film bitene kadar sahneden ayrılma — <strong>ekip gelene kadar, ya da hasta nefes alana kadar DUR-MA!</strong>"}
+  ],
+  quiz:[
+    {q:"Kompresyon hızı dakikada kaç olmalıdır?",opts:["60-80","80-100","100-120","120-140"],ans:2},
+    {q:"Kompresyon derinliği erişkinde kaç cm?",opts:["3-4 cm","4-5 cm","5-6 cm","7-8 cm"],ans:2},
+    {q:"Kompresyon:Soluk oranı nedir?",opts:["15:1","15:2","30:1","30:2"],ans:3},
+    {q:"Bak-dinle-hisset en fazla kaç saniye sürmeli?",opts:["5 sn","10 sn","15 sn","20 sn"],ans:1},
+    {q:"İlk yapılacak şey nedir?",opts:["Göğüs kompresyonu","112 arama","Çevre güvenliği","Soluk verme"],ans:2}
+  ]
+},
+{
+  id:"cocuk-tyd",
+  emoji:"👶",
+  name:"Çocuklarda Temel Yaşam Desteği",
+  meta:"18 adım · Çocuk maketi",
+  steps:[
+    {title:"Çevre Güvenliği",desc:"Çevrenin, kendisinin ve <strong>hastanın güvenliğini</strong> kontrol etme.",hint:"Okul bahçesinde bir çocuk yerde yatıyor — önce etrafı kontrol et!"},
+    {title:"Bilinç Kontrolü",desc:"Çocuğun omuzlarına hafifçe dokunarak ve <em>\"Nasılsın? İyi misin?\"</em> diye sorarak <strong>bilincini kontrol etme</strong>.",hint:"Çocuğa eğilip \"Hey, iyi misin?\" diyorsun. Cevap yok..."},
+    {title:"Yardım Çağır & 112",desc:"<strong>Bilinç Kapalıysa;</strong> çevreden yardım çağırma ve <em>\"112 ara\"</em> komutu verme.",hint:"\"Öğretmen! 112'yi ara!\" diye bağır."},
+    {title:"Ağız İçi Kontrol",desc:"Ağız içini kontrol etme, <strong>yabancı cisim varsa çıkarma</strong>.",hint:"Küçük ağzını aç, bak — oyuncak parçası, şeker var mı?"},
+    {title:"Havayolu Açma",desc:"<em>\"Baş geri-çene yukarı manevrası\"</em> ile hava yolunu açma. Bir eli hastanın alnına yerleştirerek başı nazikçe geriye doğru iterken, diğer elin parmak uçlarını alt çene kemiğine yerleştirerek çeneyi öne-yukarıya doğru kaldırma.<br><br><em>(NOT: Sağlık personeli travma şüphesinde öncelikle \"çene itme\" manevrası denemelidir)</em>",hint:"Çocuğun başı küçük — <strong>çok fazla geriye itme</strong>, nazikçe yeter."},
+    {title:"Bak-Dinle-Hisset (10 sn)",desc:"<em>\"Bak-dinle-hisset\"</em> yöntemiyle 10 sn'yi aşmayacak şekilde solunumu değerlendirme.",hint:"Aynı teknik — bak, dinle, hisset. 10 saniye say."},
+    {title:"Solunum Yoksa Soluk Ver",desc:"Solunum yoksa alnı destekleyen elin baş ve işaret parmakları ile <strong>çocuğun burun kanatlarını kapatma</strong>.",hint:"Çocuğun küçük burnunu hafifçe kapat."},
+    {title:"Ağız Mühürleme & Soluk",desc:"Çene kemiğindeki elin başparmağıyla hastanın ağzını hafifçe açıp, derin soluk alarak ağzını, hastanın ağzına, <strong>hava kaçağı olmayacak şekilde</strong> iyice yerleştirme.",hint:"Küçük ağza uyumlu mühür — <strong>nazik ama tam kapatmalı</strong>."},
+    {title:"Göğüs Yükseltme",desc:"Göğse bakarak göğüs kafesini <strong>yükseltmeye yetecek kadar</strong> soluk verme <em>(yaklaşık 1 sn)</em>.",hint:"Küçük balon — <strong>çok sert üfleme!</strong> Göğüs hafif yükselsin yeter."},
+    {title:"Göğüs Gözlemi",desc:"<em>\"Baş geri çene yukarı\"</em> pozisyonunu devam ettirme ve göğüs kafesinin eski haline dönüşünü gözleme.",hint:"Göğüs indi mi? Güzel, hava çıktı."},
+    {title:"İkinci Soluk",desc:"Göğüs indiğinde sonraki soluğu verme, <strong>soluk verme işlemini 5 kez tekrar</strong> etme.",hint:"Toplam 5 kez soluk ver — çocukta solunum çok kritik!"},
+    {title:"Nabız Kontrolü",desc:"Çocuklarda <strong>karotis veya femoral arterden</strong> işaret ve orta parmakları kullanarak <strong>10 sn içinde nabız</strong> kontrol etme.",hint:"Boyun VEYA kasık — <strong>iki yer!</strong> 10 saniye. Nabız yok mu?"},
+    {title:"Kompresyon Pozisyonu",desc:"Çocuklarda (1-8 yaş arası) sternumun ½ alt yarısına <strong>birinci elin topuğunu kollar dik</strong> olacak şekilde yerleştirme. İri çocuksa diğer elin topuğunu birincinin üzerine kenetleme.",hint:"<strong>Tek el yeter</strong> küçük çocuğa — iri çocuksa iki el, erişkin gibi."},
+    {title:"Göğüs Kafesi Pozisyonu",desc:"Parmaklar ve avuç içi göğüs kafesiyle temas etmeyecek şekilde, dirsekleri bükmeden ve kollar göğüs üzerinde <strong>vücuda dik</strong> olarak yerleşme.",hint:"Erişkinle aynı — <strong>dik sütun pozisyonu</strong>."},
+    {title:"Kompresyon Uygulama",desc:"Göğüs kemiğini <strong>5 cm</strong> (yandan bakıldığında göğüs yüksekliğinin 1/3'ü kadar) çöktürerek ve göğsün normal pozisyonuna dönmesine izin vererek <strong>30 kez</strong>(iki kurtarıcı personel varlığında <strong>15 kez</strong>) yukarıdan aşağıya göğüs kompresyonu uygulama.<br><br><em>Kompresyon hızı en az 100, en fazla 120 bası/dk olmalı.</em>",hint:"Tek kurtarıcı = <strong>30</strong>, iki kurtarıcı = <strong>15</strong>. Derinlik ~5 cm."},
+    {title:"2 Soluk + 30 (veya 15) Bası Döngüsü",desc:"Gecikme olmaksızın <strong>2 soluk verme</strong> ve 30 (iki kurtarıcıyla 15) göğüs basısı uygulamalarını sürdürme.",hint:"Döngü: <strong>30(15):2 → 30(15):2 → 30(15):2...</strong>"},
+    {title:"Yaşam Bulguları Kontrolü",desc:"İki dakika sonunda <strong>yaşam bulgularının olup olmadığını</strong> kontrol etme. (Olay yerinde yalnızsan/112 aranmamışsa 112'yi ara)<br><br>a) Nabız varlığı 60/dk ve üzeri<br>b) Öksürük<br>c) Yeterli ve düzenli solunum<br>d) Beden hareketleri",hint:"2 dakika doldu — nabız var mı? Öksürük? Hareket? Varsa <strong>sevindirici!</strong>"},
+    {title:"Sürdürme",desc:"Hastanın solunum ve dolaşım fonksiyonları geri dönene veya sağlık ekibi hastayı devralana kadar <strong>kardiyopulmoner resüsitasyona devam etme</strong>.",hint:"Ekip gelene kadar — <strong>DURMA!</strong>"}
+  ],
+  quiz:[
+    {q:"Çocuklarda iki kurtarıcı kompresyon oranı nedir?",opts:["30:2","15:2","15:1","30:1"],ans:1},
+    {q:"Çocuklarda nabız nereden kontrol edilir?",opts:["Sadece karotis","Sadece femoral","Karotis veya femoral","Radyal"],ans:2},
+    {q:"Çocuklarda kompresyon derinliği kaç cm?",opts:["3 cm","4 cm","5 cm","6 cm"],ans:2},
+    {q:"Tek kurtarıcı kompresyon sayısı?",opts:["15","20","25","30"],ans:3}
+  ]
+},
+{
+  id:"bebek-tyd",
+  emoji:"🍼",
+  name:"Bebeklerde Temel Yaşam Desteği",
+  meta:"18 adım · Çocuk maketi, spanç",
+  steps:[
+    {title:"Çevre Güvenliği",desc:"Çevrenin, kendisinin ve <strong>hastanın güvenliğini</strong> kontrol etme.",hint:"Evde bebek yerde — etraf güvenli mi?"},
+    {title:"Bilinç Kontrolü",desc:"Bebeğin omuzlarına hafifçe dokunarak ve <em>\"Nasılsın? İyi misin?\"</em> diye sorarak bilincini kontrol etme.",hint:"Bebeğe hafifçe dokun — tepki veriyor mu? Ağlıyor mu?"},
+    {title:"Yardım Çağır & 112",desc:"<strong>Bilinç Kapalıysa;</strong> çevreden yardım çağırma ve <em>\"112 ara\"</em> komutu verme.",hint:"\"Birisi 112'yi arasın!\" diye bağır."},
+    {title:"Ağız İçi Kontrol",desc:"Ağız içini kontrol etme, <strong>yabancı cisim varsa çıkarma</strong>.",hint:"Minik ağzına bak — bir şey var mı?"},
+    {title:"Havayolu Açma (Nazik)",desc:"<em>\"Baş geri-çene yukarı manevrası\"</em> ile hava yolunu açma: Bir eli hastanın alnına yaklaşık <strong>45 derece olacak</strong> şekilde (nötr pozisyona yakın) yerleştirerek çeneyi öne-yukarıya doğru kaldırma.<br><br><em>(NOT: Sağlık personeli travma şüphesinde öncelikle \"çene itme\" manevrası denemelidir)</em>",hint:"Bebeğin başı küçük kavun gibi — <strong>çok az eğ, 45 derece yeter!</strong> Fazla itersen hava yolu kapanır."},
+    {title:"Bak-Dinle-Hisset (10 sn)",desc:"<em>\"Bak-dinle-hisset\"</em> yöntemiyle 10 sn'yi aşmayacak şekilde solunumu değerlendirme.",hint:"Bebeğin ağzına ve göğsüne bak, dinle, hisset — 10 saniye."},
+    {title:"Solunum Yoksa Soluk Verme Hazırlık",desc:"Solunum yoksa soluk vermeye başlamak üzere atının değerlendir ve <strong>başı hafifçe sabitleyip</strong> dudaklarla bebeğin ağız ve burnunu kapatma hazırlığı.",hint:"Burada fark var: bebeğin yüzü küçük olduğu için <strong>ağız VE burun birlikte kapatılır</strong>."},
+    {title:"Ağız + Burun Mühürleme",desc:"Burnunu kapatmadan, bebeğin <strong>ağzını ve burnunu birlikte ağzınla</strong> mühürleyerek, göğüs kafesini yükseltmeye yetecek kadar soluk verme. Normal soluk al, <strong>dudaklar bebeğin ağzı ve burnunu kapatmalı</strong>.",hint:"Bebeğin yüzü bir fincan gibi — <strong>ağzınla hepsini kaplarsın</strong>. Yumuşak üfle!"},
+    {title:"Göğüs Kontrolü",desc:"<em>\"Baş geri çene yukarı\"</em> pozisyonunu devam ettirme ve göğüs kafesinin eski haline dönüşünü gözleme.",hint:"Göğüs indi mi? İndi, devam!"},
+    {title:"5 Kez Soluk Verme",desc:"Göğüs indiğinde sonraki soluğu verme, <strong>soluk verme işlemini 5 kez tekrar</strong> etme.",hint:"<strong>5 mini balon</strong> — bebeklerde solunum çok önemli!"},
+    {title:"Nabız Kontrolü",desc:"Bebeklerde <strong>brakiyal arterden</strong> (kol iç kısmı) işaret ve orta parmakları kullanarak <strong>10 sn içinde nabız</strong> kontrol etme.",hint:"Bebekte boyun değil — <strong>kolunun iç tarafı, dirsek üstü</strong>: brakiyal arter!"},
+    {title:"Nabız Yoksa Kompresyon Hazırlık",desc:"Nabız yoksa veya nabız sayısı dakikada 60'ın altında ve beraberinde dolaşım bozukluğu bulguları varsa <strong>kalp masajı pozisyonu</strong> için hastanın gövdesine mümkün olduğunca yakın olarak yanına diz çökme.",hint:"Nabız yok ya da çok yavaş (<60) — kalp masajına geç!"},
+    {title:"2 Parmak Tekniği (a)",desc:"<strong>a) Bebeklerde başparmak yöntemi uygulamak için;</strong><br>İki el ile bebeğin gövdesini çevrele, başparmaklar yan yana veya üst üste <strong>sternum alt yarısında meme hattı çizgisinin hemen altında</strong>.",hint:"İki elinle bebeği sar, başparmaklar göğüste yan yana — <strong>çevreleyen el tekniği</strong> (2 kurtarıcı için ideal)."},
+    {title:"2 Parmak Tekniği (b)",desc:"<strong>b) Bebeklerde iki parmak ile:</strong><br>İşaret parmağı ile orta parmağı veya orta parmak ile yüzük parmağı, <strong>sternum alt yarısında meme hattı çizgisinin hemen altına</strong> dik bir şekilde arkada sabit bir zemin olmalı.",hint:"<strong>İki parmağını</strong> meme uçları hizasının hemen altına koy — tek kurtarıcıysen bu teknik."},
+    {title:"Göğüs Kompresyonu",desc:"Göğüs kemiğini <strong>4 cm</strong> (yandan bakıldığında göğüs yüksekliğinin 1/3'ü kadar) çöktürerek ve göğsün normal pozisyonuna dönmesine izin vererek <strong>30 kez</strong>(iki kurtarıcı personel varlığında <strong>15 kez</strong>) yukarıdan aşağıya göğüs kompresyonu uygulama.<br><br><em>Kompresyon hızı en az 100, en fazla 120 bası/dk olmalı.</em>",hint:"<strong>4 cm</strong> derinlik — bebek göğsü küçük! Tek kurtarıcı 30, çift kurtarıcı 15."},
+    {title:"Döngü Devam",desc:"Gecikme olmaksızın <strong>2 soluk verme</strong> ve 30 (iki kurtarıcıyla 15) göğüs basısı uygulamalarını sürdürme.",hint:"<strong>30:2 veya 15:2 döngüsü</strong> — durmak yok!"},
+    {title:"Yaşam Bulguları",desc:"İki dakika sonunda <strong>yaşam bulgularının olup olmadığını</strong> kontrol etme.<br>a) Nabız varlığı 60/dk ve üzeri<br>b) Öksürük<br>c) Yeterli ve düzenli solunum<br>d) Beden hareketleri",hint:"2 dakika doldu — kontrol zamanı!"},
+    {title:"Sürdürme",desc:"Hastanın solunum ve dolaşım fonksiyonları geri dönene veya sağlık ekibi hastayı devralana kadar <strong>kardiyopulmoner resüsitasyona devam etme</strong>.",hint:"<strong>Ekip gelene kadar DURMA!</strong>"}
+  ],
+  quiz:[
+    {q:"Bebeklerde kompresyon derinliği kaç cm?",opts:["2 cm","3 cm","4 cm","5 cm"],ans:2},
+    {q:"Bebeklerde nabız nereden kontrol edilir?",opts:["Karotis","Femoral","Brakiyal","Radyal"],ans:2},
+    {q:"Bebeklerde soluk verirken ne kapatılır?",opts:["Sadece burun","Sadece ağız","Ağız ve burun birlikte","Hiçbiri"],ans:2},
+    {q:"Tek kurtarıcıda hangi teknik kullanılır?",opts:["Başparmak","2 parmak","Tek el","2 el"],ans:1}
+  ]
+},
+{
+  id:"eriskin-yc",
+  emoji:"🫁",
+  name:"Erişkinlerde Yabancı Cisim Çıkarma",
+  meta:"9 adım · Erişkin mankeni",
+  steps:[
+    {title:"Arkasına Geç",desc:"Hastanın arkasına geçme ya da hafifçe sırtına doğru olacak şekilde <strong>yanında durma</strong>.",hint:"<strong>Restoran hikayesi:</strong> Karşındaki adam boğuluyor — hemen arkasına geç!"},
+    {title:"Göğüs Desteği & Öne Eğilme",desc:"Bir elini hastanın göğsüne koyarak destekleme ve bu durumda hastanın havayolu <strong>aşağıda olacak şekildeolabildiğince öne eğilmesini</strong> sağlama.",hint:"Bir elini göğsüne koy, diğer elinle öne doğru eğdir — cisim <strong>yerçekimiyle düşsün</strong>."},
+    {title:"5 Sırt Vuruşu",desc:"Diğer elin topuğu ile hastanın skapulaları (kürek kemikleri) ortasına <strong>kuvvet yönü ileriye ve aşağıya</strong> olacak şekilde, saniyede bir kez ve <strong>5 defa kuvvetlice</strong> vurma.",hint:"Kürek kemikleri arası — <strong>5 kez, kapı çalar gibi</strong> kuvvetlice vur!"},
+    {title:"Heimlich Pozisyonu (Cisim Çıkmadıysa)",desc:"Yabancı cisim çıkmamışsa hastanın arkasında iken kollar ile hastanın <strong>üst karın bölgesini sarma</strong> ve hastanın boyundan daha yukarıda olacak şekilde konumlanma. (Bir yükseltiden yararlanılabilir, kişinin dizleri üzerine çökmesi sağlanabilir veya kurtarıcı dizlerinin üzerine çökebilir)",hint:"Arkadan sarıl — <strong>kol ayı kucağı</strong> pozisyonu!"},
+    {title:"Yumruk Yerleştirme",desc:"Bir eli yumruk haline getirme ve bu elin başparmağını göğüs kemiğinin alt ucu ile göbek çukuru arasındaki <strong>boşluğun ortasına</strong> (ksifoidin bir miktar altına) yerleştirme.",hint:"Göbek üstü, göğüs kemiği altı — <strong>tam ortaya yumruk koy</strong>."},
+    {title:"Kavrama",desc:"Diğer el ile <strong>yumruk yapılan eli kavrama</strong>.",hint:"Yumruğu diğer elinle kavra — <strong>iki el kilitli</strong>."},
+    {title:"5 Abdominal Thrust",desc:"Kollar yardımıyla, yumruk yapılan elin <strong>içeri ve yukarı hareketini saniyede 1 kez</strong> olacak şekilde ve <strong>5 kez kuvvetlice</strong> uygulama.",hint:"İçe ve yukarı — <strong>pompa çeker gibi 5 kez!</strong>"},
+    {title:"5'li Seriler Halinde Tekrar",desc:"Yabancı cisim çıkana kadar <strong>sırt vuruşu ve karına basıyı 5'li seriler halinde</strong> sırayla uygulama.",hint:"<strong>5 sırt + 5 karın + 5 sırt + 5 karın...</strong> çıkana kadar!"},
+    {title:"Bilinç Kaybı → CPR",desc:"Bilinç kapanırsa ve yabancı cisim çıkmamışsa <strong>kalp masajından başlamak üzere temel yaşam desteği</strong> uygulamasına geçme geçme.<br><br><em>(Soluk vermeden önce başparmak ağız içinde diğer parmaklar çene altında dil ve altçene birlikte çekilerek ağız içi kontrolü yapılmalıdır)</em>",hint:"Adam bayıldı! Artık <strong>CPR zamanı</strong> — 30 kompresyon ile başla."}
+  ],
+  quiz:[
+    {q:"Sırt vuruşu kaç kez yapılır?",opts:["3","5","7","10"],ans:1},
+    {q:"Yumruk nereye yerleştirilir?",opts:["Göğüs ortası","Göbek altı","Göbek-göğüs arası ortaya","Sırt"],ans:2},
+    {q:"Cisim çıkmazsa ve bilinç kapanırsa ne yapılır?",opts:["Beklenir","112 aranır","CPR başlanır","Sırt vuruşuna devam edilir"],ans:2}
+  ]
+},
+{
+  id:"cocuk-yc",
+  emoji:"🧒",
+  name:"Çocuklarda Yabancı Cisim Çıkarma",
+  meta:"9 adım · Erişkin mankeni",
+  steps:[
+    {title:"Arkasına Geç",desc:"Hastanın arkasına geçme ya da hafifçe sırtına doğru olacak şekilde <strong>yanında durma</strong>.",hint:"Çocuk boğuluyor — <strong>arkasına geç, diz çök</strong> (boyuna in)."},
+    {title:"Göğüs Desteği & Öne Eğilme",desc:"Bir elini hastanın göğsüne koyarak destekleme ve bu durumda hastanın havayolu <strong>aşağıda olacak şekilde öne eğilmesini</strong> sağlama.",hint:"Çocuğu öne eğdir — <strong>yerçekimi yardımcın olsun</strong>."},
+    {title:"5 Sırt Vuruşu",desc:"Diğer elin topuğu ile hastanın skapulaları (kürek kemikleri) ortasına kuvvet yönü ileriye ve aşağıya olacak şekilde, saniyede bir kez ve <strong>5 defa kuvvetlice</strong> vurma.",hint:"Kürek kemikleri arası — <strong>5 kez</strong>! Kuvveti çocuğa göre ayarla."},
+    {title:"Heimlich Pozisyonu",desc:"Yabancı cisim çıkmamışsa hastanın arkasında iken kollar ile hastanın <strong>üst karın bölgesini sarma</strong> ve hastanın boyundan daha yukarıda olacak şekilde konumlanma. (Kişinin dizleri üzerine çökmesi sağlanabilir veya kurtarıcı dizlerinin üzerine çökebilir)",hint:"Diz çöküp çocuğu arkadan sar — aynı teknik, <strong>küçük boyut</strong>."},
+    {title:"Yumruk Yerleştirme",desc:"Bir eli yumruk haline getirme ve bu elin başparmağını göğüs kemiğinin alt ucu ile göbek çukuru arasındaki <strong>boşluğun ortasına</strong> yerleştirme.",hint:"Göbek üstü, göğüs altı — <strong>tam ortaya</strong>."},
+    {title:"Kavrama",desc:"Diğer el ile <strong>yumruk yapılan eli kavrama</strong>.",hint:"Kilitli eller — aynı erişkin gibi."},
+    {title:"5 Abdominal Thrust",desc:"Kollar yardımıyla, yumruk yapılan elin içeri ve yukarı hareketini saniyede 1 kez olacak şekilde ve <strong>5 kez kuvvetlice</strong> uygulama.",hint:"<strong>İçe + yukarı × 5</strong> — çocuğa göre kuvvet ayarla!"},
+    {title:"5'li Seriler Halinde Tekrar",desc:"Yabancı cisim çıkana kadar sırt vuruşu ve karına basıyı <strong>5'li seriler halinde</strong> sırayla uygulama.",hint:"5 sırt + 5 karın, tekrar tekrar..."},
+    {title:"Bilinç Kaybı → CPR",desc:"Bilinç kapanırsa ve yabancı cisim çıkmamışsa <strong>kalp masajından başlamak üzere temel yaşam desteği</strong> uygulamasına geçme.<br><br><em>(Soluk vermeden önce başparmak ağız içinde diğer parmaklar çene altında dil ve altçene birlikte çekilerek ağız içi kontrolü yapılmalıdır)</em>",hint:"Bayıldı → <strong>CPR!</strong>"}
+  ],
+  quiz:[
+    {q:"Çocukta sırt vuruşu ve karın basısı nasıl uygulanır?",opts:["3'lü seriler","5'li seriler","7'li seriler","10'lu seriler"],ans:1},
+    {q:"Bilinç kapanırsa ilk ne yapılır?",opts:["112 ara","Sırt vuruşu","CPR başla","Bekleme"],ans:2}
+  ]
+},
+{
+  id:"bebek-yc",
+  emoji:"👼",
+  name:"Bebeklerde Yabancı Cisim Çıkarma",
+  meta:"9 adım · Bebek maketi",
+  steps:[
+    {title:"Yüzüstü Pozisyon",desc:"Bebeği yüzükoyun pozisyonda, başı gövdesinden <strong>hafif aşağıda</strong> (yer çekimine uygun) olacak şekilde <strong>ön kol üzerine yatırma</strong>.<br><br><em>(Bu sırada sağlık personeli oturur pozisyonda olmalıdır.)</em>",hint:"<strong>Kucakta bebek hikayesi:</strong> Bebeği ön koluna yüzüstü yatır — başı aşağıda, kaydırak gibi!"},
+    {title:"Bacak Üstüne Yerleştirme",desc:"Bebeğin yatırıldığı kolu <strong>bacağın uyluk kısmına</strong> yerleştirme.",hint:"Kolun uyluğuna dayanır — <strong>destek sağlam olsun</strong>."},
+    {title:"5 Sırt Vuruşu",desc:"Diğer elin topuğu ile bebeğin skapulaları ortasına kuvvet yönü <strong>ileri ve aşağıya</strong>, saniyede bir darbe olacak şekilde <strong>5 kez kuvvetlice</strong> vurma.",hint:"Kürek kemikleri arası — <strong>5 kez, kararlı ama nazik</strong>."},
+    {title:"Sırt Üstü Çevirme",desc:"Yabancı cisim çıkmamışsa bebeği göğüs vurusu yapmak üzere <strong>sırtüstü ve başı gövdesinden hafif aşağıda</strong> olacak şekilde çevirme. (Çevirme işlemi sırasında sırt vuruşu yapan eli bebeğin başının arkasına yerleştirerek <strong>baş desteği sağlanır</strong> ve bebek kurtarıcının iki kolu arasında iken sırt üstü pozisyona çevrilir)",hint:"<strong>Krep çevirir gibi</strong> — ama başını desteklemeyi unutma!"},
+    {title:"Kol Üstüne Yerleştirme",desc:"Bebeğin yerleştirildiği <strong>ön kolu uyluğun üzerine</strong> yerleştirme.",hint:"Tekrar uyluk desteği — bebek kol üstünde, sırt üstü."},
+    {title:"Parmak Yerleştirme",desc:"Boşta kalan elin işaret parmağı ile orta parmaklarını ya da orta parmak ile yüzük parmaklarını <strong>birleştirerek kalp masajı yapılan noktaya</strong> yerleştirme.",hint:"<strong>2 parmak, meme hattının hemen altı</strong> — aynı CPR noktası."},
+    {title:"5 Göğüs Basısı",desc:"Göğüs duvarından teması kesmeden bebeğin göğüs yüksekliğinin <strong>½ ile 1/3'ünü çöktürecek</strong> şekilde içeri ve ileriye doğru ve yaklaşık <strong>45 derece açı ile itici</strong> bası yapma.",hint:"Göğsü <strong>1/3 çöktür</strong>, 5 kez — düğmeye basar gibi."},
+    {title:"5'li Seriler Halinde Tekrar",desc:"Yabancı cisim çıkıncaya kadar sırt vuruşu ve göğüs basısını <strong>ardışık olarak sırası ile 5'li seriler halinde sürdürme</strong>.",hint:"<strong>5 sırt (yüzüstü) + 5 göğüs (sırt üstü)</strong>, tekrar tekrar!"},
+    {title:"Bilinç Kaybı → CPR",desc:"Bebeğin bilinci kaybolursa kalp masajından başlayarak <strong>temel yaşam desteği</strong> uygulama.<br><br><em>(Soluk vermeden önce başparmak ağız içinde diğer parmaklar çene altında dil ve çene birlikte çekilerek ağız içi kontrolü yapılmalıdır)</em>",hint:"Bayıldı → <strong>CPR!</strong> 2 parmak tekniği ile 30:2 başla."}
+  ],
+  quiz:[
+    {q:"Bebekte sırt vuruşu pozisyonu nasıldır?",opts:["Sırt üstü","Yüzüstü, başı aşağıda","Oturur pozisyonda","Yan yatırılarak"],ans:1},
+    {q:"Göğüs basısında kaç parmak kullanılır?",opts:["1","2","3","Avuç içi"],ans:1},
+    {q:"Sırt vuruşu ve göğüs basısı kaçar kez yapılır?",opts:["3'er","5'er","7'er","10'ar"],ans:1}
+  ]
+},
+{
+  id:"degerendirme",
+  emoji:"📋",
+  name:"Modül Değerlendirme Şablonu",
+  meta:"Temel + İkincil Değerlendirme",
+  steps:[
+    {title:"Ön Hazırlık",desc:"Olay yerine varmadan önce <strong>sahne güvenliği değerlendirmesi</strong>. Ne tür bir olay? Kaç hasta? Ek tehlike var mı?",hint:"<strong>Kaza yerine varış hikayesi:</strong> Olay yerine geldin — düşün, planla, hazırlan."},
+    {title:"KKD (Kişisel Koruyucu Donanım)",desc:"<strong>Eldiven, maske, gözlük</strong> gibi kişisel koruyucu donanımları tak. Kendini koru ki başkasını koruyabilesin.",hint:"Eldiven, maske, gözlük — <strong>süper kahraman zırhını giy!</strong>"},
+    {title:"Güvenlik",desc:"Çevre güvenliğini kontrol et. <strong>Trafik, yangın, elektrik, kimyasal</strong> — her türlü tehlike?",hint:"Etrafına 360° bak — güvenli mi?"},
+    {title:"İletişim-Onam",desc:"Hastaya/ailesine kendini tanıt: <em>\"Ben sağlık personeliyim, size yardım etmek istiyorum, izin verir misiniz?\"</em>",hint:"\"Merhaba, ben sağlıkçıyım. Yardım edebilir miyim?\" — <strong>izin al!</strong>"},
+    {title:"Ekip-Malzeme",desc:"Ekipte kimler var? Hangi malzemeler mevcut? <strong>Görev dağılımı</strong> yap.",hint:"Kim ne yapacak? Malzeme çantası nerede? — <strong>organize ol!</strong>"},
+    {title:"B-ABC-E Protokolü",desc:"<strong>B</strong> = Büyük kanama kontrolü<br><strong>A</strong> = Airway (Havayolu)<br><strong>B</strong> = Breathing (Solunum)<br><strong>C</strong> = Circulation (Dolaşım)<br><strong>E</strong> = Exposure (Maruz kalma / Çevresel)<br><br><em>\"Büyük Ambulans Bizi Çok Etkiler\"</em>",hint:"Kısaltma: <strong>\"Büyük Ambulans Bizi Çok Etkiler\"</strong> — B-A-B-C-E sırasıyla git!"},
+    {title:"SAMPLE Öykü",desc:"<strong>S</strong> = Signs/Symptoms (Bulgular)<br><strong>A</strong> = Allergies (Alerjiler)<br><strong>M</strong> = Medications (İlaçlar)<br><strong>P</strong> = Past medical history (Geçmiş hastalıklar)<br><strong>L</strong> = Last oral intake (Son yeme-içme)<br><strong>E</strong> = Events (Olayın oluşumu)",hint:"<strong>\"Semptomları Alacan Mecburen İlaçlarla Lüzumlu Eyleme\"</strong> — hastanın hikayesini öğren!"},
+    {title:"ATMIST (Devir Raporu)",desc:"<strong>A</strong> = Age (Yaş)<br><strong>T</strong> = Time (Zaman)<br><strong>M</strong> = Mechanism (Mekanizma)<br><strong>I</strong> = Injuries (Yaralanmalar)<br><strong>S</strong> = Signs/Vitals (Bulgular)<br><strong>T</strong> = Treatment (Tedavi)<br><br><em>Ambulansa devir sırasında kullanılır.</em>",hint:"<strong>\"Acil Travma Mekanizması İle Sürekli Tedavi\"</strong> — ambulansa teslim ederken bunu söyle!"},
+    {title:"Vital Bulgular",desc:"<strong>Kan Basıncı</strong> (sayı, düzen, dolgunluk)<br><strong>Nabız, Ritim/EKG, Ateş, SpO₂, EtCO₂</strong><br><strong>Kan Şekeri, KGD</strong><br><strong>Solunum</strong> (sayı, düzen, derinlik)",hint:"Kan basıncı, nabız, ateş, oksijen — <strong>sayılarla hastanın durumunu ölç</strong>."},
+    {title:"İkincil Değerlendirme: Baştan Aşağı",desc:"<strong>Saçlı deri → İzokori (göz) → Rakun-Battle (kulak arkası) → Otore-Rinore (kulak/burun akıntı) → PO Siyanoz → JVD → Trakea → Kosta-Sternum → AC sesleri → Kalp sesleri → Batın → Pelvis 3 yönlü → Perine → Üst ekstremite → Alt ekstremite → Sırt</strong>",hint:"<strong>\"Kuaförde başından ayaklarına inerler\"</strong> — saçlı deriden başla, sırta bitir. Baştan aşağı sistematik!"}
+  ],
+  quiz:[
+    {q:"B-ABC-E'de ilk B ne anlama gelir?",opts:["Breathing","Blood (Büyük kanama)","Brain","Bone"],ans:1},
+    {q:"SAMPLE'da L neyi ifade eder?",opts:["Location","Last oral intake","Level of consciousness","Lung sounds"],ans:1},
+    {q:"İkincil değerlendirmede ilk bakılan yer?",opts:["Göğüs","Karın","Saçlı deri","Ekstremiteler"],ans:2},
+    {q:"ATMIST ne zaman kullanılır?",opts:["İlk değerlendirmede","Hastaneye varışta","Ambulansa devir sırasında","Tedavi sonrası"],ans:2}
+  ]
+}
+];
+
+// ============================================================
+//  STATE
+// ============================================================
+let state = {
+  activeRehber: 0,
+  activeStep: 0,
+  completed: {},  // { "rehber_id:step_index": true }
+  quizMode: false,
+  quizAnswers: {}, // { "rehber_id:q_index": selectedIndex }
+  quizSubmitted: {},
+  hintsOpen: {},
+  tipsOpen: false,
+  theme: 'dark'
+};
+
+// Load from memory
+try {
+  const saved = localStorage.getItem('tyd_state');
+  if(saved) {
+    const parsed = JSON.parse(saved);
+    state.completed = parsed.completed || {};
+    state.theme = parsed.theme || 'dark';
+  }
+} catch(e){}
+
+function saveState(){
+  try {
+    localStorage.setItem('tyd_state', JSON.stringify({
+      completed: state.completed,
+      theme: state.theme
+    }));
+  } catch(e){}
+}
+
+// ============================================================
+//  THEME
+// ============================================================
+function applyTheme(){
+  document.documentElement.setAttribute('data-theme', state.theme);
+  document.querySelector('.theme-toggle').textContent = state.theme === 'dark' ? '☀️' : '🌙';
+}
+function toggleTheme(){
+  state.theme = state.theme === 'dark' ? 'light' : 'dark';
+  applyTheme();
+  saveState();
+}
+applyTheme();
+
+// ============================================================
+//  SIDEBAR
+// ============================================================
+function toggleSidebar(){
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('open');
+}
+
+function getProgress(rehberIdx){
+  const r = DATA[rehberIdx];
+  let done = 0;
+  r.steps.forEach((_, i) => {
+    if(state.completed[r.id + ':' + i]) done++;
+  });
+  return {done, total: r.steps.length, pct: Math.round((done / r.steps.length) * 100)};
+}
+
+function renderSidebar(){
+  const container = document.getElementById('rehberList');
+  container.innerHTML = DATA.map((r, i) => {
+    const p = getProgress(i);
+    const active = i === state.activeRehber ? 'active' : '';
+    return `<div class="rehber-card ${active}" onclick="selectRehber(${i})">
+      <div class="rehber-emoji">${r.emoji}</div>
+      <div class="rehber-info">
+        <div class="rehber-name">${r.name}</div>
+        <div class="rehber-meta">${r.meta} · %${p.pct}</div>
+        <div class="rehber-progress-mini"><div class="rehber-progress-fill" style="width:${p.pct}%"></div></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function selectRehber(idx){
+  state.activeRehber = idx;
+  state.activeStep = 0;
+  state.quizMode = false;
+  state.quizAnswers = {};
+  state.quizSubmitted = {};
+  state.hintsOpen = {};
+  renderSidebar();
+  renderMain();
+  // close mobile sidebar
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('open');
+}
+
+// ============================================================
+//  MAIN CONTENT
+// ============================================================
+function renderMain(){
+  const main = document.getElementById('mainContent');
+  if(state.quizMode){
+    renderQuiz(main);
+  } else {
+    renderStep(main);
+  }
+}
+
+function renderStep(main){
+  const r = DATA[state.activeRehber];
+  const s = r.steps[state.activeStep];
+  const p = getProgress(state.activeRehber);
+  const stepKey = r.id + ':' + state.activeStep;
+  const isCompleted = !!state.completed[stepKey];
+  const hintOpen = !!state.hintsOpen[stepKey];
+  const isFirst = state.activeStep === 0;
+  const isLast = state.activeStep === r.steps.length - 1;
+
+  main.innerHTML = `
+    <div class="progress-section">
+      <div class="progress-header">
+        <span class="progress-label">${r.emoji} ${r.name}</span>
+        <span class="progress-count">${p.done}/${p.total} tamamlandı</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" style="width:${p.pct}%"></div>
+      </div>
+    </div>
+
+    <div class="step-card" key="${stepKey}">
+      <div class="step-number-badge">
+        📍 Adım ${state.activeStep + 1} / ${r.steps.length}
+      </div>
+      <div class="step-title">${s.title}</div>
+      <div class="step-description">${s.desc}</div>
+
+      <div class="hint-toggle ${hintOpen ? 'open' : ''}" onclick="toggleHint('${stepKey}')">
+        <span class="arrow">▶</span>
+        🧠 Hafıza İpucu / Hikaye
+      </div>
+      <div class="hint-content ${hintOpen ? 'open' : ''}">
+        <div class="hint-label">🏰 Hikaye & Hafıza Sarayı</div>
+        <div class="hint-text">${s.hint}</div>
+      </div>
+
+      <div class="step-complete ${isCompleted ? 'checked' : ''}" onclick="toggleComplete('${stepKey}')">
+        <div class="step-checkbox">${isCompleted ? '✓' : ''}</div>
+        <div class="step-complete-text">${isCompleted ? 'Tamamlandı ✅' : 'Bu adımı tamamlandı olarak işaretle'}</div>
+      </div>
+    </div>
+
+    <div class="nav-buttons">
+      <button class="nav-btn" onclick="prevStep()" ${isFirst ? 'disabled' : ''}>← Önceki</button>
+      ${isLast
+        ? `<button class="nav-btn primary" onclick="startQuiz()">🎯 Kendini Test Et</button>`
+        : `<button class="nav-btn primary" onclick="nextStep()">Sonraki →</button>`
+      }
+    </div>
+
+    <div class="tips-section">
+      <div class="tips-toggle" onclick="toggleTips()">
+        <span>${state.tipsOpen ? '▼' : '▶'}</span> 💡 Genel Ezber Taktikleri
+      </div>
+      <div class="tips-content ${state.tipsOpen ? 'open' : ''}">
+        <div class="tip-item"><span class="tip-num">1</span><span>Her rehber için ayrı mekan seç (park, okul, ev, restoran). Hafıza sarayı tekniği ile her adımı bir lokasyona yerleştir.</span></div>
+        <div class="tip-item"><span class="tip-num">2</span><span>Görüntüleri garip ve abartılı yap — ne kadar tuhaf olursa o kadar kalıcı.</span></div>
+        <div class="tip-item"><span class="tip-num">3</span><span>Aralıklı tekrar: 1. gün → 3. gün → 7. gün → 14. gün → 30. gün.</span></div>
+        <div class="tip-item"><span class="tip-num">4</span><span>Mankende pratik yap — kas hafızası + zihinsel hikaye birleşince kalıcılık 3 kat artar.</span></div>
+        <div class="tip-item"><span class="tip-num">5</span><span>Birine anlat — "Öğretme etkisi" ile eksiklerini keşfedersin.</span></div>
+      </div>
+    </div>
+  `;
+}
+
+function renderQuiz(main){
+  const r = DATA[state.activeRehber];
+  const quiz = r.quiz;
+  if(!quiz || quiz.length === 0){
+    state.quizMode = false;
+    renderStep(main);
+    return;
+  }
+
+  const allAnswered = quiz.every((_, i) => state.quizSubmitted[r.id + ':' + i]);
+
+  if(allAnswered){
+    let correct = 0;
+    quiz.forEach((q, i) => {
+      if(state.quizAnswers[r.id + ':' + i] === q.ans) correct++;
+    });
+    const pct = Math.round((correct / quiz.length) * 100);
+    const emoji = pct === 100 ? '🏆' : pct >= 60 ? '👍' : '📚';
+
+    main.innerHTML = `
+      <div class="quiz-result">
+        <span class="quiz-result-emoji">${emoji}</span>
+        <div class="quiz-score">${correct}/${quiz.length}</div>
+        <div class="quiz-score-text">${pct === 100 ? 'Mükemmel! Tüm soruları doğru bildin!' : pct >= 60 ? 'İyi gidiyorsun! Tekrar et ve ustalaş.' : 'Biraz daha tekrar gerekiyor. Adımları tekrar gözden geçir!'}</div>
+        <div class="nav-buttons" style="max-width:400px;margin:0 auto">
+          <button class="nav-btn" onclick="backToSteps()">← Adımlara Dön</button>
+          <button class="nav-btn primary" onclick="retryQuiz()">🔄 Tekrar Dene</button>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  main.innerHTML = `
+    <div class="quiz-container">
+      <div class="quiz-header">
+        <div class="quiz-title">🎯 ${r.name} — Quiz</div>
+        <div class="quiz-subtitle">${quiz.length} soru · Bilgini test et</div>
+      </div>
+      ${quiz.map((q, qi) => {
+        const qKey = r.id + ':' + qi;
+        const submitted = !!state.quizSubmitted[qKey];
+        const selected = state.quizAnswers[qKey];
+        return `<div class="quiz-question">
+          <div class="quiz-q-number">Soru ${qi + 1}/${quiz.length}</div>
+          <div class="quiz-q-text">${q.q}</div>
+          ${q.opts.map((opt, oi) => {
+            let cls = 'quiz-option';
+            if(submitted){
+              if(oi === q.ans) cls += ' correct';
+              else if(oi === selected && oi !== q.ans) cls += ' wrong';
+            }
+            return `<button class="${cls}" onclick="answerQuiz(${qi},${oi})" ${submitted ? 'disabled' : ''}>${opt}</button>`;
+          }).join('')}
+        </div>`;
+      }).join('')}
+    </div>
+  `;
+}
+
+// ============================================================
+//  INTERACTIONS
+// ============================================================
+function nextStep(){
+  const r = DATA[state.activeRehber];
+  if(state.activeStep < r.steps.length - 1){
+    state.activeStep++;
+    state.hintsOpen = {};
+    renderMain();
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+}
+function prevStep(){
+  if(state.activeStep > 0){
+    state.activeStep--;
+    state.hintsOpen = {};
+    renderMain();
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+}
+function toggleComplete(key){
+  state.completed[key] = !state.completed[key];
+  saveState();
+  renderSidebar();
+  renderMain();
+}
+function toggleHint(key){
+  state.hintsOpen[key] = !state.hintsOpen[key];
+  renderMain();
+}
+function toggleTips(){
+  state.tipsOpen = !state.tipsOpen;
+  renderMain();
+}
+function startQuiz(){
+  state.quizMode = true;
+  state.quizAnswers = {};
+  state.quizSubmitted = {};
+  renderMain();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function retryQuiz(){
+  state.quizAnswers = {};
+  state.quizSubmitted = {};
+  renderMain();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function backToSteps(){
+  state.quizMode = false;
+  state.activeStep = 0;
+  renderMain();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function answerQuiz(qi, oi){
+  const r = DATA[state.activeRehber];
+  const qKey = r.id + ':' + qi;
+  if(state.quizSubmitted[qKey]) return;
+  state.quizAnswers[qKey] = oi;
+  state.quizSubmitted[qKey] = true;
+  renderMain();
+}
+
+// ============================================================
+//  INIT
+// ============================================================
+renderSidebar();
+renderMain();
+</script>
+</body>
+</html>
