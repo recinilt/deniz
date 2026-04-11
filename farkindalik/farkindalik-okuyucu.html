@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Farkındalık Halleri</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0a0f;
+  --bg2:#12121a;
+  --bg3:#1a1a26;
+  --bg4:#222233;
+  --text:#c8c5d0;
+  --text2:#9994a8;
+  --text3:#6b6680;
+  --accent:#b8860b;
+  --accent2:#d4a017;
+  --accent3:#f0c040;
+  --border:#2a2a3a;
+  --shadow:rgba(0,0,0,.4);
+  --cat-cerceve:#c9944a;
+  --cat-yonetim:#6a9fcd;
+  --cat-farkindalik:#8bc9a0;
+  --cat-meditasyon:#c98ab8;
+  --cat-sosyal:#cd8f6a;
+  --cat-beden:#7ec9c9;
+  --cat-dil:#c9c97e;
+  --radius:10px;
+}
+html{font-size:16px;scroll-behavior:smooth}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'DM Sans',sans-serif;
+  min-height:100vh;
+  line-height:1.6;
+  overflow-x:hidden;
+}
+body::before{
+  content:'';position:fixed;top:0;left:0;right:0;bottom:0;
+  background:radial-gradient(ellipse at 20% 0%,rgba(184,134,11,.06) 0%,transparent 60%),
+              radial-gradient(ellipse at 80% 100%,rgba(100,60,180,.04) 0%,transparent 60%);
+  pointer-events:none;z-index:0;
+}
+
+/* ═══ GİRİŞ EKRANI ═══ */
+#ekran-giris{
+  position:fixed;inset:0;z-index:9999;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--bg);
+}
+#ekran-giris .giris-kutu{
+  text-align:center;padding:3rem 2.5rem;
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:16px;width:min(380px,90vw);
+  box-shadow:0 20px 60px rgba(0,0,0,.5);
+}
+#ekran-giris .giris-kutu h1{
+  font-family:'Crimson Pro',serif;font-weight:300;
+  font-size:1.8rem;color:var(--accent2);
+  margin-bottom:.3rem;letter-spacing:.04em;
+}
+#ekran-giris .giris-kutu p{
+  color:var(--text3);font-size:.85rem;margin-bottom:2rem;
+}
+#ekran-giris .giris-kutu input{
+  width:100%;padding:.9rem 1.1rem;
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:8px;color:var(--text);font-size:1rem;
+  font-family:'DM Sans',sans-serif;
+  text-align:center;letter-spacing:.15em;
+  outline:none;transition:border-color .3s;
+}
+#ekran-giris .giris-kutu input:focus{border-color:var(--accent)}
+#ekran-giris .giris-kutu input::placeholder{color:var(--text3);letter-spacing:.05em}
+#ekran-giris .giris-kutu button{
+  margin-top:1.2rem;width:100%;padding:.85rem;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  border:none;border-radius:8px;color:#0a0a0f;
+  font-weight:600;font-size:.95rem;cursor:pointer;
+  font-family:'DM Sans',sans-serif;
+  transition:opacity .2s,transform .1s;
+}
+#ekran-giris .giris-kutu button:hover{opacity:.9}
+#ekran-giris .giris-kutu button:active{transform:scale(.98)}
+.giris-hata{color:#e05050;font-size:.82rem;margin-top:.8rem;min-height:1.2rem}
+
+/* ═══ ANA İÇERİK ═══ */
+#ekran-ana{display:none;position:relative;z-index:1}
+.ust-bar{
+  position:sticky;top:0;z-index:100;
+  background:rgba(10,10,15,.92);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+  padding:.8rem 1rem;
+}
+.ust-bar-ic{
+  max-width:860px;margin:0 auto;
+}
+.ust-baslik{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:.7rem;
+}
+.ust-baslik h1{
+  font-family:'Crimson Pro',serif;font-weight:300;
+  font-size:1.3rem;color:var(--accent2);letter-spacing:.03em;
+}
+.ust-baslik .sayac{
+  font-size:.75rem;color:var(--text3);
+  background:var(--bg3);padding:.25rem .7rem;
+  border-radius:20px;
+}
+
+/* Arama */
+.arama-kutu{
+  position:relative;margin-bottom:.7rem;
+}
+.arama-kutu input{
+  width:100%;padding:.65rem 1rem .65rem 2.4rem;
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:8px;color:var(--text);font-size:.88rem;
+  font-family:'DM Sans',sans-serif;outline:none;
+  transition:border-color .3s;
+}
+.arama-kutu input:focus{border-color:var(--accent)}
+.arama-kutu input::placeholder{color:var(--text3)}
+.arama-kutu svg{
+  position:absolute;left:.8rem;top:50%;transform:translateY(-50%);
+  width:16px;height:16px;color:var(--text3);
+}
+
+/* Kategori filtreleri */
+.filtreler{
+  display:flex;gap:.4rem;flex-wrap:wrap;
+}
+.filtre-btn{
+  padding:.35rem .75rem;border:1px solid var(--border);
+  border-radius:20px;background:transparent;
+  color:var(--text2);font-size:.78rem;cursor:pointer;
+  font-family:'DM Sans',sans-serif;
+  transition:all .2s;white-space:nowrap;
+}
+.filtre-btn:hover{border-color:var(--text3);color:var(--text)}
+.filtre-btn.aktif{
+  background:var(--accent);border-color:var(--accent);
+  color:#0a0a0f;font-weight:600;
+}
+.filtre-btn .kat-dot{
+  display:inline-block;width:8px;height:8px;
+  border-radius:50%;margin-right:4px;vertical-align:middle;
+}
+
+/* İçerik */
+.icerik{max-width:860px;margin:0 auto;padding:1rem 1rem 4rem}
+
+/* Oturum başlığı */
+.oturum{margin-bottom:1.8rem}
+.oturum-baslik{
+  font-family:'Crimson Pro',serif;font-weight:400;
+  font-size:1.15rem;color:var(--accent2);
+  padding:.5rem 0;margin-bottom:.5rem;
+  border-bottom:1px solid var(--border);
+  letter-spacing:.02em;
+}
+.oturum-baslik span{color:var(--text3);font-size:.8rem;margin-left:.5rem;font-family:'DM Sans',sans-serif}
+
+/* Akordiyon */
+.akordiyon{
+  border:1px solid var(--border);border-radius:var(--radius);
+  margin-bottom:.45rem;overflow:hidden;
+  transition:border-color .3s;
+}
+.akordiyon.acik{border-color:var(--accent)}
+.akordiyon-baslik{
+  display:flex;align-items:center;gap:.6rem;
+  padding:.75rem 1rem;cursor:pointer;
+  background:var(--bg2);
+  transition:background .2s;
+  -webkit-tap-highlight-color:transparent;
+  user-select:none;
+}
+.akordiyon-baslik:hover{background:var(--bg3)}
+.akordiyon.acik .akordiyon-baslik{background:var(--bg3)}
+.akordiyon-no{
+  font-size:.7rem;color:var(--text3);
+  min-width:26px;text-align:center;
+  background:var(--bg);padding:.15rem .4rem;
+  border-radius:4px;flex-shrink:0;
+}
+.akordiyon-baslik-text{
+  flex:1;font-size:.88rem;color:var(--text);
+  line-height:1.35;
+}
+.akordiyon-kat{
+  font-size:.65rem;padding:.2rem .5rem;
+  border-radius:12px;border:1px solid;
+  flex-shrink:0;text-transform:uppercase;
+  letter-spacing:.06em;font-weight:600;
+}
+.akordiyon-ok{
+  width:18px;height:18px;flex-shrink:0;
+  transition:transform .3s;color:var(--text3);
+}
+.akordiyon.acik .akordiyon-ok{transform:rotate(180deg);color:var(--accent2)}
+
+.akordiyon-icerik{
+  max-height:0;overflow:hidden;
+  transition:max-height .4s cubic-bezier(.4,0,.2,1);
+}
+.akordiyon.acik .akordiyon-icerik{max-height:2000px}
+.akordiyon-ic{
+  padding:1rem 1.2rem 1.2rem;
+  border-top:1px solid var(--border);
+}
+.akordiyon-ic h3{
+  font-family:'Crimson Pro',serif;font-weight:600;
+  font-size:.82rem;color:var(--accent2);
+  text-transform:uppercase;letter-spacing:.08em;
+  margin-bottom:.5rem;
+}
+.akordiyon-ic .desc{
+  font-family:'Crimson Pro',serif;font-size:.95rem;
+  color:var(--text);line-height:1.7;
+  margin-bottom:1.2rem;font-weight:300;
+}
+.akordiyon-ic .pratik-kutu{
+  background:var(--bg);border:1px solid var(--border);
+  border-left:3px solid var(--accent);
+  border-radius:0 8px 8px 0;padding:.9rem 1rem;
+}
+.akordiyon-ic .pratik-kutu p{
+  font-size:.87rem;color:var(--text2);line-height:1.65;
+}
+
+/* Yükleniyor */
+.yukleniyor{
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:4rem 1rem;
+}
+.yukleniyor .spinner{
+  width:36px;height:36px;border:3px solid var(--border);
+  border-top-color:var(--accent);border-radius:50%;
+  animation:don 1s linear infinite;
+}
+@keyframes don{to{transform:rotate(360deg)}}
+.yukleniyor p{color:var(--text3);font-size:.85rem;margin-top:1rem}
+
+/* Hata */
+.hata-kutu{
+  text-align:center;padding:3rem 1rem;
+}
+.hata-kutu p{color:var(--text3);font-size:.9rem;margin-bottom:1rem}
+.hata-kutu button{
+  padding:.6rem 1.5rem;background:var(--accent);
+  border:none;border-radius:8px;color:#0a0a0f;
+  font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;
+}
+
+/* Sonuç yok */
+.sonuc-yok{
+  text-align:center;padding:3rem 1rem;
+  color:var(--text3);font-size:.9rem;
+}
+
+/* Mobil uyum */
+@media(max-width:600px){
+  .ust-bar{padding:.6rem .7rem}
+  .ust-baslik h1{font-size:1.1rem}
+  .arama-kutu input{font-size:.84rem;padding:.6rem .8rem .6rem 2.2rem}
+  .filtre-btn{padding:.3rem .55rem;font-size:.72rem}
+  .akordiyon-baslik{padding:.65rem .75rem;gap:.45rem}
+  .akordiyon-baslik-text{font-size:.82rem}
+  .akordiyon-kat{font-size:.6rem;padding:.15rem .4rem}
+  .akordiyon-ic{padding:.8rem .9rem 1rem}
+  .akordiyon-ic .desc{font-size:.88rem}
+  .akordiyon-ic .pratik-kutu p{font-size:.82rem}
+  .icerik{padding:.7rem .7rem 3rem}
+  .oturum-baslik{font-size:1.05rem}
+}
+@media(max-width:380px){
+  .filtre-btn{padding:.25rem .45rem;font-size:.68rem}
+  .akordiyon-no{font-size:.65rem;min-width:22px}
+}
+
+/* Highlight */
+mark{background:rgba(184,134,11,.3);color:var(--text);border-radius:2px;padding:0 2px}
+</style>
+</head>
+<body>
+
+<!-- ═══ GİRİŞ EKRANI ═══ -->
+<div id="ekran-giris">
+  <div class="giris-kutu">
+    <h1>Farkındalık Halleri</h1>
+    <p>Erişim için şifre gereklidir</p>
+    <input type="password" id="sifre-input" placeholder="•••••" autocomplete="off" autofocus>
+    <button onclick="sifreDogrula()">Giriş</button>
+    <div class="giris-hata" id="giris-hata"></div>
+  </div>
+</div>
+
+<!-- ═══ ANA EKRAN ═══ -->
+<div id="ekran-ana">
+  <div class="ust-bar">
+    <div class="ust-bar-ic">
+      <div class="ust-baslik">
+        <h1>Farkındalık Halleri</h1>
+        <span class="sayac" id="sayac"></span>
+      </div>
+      <div class="arama-kutu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="text" id="arama" placeholder="Başlık, açıklama veya pratik içinde ara..." oninput="filtrele()">
+      </div>
+      <div class="filtreler" id="filtreler"></div>
+    </div>
+  </div>
+  <div class="icerik" id="icerik">
+    <div class="yukleniyor" id="yukleniyor">
+      <div class="spinner"></div>
+      <p>Veriler yükleniyor...</p>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════
+// OBFÜSKLENMİŞ VERİLER
+// ══════════════════════════════════════════════════════════
+;(function(){
+  var _0xf=[85,203,67,203,89,0];
+  var _0xa=[97,72,82,48,99,72,77,54,76,121,57,110,97,67,49,121,90,87,78,112,76,88,78,108,98,109,116,121,98,50,52,117,99,109,86,106,90,88,66,53,90,87,53,112,76,110,100,118,99,109,116,108,99,110,77,117,90,71,86,50];
+  function _r(a){for(var i=0,s='';i<a.length;i++){if(a[i]===0)break;s+=String.fromCharCode(a[i]^23);}return s;}
+  function _d(a){return atob(a.map(function(c){return String.fromCharCode(c)}).join(''));}
+  window._pk=_r(_0xf);
+  window._wu=_d(_0xa);
+})();
+
+// ══════════════════════════════════════════════════════════
+// ŞİFRE DOĞRULAMA (SHA-256 Hash)
+// ══════════════════════════════════════════════════════════
+async function _h(s){
+  var e=new TextEncoder().encode(s);
+  var b=await crypto.subtle.digest('SHA-256',e);
+  return Array.from(new Uint8Array(b)).map(function(x){return x.toString(16).padStart(2,'0')}).join('');
+}
+
+var _vk='e5fa04df2faf0caae6e29a29a03cdc1b5e3b8bc8e3b3e6a5ac2b0da1e4c3e5f5';
+;(async function(){
+  var _t=window._pk;
+  _vk=await _h(_t);
+})();
+
+async function sifreDogrula(){
+  var inp=document.getElementById('sifre-input').value;
+  var hata=document.getElementById('giris-hata');
+  if(!inp){hata.textContent='Şifre giriniz';return;}
+  var h=await _h(inp);
+  if(h===_vk){
+    document.getElementById('ekran-giris').style.display='none';
+    document.getElementById('ekran-ana').style.display='block';
+    verileriYukle();
+  }else{
+    hata.textContent='Şifre hatalı';
+    document.getElementById('sifre-input').value='';
+    document.getElementById('sifre-input').focus();
+  }
+}
+
+document.getElementById('sifre-input').addEventListener('keydown',function(e){
+  if(e.key==='Enter')sifreDogrula();
+});
+
+// ══════════════════════════════════════════════════════════
+// VERİ YÜKLEME
+// ══════════════════════════════════════════════════════════
+var tumVeriler=[];
+var tumKategoriler=new Set();
+var aktifKategori='tumu';
+var acikAkordiyon=null;
+
+var KAT_RENK={
+  cerceve:'var(--cat-cerceve)',
+  yonetim:'var(--cat-yonetim)',
+  farkindalik:'var(--cat-farkindalik)',
+  meditasyon:'var(--cat-meditasyon)',
+  sosyal:'var(--cat-sosyal)',
+  beden:'var(--cat-beden)',
+  dil:'var(--cat-dil)'
+};
+var KAT_ISIM={
+  cerceve:'Çerçeve',
+  yonetim:'Yönetim',
+  farkindalik:'Farkındalık',
+  meditasyon:'Meditasyon',
+  sosyal:'Sosyal',
+  beden:'Beden',
+  dil:'Dil'
+};
+
+function dosyaAdiniBicinle(ad){
+  // V01_Hakikatin_Sirri_cikarimlar.json → V01 Hakikatin Sırrı Çıkarımlar
+  var s=ad.replace(/\.json$/i,'');
+  // Alt tire → boşluk
+  s=s.replace(/_/g,' ');
+  // Fazla boşlukları temizle
+  s=s.replace(/\s+/g,' ').trim();
+  return s;
+}
+
+function dosyaSiraNo(ad){
+  var m=ad.match(/[Vv](\d+)/);
+  return m?parseInt(m[1]):999;
+}
+
+async function verileriYukle(){
+  var icerik=document.getElementById('icerik');
+  var wUrl=window._wu;
+  try{
+    // 1) Klasör listesini çek (GitHub API CORS destekler)
+    var listUrl='https://api.github.com/repos/recinilt/diyalektikdergah/contents/farkindalik-halleri/jsons';
+    var listeData;
+    
+    try{
+      var res=await fetch(listUrl,{headers:{'Accept':'application/vnd.github.v3+json'}});
+      if(!res.ok) throw new Error('API '+res.status);
+      listeData=await res.json();
+    }catch(e1){
+      // GitHub API başarısız - Worker ile dosya listesini almayı dene
+      // Worker read action ile bilinen dosyaları tek tek deneriz (fallback)
+      listeData=null;
+    }
+    
+    var jsonDosyalar=[];
+    
+    if(Array.isArray(listeData)){
+      jsonDosyalar=listeData.filter(function(d){return d.name.endsWith('.json')});
+    }else{
+      // API erişilemezse bilinen dosya adlarını worker ile dene
+      // Worker'dan dosya listesini alabilmek için farkindalik-halleri/jsons klasörünü tara
+      throw new Error('GitHub API erişilemedi. Lütfen sayfayı yenileyin.');
+    }
+    
+    jsonDosyalar.sort(function(a,b){return dosyaSiraNo(a.name)-dosyaSiraNo(b.name)});
+    
+    // 2) Her JSON dosyasını çek
+    tumVeriler=[];
+    var yuklenenSayi=0;
+    var toplamSayi=jsonDosyalar.length;
+    document.querySelector('#yukleniyor p').textContent='0/'+toplamSayi+' dosya yükleniyor...';
+    
+    // 3'erli batch (rate limit koruma)
+    for(var i=0;i<jsonDosyalar.length;i+=3){
+      var batch=jsonDosyalar.slice(i,i+3);
+      var promises=batch.map(function(dosya){
+        // GitHub API contents endpoint ile dosya içeriğini çek (base64)
+        var apiUrl=dosya.url;
+        return fetch(apiUrl,{headers:{'Accept':'application/vnd.github.v3+json'}})
+          .then(function(r){
+            if(!r.ok) throw new Error('fail');
+            return r.json();
+          })
+          .then(function(d){
+            if(d.content&&d.encoding==='base64'){
+              var raw=atob(d.content.replace(/\n/g,''));
+              var bytes=new Uint8Array(raw.length);
+              for(var j=0;j<raw.length;j++)bytes[j]=raw.charCodeAt(j);
+              var decoded=new TextDecoder('utf-8').decode(bytes);
+              return JSON.parse(decoded);
+            }
+            throw new Error('no content');
+          })
+          .catch(function(){
+            // Fallback: Worker read action ile dosya oku
+            var yol='farkindalik-halleri/jsons/'+dosya.name;
+            return fetch(wUrl,{
+              method:'POST',
+              headers:{'Content-Type':'application/json'},
+              body:JSON.stringify({action:'read',dosyaAdi:yol,repoAdi:'diyalektikdergah'})
+            })
+            .then(function(r){return r.json()})
+            .then(function(d){
+              if(d.content) return JSON.parse(d.content);
+              throw new Error('worker fail');
+            })
+            .catch(function(){
+              // Son çare: raw URL direkt
+              return fetch(dosya.download_url).then(function(r){return r.json()});
+            });
+          })
+          .then(function(data){
+            var items=Array.isArray(data)?data:[];
+            tumVeriler.push({
+              dosyaAdi:dosya.name,
+              baslik:dosyaAdiniBicinle(dosya.name),
+              siraNo:dosyaSiraNo(dosya.name),
+              ogeler:items
+            });
+            items.forEach(function(o){if(o.category)tumKategoriler.add(o.category)});
+            yuklenenSayi++;
+            document.querySelector('#yukleniyor p').textContent=yuklenenSayi+'/'+toplamSayi+' dosya yüklendi...';
+          })
+          .catch(function(err){
+            console.warn('Dosya yüklenemedi: '+dosya.name,err);
+            yuklenenSayi++;
+            document.querySelector('#yukleniyor p').textContent=yuklenenSayi+'/'+toplamSayi+' dosya yüklendi...';
+          });
+      });
+      await Promise.all(promises);
+    }
+    
+    tumVeriler.sort(function(a,b){return a.siraNo-b.siraNo});
+    filtreleriOlustur();
+    filtrele();
+    
+  }catch(err){
+    console.error('Yükleme hatası:',err);
+    icerik.innerHTML='<div class="hata-kutu"><p>Veriler yüklenirken bir hata oluştu.<br><small>'+err.message+'</small></p><button onclick="location.reload()">Tekrar Dene</button></div>';
+  }
+}
+
+function filtreleriOlustur(){
+  var kont=document.getElementById('filtreler');
+  var html='<button class="filtre-btn aktif" data-kat="tumu" onclick="kategoriSec(this)">Tümü</button>';
+  
+  var sirali=Array.from(tumKategoriler).sort();
+  sirali.forEach(function(k){
+    var renk=KAT_RENK[k]||'var(--text3)';
+    var isim=KAT_ISIM[k]||k;
+    html+='<button class="filtre-btn" data-kat="'+k+'" onclick="kategoriSec(this)">';
+    html+='<span class="kat-dot" style="background:'+renk+'"></span>'+isim+'</button>';
+  });
+  kont.innerHTML=html;
+}
+
+function kategoriSec(btn){
+  document.querySelectorAll('.filtre-btn').forEach(function(b){b.classList.remove('aktif')});
+  btn.classList.add('aktif');
+  aktifKategori=btn.dataset.kat;
+  acikAkordiyon=null;
+  filtrele();
+}
+
+function filtrele(){
+  var aramaText=document.getElementById('arama').value.trim().toLowerCase();
+  var icerik=document.getElementById('icerik');
+  var toplamGosterilen=0;
+  var html='';
+  
+  tumVeriler.forEach(function(oturum){
+    var filtrelenmis=oturum.ogeler.filter(function(o){
+      // Kategori filtresi
+      if(aktifKategori!=='tumu'&&o.category!==aktifKategori)return false;
+      // Arama filtresi
+      if(aramaText){
+        var metin=(o.title+' '+o.desc+' '+(o.practice||'')).toLowerCase();
+        return metin.indexOf(aramaText)!==-1;
+      }
+      return true;
+    });
+    
+    if(filtrelenmis.length===0)return;
+    
+    html+='<div class="oturum">';
+    html+='<div class="oturum-baslik">'+oturum.baslik+'<span>'+filtrelenmis.length+' çıkarım</span></div>';
+    
+    filtrelenmis.forEach(function(o){
+      var id='ak-'+oturum.siraNo+'-'+o.no;
+      var katRenk=KAT_RENK[o.category]||'var(--text3)';
+      var katIsim=KAT_ISIM[o.category]||o.category;
+      
+      var baslik=o.title;
+      var desc=o.desc;
+      var pratik=o.practice||'';
+      
+      // Arama highlight
+      if(aramaText){
+        baslik=highlightText(baslik,aramaText);
+        desc=highlightText(desc,aramaText);
+        pratik=highlightText(pratik,aramaText);
+      }
+      
+      html+='<div class="akordiyon" id="'+id+'">';
+      html+='<div class="akordiyon-baslik" onclick="akordiyonTikla(\''+id+'\')">';
+      html+='<span class="akordiyon-no">'+o.no+'</span>';
+      html+='<span class="akordiyon-baslik-text">'+baslik+'</span>';
+      html+='<span class="akordiyon-kat" style="color:'+katRenk+';border-color:'+katRenk+'">'+katIsim+'</span>';
+      html+='<svg class="akordiyon-ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>';
+      html+='</div>';
+      html+='<div class="akordiyon-icerik"><div class="akordiyon-ic">';
+      html+='<h3>Açıklama</h3>';
+      html+='<p class="desc">'+desc+'</p>';
+      if(pratik){
+        html+='<h3>Pratik</h3>';
+        html+='<div class="pratik-kutu"><p>'+pratik+'</p></div>';
+      }
+      html+='</div></div></div>';
+      toplamGosterilen++;
+    });
+    
+    html+='</div>';
+  });
+  
+  if(toplamGosterilen===0&&tumVeriler.length>0){
+    html='<div class="sonuc-yok">Aramanıza uygun sonuç bulunamadı.</div>';
+  }
+  
+  document.getElementById('sayac').textContent=toplamGosterilen+' çıkarım';
+  icerik.innerHTML=html;
+}
+
+function highlightText(text,term){
+  if(!term)return text;
+  var regex=new RegExp('('+term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi');
+  return text.replace(regex,'<mark>$1</mark>');
+}
+
+function akordiyonTikla(id){
+  var el=document.getElementById(id);
+  if(!el)return;
+  
+  if(el.classList.contains('acik')){
+    el.classList.remove('acik');
+    acikAkordiyon=null;
+    return;
+  }
+  
+  // Önceki açık olanı kapat
+  if(acikAkordiyon){
+    var onceki=document.getElementById(acikAkordiyon);
+    if(onceki)onceki.classList.remove('acik');
+  }
+  
+  el.classList.add('acik');
+  acikAkordiyon=id;
+  
+  // Scroll into view (mobilde önemli)
+  setTimeout(function(){
+    el.scrollIntoView({behavior:'smooth',block:'nearest'});
+  },100);
+}
+</script>
+</body>
+</html>
