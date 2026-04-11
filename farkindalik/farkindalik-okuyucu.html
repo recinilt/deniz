@@ -305,9 +305,22 @@ mark{background:rgba(184,134,11,.3);color:var(--text);border-radius:2px;padding:
 .isaret-btn.aktif.okudum{color:#4ade80}
 .isaret-btn.aktif.yildiz{color:#facc15}
 .isaret-btn.aktif.tekrar{color:#60a5fa}
+
+/* Üst bar sağ butonlar */
+.ust-aksiyonlar{display:flex;align-items:center;gap:.5rem}
+.temizle-btn{
+  padding:.25rem .6rem;font-size:.7rem;
+  background:transparent;border:1px solid var(--border);
+  border-radius:6px;color:var(--text3);cursor:pointer;
+  font-family:'DM Sans',sans-serif;transition:all .2s;
+  white-space:nowrap;
+}
+.temizle-btn:hover{border-color:#e05050;color:#e05050}
+
 @media(max-width:600px){
   .isaret-btn{width:26px;height:26px;font-size:.78rem}
   .isaret-grup{gap:.1rem}
+  .temizle-btn{font-size:.65rem;padding:.2rem .45rem}
 }
 </style>
 </head>
@@ -330,7 +343,10 @@ mark{background:rgba(184,134,11,.3);color:var(--text);border-radius:2px;padding:
     <div class="ust-bar-ic">
       <div class="ust-baslik">
         <h1>Farkındalık Halleri</h1>
-        <span class="sayac" id="sayac"></span>
+        <div class="ust-aksiyonlar">
+          <span class="sayac" id="sayac"></span>
+          <button class="temizle-btn" onclick="lokaliTemizle()" title="Önbellek ve işaretleri sıfırla">🗑 Temizle</button>
+        </div>
       </div>
       <div class="arama-kutu">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
@@ -480,6 +496,23 @@ var DOSYA_LISTESI=[
 
 var REPO_ADI='diyalektikdergah';
 var DOSYA_YOL='farkindalik-halleri/jsons/';
+var CACHE_KEY='fh_cache';
+
+// ══════════════════════════════════════════════════════════
+// LOCALSTORAGE CACHE
+// ══════════════════════════════════════════════════════════
+function cacheOku(){
+  try{var d=localStorage.getItem(CACHE_KEY);return d?JSON.parse(d):{};}catch(e){return {};}
+}
+function cacheYaz(data){
+  try{localStorage.setItem(CACHE_KEY,JSON.stringify(data));}catch(e){}
+}
+function lokaliTemizle(){
+  if(!confirm('Önbellek ve tüm işaretler (okundu/yıldız/tekrar) silinecek. Emin misiniz?'))return;
+  localStorage.removeItem(CACHE_KEY);
+  localStorage.removeItem(ISARET_KEY);
+  location.reload();
+}
 
 async function workerOku(dosyaAdi){
   var wUrl=window._wu;
@@ -498,13 +531,43 @@ async function verileriYukle(){
   var icerik=document.getElementById('icerik');
   try{
     tumVeriler=[];
-    var yuklenenSayi=0;
-    var toplamSayi=DOSYA_LISTESI.length;
-    document.querySelector('#yukleniyor p').textContent='0/'+toplamSayi+' dosya yükleniyor...';
+    var cache=cacheOku();
+    var eksikler=[];
+    var cacheden=0;
     
-    // 3'erli batch (Worker'a aşırı yük bindirmemek için)
-    for(var i=0;i<DOSYA_LISTESI.length;i+=3){
-      var batch=DOSYA_LISTESI.slice(i,i+3);
+    // Cache'de olan dosyaları direkt yükle
+    DOSYA_LISTESI.forEach(function(dosyaAdi){
+      if(cache[dosyaAdi]){
+        var items=cache[dosyaAdi];
+        tumVeriler.push({
+          dosyaAdi:dosyaAdi,
+          baslik:dosyaAdiniBicinle(dosyaAdi),
+          siraNo:dosyaSiraNo(dosyaAdi),
+          ogeler:items
+        });
+        items.forEach(function(o){if(o.category)tumKategoriler.add(o.category)});
+        cacheden++;
+      }else{
+        eksikler.push(dosyaAdi);
+      }
+    });
+    
+    if(eksikler.length===0){
+      // Tüm dosyalar cache'de
+      document.querySelector('#yukleniyor p').textContent='Önbellekten yüklendi!';
+      tumVeriler.sort(function(a,b){return a.siraNo-b.siraNo});
+      filtreleriOlustur();
+      filtrele();
+      return;
+    }
+    
+    var yuklenenSayi=0;
+    var toplamSayi=eksikler.length;
+    document.querySelector('#yukleniyor p').textContent=(cacheden>0?cacheden+' önbellekten, ':'')+' 0/'+toplamSayi+' çekiliyor...';
+    
+    // Sadece eksik dosyaları Worker'dan çek - 3'erli batch
+    for(var i=0;i<eksikler.length;i+=3){
+      var batch=eksikler.slice(i,i+3);
       var promises=batch.map(function(dosyaAdi){
         return workerOku(dosyaAdi)
           .then(function(data){
@@ -516,17 +579,22 @@ async function verileriYukle(){
               ogeler:items
             });
             items.forEach(function(o){if(o.category)tumKategoriler.add(o.category)});
+            // Cache'e kaydet
+            cache[dosyaAdi]=items;
           })
           .catch(function(err){
             console.warn('Dosya yüklenemedi: '+dosyaAdi,err);
           })
           .finally(function(){
             yuklenenSayi++;
-            document.querySelector('#yukleniyor p').textContent=yuklenenSayi+'/'+toplamSayi+' dosya yüklendi...';
+            document.querySelector('#yukleniyor p').textContent=(cacheden>0?cacheden+' önbellekten, ':'')+yuklenenSayi+'/'+toplamSayi+' çekildi...';
           });
       });
       await Promise.all(promises);
     }
+    
+    // Cache'i güncelle
+    cacheYaz(cache);
     
     if(tumVeriler.length===0){
       throw new Error('Hiçbir dosya yüklenemedi. Worker bağlantısını kontrol edin.');
