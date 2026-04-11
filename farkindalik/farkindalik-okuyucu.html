@@ -416,100 +416,75 @@ function dosyaSiraNo(ad){
   return m?parseInt(m[1]):999;
 }
 
+// Bilinen dosya listesi (repo private - GitHub API token'sız erişemez)
+// Yeni JSON eklendiğinde buraya da ekle
+var DOSYA_LISTESI=[
+  'V01_Hakikatin_Sirri_cikarimlar.json',
+  'V02_farkindalilar.json',
+  'V03_Esma_ul_Husna_cikarimlar.json',
+  'V06_6_Oturum_Cikarimlar.json',
+  'V07_7_Oturum_16_Ocak_cikarimlar.json',
+  'V08_8_Oturum_cikarimlar.json',
+  'V09_9_Oturum_farkindalikar.json',
+  'V11_11_cikarimlar.json',
+  'V12_12_Oturum_13_02_2026_cikarimlar.json',
+  'v13_oturum13_cikarimlar.json',
+  'V14_14_Oturum_Cikarimlar.json',
+  'v15.json'
+];
+
+var REPO_ADI='diyalektikdergah';
+var DOSYA_YOL='farkindalik-halleri/jsons/';
+
+async function workerOku(dosyaAdi){
+  var wUrl=window._wu;
+  var res=await fetch(wUrl,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({action:'read',dosyaAdi:DOSYA_YOL+dosyaAdi,repoAdi:REPO_ADI})
+  });
+  var data=await res.json();
+  if(data.error) throw new Error(data.error);
+  if(data.content) return JSON.parse(data.content);
+  throw new Error('Boş içerik');
+}
+
 async function verileriYukle(){
   var icerik=document.getElementById('icerik');
-  var wUrl=window._wu;
   try{
-    // 1) Klasör listesini çek (GitHub API CORS destekler)
-    var listUrl='https://api.github.com/repos/recinilt/diyalektikdergah/contents/farkindalik-halleri/jsons';
-    var listeData;
-    
-    try{
-      var res=await fetch(listUrl,{headers:{'Accept':'application/vnd.github.v3+json'}});
-      if(!res.ok) throw new Error('API '+res.status);
-      listeData=await res.json();
-    }catch(e1){
-      // GitHub API başarısız - Worker ile dosya listesini almayı dene
-      // Worker read action ile bilinen dosyaları tek tek deneriz (fallback)
-      listeData=null;
-    }
-    
-    var jsonDosyalar=[];
-    
-    if(Array.isArray(listeData)){
-      jsonDosyalar=listeData.filter(function(d){return d.name.endsWith('.json')});
-    }else{
-      // API erişilemezse bilinen dosya adlarını worker ile dene
-      // Worker'dan dosya listesini alabilmek için farkindalik-halleri/jsons klasörünü tara
-      throw new Error('GitHub API erişilemedi. Lütfen sayfayı yenileyin.');
-    }
-    
-    jsonDosyalar.sort(function(a,b){return dosyaSiraNo(a.name)-dosyaSiraNo(b.name)});
-    
-    // 2) Her JSON dosyasını çek
     tumVeriler=[];
     var yuklenenSayi=0;
-    var toplamSayi=jsonDosyalar.length;
+    var toplamSayi=DOSYA_LISTESI.length;
     document.querySelector('#yukleniyor p').textContent='0/'+toplamSayi+' dosya yükleniyor...';
     
-    // 3'erli batch (rate limit koruma)
-    for(var i=0;i<jsonDosyalar.length;i+=3){
-      var batch=jsonDosyalar.slice(i,i+3);
-      var promises=batch.map(function(dosya){
-        // GitHub API contents endpoint ile dosya içeriğini çek (base64)
-        var apiUrl=dosya.url;
-        return fetch(apiUrl,{headers:{'Accept':'application/vnd.github.v3+json'}})
-          .then(function(r){
-            if(!r.ok) throw new Error('fail');
-            return r.json();
-          })
-          .then(function(d){
-            if(d.content&&d.encoding==='base64'){
-              var raw=atob(d.content.replace(/\n/g,''));
-              var bytes=new Uint8Array(raw.length);
-              for(var j=0;j<raw.length;j++)bytes[j]=raw.charCodeAt(j);
-              var decoded=new TextDecoder('utf-8').decode(bytes);
-              return JSON.parse(decoded);
-            }
-            throw new Error('no content');
-          })
-          .catch(function(){
-            // Fallback: Worker read action ile dosya oku
-            var yol='farkindalik-halleri/jsons/'+dosya.name;
-            return fetch(wUrl,{
-              method:'POST',
-              headers:{'Content-Type':'application/json'},
-              body:JSON.stringify({action:'read',dosyaAdi:yol,repoAdi:'diyalektikdergah'})
-            })
-            .then(function(r){return r.json()})
-            .then(function(d){
-              if(d.content) return JSON.parse(d.content);
-              throw new Error('worker fail');
-            })
-            .catch(function(){
-              // Son çare: raw URL direkt
-              return fetch(dosya.download_url).then(function(r){return r.json()});
-            });
-          })
+    // 3'erli batch (Worker'a aşırı yük bindirmemek için)
+    for(var i=0;i<DOSYA_LISTESI.length;i+=3){
+      var batch=DOSYA_LISTESI.slice(i,i+3);
+      var promises=batch.map(function(dosyaAdi){
+        return workerOku(dosyaAdi)
           .then(function(data){
             var items=Array.isArray(data)?data:[];
             tumVeriler.push({
-              dosyaAdi:dosya.name,
-              baslik:dosyaAdiniBicinle(dosya.name),
-              siraNo:dosyaSiraNo(dosya.name),
+              dosyaAdi:dosyaAdi,
+              baslik:dosyaAdiniBicinle(dosyaAdi),
+              siraNo:dosyaSiraNo(dosyaAdi),
               ogeler:items
             });
             items.forEach(function(o){if(o.category)tumKategoriler.add(o.category)});
-            yuklenenSayi++;
-            document.querySelector('#yukleniyor p').textContent=yuklenenSayi+'/'+toplamSayi+' dosya yüklendi...';
           })
           .catch(function(err){
-            console.warn('Dosya yüklenemedi: '+dosya.name,err);
+            console.warn('Dosya yüklenemedi: '+dosyaAdi,err);
+          })
+          .finally(function(){
             yuklenenSayi++;
             document.querySelector('#yukleniyor p').textContent=yuklenenSayi+'/'+toplamSayi+' dosya yüklendi...';
           });
       });
       await Promise.all(promises);
+    }
+    
+    if(tumVeriler.length===0){
+      throw new Error('Hiçbir dosya yüklenemedi. Worker bağlantısını kontrol edin.');
     }
     
     tumVeriler.sort(function(a,b){return a.siraNo-b.siraNo});
