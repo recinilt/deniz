@@ -353,7 +353,6 @@ mark{background:rgba(184,134,11,.3);color:var(--text);border-radius:2px;padding:
         <input type="text" id="arama" placeholder="Başlık, açıklama veya pratik içinde ara..." oninput="filtrele()">
       </div>
       <div class="filtreler" id="filtreler"></div>
-      <div class="filtreler" id="isaret-filtreler" style="margin-top:.4rem"></div>
     </div>
   </div>
   <div class="icerik" id="icerik">
@@ -418,7 +417,6 @@ document.getElementById('sifre-input').addEventListener('keydown',function(e){
 var tumVeriler=[];
 var tumKategoriler=new Set();
 var aktifKategori='tumu';
-var aktifIsaret=null; // null=hepsi, 'okudum','tiksiz','yildiz','tekrar'
 var acikAkordiyon=null;
 
 // ══════════════════════════════════════════════════════════
@@ -633,22 +631,6 @@ function filtreleriOlustur(){
     html+='<span class="kat-dot" style="background:'+renk+'"></span>'+isim+'</button>';
   });
   kont.innerHTML=html;
-  
-  // İşaret filtreleri
-  var ik=document.getElementById('isaret-filtreler');
-  ik.innerHTML='<button class="filtre-btn aktif" data-is="hepsi" onclick="isaretFiltreSec(this)">Hepsi</button>'
-    +'<button class="filtre-btn" data-is="okudum" onclick="isaretFiltreSec(this)" style="color:#4ade80">✓ Tikli</button>'
-    +'<button class="filtre-btn" data-is="tiksiz" onclick="isaretFiltreSec(this)">○ Tiksiz</button>'
-    +'<button class="filtre-btn" data-is="yildiz" onclick="isaretFiltreSec(this)" style="color:#facc15">★ Yıldızlı</button>'
-    +'<button class="filtre-btn" data-is="tekrar" onclick="isaretFiltreSec(this)" style="color:#60a5fa">↻ Sürekli</button>';
-}
-
-function isaretFiltreSec(btn){
-  document.querySelectorAll('#isaret-filtreler .filtre-btn').forEach(function(b){b.classList.remove('aktif')});
-  btn.classList.add('aktif');
-  aktifIsaret=btn.dataset.is==='hepsi'?null:btn.dataset.is;
-  acikAkordiyon=null;
-  filtrele();
 }
 
 function kategoriSec(btn){
@@ -669,15 +651,6 @@ function filtrele(){
     var filtrelenmis=oturum.ogeler.filter(function(o){
       // Kategori filtresi
       if(aktifKategori!=='tumu'&&o.category!==aktifKategori)return false;
-      // İşaret filtresi
-      if(aktifIsaret){
-        var ak=oturum.siraNo+'-'+o.no;
-        if(aktifIsaret==='tiksiz'){
-          if(isaretDurum(ak,'okudum'))return false;
-        }else{
-          if(!isaretDurum(ak,aktifIsaret))return false;
-        }
-      }
       // Arama filtresi
       if(aramaText){
         var metin=(o.title+' '+o.desc+' '+(o.practice||'')).toLowerCase();
