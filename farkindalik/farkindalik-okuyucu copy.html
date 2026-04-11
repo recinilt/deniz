@@ -288,27 +288,6 @@ body::before{
 
 /* Highlight */
 mark{background:rgba(184,134,11,.3);color:var(--text);border-radius:2px;padding:0 2px}
-
-/* İşaret butonları */
-.isaret-grup{
-  display:flex;gap:.15rem;flex-shrink:0;margin-left:auto;
-}
-.isaret-btn{
-  width:28px;height:28px;border:none;background:transparent;
-  border-radius:6px;cursor:pointer;font-size:.85rem;
-  display:flex;align-items:center;justify-content:center;
-  opacity:.3;transition:all .2s;
-  -webkit-tap-highlight-color:transparent;
-}
-.isaret-btn:hover{opacity:.6;background:var(--bg4)}
-.isaret-btn.aktif{opacity:1}
-.isaret-btn.aktif.okudum{color:#4ade80}
-.isaret-btn.aktif.yildiz{color:#facc15}
-.isaret-btn.aktif.tekrar{color:#60a5fa}
-@media(max-width:600px){
-  .isaret-btn{width:26px;height:26px;font-size:.78rem}
-  .isaret-grup{gap:.1rem}
-}
 </style>
 </head>
 <body>
@@ -402,30 +381,6 @@ var tumVeriler=[];
 var tumKategoriler=new Set();
 var aktifKategori='tumu';
 var acikAkordiyon=null;
-
-// ══════════════════════════════════════════════════════════
-// İŞARET SİSTEMİ (localStorage)
-// ══════════════════════════════════════════════════════════
-var ISARET_KEY='fh_isaretler';
-function isaretleriYukle(){
-  try{var d=localStorage.getItem(ISARET_KEY);return d?JSON.parse(d):{};}catch(e){return {};}
-}
-function isaretleriKaydet(data){
-  try{localStorage.setItem(ISARET_KEY,JSON.stringify(data));}catch(e){}
-}
-function isaretTikla(e,tip,anahtar){
-  e.stopPropagation();
-  var data=isaretleriYukle();
-  if(!data[anahtar])data[anahtar]={};
-  data[anahtar][tip]=!data[anahtar][tip];
-  isaretleriKaydet(data);
-  var btn=e.currentTarget;
-  btn.classList.toggle('aktif',data[anahtar][tip]);
-}
-function isaretDurum(anahtar,tip){
-  var data=isaretleriYukle();
-  return data[anahtar]&&data[anahtar][tip];
-}
 
 var KAT_RENK={
   cerceve:'var(--cat-cerceve)',
@@ -607,12 +562,6 @@ function filtrele(){
       html+='<div class="akordiyon-baslik" onclick="akordiyonTikla(\''+id+'\')">';
       html+='<span class="akordiyon-no">'+o.no+'</span>';
       html+='<span class="akordiyon-baslik-text">'+baslik+'</span>';
-      var ak=oturum.siraNo+'-'+o.no;
-      html+='<span class="isaret-grup">';
-      html+='<button class="isaret-btn okudum'+(isaretDurum(ak,'okudum')?' aktif':'')+'" onclick="isaretTikla(event,\'okudum\',\''+ak+'\')" title="Okundu">✓</button>';
-      html+='<button class="isaret-btn yildiz'+(isaretDurum(ak,'yildiz')?' aktif':'')+'" onclick="isaretTikla(event,\'yildiz\',\''+ak+'\')" title="Yıldızla">★</button>';
-      html+='<button class="isaret-btn tekrar'+(isaretDurum(ak,'tekrar')?' aktif':'')+'" onclick="isaretTikla(event,\'tekrar\',\''+ak+'\')" title="Sürekli yap">↻</button>';
-      html+='</span>';
       html+='<span class="akordiyon-kat" style="color:'+katRenk+';border-color:'+katRenk+'">'+katIsim+'</span>';
       html+='<svg class="akordiyon-ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>';
       html+='</div>';
