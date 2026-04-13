@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YouTube Gelecek Projeksiyon Aracı</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-primary: #0a0a0f;
+  --bg-card: #12121a;
+  --bg-card-hover: #1a1a26;
+  --bg-input: #0e0e16;
+  --border: #2a2a3a;
+  --border-focus: #ff3e3e;
+  --text-primary: #f0f0f5;
+  --text-secondary: #8888a0;
+  --text-muted: #55556a;
+  --accent-red: #ff3e3e;
+  --accent-red-dim: #ff3e3e33;
+  --accent-orange: #ff8c2e;
+  --accent-green: #2ecc71;
+  --accent-blue: #3b82f6;
+  --accent-purple: #a855f7;
+  --accent-yellow: #fbbf24;
+  --gradient-brand: linear-gradient(135deg, #ff3e3e 0%, #ff8c2e 100%);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-primary); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent-red); }
+
+/* Header */
+.header {
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  padding: 20px 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(20px);
+  background: rgba(18,18,26,0.85);
+}
+.header-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.logo {
+  width: 40px; height: 40px;
+  background: var(--gradient-brand);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+.header h1 {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+.header h1 span { color: var(--accent-red); }
+
+/* Layout */
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px;
+}
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+@media (max-width: 768px) {
+  .grid-2 { grid-template-columns: 1fr; }
+}
+
+/* Card */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 20px;
+}
+.card-title {
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.card-title .icon {
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+/* Form */
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.form-group label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+.form-group input, .form-group select {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  color: var(--text-primary);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  transition: border-color 0.2s;
+  width: 100%;
+}
+.form-group input:focus, .form-group select:focus {
+  outline: none;
+  border-color: var(--accent-red);
+  box-shadow: 0 0 0 3px var(--accent-red-dim);
+}
+.form-group input::placeholder { color: var(--text-muted); }
+
+/* Buttons */
+.btn {
+  padding: 12px 28px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.btn-primary {
+  background: var(--gradient-brand);
+  color: white;
+}
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 20px var(--accent-red-dim); }
+.btn-secondary {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+.btn-secondary:hover { border-color: var(--accent-red); color: var(--text-primary); }
+.btn-sm { padding: 8px 16px; font-size: 12px; }
+.btn-group { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+
+/* API Section */
+.api-section {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+.api-section .form-group { flex: 1; min-width: 200px; }
+.api-link {
+  font-size: 11px;
+  color: var(--accent-blue);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.api-link:hover { text-decoration: underline; }
+
+/* Status */
+.status {
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-family: 'JetBrains Mono', monospace;
+  margin-top: 12px;
+  display: none;
+}
+.status.success { display: block; background: #2ecc7115; border: 1px solid #2ecc7133; color: var(--accent-green); }
+.status.error { display: block; background: #ff3e3e15; border: 1px solid #ff3e3e33; color: var(--accent-red); }
+.status.info { display: block; background: #3b82f615; border: 1px solid #3b82f633; color: var(--accent-blue); }
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--bg-input);
+  border-radius: var(--radius-sm);
+  padding: 4px;
+  margin-bottom: 20px;
+}
+.tab {
+  padding: 8px 20px;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.tab.active {
+  background: var(--accent-red);
+  color: white;
+}
+.tab:hover:not(.active) { color: var(--text-primary); }
+
+/* Table */
+.table-wrap {
+  overflow-x: auto;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  font-family: 'JetBrains Mono', monospace;
+}
+thead {
+  background: var(--bg-input);
+  position: sticky;
+  top: 0;
+}
+th {
+  padding: 10px 12px;
+  text-align: right;
+  font-weight: 600;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  border-bottom: 2px solid var(--border);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+th:first-child { text-align: left; }
+td {
+  padding: 8px 12px;
+  text-align: right;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+  color: var(--text-primary);
+}
+td:first-child {
+  text-align: left;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+tr:hover td { background: var(--bg-card-hover); }
+.row-separator td {
+  background: var(--accent-red-dim);
+  font-weight: 700;
+  color: var(--accent-red);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 6px 12px;
+}
+
+/* Chart */
+.chart-container {
+  position: relative;
+  height: 400px;
+  margin-top: 20px;
+}
+
+/* Metric highlight */
+.metrics-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.metric-box {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  text-align: center;
+}
+.metric-box .val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--accent-red);
+}
+.metric-box .lbl {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 4px;
+}
+
+/* Toggle */
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.toggle-row label { font-size: 12px; color: var(--text-secondary); cursor: pointer; }
+.toggle-row input[type="checkbox"] { accent-color: var(--accent-red); }
+
+/* Hidden */
+.hidden { display: none !important; }
+
+/* Fade in animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-in { animation: fadeIn 0.4s ease; }
+
+/* Footer note */
+.footer-note {
+  text-align: center;
+  padding: 40px 24px;
+  color: var(--text-muted);
+  font-size: 11px;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div class="logo">📊</div>
+    <h1>YouTube <span>Projeksiyon</span> Aracı</h1>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- API KEY -->
+  <div class="card">
+    <div class="card-title">
+      <div class="icon" style="background:#ff3e3e22;color:var(--accent-red);">🔑</div>
+      YouTube Data API v3
+    </div>
+    <div class="api-section">
+      <div class="form-group">
+        <label>API Key</label>
+        <input type="text" id="apiKey" placeholder="AIzaSy...">
+      </div>
+      <div class="form-group" style="max-width:250px;">
+        <label>Kanal Handle</label>
+        <input type="text" id="channelHandle" value="@Hikayenleiyiles" placeholder="@KanalAdi">
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="fetchChannelData()">🔍 Çek</button>
+    </div>
+    <div style="margin-top:8px;">
+      <a class="api-link" href="https://console.cloud.google.com/apis/credentials" target="_blank">🔗 Google Cloud Console - API Key Al</a>
+      <span style="margin:0 8px;color:var(--text-muted);">|</span>
+      <a class="api-link" href="https://console.cloud.google.com/apis/library/youtube.googleapis.com" target="_blank">🔗 YouTube Data API v3 Etkinleştir</a>
+    </div>
+    <div class="toggle-row" style="margin-top:10px;">
+      <input type="checkbox" id="saveApiKey">
+      <label for="saveApiKey">API Key'i tarayıcıda hatırla</label>
+    </div>
+    <div id="apiStatus" class="status"></div>
+  </div>
+
+  <!-- API'den çekilen bilgiler -->
+  <div id="apiDataCard" class="card hidden fade-in">
+    <div class="card-title">
+      <div class="icon" style="background:#3b82f622;color:var(--accent-blue);">📡</div>
+      API'den Çekilen Kanal Bilgileri
+    </div>
+    <div class="metrics-row" id="apiMetrics"></div>
+  </div>
+
+  <div class="grid-2">
+    <!-- DÖNEM BİLGİLERİ -->
+    <div class="card">
+      <div class="card-title">
+        <div class="icon" style="background:#a855f722;color:var(--accent-purple);">📅</div>
+        Dönem Bilgileri
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Başlangıç Tarihi</label>
+          <input type="date" id="startDate">
+        </div>
+        <div class="form-group">
+          <label>Bitiş Tarihi (default: bugün)</label>
+          <input type="date" id="endDate">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Dönemde Yüklenen Video</label>
+          <input type="number" id="periodVideos" placeholder="0" min="0">
+        </div>
+        <div class="form-group">
+          <label>Dönemde Yüklenen Shorts</label>
+          <input type="number" id="periodShorts" placeholder="0" min="0">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Dönemde Gelen Abone</label>
+          <input type="number" id="periodSubs" placeholder="0" min="0">
+        </div>
+        <div class="form-group">
+          <label>Dönemde Gösterim</label>
+          <input type="number" id="periodImpressions" placeholder="0" min="0">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Dönemde Görüntüleme</label>
+          <input type="number" id="periodViews" placeholder="0" min="0">
+        </div>
+        <div class="form-group">
+          <label>Dönemde İzlenme (saat)</label>
+          <input type="number" id="periodWatchHours" placeholder="0" min="0" step="0.1">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Dönemde Kazanç (₺)</label>
+          <input type="number" id="periodRevenueTL" placeholder="0" min="0" step="0.01">
+        </div>
+        <div class="form-group">
+          <label>Dönemde Kazanç ($)</label>
+          <input type="number" id="periodRevenueUSD" placeholder="0" min="0" step="0.01">
+        </div>
+      </div>
+    </div>
+
+    <!-- BİTİŞ ZAMANI TOPLAMLAR -->
+    <div class="card">
+      <div class="card-title">
+        <div class="icon" style="background:#2ecc7122;color:var(--accent-green);">📊</div>
+        Bitiş Zamanı Toplam Değerler
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Toplam Video</label>
+          <input type="number" id="totalVideos" placeholder="0" min="0">
+        </div>
+        <div class="form-group">
+          <label>Toplam Shorts</label>
+          <input type="number" id="totalShorts" placeholder="0" min="0">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Toplam Abone</label>
+          <input type="number" id="totalSubs" placeholder="0" min="0">
+        </div>
+        <div class="form-group">
+          <label>Toplam Gösterim</label>
+          <input type="number" id="totalImpressions" placeholder="0" min="0">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Toplam Görüntüleme</label>
+          <input type="number" id="totalViews" placeholder="0" min="0">
+        </div>
+        <div class="form-group">
+          <label>Toplam İzlenme (saat)</label>
+          <input type="number" id="totalWatchHours" placeholder="0" min="0" step="0.1">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Toplam Kazanç (₺)</label>
+          <input type="number" id="totalRevenueTL" placeholder="0" min="0" step="0.01">
+        </div>
+        <div class="form-group">
+          <label>Toplam Kazanç ($)</label>
+          <input type="number" id="totalRevenueUSD" placeholder="0" min="0" step="0.01">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HESAPLA -->
+  <div class="btn-group" style="justify-content:center;">
+    <button class="btn btn-primary" onclick="hesapla()">🚀 Projeksiyonu Hesapla</button>
+    <button class="btn btn-secondary" onclick="resetForm()">🗑️ Temizle</button>
+  </div>
+
+  <!-- SONUÇLAR -->
+  <div id="resultsSection" class="hidden fade-in" style="margin-top:24px;">
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('linear',this)">📐 Lineer</button>
+      <button class="tab" onclick="switchTab('exponential',this)">📈 Üstel (Compound)</button>
+    </div>
+
+    <!-- Tablolar -->
+    <div id="linearTable" class="card">
+      <div class="card-title">
+        <div class="icon" style="background:#ff8c2e22;color:var(--accent-orange);">📐</div>
+        Lineer Projeksiyon Tablosu
+      </div>
+      <div class="table-wrap" id="linearTableWrap"></div>
+    </div>
+
+    <div id="exponentialTable" class="card hidden">
+      <div class="card-title">
+        <div class="icon" style="background:#a855f722;color:var(--accent-purple);">📈</div>
+        Üstel (Compound) Projeksiyon Tablosu
+      </div>
+      <div class="table-wrap" id="exponentialTableWrap"></div>
+    </div>
+
+    <!-- Chart -->
+    <div class="card">
+      <div class="card-title">
+        <div class="icon" style="background:#fbbf2422;color:var(--accent-yellow);">📉</div>
+        Projeksiyon Grafikleri
+      </div>
+      <div class="form-row" style="max-width:400px;">
+        <div class="form-group">
+          <label>Metrik Seç</label>
+          <select id="chartMetric" onchange="updateChart()">
+            <option value="subs">Abone</option>
+            <option value="views">Görüntüleme</option>
+            <option value="impressions">Gösterim</option>
+            <option value="watchHours">İzlenme (saat)</option>
+            <option value="videos">Video</option>
+            <option value="shorts">Shorts</option>
+            <option value="revenueTL">Kazanç (₺)</option>
+            <option value="revenueUSD">Kazanç ($)</option>
+          </select>
+        </div>
+      </div>
+      <div class="chart-container">
+        <canvas id="projChart"></canvas>
+      </div>
+    </div>
+
+    <!-- CSV -->
+    <div class="btn-group" style="justify-content:center;">
+      <button class="btn btn-secondary" onclick="exportCSV('linear')">📥 Lineer CSV İndir</button>
+      <button class="btn btn-secondary" onclick="exportCSV('exponential')">📥 Üstel CSV İndir</button>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer-note">
+  YouTube Gelecek Projeksiyon Aracı · YouTube Data API v3 · Chart.js 4.x<br>
+  Projeksiyon tahminidir, garanti değildir. Gerçek sonuçlar farklılık gösterebilir.
+</div>
+
+<script>
+// === GLOBAL STATE ===
+let projData = { linear: [], exponential: [] };
+let chartInstance = null;
+
+// === INIT ===
+document.addEventListener('DOMContentLoaded', () => {
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('endDate').value = today;
+
+  const saved = localStorage.getItem('yt_proj_api_key');
+  if (saved) {
+    document.getElementById('apiKey').value = saved;
+    document.getElementById('saveApiKey').checked = true;
+  }
+});
+
+// === API FETCH ===
+async function fetchChannelData() {
+  const apiKey = document.getElementById('apiKey').value.trim();
+  const handle = document.getElementById('channelHandle').value.trim();
+  const statusEl = document.getElementById('apiStatus');
+
+  if (!apiKey) {
+    showStatus(statusEl, 'error', '❌ API Key girilmedi.');
+    return;
+  }
+  if (!handle) {
+    showStatus(statusEl, 'error', '❌ Kanal handle girilmedi.');
+    return;
+  }
+
+  if (document.getElementById('saveApiKey').checked) {
+    localStorage.setItem('yt_proj_api_key', apiKey);
+  } else {
+    localStorage.removeItem('yt_proj_api_key');
+  }
+
+  showStatus(statusEl, 'info', '⏳ Kanal bilgileri çekiliyor...');
+
+  const cleanHandle = handle.startsWith('@') ? handle.substring(1) : handle;
+
+  try {
+    const url = `https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics,contentDetails&forHandle=${encodeURIComponent(cleanHandle)}&key=${apiKey}`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (data.error) {
+      showStatus(statusEl, 'error', `❌ API Hatası: ${data.error.message}`);
+      return;
+    }
+
+    if (!data.items || data.items.length === 0) {
+      showStatus(statusEl, 'error', '❌ Kanal bulunamadı. Handle doğru mu?');
+      return;
+    }
+
+    const ch = data.items[0];
+    const stats = ch.statistics;
+    const snippet = ch.snippet;
+
+    showStatus(statusEl, 'success', `✅ "${snippet.title}" kanalı başarıyla çekildi.`);
+
+    // Fill form
+    document.getElementById('totalSubs').value = stats.subscriberCount || '';
+    document.getElementById('totalViews').value = stats.viewCount || '';
+    const vc = parseInt(stats.videoCount) || 0;
+    document.getElementById('totalVideos').value = vc;
+
+    // Show API data card
+    const apiCard = document.getElementById('apiDataCard');
+    apiCard.classList.remove('hidden');
+    document.getElementById('apiMetrics').innerHTML = `
+      <div class="metric-box">
+        <div class="val">${snippet.title}</div>
+        <div class="lbl">Kanal Adı</div>
+      </div>
+      <div class="metric-box">
+        <div class="val">${formatNum(stats.subscriberCount)}</div>
+        <div class="lbl">Abone</div>
+      </div>
+      <div class="metric-box">
+        <div class="val">${formatNum(stats.viewCount)}</div>
+        <div class="lbl">Toplam Görüntüleme</div>
+      </div>
+      <div class="metric-box">
+        <div class="val">${formatNum(stats.videoCount)}</div>
+        <div class="lbl">Toplam Video</div>
+      </div>
+      <div class="metric-box">
+        <div class="val">${snippet.publishedAt ? snippet.publishedAt.split('T')[0] : '-'}</div>
+        <div class="lbl">Kanal Açılış Tarihi</div>
+      </div>
+    `;
+
+  } catch (err) {
+    showStatus(statusEl, 'error', `❌ Bağlantı hatası: ${err.message}`);
+  }
+}
+
+// === HESAPLA ===
+function hesapla() {
+  const startDate = document.getElementById('startDate').value;
+  const endDate = document.getElementById('endDate').value;
+
+  if (!startDate || !endDate) {
+    alert('Başlangıç ve bitiş tarihleri girilmeli.');
+    return;
+  }
+
+  const d1 = new Date(startDate);
+  const d2 = new Date(endDate);
+  const diffDays = Math.max(1, Math.round((d2 - d1) / (1000 * 60 * 60 * 24)));
+
+  // Dönem verileri
+  const period = {
+    videos: getNum('periodVideos'),
+    shorts: getNum('periodShorts'),
+    subs: getNum('periodSubs'),
+    impressions: getNum('periodImpressions'),
+    views: getNum('periodViews'),
+    watchHours: getNum('periodWatchHours'),
+    revenueTL: getNum('periodRevenueTL'),
+    revenueUSD: getNum('periodRevenueUSD')
+  };
+
+  // Bitiş zamanı toplamları
+  const totals = {
+    videos: getNum('totalVideos'),
+    shorts: getNum('totalShorts'),
+    subs: getNum('totalSubs'),
+    impressions: getNum('totalImpressions'),
+    views: getNum('totalViews'),
+    watchHours: getNum('totalWatchHours'),
+    revenueTL: getNum('totalRevenueTL'),
+    revenueUSD: getNum('totalRevenueUSD')
+  };
+
+  // Günlük artış oranları (lineer)
+  const daily = {};
+  for (const key of Object.keys(period)) {
+    daily[key] = period[key] / diffDays;
+  }
+
+  // Günlük büyüme oranı (üstel) - compound
+  const growthRate = {};
+  for (const key of Object.keys(period)) {
+    if (totals[key] > 0 && period[key] > 0) {
+      const startVal = totals[key] - period[key];
+      if (startVal > 0) {
+        growthRate[key] = Math.pow(totals[key] / startVal, 1 / diffDays) - 1;
+      } else {
+        growthRate[key] = 0;
+      }
+    } else {
+      growthRate[key] = 0;
+    }
+  }
+
+  // Projeksiyon zaman noktaları (gün cinsinden)
+  const timePoints = [
+    { label: '10 Gün', days: 10 },
+    { label: '20 Gün', days: 20 },
+    { label: '30 Gün', days: 30 },
+    { label: '1 Ay', days: 30 },
+    { label: '2 Ay', days: 61 },
+    { label: '3 Ay', days: 91 },
+    { label: '4 Ay', days: 122 },
+    { label: '5 Ay', days: 152 },
+    { label: '6 Ay', days: 183 },
+    { label: '7 Ay', days: 213 },
+    { label: '8 Ay', days: 244 },
+    { label: '9 Ay', days: 274 },
+    { label: '10 Ay', days: 305 },
+    { label: '11 Ay', days: 335 },
+    { label: '1 Yıl', days: 365 },
+    { label: '2 Yıl', days: 730 },
+    { label: '3 Yıl', days: 1095 },
+    { label: '4 Yıl', days: 1461 },
+    { label: '5 Yıl', days: 1826 },
+    { label: '6 Yıl', days: 2191 },
+    { label: '7 Yıl', days: 2557 },
+    { label: '8 Yıl', days: 2922 },
+    { label: '9 Yıl', days: 3287 },
+    { label: '10 Yıl', days: 3652 }
+  ];
+
+  // Ayır: gün, ay, yıl grup separator'leri
+  const separators = new Set([3, 14, 24]); // 30 Gün sonrası, 11 Ay sonrası, (son yok)
+
+  projData.linear = [];
+  projData.exponential = [];
+
+  for (const tp of timePoints) {
+    const linRow = { label: tp.label, days: tp.days };
+    const expRow = { label: tp.label, days: tp.days };
+
+    for (const key of Object.keys(period)) {
+      linRow[key] = totals[key] + (daily[key] * tp.days);
+      if (growthRate[key] > 0 && totals[key] > 0) {
+        expRow[key] = totals[key] * Math.pow(1 + growthRate[key], tp.days);
+      } else {
+        expRow[key] = totals[key] + (daily[key] * tp.days);
+      }
+    }
+
+    projData.linear.push(linRow);
+    projData.exponential.push(expRow);
+  }
+
+  // Hangi para birimleri aktif
+  const hasTL = period.revenueTL > 0 || totals.revenueTL > 0;
+  const hasUSD = period.revenueUSD > 0 || totals.revenueUSD > 0;
+
+  // Tabloları render et
+  renderTable('linearTableWrap', projData.linear, hasTL, hasUSD, separators);
+  renderTable('exponentialTableWrap', projData.exponential, hasTL, hasUSD, separators);
+
+  // Göster
+  document.getElementById('resultsSection').classList.remove('hidden');
+
+  // Chart
+  updateChart();
+}
+
+// === TABLE RENDER ===
+function renderTable(containerId, data, hasTL, hasUSD, separators) {
+  let cols = [
+    { key: 'label', label: 'Tarih', align: 'left' },
+    { key: 'videos', label: 'Video' },
+    { key: 'shorts', label: 'Shorts' },
+    { key: 'subs', label: 'Abone' },
+    { key: 'impressions', label: 'Gösterim' },
+    { key: 'views', label: 'Görüntüleme' },
+    { key: 'watchHours', label: 'İzlenme (sa)' }
+  ];
+  if (hasTL) cols.push({ key: 'revenueTL', label: 'Kazanç (₺)' });
+  if (hasUSD) cols.push({ key: 'revenueUSD', label: 'Kazanç ($)' });
+
+  let html = '<table><thead><tr>';
+  for (const c of cols) {
+    html += `<th${c.align === 'left' ? ' style="text-align:left"' : ''}>${c.label}</th>`;
+  }
+  html += '</tr></thead><tbody>';
+
+  let prevGroup = '';
+  for (let i = 0; i < data.length; i++) {
+    const row = data[i];
+    // Group separator
+    let curGroup = '';
+    if (row.days <= 30) curGroup = 'GÜN';
+    else if (row.days <= 335) curGroup = 'AY';
+    else curGroup = 'YIL';
+
+    if (curGroup !== prevGroup && i > 0) {
+      html += `<tr class="row-separator"><td colspan="${cols.length}">${curGroup} PROJEKSİYONLARI</td></tr>`;
+    }
+    if (i === 0 && curGroup === 'GÜN') {
+      html += `<tr class="row-separator"><td colspan="${cols.length}">GÜN PROJEKSİYONLARI</td></tr>`;
+    }
+    prevGroup = curGroup;
+
+    html += '<tr>';
+    for (const c of cols) {
+      if (c.key === 'label') {
+        html += `<td>${row[c.key]}</td>`;
+      } else if (c.key === 'revenueTL') {
+        html += `<td>₺${formatNum(Math.round(row[c.key]))}</td>`;
+      } else if (c.key === 'revenueUSD') {
+        html += `<td>$${formatNum(Math.round(row[c.key]))}</td>`;
+      } else if (c.key === 'watchHours') {
+        html += `<td>${formatNum(Math.round(row[c.key] * 10) / 10)}</td>`;
+      } else {
+        html += `<td>${formatNum(Math.round(row[c.key]))}</td>`;
+      }
+    }
+    html += '</tr>';
+  }
+
+  html += '</tbody></table>';
+  document.getElementById(containerId).innerHTML = html;
+}
+
+// === CHART ===
+function updateChart() {
+  const metric = document.getElementById('chartMetric').value;
+  const labels = projData.linear.map(r => r.label);
+  const linData = projData.linear.map(r => Math.round(r[metric]));
+  const expData = projData.exponential.map(r => Math.round(r[metric]));
+
+  const metricLabels = {
+    subs: 'Abone', views: 'Görüntüleme', impressions: 'Gösterim',
+    watchHours: 'İzlenme (saat)', videos: 'Video', shorts: 'Shorts',
+    revenueTL: 'Kazanç (₺)', revenueUSD: 'Kazanç ($)'
+  };
+
+  if (chartInstance) chartInstance.destroy();
+
+  const ctx = document.getElementById('projChart').getContext('2d');
+  chartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Lineer',
+          data: linData,
+          borderColor: '#ff8c2e',
+          backgroundColor: '#ff8c2e22',
+          borderWidth: 2,
+          fill: true,
+          tension: 0.3,
+          pointRadius: 3,
+          pointHoverRadius: 6
+        },
+        {
+          label: 'Üstel (Compound)',
+          data: expData,
+          borderColor: '#a855f7',
+          backgroundColor: '#a855f722',
+          borderWidth: 2,
+          fill: true,
+          tension: 0.3,
+          pointRadius: 3,
+          pointHoverRadius: 6
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { intersect: false, mode: 'index' },
+      plugins: {
+        legend: {
+          labels: { color: '#8888a0', font: { family: 'Outfit', size: 12 } }
+        },
+        tooltip: {
+          backgroundColor: '#1a1a26',
+          titleColor: '#f0f0f5',
+          bodyColor: '#8888a0',
+          borderColor: '#2a2a3a',
+          borderWidth: 1,
+          titleFont: { family: 'Outfit', size: 13 },
+          bodyFont: { family: 'JetBrains Mono', size: 12 },
+          callbacks: {
+            label: ctx => `${ctx.dataset.label}: ${formatNum(ctx.parsed.y)}`
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: { color: '#55556a', font: { family: 'Outfit', size: 10 }, maxRotation: 45 },
+          grid: { color: '#1a1a26' }
+        },
+        y: {
+          ticks: {
+            color: '#55556a',
+            font: { family: 'JetBrains Mono', size: 10 },
+            callback: v => formatNum(v)
+          },
+          grid: { color: '#1a1a26' }
+        }
+      }
+    }
+  });
+}
+
+// === TAB SWITCH ===
+function switchTab(tab, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('linearTable').classList.toggle('hidden', tab !== 'linear');
+  document.getElementById('exponentialTable').classList.toggle('hidden', tab !== 'exponential');
+}
+
+// === CSV EXPORT ===
+function exportCSV(type) {
+  const data = projData[type];
+  if (!data || data.length === 0) return;
+
+  const keys = ['label', 'videos', 'shorts', 'subs', 'impressions', 'views', 'watchHours', 'revenueTL', 'revenueUSD'];
+  const headers = ['Tarih', 'Video', 'Shorts', 'Abone', 'Gösterim', 'Görüntüleme', 'İzlenme(sa)', 'Kazanç(TL)', 'Kazanç(USD)'];
+
+  let csv = '\uFEFF'; // BOM for Excel UTF-8
+  csv += headers.join(';') + '\n';
+  for (const row of data) {
+    csv += keys.map(k => {
+      if (k === 'label') return row[k];
+      return Math.round(row[k] * 100) / 100;
+    }).join(';') + '\n';
+  }
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `youtube_projeksiyon_${type}_${new Date().toISOString().split('T')[0]}.csv`;
+  link.click();
+  URL.revokeObjectURL(link.href);
+}
+
+// === RESET ===
+function resetForm() {
+  document.querySelectorAll('input[type="number"]').forEach(i => i.value = '');
+  document.getElementById('startDate').value = '';
+  document.getElementById('endDate').value = new Date().toISOString().split('T')[0];
+  document.getElementById('resultsSection').classList.add('hidden');
+  document.getElementById('apiDataCard').classList.add('hidden');
+  if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
+  projData = { linear: [], exponential: [] };
+}
+
+// === UTILS ===
+function getNum(id) {
+  return parseFloat(document.getElementById(id).value) || 0;
+}
+
+function formatNum(n) {
+  if (n === null || n === undefined || isNaN(n)) return '0';
+  return Number(n).toLocaleString('tr-TR');
+}
+
+function showStatus(el, type, msg) {
+  el.className = `status ${type}`;
+  el.textContent = msg;
+}
+</script>
+
+</body>
+</html>
