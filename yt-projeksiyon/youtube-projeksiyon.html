@@ -732,13 +732,21 @@ function hesapla() {
     revenueUSD: getNum('totalRevenueUSD')
   };
 
-  // Günlük artış oranları (lineer)
+  // === METRİK KATEGORİLERİ ===
+  // Düz lineer: video/shorts sayısı (birikim yok, sadece ekleme)
+  const flatMetrics = new Set(['videos', 'shorts']);
+  // Kütüphane birikim: eski+yeni içerikler birlikte performans gösterir
+  const libraryMetrics = new Set(['impressions', 'views', 'watchHours', 'revenueTL', 'revenueUSD']);
+  // Abone: ayrı hesap (lineer + compound)
+  const subMetrics = new Set(['subs']);
+
+  // Dönem başına günlük üretim oranları
   const daily = {};
   for (const key of Object.keys(period)) {
     daily[key] = period[key] / diffDays;
   }
 
-  // Günlük büyüme oranı (üstel) - compound
+  // Üstel büyüme oranı (compound) - abone için
   const growthRate = {};
   for (const key of Object.keys(period)) {
     if (totals[key] > 0 && period[key] > 0) {
@@ -752,6 +760,37 @@ function hesapla() {
       growthRate[key] = 0;
     }
   }
+
+  // === KÜTÜPHANE BİRİKİM MODELİ AÇIKLAMASI ===
+  // Dönem: diffDays gün içinde period.views görüntüleme oldu (13 içerikten)
+  // Her "dönem" boyunca eklenen yeni içerik grubu aynı performansı gösterir.
+  // n = kaç tam dönem geçti (gelecek_gün / dönem_gün)
+  //
+  // LİNEER KÜTÜPHANE BİRİKİMİ:
+  //   Mevcut kütüphane her dönem aynı performansı verir: totals[key] değerindeki mevcut
+  //   kütüphanenin dönemlik katkısı = period[key] (mevcut kütüphaneden gelen)
+  //   AMA biz period[key]'i "dönemde toplam olan" olarak aldık,
+  //   yani mevcut kütüphane + yeni eklenenler birlikte üretir.
+  //
+  //   Basitleştirilmiş doğru model:
+  //   - n tam dönem geçtiğinde, n adet yeni içerik grubu eklenmiş olur
+  //   - 1. grup n dönem boyunca üretir, 2. grup (n-1) dönem, ... son grup 1 dönem
+  //   - Mevcut kütüphane de n dönem boyunca üretmeye devam eder
+  //
+  //   Toplam = totals[key]
+  //          + mevcut_kütüphane_katkısı × n     (eski videolar izlenmeye devam)
+  //          + yeni_grup_katkısı × n×(n+1)/2     (üçgensel birikim)
+  //
+  //   mevcut_kütüphane_katkısı = period[key] oranında
+  //   (çünkü dönemde olan performans hem eski hem yeniden geliyor)
+  //   Yeni grubun katkısı ≈ period[key] (aynı sayıda içerik, aynı performans)
+  //
+  //   Düzeltilmiş formül:
+  //   n = gelecek_gün / dönem_gün (kesirli)
+  //   Toplam = totals[key] + period[key] × n + period[key] × (n × (n-1)) / 2
+  //   1. terim: mevcut toplam
+  //   2. terim: mevcut kütüphanenin n dönemlik getirisi (eski videolar çalışmaya devam)
+  //   3. terim: yeni eklenen grupların birikimli getirisi (üçgensel)
 
   // Projeksiyon zaman noktaları (gün cinsinden)
   const timePoints = [
@@ -781,8 +820,7 @@ function hesapla() {
     { label: '10 Yıl', days: 3652 }
   ];
 
-  // Ayır: gün, ay, yıl grup separator'leri
-  const separators = new Set([3, 14, 24]); // 30 Gün sonrası, 11 Ay sonrası, (son yok)
+  const separators = new Set([3, 14, 24]);
 
   projData.linear = [];
   projData.exponential = [];
@@ -790,13 +828,66 @@ function hesapla() {
   for (const tp of timePoints) {
     const linRow = { label: tp.label, days: tp.days };
     const expRow = { label: tp.label, days: tp.days };
+    const n = tp.days / diffDays; // kaç dönem geçecek
 
     for (const key of Object.keys(period)) {
-      linRow[key] = totals[key] + (daily[key] * tp.days);
-      if (growthRate[key] > 0 && totals[key] > 0) {
-        expRow[key] = totals[key] * Math.pow(1 + growthRate[key], tp.days);
-      } else {
-        expRow[key] = totals[key] + (daily[key] * tp.days);
+
+      if (flatMetrics.has(key)) {
+        // === DÜZ LİNEER: Video/Shorts sayısı ===
+        // Her dönem aynı sayıda eklenir, birikim efekti yok
+        linRow[key] = totals[key] + (period[key] * n);
+        expRow[key] = totals[key] + (period[key] * n);
+
+      } else if (libraryMetrics.has(key)) {
+        // === KÜTÜPHANE BİRİKİM MODELİ: Görüntüleme/İzlenme/Gösterim/Kazanç ===
+
+        // LİNEER: Mevcut kütüphane + yeni grupların üçgensel birikimi
+        // Mevcut kütüphanenin dönemlik katkısı = period[key]
+        // Her yeni içerik grubu da aynı katkıyı sağlar
+        // n dönem sonra:
+        //   Mevcut kütüphane katkısı: period[key] × n
+        //   Yeni grupların birikimli katkısı: period[key] × n×(n-1)/2
+        //   (1. yeni grup n-1 dönem üretir, 2. grup n-2, ... son grup 0)
+        const libLinear = period[key] * n + period[key] * (n * (n - 1)) / 2;
+        linRow[key] = totals[key] + libLinear;
+
+        // ÜSTEL: Her dönem kütüphane %r oranında daha fazla üretir
+        if (growthRate[key] > 0 && totals[key] > 0) {
+          // Compound kütüphane: her dönemin katkısı bir öncekinden %r daha fazla
+          // Geometrik seri: period[key] × Σ(1+r)^i, i=0..n-1
+          // + yeni grupların compound birikimi
+          const r = growthRate[key] * diffDays; // dönemlik büyüme oranı
+          let expTotal = 0;
+          const nFloor = Math.floor(n);
+          const nFrac = n - nFloor;
+
+          // Her dönemin toplam katkısı (mevcut + o ana kadar eklenen gruplar)
+          // Dönem i'de: (1 + i) grup aktif, her biri (1+r)^? oranda büyümüş
+          for (let i = 0; i < nFloor; i++) {
+            const groupCount = i + 1; // mevcut kütüphane + i yeni grup
+            expTotal += period[key] * groupCount * Math.pow(1 + r, i);
+          }
+          // Kesirli son dönem
+          if (nFrac > 0) {
+            const groupCount = nFloor + 1;
+            expTotal += period[key] * groupCount * Math.pow(1 + r, nFloor) * nFrac;
+          }
+          expRow[key] = totals[key] + expTotal;
+        } else {
+          expRow[key] = linRow[key]; // üstel veri yoksa lineer kullan
+        }
+
+      } else if (subMetrics.has(key)) {
+        // === ABONE: Klasik lineer + compound ===
+        // Lineer: her gün sabit abone gelir
+        linRow[key] = totals[key] + (daily[key] * tp.days);
+
+        // Üstel: compound büyüme
+        if (growthRate[key] > 0 && totals[key] > 0) {
+          expRow[key] = totals[key] * Math.pow(1 + growthRate[key], tp.days);
+        } else {
+          expRow[key] = linRow[key];
+        }
       }
     }
 
