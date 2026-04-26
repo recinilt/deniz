@@ -1,0 +1,1625 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sıralı Checklist</title>
+    <style>
+        :root {
+            --bg-grad-1: #0f0c29;
+            --bg-grad-2: #302b63;
+            --bg-grad-3: #24243e;
+            --card-bg: rgba(255,255,255,0.07);
+            --card-border: rgba(255,255,255,0.12);
+            --card-bg-solid: rgba(30,27,60,0.92);
+            --text-primary: #e8e6f0;
+            --text-secondary: #a09bb8;
+            --accent: #7c6ef0;
+            --accent-hover: #9589f5;
+            --success: #34d399;
+            --danger: #f87171;
+            --warning: #fbbf24;
+            --item-bg: rgba(255,255,255,0.05);
+            --item-bg-hover: rgba(255,255,255,0.09);
+            --checked-bg: rgba(52,211,153,0.08);
+            --radius: 12px;
+            --radius-sm: 8px;
+            --shadow: 0 8px 32px rgba(0,0,0,0.3);
+            --transition: 0.2s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, var(--bg-grad-1), var(--bg-grad-2), var(--bg-grad-3));
+            min-height: 100vh;
+            color: var(--text-primary);
+            overflow-x: hidden;
+        }
+
+        /* ═══════ HEADER ═══════ */
+        .app-header {
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            backdrop-filter: blur(20px);
+            background: rgba(15,12,41,0.6);
+            border-bottom: 1px solid var(--card-border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .app-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .storage-badge {
+            font-size: 0.75em;
+            padding: 4px 10px;
+            border-radius: 20px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+
+        /* ═══════ LAYOUT ═══════ */
+        .app-body {
+            display: flex;
+            height: calc(100vh - 57px);
+        }
+
+        /* ═══════ SIDEBAR ═══════ */
+        .sidebar {
+            width: 280px;
+            min-width: 280px;
+            background: var(--card-bg-solid);
+            border-right: 1px solid var(--card-border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .sidebar-header {
+            padding: 16px;
+            border-bottom: 1px solid var(--card-border);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sidebar-header h2 {
+            font-size: 0.95em;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            flex: 1;
+        }
+
+        .topic-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+        }
+
+        .topic-item {
+            padding: 12px 14px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 4px;
+            border: 1px solid transparent;
+        }
+
+        .topic-item:hover {
+            background: var(--item-bg-hover);
+        }
+
+        .topic-item.active {
+            background: rgba(124,110,240,0.15);
+            border-color: rgba(124,110,240,0.3);
+        }
+
+        .topic-name {
+            font-size: 0.9em;
+            font-weight: 500;
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .topic-count {
+            font-size: 0.75em;
+            background: var(--card-bg);
+            padding: 2px 8px;
+            border-radius: 10px;
+            color: var(--text-secondary);
+            min-width: 28px;
+            text-align: center;
+        }
+
+        .topic-actions {
+            display: flex;
+            gap: 4px;
+            margin-left: 6px;
+            opacity: 0;
+            transition: opacity var(--transition);
+        }
+
+        .topic-item:hover .topic-actions {
+            opacity: 1;
+        }
+
+        /* ═══════ MAIN CONTENT ═══════ */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .content-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--card-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .content-title {
+            font-size: 1.15em;
+            font-weight: 600;
+        }
+
+        .content-stats {
+            display: flex;
+            gap: 16px;
+            font-size: 0.8em;
+            color: var(--text-secondary);
+        }
+
+        .stat-val {
+            font-weight: 700;
+            margin-right: 3px;
+        }
+
+        .content-toolbar {
+            padding: 12px 20px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        /* ═══════ ITEM LIST ═══════ */
+        .item-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px 20px;
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            margin-bottom: 6px;
+            background: var(--item-bg);
+            border-radius: var(--radius-sm);
+            border: 1px solid transparent;
+            transition: all var(--transition);
+        }
+
+        .checklist-item:hover {
+            background: var(--item-bg-hover);
+            border-color: var(--card-border);
+        }
+
+        .checklist-item.checked {
+            background: var(--checked-bg);
+        }
+
+        .checklist-item.checked .item-text {
+            text-decoration: line-through;
+            opacity: 0.5;
+        }
+
+        .item-number {
+            font-size: 0.75em;
+            color: var(--text-secondary);
+            min-width: 28px;
+            text-align: center;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .item-checkbox {
+            width: 20px;
+            height: 20px;
+            border-radius: 5px;
+            border: 2px solid var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all var(--transition);
+        }
+
+        .item-checkbox.checked {
+            background: var(--success);
+            border-color: var(--success);
+        }
+
+        .item-checkbox.checked::after {
+            content: '✓';
+            color: white;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .item-text {
+            flex: 1;
+            font-size: 0.9em;
+            line-height: 1.4;
+            min-width: 0;
+            word-break: break-word;
+        }
+
+        .item-text-input {
+            flex: 1;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid var(--accent);
+            border-radius: 6px;
+            padding: 6px 10px;
+            color: var(--text-primary);
+            font-size: 0.9em;
+            font-family: inherit;
+            outline: none;
+        }
+
+        .item-controls {
+            display: flex;
+            gap: 3px;
+            flex-shrink: 0;
+            opacity: 0;
+            transition: opacity var(--transition);
+        }
+
+        .checklist-item:hover .item-controls {
+            opacity: 1;
+        }
+
+        /* ═══════ BUTTONS ═══════ */
+        .btn {
+            padding: 7px 14px;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 0.8em;
+            font-weight: 600;
+            transition: all var(--transition);
+            font-family: inherit;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover { background: var(--accent-hover); }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--card-border);
+        }
+
+        .btn-ghost:hover {
+            background: var(--item-bg-hover);
+            color: var(--text-primary);
+        }
+
+        .btn-danger {
+            background: transparent;
+            color: var(--danger);
+            border: 1px solid rgba(248,113,113,0.3);
+        }
+
+        .btn-danger:hover { background: rgba(248,113,113,0.1); }
+
+        .btn-success {
+            background: transparent;
+            color: var(--success);
+            border: 1px solid rgba(52,211,153,0.3);
+        }
+
+        .btn-success:hover { background: rgba(52,211,153,0.1); }
+
+        .btn-icon {
+            width: 30px;
+            height: 30px;
+            min-width: 30px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 14px;
+            transition: all var(--transition);
+        }
+
+        .btn-icon:hover {
+            background: var(--item-bg-hover);
+            color: var(--text-primary);
+        }
+
+        .btn-icon.danger:hover {
+            background: rgba(248,113,113,0.15);
+            color: var(--danger);
+        }
+
+        .btn-icon:disabled {
+            opacity: 0.25;
+            cursor: not-allowed;
+        }
+
+        /* ═══════ MODAL ═══════ */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal-overlay.show { display: flex; }
+
+        .modal-box {
+            background: var(--card-bg-solid);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            padding: 24px;
+            width: 100%;
+            max-width: 480px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-box h3 {
+            font-size: 1.1em;
+            margin-bottom: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 14px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.8em;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px 14px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-size: 0.9em;
+            font-family: inherit;
+            outline: none;
+            transition: border-color var(--transition);
+        }
+
+        .form-input:focus {
+            border-color: var(--accent);
+        }
+
+        .form-input::placeholder {
+            color: var(--text-secondary);
+            opacity: 0.6;
+        }
+
+        .form-hint {
+            font-size: 0.75em;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        /* ═══════ NOTIFICATION ═══════ */
+        .notification {
+            position: fixed;
+            top: -60px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--card-bg-solid);
+            border: 1px solid var(--card-border);
+            padding: 10px 24px;
+            border-radius: var(--radius);
+            font-size: 0.85em;
+            font-weight: 500;
+            transition: top 0.3s ease;
+            z-index: 2000;
+            backdrop-filter: blur(20px);
+            white-space: nowrap;
+        }
+
+        .notification.show { top: 70px; }
+
+        /* ═══════ EMPTY STATE ═══════ */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--text-secondary);
+            gap: 12px;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .empty-state .empty-icon {
+            font-size: 3em;
+            opacity: 0.4;
+        }
+
+        .empty-state p {
+            font-size: 0.9em;
+            max-width: 260px;
+        }
+
+        /* ═══════ STORAGE MODAL ═══════ */
+        .storage-selection {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .storage-option {
+            flex: 1;
+            padding: 16px;
+            border: 2px solid var(--card-border);
+            border-radius: var(--radius);
+            cursor: pointer;
+            text-align: center;
+            transition: all var(--transition);
+        }
+
+        .storage-option:hover {
+            border-color: var(--accent);
+        }
+
+        .storage-option.selected {
+            border-color: var(--success);
+            background: rgba(52,211,153,0.08);
+        }
+
+        .storage-option h4 {
+            font-size: 0.9em;
+            margin-bottom: 4px;
+        }
+
+        .storage-option p {
+            font-size: 0.75em;
+            color: var(--text-secondary);
+        }
+
+        .login-section {
+            display: none;
+            margin-top: 12px;
+        }
+
+        .login-section.active { display: block; }
+
+        /* ═══════ MOBILE ═══════ */
+        .mobile-nav {
+            display: none;
+        }
+
+        .sidebar-backdrop {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: -300px;
+                top: 0;
+                bottom: 0;
+                z-index: 200;
+                width: 280px;
+                min-width: 280px;
+                transition: left 0.3s ease;
+            }
+
+            .sidebar.open {
+                left: 0;
+            }
+
+            .sidebar-backdrop {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(0,0,0,0.5);
+                z-index: 199;
+            }
+
+            .sidebar-backdrop.show {
+                display: block;
+            }
+
+            .mobile-nav {
+                display: flex;
+            }
+
+            .app-body {
+                height: calc(100vh - 57px);
+            }
+
+            .content-header {
+                padding: 12px 14px;
+            }
+
+            .content-toolbar {
+                padding: 10px 14px;
+            }
+
+            .item-list {
+                padding: 10px 14px;
+            }
+
+            .checklist-item {
+                padding: 10px;
+                gap: 8px;
+            }
+
+            .item-controls {
+                opacity: 1;
+                flex-wrap: wrap;
+                justify-content: flex-end;
+            }
+
+            .topic-actions {
+                opacity: 1;
+            }
+
+            .btn {
+                padding: 8px 12px;
+                font-size: 0.78em;
+            }
+
+            .btn-icon {
+                width: 34px;
+                height: 34px;
+                min-width: 34px;
+                font-size: 15px;
+            }
+
+            .content-stats {
+                gap: 10px;
+                font-size: 0.75em;
+            }
+
+            .app-title {
+                font-size: 1.1em;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .content-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+
+        /* ═══════ SCROLLBAR ═══════ */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+        /* ═══════ ANIMATIONS ═══════ */
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .checklist-item {
+            animation: slideIn 0.15s ease;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NOTIFICATION -->
+    <div class="notification" id="notification"></div>
+
+    <!-- SIDEBAR BACKDROP (mobil) -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar()"></div>
+
+    <!-- HEADER -->
+    <header class="app-header">
+        <div style="display:flex;align-items:center;gap:10px;">
+            <button class="btn-icon mobile-nav" onclick="toggleSidebar()" title="Menü">☰</button>
+            <span class="app-title">📋 Sıralı Checklist</span>
+        </div>
+        <div class="header-actions">
+            <span class="storage-badge" id="storageInfo" onclick="changeStorageMethod()">💻 Yerel</span>
+            <button class="btn-icon" onclick="openImportExportModal()" title="İçe/Dışa Aktar">📤</button>
+        </div>
+    </header>
+
+    <div class="app-body">
+        <!-- SIDEBAR -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2>Konular</h2>
+                <button class="btn btn-primary" onclick="openNewTopicModal()" style="padding:5px 10px;font-size:0.78em;">+ Yeni</button>
+            </div>
+            <div class="topic-list" id="topicList">
+                <!-- topic items render edilecek -->
+            </div>
+        </aside>
+
+        <!-- MAIN -->
+        <main class="main-content">
+            <div class="content-header" id="contentHeader">
+                <span class="content-title" id="contentTitle">Konu seçin</span>
+                <div class="content-stats" id="contentStats"></div>
+            </div>
+            <div class="content-toolbar" id="contentToolbar" style="display:none;">
+                <button class="btn btn-primary" onclick="openAddItemsModal()">➕ Madde Ekle</button>
+                <button class="btn btn-ghost" id="undoBtn" onclick="undoAction()" disabled>↶ Geri Al</button>
+                <button class="btn btn-ghost" id="redoBtn" onclick="redoAction()" disabled>↷ İleri Al</button>
+                <button class="btn btn-ghost" onclick="saveAllData()">💾 Kaydet</button>
+                <button class="btn btn-danger" onclick="deleteCurrentTopic()">🗑️ Konuyu Sil</button>
+            </div>
+            <div class="item-list" id="itemList">
+                <div class="empty-state">
+                    <div class="empty-icon">📋</div>
+                    <p>Sol panelden bir konu seçin veya yeni konu oluşturun</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- YENİ KONU MODAL -->
+    <div class="modal-overlay" id="newTopicModal">
+        <div class="modal-box">
+            <h3>📁 Yeni Konu Oluştur</h3>
+            <div class="form-group">
+                <label>Konu Adı</label>
+                <input type="text" class="form-input" id="newTopicName" placeholder="Ör: Alışveriş Listesi" maxlength="60">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-ghost" onclick="closeModal('newTopicModal')">İptal</button>
+                <button class="btn btn-primary" onclick="createTopic()">Oluştur</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- KONU YENİDEN ADLANDIR MODAL -->
+    <div class="modal-overlay" id="renameTopicModal">
+        <div class="modal-box">
+            <h3>✏️ Konuyu Yeniden Adlandır</h3>
+            <div class="form-group">
+                <label>Yeni Ad</label>
+                <input type="text" class="form-input" id="renameTopicInput" maxlength="60">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-ghost" onclick="closeModal('renameTopicModal')">İptal</button>
+                <button class="btn btn-primary" onclick="confirmRenameTopic()">Kaydet</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MADDE EKLE MODAL -->
+    <div class="modal-overlay" id="addItemsModal">
+        <div class="modal-box">
+            <h3>➕ Madde Ekle</h3>
+            <div class="form-group">
+                <label>Eklenecek Yer</label>
+                <select class="form-input" id="insertPosition">
+                    <option value="end">Listenin sonuna</option>
+                    <option value="start">Listenin başına</option>
+                    <option value="after">Belirli maddenin altına</option>
+                </select>
+            </div>
+            <div class="form-group" id="afterItemGroup" style="display:none;">
+                <label>Hangi maddenin altına?</label>
+                <select class="form-input" id="afterItemSelect"></select>
+            </div>
+            <div class="form-group">
+                <label>Ekleme Yöntemi</label>
+                <select class="form-input" id="addMethod" onchange="toggleAddMethod()">
+                    <option value="range">Numaralı aralık (ör: 3-24)</option>
+                    <option value="manual">Tek tek yaz</option>
+                </select>
+            </div>
+            <div class="form-group" id="rangeGroup">
+                <label>Numara Aralığı</label>
+                <input type="text" class="form-input" id="rangeInput" placeholder="Ör: 3-24 veya 1-10">
+                <div class="form-hint">Başlangıç-Bitiş numarası yazın. Maddeler "3. " "4. " ... şeklinde oluşur.</div>
+            </div>
+            <div class="form-group" id="manualGroup" style="display:none;">
+                <label>Maddeler (her satır bir madde)</label>
+                <textarea class="form-input" id="manualInput" rows="6" placeholder="Her satıra bir madde yazın..."></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-ghost" onclick="closeModal('addItemsModal')">İptal</button>
+                <button class="btn btn-primary" onclick="addItems()">Ekle</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- BELIRLI MADDENIN ALTINA/ÜSTÜNE EKLE MODAL -->
+    <div class="modal-overlay" id="insertNearModal">
+        <div class="modal-box">
+            <h3 id="insertNearTitle">Madde Ekle</h3>
+            <div class="form-group">
+                <label>Ekleme Yöntemi</label>
+                <select class="form-input" id="insertNearMethod" onchange="toggleInsertNearMethod()">
+                    <option value="single">Tek madde</option>
+                    <option value="range">Numaralı aralık</option>
+                    <option value="multi">Çoklu (her satır bir madde)</option>
+                </select>
+            </div>
+            <div class="form-group" id="insertNearSingleGroup">
+                <label>Madde Metni</label>
+                <input type="text" class="form-input" id="insertNearSingleInput" placeholder="Madde yazın...">
+            </div>
+            <div class="form-group" id="insertNearRangeGroup" style="display:none;">
+                <label>Numara Aralığı</label>
+                <input type="text" class="form-input" id="insertNearRangeInput" placeholder="Ör: 5-15">
+            </div>
+            <div class="form-group" id="insertNearMultiGroup" style="display:none;">
+                <label>Maddeler (her satır bir madde)</label>
+                <textarea class="form-input" id="insertNearMultiInput" rows="5" placeholder="Her satıra bir madde yazın..."></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-ghost" onclick="closeModal('insertNearModal')">İptal</button>
+                <button class="btn btn-primary" onclick="confirmInsertNear()">Ekle</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- İÇE/DIŞA AKTARMA MODAL -->
+    <div class="modal-overlay" id="importExportModal">
+        <div class="modal-box">
+            <h3>📤 İçe/Dışa Aktarma</h3>
+            <div style="margin-bottom:16px;">
+                <button class="btn btn-primary" onclick="exportData()" style="width:100%;justify-content:center;margin-bottom:8px;">💾 JSON Olarak İndir</button>
+                <label class="btn btn-ghost" style="width:100%;justify-content:center;cursor:pointer;">
+                    📥 Dosyadan Yükle
+                    <input type="file" id="importFileInput" accept=".json" style="display:none;" onchange="importData()">
+                </label>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-ghost" onclick="closeModal('importExportModal')">Kapat</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- DEPOLAMA MODAL -->
+    <div class="modal-overlay" id="storageModal">
+        <div class="modal-box">
+            <h3>💾 Kayıt Yöntemi Seçin</h3>
+            <div class="storage-selection">
+                <div class="storage-option" id="optLocal" onclick="selectStorage('local')">
+                    <h4>💻 Yerel</h4>
+                    <p>Cihazınızda saklanır</p>
+                </div>
+                <div class="storage-option" id="optGithub" onclick="selectStorage('github')">
+                    <h4>☁️ GitHub</h4>
+                    <p>GitHub'da saklanır</p>
+                </div>
+            </div>
+            <div class="login-section" id="loginSection">
+                <div class="form-group">
+                    <label>Kullanıcı Adı</label>
+                    <input type="text" class="form-input" id="loginUser" placeholder="Kullanıcı adı">
+                </div>
+                <div class="form-group">
+                    <label>Şifre</label>
+                    <input type="password" class="form-input" id="loginPass" placeholder="Şifre">
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="confirmStorage()">✅ Onayla</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ══════════════════════════════════════════════════════════
+        // CLOUDFLARE WORKER BAĞLANTISI
+        // ══════════════════════════════════════════════════════════
+        const WORKER_URL = 'https://gh-reci-senkron.recepyeni.workers.dev';
+        const dosyaAdi = 'siraliChecklist.json';
+
+        // ══════════════════════════════════════════════════════════
+        // GLOBAL DEĞİŞKENLER
+        // ══════════════════════════════════════════════════════════
+        let storageMethod = 'local';
+        let currentUser = null;
+        let userDatabase = {};
+        let checklistData = {}; // { "Konu Adı": { items: [{id, text, checked}], createdDate } }
+        let activeTopic = null;
+        let undoStack = [];
+        let redoStack = [];
+        const MAX_UNDO = 50;
+        let insertNearTargetIndex = -1;
+        let insertNearDirection = 'after'; // 'after' veya 'before'
+
+        // ══════════════════════════════════════════════════════════
+        // NOTIFICATION
+        // ══════════════════════════════════════════════════════════
+        function showNotification(msg) {
+            const n = document.getElementById('notification');
+            n.textContent = msg;
+            n.classList.add('show');
+            setTimeout(() => n.classList.remove('show'), 2500);
+        }
+
+        // ══════════════════════════════════════════════════════════
+        // MODAL
+        // ══════════════════════════════════════════════════════════
+        function openModal(id) {
+            document.getElementById(id).classList.add('show');
+        }
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('show');
+        }
+
+        // ══════════════════════════════════════════════════════════
+        // SIDEBAR - MOBİL
+        // ══════════════════════════════════════════════════════════
+        function toggleSidebar() {
+            const sb = document.getElementById('sidebar');
+            const bd = document.getElementById('sidebarBackdrop');
+            sb.classList.toggle('open');
+            bd.classList.toggle('show');
+        }
+
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('sidebarBackdrop').classList.remove('show');
+        }
+
+        // ══════════════════════════════════════════════════════════
+        // UNDO / REDO
+        // ══════════════════════════════════════════════════════════
+        function saveUndo() {
+            undoStack.push(JSON.parse(JSON.stringify(checklistData)));
+            if (undoStack.length > MAX_UNDO) undoStack.shift();
+            redoStack = [];
+            updateUndoRedoUI();
+        }
+
+        function undoAction() {
+            if (undoStack.length === 0) return;
+            redoStack.push(JSON.parse(JSON.stringify(checklistData)));
+            checklistData = undoStack.pop();
+            renderTopics();
+            renderItems();
+            autoSave();
+            updateUndoRedoUI();
+            showNotification('↶ Geri alındı');
+        }
+
+        function redoAction() {
+            if (redoStack.length === 0) return;
+            undoStack.push(JSON.parse(JSON.stringify(checklistData)));
+            checklistData = redoStack.pop();
+            renderTopics();
+            renderItems();
+            autoSave();
+            updateUndoRedoUI();
+            showNotification('↷ İleri alındı');
+        }
+
+        function updateUndoRedoUI() {
+            document.getElementById('undoBtn').disabled = undoStack.length === 0;
+            document.getElementById('redoBtn').disabled = redoStack.length === 0;
+        }
+
+        // ══════════════════════════════════════════════════════════
+        // TOPIC YÖNETİMİ
+        // ══════════════════════════════════════════════════════════
+        function openNewTopicModal() {
+            document.getElementById('newTopicName').value = '';
+            openModal('newTopicModal');
+            setTimeout(() => document.getElementById('newTopicName').focus(), 100);
+        }
+
+        function createTopic() {
+            const name = document.getElementById('newTopicName').value.trim();
+            if (!name) { showNotification('⚠️ Konu adı boş olamaz!'); return; }
+            if (checklistData[name]) { showNotification('⚠️ Bu konu zaten var!'); return; }
+            saveUndo();
+            checklistData[name] = { items: [], createdDate: new Date().toISOString() };
+            activeTopic = name;
+            renderTopics();
+            renderItems();
+            closeModal('newTopicModal');
+            closeSidebar();
+            autoSave();
+            showNotification('✅ Konu oluşturuldu: ' + name);
+        }
+
+        function selectTopic(name) {
+            activeTopic = name;
+            renderTopics();
+            renderItems();
+            closeSidebar();
+        }
+
+        function openRenameTopic(name, e) {
+            e.stopPropagation();
+            document.getElementById('renameTopicInput').value = name;
+            document.getElementById('renameTopicInput').dataset.oldName = name;
+            openModal('renameTopicModal');
+            setTimeout(() => document.getElementById('renameTopicInput').focus(), 100);
+        }
+
+        function confirmRenameTopic() {
+            const input = document.getElementById('renameTopicInput');
+            const oldName = input.dataset.oldName;
+            const newName = input.value.trim();
+            if (!newName) { showNotification('⚠️ Ad boş olamaz!'); return; }
+            if (newName !== oldName && checklistData[newName]) { showNotification('⚠️ Bu isim zaten var!'); return; }
+            if (newName === oldName) { closeModal('renameTopicModal'); return; }
+            saveUndo();
+            checklistData[newName] = checklistData[oldName];
+            delete checklistData[oldName];
+            if (activeTopic === oldName) activeTopic = newName;
+            renderTopics();
+            renderItems();
+            closeModal('renameTopicModal');
+            autoSave();
+            showNotification('✏️ Konu yeniden adlandırıldı');
+        }
+
+        function deleteCurrentTopic() {
+            if (!activeTopic) return;
+            if (!confirm(`"${activeTopic}" konusu ve tüm maddeleri silinecek. Emin misiniz?`)) return;
+            saveUndo();
+            delete checklistData[activeTopic];
+            activeTopic = null;
+            renderTopics();
+            renderItems();
+            autoSave();
+            showNotification('🗑️ Konu silindi');
+        }
+
+        function deleteTopicDirect(name, e) {
+            e.stopPropagation();
+            if (!confirm(`"${name}" konusu silinecek. Emin misiniz?`)) return;
+            saveUndo();
+            delete checklistData[name];
+            if (activeTopic === name) activeTopic = null;
+            renderTopics();
+            renderItems();
+            autoSave();
+            showNotification('🗑️ Konu silindi');
+        }
+
+        // ══════════════════════════════════════════════════════════
+        // TOPIC RENDER
+        // ══════════════════════════════════════════════════════════
+        function renderTopics() {
+            const list = document.getElementById('topicList');
+            const keys = Object.keys(checklistData);
+            if (keys.length === 0) {
+                list.innerHTML = '<div class="empty-state" style="padding:30px;"><div class="empty-icon" style="font-size:2em;">📁</div><p style="font-size:0.82em;">Henüz konu yok</p></div>';
+                return;
+            }
+            list.innerHTML = keys.map(name => {
+                const items = checklistData[name].items || [];
+                const done = items.filter(i => i.checked).length;
+                const total = items.length;
+                const isActive = activeTopic === name;
+                return `<div class="topic-item ${isActive ? 'active' : ''}" onclick="selectTopic('${escHtml(name)}')">
+                    <span class="topic-name">${escHtml(name)}</span>
+                    <span class="topic-count">${done}/${total}</span>
+                    <div class="topic-actions">
+                        <button class="btn-icon" onclick="openRenameTopic('${escHtml(name)}', event)" title="Yeniden Adlandır">✏️</button>
+                        <button class="btn-icon danger" onclick="deleteTopicDirect('${escHtml(name)}', event)" title="Sil">🗑️</button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function escHtml(s) {
+            return s.replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        // ══════════════════════════════════════════════════════════
+        // ITEM RENDER
+        // ══════════════════════════════════════════════════════════
+        function renderItems() {
+            const container = document.getElementById('itemList');
+            const titleEl = document.getElementById('contentTitle');
+            const statsEl = document.getElementById('contentStats');
+            const toolbar = document.getElementById('contentToolbar');
+
+            if (!activeTopic || !checklistData[activeTopic]) {
+                titleEl.textContent = 'Konu seçin';
+                statsEl.innerHTML = '';
+                toolbar.style.display = 'none';
+                container.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><p>Sol panelden bir konu seçin veya yeni konu oluşturun</p></div>';
+                return;
+            }
+
+            const topic = checklistData[activeTopic];
+            const items = topic.items || [];
+            const done = items.filter(i => i.checked).length;
+            const total = items.length;
+
+            titleEl.textContent = activeTopic;
+            statsEl.innerHTML = `<span><span class="stat-val">${total}</span>toplam</span>
+                <span><span class="stat-val" style="color:var(--success)">${done}</span>tamamlanan</span>
+                <span><span class="stat-val" style="color:var(--warning)">${total - done}</span>kalan</span>`;
+            toolbar.style.display = 'flex';
+
+            if (items.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-icon">✨</div><p>Bu konuda henüz madde yok. "Madde Ekle" ile başlayın.</p></div>';
+                return;
+            }
+
+            container.innerHTML = items.map((item, idx) => {
+                const checkedClass = item.checked ? 'checked' : '';
+                return `<div class="checklist-item ${checkedClass}" data-idx="${idx}">
+                    <span class="item-number">${idx + 1}.</span>
+                    <div class="item-checkbox ${checkedClass}" onclick="toggleCheck(${idx})"></div>
+                    <span class="item-text" id="itemText_${idx}">${escHtmlText(item.text)}</span>
+                    <div class="item-controls">
+                        <button class="btn-icon" onclick="startEditItem(${idx})" title="Düzenle">✏️</button>
+                        <button class="btn-icon" onclick="openInsertNear(${idx},'before')" title="Üstüne ekle">⬆+</button>
+                        <button class="btn-icon" onclick="openInsertNear(${idx},'after')" title="Altına ekle">⬇+</button>
+                        <button class="btn-icon" onclick="moveItem(${idx},-1)" title="Yukarı" ${idx === 0 ? 'disabled' : ''}>↑</button>
+                        <button class="btn-icon" onclick="moveItem(${idx},1)" title="Aşağı" ${idx === items.length - 1 ? 'disabled' : ''}>↓</button>
+                        <button class="btn-icon danger" onclick="deleteItem(${idx})" title="Sil">🗑️</button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function escHtmlText(s) {
+            const d = document.createElement('div');
+            d.textContent = s;
+            return d.innerHTML;
+        }
+
+        // ══════════════════════════════════════════════════════════
+        // ITEM İŞLEMLERİ
+        // ══════════════════════════════════════════════════════════
+        function toggleCheck(idx) {
+            if (!activeTopic) return;
+            saveUndo();
+            checklistData[activeTopic].items[idx].checked = !checklistData[activeTopic].items[idx].checked;
+            renderItems();
+            renderTopics();
+            autoSave();
+        }
+
+        function startEditItem(idx) {
+            if (!activeTopic) return;
+            const textEl = document.getElementById('itemText_' + idx);
+            const currentText = checklistData[activeTopic].items[idx].text;
+            const parent = textEl.parentElement;
+
+            // Mevcut text yerine input koy
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'item-text-input';
+            input.value = currentText;
+            textEl.style.display = 'none';
+            parent.insertBefore(input, textEl.nextSibling);
+            input.focus();
+            input.select();
+
+            const finish = (save) => {
+                if (save) {
+                    const newText = input.value.trim();
+                    if (newText && newText !== currentText) {
+                        saveUndo();
+                        checklistData[activeTopic].items[idx].text = newText;
+                        autoSave();
+                    }
+                }
+                renderItems();
+            };
+
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') finish(true);
+                if (e.key === 'Escape') finish(false);
+            });
+            input.addEventListener('blur', () => finish(true));
+        }
+
+        function moveItem(idx, direction) {
+            if (!activeTopic) return;
+            const items = checklistData[activeTopic].items;
+            const newIdx = idx + direction;
+            if (newIdx < 0 || newIdx >= items.length) return;
+            saveUndo();
+            const temp = items[idx];
+            items[idx] = items[newIdx];
+            items[newIdx] = temp;
+            renderItems();
+            autoSave();
+        }
+
+        function deleteItem(idx) {
+            if (!activeTopic) return;
+            if (!confirm('Bu madde silinecek. Emin misiniz?')) return;
+            saveUndo();
+            checklistData[activeTopic].items.splice(idx, 1);
+            renderItems();
+            renderTopics();
+            autoSave();
+            showNotification('🗑️ Madde silindi');
+        }
+
+        // ══════════════════════════════════════════════════════════
+        // MADDE EKLEME (ANA MODAL)
+        // ══════════════════════════════════════════════════════════
+        function openAddItemsModal() {
+            if (!activeTopic) return;
+            document.getElementById('rangeInput').value = '';
+            document.getElementById('manualInput').value = '';
+            document.getElementById('addMethod').value = 'range';
+            document.getElementById('insertPosition').value = 'end';
+            toggleAddMethod();
+            toggleInsertPosition();
+            openModal('addItemsModal');
+        }
+
+        function toggleAddMethod() {
+            const method = document.getElementById('addMethod').value;
+            document.getElementById('rangeGroup').style.display = method === 'range' ? 'block' : 'none';
+            document.getElementById('manualGroup').style.display = method === 'manual' ? 'block' : 'none';
+        }
+
+        document.getElementById('insertPosition').addEventListener('change', toggleInsertPosition);
+
+        function toggleInsertPosition() {
+            const pos = document.getElementById('insertPosition').value;
+            const group = document.getElementById('afterItemGroup');
+            if (pos === 'after') {
+                group.style.display = 'block';
+                populateAfterItemSelect();
+            } else {
+                group.style.display = 'none';
+            }
+        }
+
+        function populateAfterItemSelect() {
+            if (!activeTopic) return;
+            const items = checklistData[activeTopic].items;
+            const select = document.getElementById('afterItemSelect');
+            select.innerHTML = items.map((item, idx) => 
+                `<option value="${idx}">${idx + 1}. ${escHtmlText(item.text.substring(0, 50))}</option>`
+            ).join('');
+        }
+
+        function parseRange(rangeStr) {
+            const m = rangeStr.trim().match(/^(\d+)\s*[-–]\s*(\d+)$/);
+            if (!m) return null;
+            const start = parseInt(m[1]);
+            const end = parseInt(m[2]);
+            if (start > end || end - start > 500) return null;
+            const items = [];
+            for (let i = start; i <= end; i++) {
+                items.push({ id: genId(), text: i + '. ', checked: false });
+            }
+            return items;
+        }
+
+        function genId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+        }
+
+        function addItems() {
+            if (!activeTopic) return;
+            const method = document.getElementById('addMethod').value;
+            let newItems = [];
+
+            if (method === 'range') {
+                const rangeStr = document.getElementById('rangeInput').value;
+                newItems = parseRange(rangeStr);
+                if (!newItems) { showNotification('⚠️ Geçersiz aralık! Ör: 3-24'); return; }
+            } else {
+                const lines = document.getElementById('manualInput').value.split('\n').map(l => l.trim()).filter(l => l);
+                if (lines.length === 0) { showNotification('⚠️ En az bir madde yazın!'); return; }
+                newItems = lines.map(l => ({ id: genId(), text: l, checked: false }));
+            }
+
+            saveUndo();
+            const pos = document.getElementById('insertPosition').value;
+            const items = checklistData[activeTopic].items;
+
+            if (pos === 'start') {
+                checklistData[activeTopic].items = [...newItems, ...items];
+            } else if (pos === 'after') {
+                const afterIdx = parseInt(document.getElementById('afterItemSelect').value);
+                items.splice(afterIdx + 1, 0, ...newItems);
+            } else {
+                items.push(...newItems);
+            }
+
+            renderItems();
+            renderTopics();
+            closeModal('addItemsModal');
+            autoSave();
+            showNotification(`✅ ${newItems.length} madde eklendi`);
+        }
+
+        // ══════════════════════════════════════════════════════════
+        // MADDENIN ALTINA/ÜSTÜNE EKLE
+        // ══════════════════════════════════════════════════════════
+        function openInsertNear(idx, direction) {
+            insertNearTargetIndex = idx;
+            insertNearDirection = direction;
+            const title = direction === 'after' ? '⬇ Maddenin Altına Ekle' : '⬆ Maddenin Üstüne Ekle';
+            document.getElementById('insertNearTitle').textContent = title;
+            document.getElementById('insertNearMethod').value = 'single';
+            document.getElementById('insertNearSingleInput').value = '';
+            document.getElementById('insertNearRangeInput').value = '';
+            document.getElementById('insertNearMultiInput').value = '';
+            toggleInsertNearMethod();
+            openModal('insertNearModal');
+            setTimeout(() => document.getElementById('insertNearSingleInput').focus(), 100);
+        }
+
+        function toggleInsertNearMethod() {
+            const m = document.getElementById('insertNearMethod').value;
+            document.getElementById('insertNearSingleGroup').style.display = m === 'single' ? 'block' : 'none';
+            document.getElementById('insertNearRangeGroup').style.display = m === 'range' ? 'block' : 'none';
+            document.getElementById('insertNearMultiGroup').style.display = m === 'multi' ? 'block' : 'none';
+        }
+
+        function confirmInsertNear() {
+            if (!activeTopic) return;
+            const m = document.getElementById('insertNearMethod').value;
+            let newItems = [];
+
+            if (m === 'single') {
+                const t = document.getElementById('insertNearSingleInput').value.trim();
+                if (!t) { showNotification('⚠️ Madde metni boş!'); return; }
+                newItems = [{ id: genId(), text: t, checked: false }];
+            } else if (m === 'range') {
+                newItems = parseRange(document.getElementById('insertNearRangeInput').value);
+                if (!newItems) { showNotification('⚠️ Geçersiz aralık!'); return; }
+            } else {
+                const lines = document.getElementById('insertNearMultiInput').value.split('\n').map(l => l.trim()).filter(l => l);
+                if (lines.length === 0) { showNotification('⚠️ En az bir madde yazın!'); return; }
+                newItems = lines.map(l => ({ id: genId(), text: l, checked: false }));
+            }
+
+            saveUndo();
+            const items = checklistData[activeTopic].items;
+            const insertIdx = insertNearDirection === 'after' ? insertNearTargetIndex + 1 : insertNearTargetIndex;
+            items.splice(insertIdx, 0, ...newItems);
+            renderItems();
+            renderTopics();
+            closeModal('insertNearModal');
+            autoSave();
+            showNotification(`✅ ${newItems.length} madde eklendi`);
+        }
+
+        // ══════════════════════════════════════════════════════════
+        // İÇE/DIŞA AKTARMA
+        // ══════════════════════════════════════════════════════════
+        function openImportExportModal() {
+            openModal('importExportModal');
+        }
+
+        function exportData() {
+            const json = JSON.stringify(checklistData, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'siraliChecklist_' + new Date().toISOString().split('T')[0] + '.json';
+            a.click();
+            URL.revokeObjectURL(url);
+            showNotification('💾 Dışa aktarıldı');
+        }
+
+        function importData() {
+            const file = document.getElementById('importFileInput').files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    saveUndo();
+                    const imported = JSON.parse(e.target.result);
+                    checklistData = imported;
+                    activeTopic = null;
+                    renderTopics();
+                    renderItems();
+                    autoSave();
+                    closeModal('importExportModal');
+                    showNotification('📥 İçe aktarıldı');
+                } catch (err) {
+                    showNotification('❌ Geçersiz dosya!');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // ══════════════════════════════════════════════════════════
+        // DEPOLAMA - GitHub & Yerel
+        // ══════════════════════════════════════════════════════════
+        function selectStorage(method) {
+            document.querySelectorAll('.storage-option').forEach(o => o.classList.remove('selected'));
+            document.getElementById(method === 'github' ? 'optGithub' : 'optLocal').classList.add('selected');
+            storageMethod = method;
+            document.getElementById('loginSection').classList.toggle('active', method === 'github');
+        }
+
+        async function confirmStorage() {
+            if (storageMethod === 'github') {
+                const username = document.getElementById('loginUser').value.trim();
+                const password = document.getElementById('loginPass').value.trim();
+                if (!username || !password) { showNotification('⚠️ Kullanıcı adı ve şifre gerekli!'); return; }
+                try {
+                    await loadUserDatabase();
+                    if (userDatabase[username]) {
+                        if (userDatabase[username].password === password) {
+                            currentUser = username;
+                            checklistData = userDatabase[username].checklistData || {};
+                            renderTopics();
+                            renderItems();
+                            const settings = { method: storageMethod, username: currentUser };
+                            localStorage.setItem('checklist-storage-settings', JSON.stringify(settings));
+                            showNotification(`👋 Hoş geldin ${username}!`);
+                            closeModal('storageModal');
+                            updateStorageInfo();
+                        } else {
+                            showNotification('❌ Şifre hatalı!');
+                        }
+                    } else {
+                        userDatabase[username] = {
+                            password: password,
+                            checklistData: checklistData,
+                            createdDate: new Date().toISOString()
+                        };
+                        currentUser = username;
+                        localStorage.removeItem('checklist-data');
+                        await saveUserDatabase();
+                        const settings = { method: storageMethod, username: currentUser };
+                        localStorage.setItem('checklist-storage-settings', JSON.stringify(settings));
+                        showNotification(`🎉 Yeni kayıt açıldı! Hoş geldin ${username}!`);
+                        closeModal('storageModal');
+                        updateStorageInfo();
+                    }
+                } catch (err) {
+                    console.error('GitHub hatası:', err);
+                    showNotification('⚠️ GitHub bağlantı hatası! Yerel kayıt kullanılıyor.');
+                    storageMethod = 'local';
+                    localStorage.setItem('checklist-storage-settings', JSON.stringify({ method: 'local' }));
+                    closeModal('storageModal');
+                    updateStorageInfo();
+                }
+            } else {
+                localStorage.setItem('checklist-storage-settings', JSON.stringify({ method: 'local' }));
+                showNotification('💻 Yerel kayıt seçildi!');
+                closeModal('storageModal');
+                updateStorageInfo();
+                setTimeout(loadAllData, 300);
+            }
+        }
+
+        async function loadUserDatabase() {
+            const res = await fetch(WORKER_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'read', dosyaAdi: dosyaAdi })
+            });
+            const data = await res.json();
+            if (data.content) {
+                userDatabase = JSON.parse(data.content);
+            } else {
+                userDatabase = {};
+            }
+        }
+
+        async function saveUserDatabase() {
+            const json = JSON.stringify(userDatabase, null, 2);
+            const res = await fetch(WORKER_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'write', dosyaAdi: dosyaAdi, content: json, message: 'Checklist güncellendi' })
+            });
+            const data = await res.json();
+            if (!data.success) throw new Error(data.error || 'Worker hatası');
+        }
+
+        function updateStorageInfo() {
+            const info = document.getElementById('storageInfo');
+            if (storageMethod === 'github') {
+                info.textContent = `☁️ GitHub${currentUser ? ` (${currentUser})` : ''}`;
+            } else {
+                info.textContent = '💻 Yerel';
+            }
+        }
+
+        function changeStorageMethod() {
+            localStorage.removeItem('checklist-storage-settings');
+            document.querySelectorAll('.storage-option').forEach(o => o.classList.remove('selected'));
+            document.getElementById('loginSection').classList.remove('active');
+            document.getElementById('loginUser').value = '';
+            document.getElementById('loginPass').value = '';
+            storageMethod = 'local';
+            currentUser = null;
+            openModal('storageModal');
+        }
+
+        // ══════════════════════════════════════════════════════════
+        // KAYDET / YÜKLE
+        // ══════════════════════════════════════════════════════════
+        async function saveAllData() {
+            if (storageMethod === 'github' && currentUser) {
+                await saveToGitHub();
+            } else {
+                saveToLocal();
+            }
+            showNotification('💾 Kaydedildi!');
+        }
+
+        function saveToLocal() {
+            localStorage.setItem('checklist-data', JSON.stringify(checklistData));
+        }
+
+        async function saveToGitHub() {
+            try {
+                await loadUserDatabase();
+                userDatabase[currentUser].checklistData = checklistData;
+                userDatabase[currentUser].lastUpdated = new Date().toISOString();
+                await saveUserDatabase();
+            } catch (err) {
+                console.error('GitHub hatası:', err);
+                showNotification('⚠️ GitHub hatası! Yerel kayıt yapılıyor.');
+                saveToLocal();
+            }
+        }
+
+        function loadAllData() {
+            if (storageMethod === 'github' && currentUser) {
+                loadFromGitHub();
+            } else {
+                loadFromLocal();
+            }
+        }
+
+        function loadFromLocal() {
+            const saved = localStorage.getItem('checklist-data');
+            if (saved) {
+                checklistData = JSON.parse(saved);
+                renderTopics();
+                renderItems();
+                showNotification('💻 Yerel veriler yüklendi');
+            }
+        }
+
+        async function loadFromGitHub() {
+            try {
+                await loadUserDatabase();
+                if (userDatabase[currentUser] && userDatabase[currentUser].checklistData) {
+                    checklistData = userDatabase[currentUser].checklistData;
+                    renderTopics();
+                    renderItems();
+                    showNotification('☁️ GitHub\'dan yüklendi');
+                } else {
+                    showNotification('⚠️ GitHub\'da veri bulunamadı');
+                }
+            } catch (err) {
+                console.error('GitHub yükleme hatası:', err);
+                showNotification('⚠️ GitHub hatası!');
+                loadFromLocal();
+            }
+        }
+
+        function autoSave() {
+            if (storageMethod === 'local') {
+                saveToLocal();
+            }
+        }
+
+        // ══════════════════════════════════════════════════════════
+        // SETTINGS KONTROL
+        // ══════════════════════════════════════════════════════════
+        function checkStorageSettings() {
+            const saved = localStorage.getItem('checklist-storage-settings');
+            if (saved) {
+                const settings = JSON.parse(saved);
+                storageMethod = settings.method;
+                if (settings.method === 'github' && settings.username) {
+                    currentUser = settings.username;
+                }
+                updateStorageInfo();
+                return true;
+            }
+            return false;
+        }
+
+        // ══════════════════════════════════════════════════════════
+        // ENTER İLE MODAL ONAY
+        // ══════════════════════════════════════════════════════════
+        document.getElementById('newTopicName').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') createTopic();
+        });
+        document.getElementById('renameTopicInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') confirmRenameTopic();
+        });
+        document.getElementById('insertNearSingleInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') confirmInsertNear();
+        });
+        document.getElementById('loginPass').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') confirmStorage();
+        });
+
+        // ══════════════════════════════════════════════════════════
+        // BAŞLANGIÇ
+        // ══════════════════════════════════════════════════════════
+        window.onload = function() {
+            if (!checkStorageSettings()) {
+                openModal('storageModal');
+            } else {
+                loadAllData();
+            }
+        };
+    </script>
+</body>
+</html>
