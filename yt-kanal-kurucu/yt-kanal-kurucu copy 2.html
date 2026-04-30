@@ -783,12 +783,6 @@ body {
               <button class="option-btn" data-val="minimalist">🔲 Minimalist</button>
               <button class="option-btn" data-val="canlı">🌈 Canlı</button>
               <button class="option-btn" data-val="profesyonel">💼 Profesyonel</button>
-              <button class="option-btn" data-val="sinematik">🎬 Sinematik</button>
-              <button class="option-btn" data-val="oyun">🕹️ Oyun/Gaming</button>
-              <button class="option-btn" data-val="çocuk">🧸 Çocuk</button>
-              <button class="option-btn" data-val="teknoloji">💻 Teknoloji</button>
-              <button class="option-btn" data-val="müzik">🎵 Müzik</button>
-              <button class="option-btn" data-val="yemek">🍳 Yemek</button>
             </div>
           </div>
           <div class="form-group">
@@ -797,29 +791,8 @@ body {
           </div>
           <button class="btn btn-primary" onclick="generateImage('banner')">🎨 Banner Üret</button>
 
-          <!-- Cihaz Önizleme Toggle -->
-          <div id="bannerDeviceToggle" style="display:none;margin:12px 0 4px;flex-wrap:wrap;gap:6px;">
-            <button class="btn btn-ghost" style="font-size:11px;padding:6px 12px;" onclick="setBannerPreviewMode('full')" id="prevModeAll">📐 Tam Canvas</button>
-            <button class="btn btn-ghost" style="font-size:11px;padding:6px 12px;" onclick="setBannerPreviewMode('tv')" id="prevModeTV">📺 TV</button>
-            <button class="btn btn-ghost" style="font-size:11px;padding:6px 12px;" onclick="setBannerPreviewMode('desktop')" id="prevModeDesktop">🖥️ Masaüstü</button>
-            <button class="btn btn-ghost" style="font-size:11px;padding:6px 12px;" onclick="setBannerPreviewMode('tablet')" id="prevModeTablet">📱 Tablet</button>
-            <button class="btn btn-ghost" style="font-size:11px;padding:6px 12px;" onclick="setBannerPreviewMode('mobile')" id="prevModeMobile">📲 Mobil</button>
-            <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-muted);margin-left:auto;cursor:pointer;">
-              <input type="checkbox" id="showSafeZone" checked onchange="toggleSafeZoneOverlay()"> Safe Zone Göster
-            </label>
-          </div>
-
-          <div class="image-preview-area" id="bannerPreview" style="position:relative;">
+          <div class="image-preview-area" id="bannerPreview">
             <span style="color:var(--text-muted);font-size:13px;">Henüz görsel yok. "Banner Üret" butonuna tıkla.</span>
-          </div>
-
-          <!-- Safe Zone Bilgi -->
-          <div id="bannerSafeInfo" style="display:none;margin-top:8px;padding:10px 14px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:11px;color:var(--text-muted);line-height:1.7;">
-            <strong style="color:var(--warning);">📐 Safe Zone Rehberi:</strong><br>
-            🟡 <strong>Sarı çerçeve</strong> = Mobil Safe Zone (1546×423) — Tüm cihazlarda görünür<br>
-            🔴 <strong>Sol alt</strong> = Profil fotoğrafı overlap alanı (masaüstünde kapatılır)<br>
-            🔵 <strong>Sağ alt</strong> = Kanal linkleri overlay alanı (masaüstünde kapatılır)<br>
-            💡 Kanal adı, slogan ve CTA mutlaka sarı alan içinde olmalı.
           </div>
 
           <div class="btn-group" id="bannerActions" style="display:none;">
@@ -1423,36 +1396,11 @@ function generatePromptForImage(type) {
   const name = STATE.channelName || STATE.channelTopic;
 
   const prompts = {
-    banner: `YouTube kanal banner görseli oluştur. Tam canvas: 2560x1440 piksel, 16:9 en-boy oranı.
-
+    banner: `YouTube kanal banner görseli oluştur. 16:9 en-boy oranı.
 Kanal adı: "${name}"
 Konu: "${STATE.channelTopic}"
-İçerik türü: ${STATE.contentType === 'ai' ? 'konuya uygun belirle' : STATE.contentType}
-Hedef kitle: ${STATE.audience === 'ai' ? 'konuya uygun belirle' : STATE.audience}
 Stil: ${styleText}
-
-=== ZORUNLU SAFE ZONE KURALLARI (2026 YouTube Standardı) ===
-YouTube banner'ı farklı cihazlarda farklı kırpılır:
-- TV: Tam 2560x1440 görünür
-- Masaüstü: 2560x423 piksel yatay şerit (ortada)
-- Tablet: 1855x423 piksel (ortada)
-- Mobil: Sadece 1546x423 piksel (tam ortada) — İZLEYİCİLERİN %70+'İ BURAYI GÖRÜR
-
-KRİTİK: Kanal adı "${name}" MUTLAKA merkez 1546x423 safe zone içinde, büyük (min 60-80px eşdeğeri), okunabilir ve yüksek kontrastlı olmalı.
-- Safe zone'un SOL ALT köşesini BOŞ BIRAK (masaüstünde profil fotoğrafı ~150x150px burayı kapatır)
-- Safe zone'un SAĞ ALT köşesini BOŞ BIRAK (masaüstünde kanal linkleri burayı kapatır)
-- Slogan veya kısa açıklama (7-12 kelime max) kanal adının altında
-- Metin rengi arka planla yüksek kontrast oluşturmalı
-
-=== TASARIM PRENSİPLERİ ===
-- Safe zone dışındaki alanlar (sol-sağ kanatlar) dekoratif arka plan, gradyan veya tematik görsellerle doldurulmalı
-- TV görünümü için üst ve alt alanlar atmosferik/sinematik arka plan ile zenginleştirilmeli
-- Fazla kalabalık yapma — sade, profesyonel, marka kimliği oluşturacak
-- Renk paleti tutarlı olsun (thumbnail ve profil resmiyle uyumlu olacak)
-- Görsel hiyerarşi: Kanal adı en büyük > slogan > diğer detaylar
-- Dark mode uyumlu olsun (saf beyaz arka plandan kaçın)
-
-Profesyonel, dikkat çekici, 2026 YouTube trendlerine uygun bir banner üret.`,
+Önemli: Banner'ın ortasında kanal adını büyük ve okunabilir şekilde yaz. Safe zone (1235x338 piksel ortada) içindeki alan önemli, ana mesaj ve logo orada olsun. Profesyonel, dikkat çekici, YouTube'a uygun. Arka plan zengin ama kanal adı ön planda olsun.`,
 
     profile: `Bu referans banner görseline uyumlu bir YouTube profil resmi oluştur. Aynı renk paleti, stil ve tema ile.
 Kanal adı: "${name}"
@@ -1511,128 +1459,8 @@ async function generateImage(type) {
 
 function showImagePreview(type, base64Data) {
   const preview = document.getElementById(type + 'Preview');
-  preview.innerHTML = `<img src="data:image/png;base64,${base64Data}" alt="${type}" id="${type}Img">`;
+  preview.innerHTML = `<img src="data:image/png;base64,${base64Data}" alt="${type}">`;
   preview.classList.add('has-image');
-
-  // Banner için safe zone overlay ve cihaz toggle'ı göster
-  if (type === 'banner') {
-    document.getElementById('bannerDeviceToggle').style.display = 'flex';
-    document.getElementById('bannerSafeInfo').style.display = 'block';
-    // Varsayılan: tam canvas + safe zone overlay
-    setTimeout(() => addBannerSafeZoneOverlay(), 100);
-  }
-}
-
-function addBannerSafeZoneOverlay() {
-  const preview = document.getElementById('bannerPreview');
-  const img = document.getElementById('bannerImg');
-  if (!img) return;
-
-  // Mevcut overlay'leri temizle
-  preview.querySelectorAll('.sz-overlay').forEach(el => el.remove());
-
-  if (!document.getElementById('showSafeZone')?.checked) return;
-
-  const imgRect = img.getBoundingClientRect();
-  const previewRect = preview.getBoundingClientRect();
-  const imgW = img.offsetWidth;
-  const imgH = img.offsetHeight;
-
-  // Oranlar (2560x1440 canvas üzerinde)
-  const safeW = 1546 / 2560; // %60.39
-  const safeH = 423 / 1440;  // %29.38
-  const safeL = (1 - safeW) / 2; // %19.80
-  const safeT = (1 - safeH) / 2; // %35.31
-
-  // Profil fotoğrafı overlap (sol alt safe zone köşesi, ~150x150px / 2560x1440)
-  const avatarW = 150 / 2560;
-  const avatarH = 150 / 1440;
-
-  // Kanal link overlay (sağ alt safe zone, ~300x40px)
-  const linkW = 300 / 2560;
-  const linkH = 40 / 1440;
-
-  // Safe zone çerçevesi (sarı)
-  const szDiv = document.createElement('div');
-  szDiv.className = 'sz-overlay';
-  szDiv.style.cssText = `position:absolute;border:2px dashed #f59e0b;pointer-events:none;z-index:10;
-    left:${safeL*100}%;top:${safeT*100}%;width:${safeW*100}%;height:${safeH*100}%;`;
-  szDiv.innerHTML = `<span style="position:absolute;top:-18px;left:0;font-size:9px;color:#f59e0b;font-family:'Space Mono',monospace;white-space:nowrap;">📲 Mobil Safe Zone (1546×423)</span>`;
-  preview.appendChild(szDiv);
-
-  // Masaüstü şeridi (mavi kesikli)
-  const deskDiv = document.createElement('div');
-  deskDiv.className = 'sz-overlay';
-  deskDiv.style.cssText = `position:absolute;border:1px dashed #3b82f6;pointer-events:none;z-index:9;opacity:0.5;
-    left:0;top:${safeT*100}%;width:100%;height:${safeH*100}%;`;
-  deskDiv.innerHTML = `<span style="position:absolute;top:-16px;right:0;font-size:9px;color:#3b82f6;font-family:'Space Mono',monospace;">🖥️ Masaüstü (2560×423)</span>`;
-  preview.appendChild(deskDiv);
-
-  // Profil fotoğrafı overlap alanı (kırmızı, sol alt)
-  const avDiv = document.createElement('div');
-  avDiv.className = 'sz-overlay';
-  const avLeft = safeL;
-  const avTop = safeT + safeH - avatarH;
-  avDiv.style.cssText = `position:absolute;background:rgba(239,68,68,0.25);border:1px solid #ef4444;border-radius:50%;pointer-events:none;z-index:11;
-    left:${avLeft*100}%;top:${avTop*100}%;width:${avatarW*100}%;height:${avatarH*100}%;`;
-  avDiv.innerHTML = `<span style="position:absolute;top:50%;left:110%;font-size:8px;color:#ef4444;font-family:'Space Mono',monospace;white-space:nowrap;transform:translateY(-50%);">👤 Profil</span>`;
-  preview.appendChild(avDiv);
-
-  // Kanal linkleri overlay (mavi, sağ alt)
-  const lnkDiv = document.createElement('div');
-  lnkDiv.className = 'sz-overlay';
-  const lnkLeft = safeL + safeW - linkW;
-  const lnkTop = safeT + safeH - linkH;
-  lnkDiv.style.cssText = `position:absolute;background:rgba(59,130,246,0.2);border:1px solid #3b82f6;pointer-events:none;z-index:11;border-radius:4px;
-    left:${lnkLeft*100}%;top:${lnkTop*100}%;width:${linkW*100}%;height:${linkH*100}%;`;
-  lnkDiv.innerHTML = `<span style="position:absolute;top:50%;right:110%;font-size:8px;color:#3b82f6;font-family:'Space Mono',monospace;white-space:nowrap;transform:translateY(-50%);">🔗 Linkler</span>`;
-  preview.appendChild(lnkDiv);
-}
-
-function toggleSafeZoneOverlay() {
-  addBannerSafeZoneOverlay();
-}
-
-function setBannerPreviewMode(mode) {
-  const img = document.getElementById('bannerImg');
-  if (!img) return;
-
-  // Tüm butonların stilini resetle
-  ['prevModeAll','prevModeTV','prevModeDesktop','prevModeTablet','prevModeMobile'].forEach(id => {
-    document.getElementById(id).style.borderColor = 'var(--border)';
-    document.getElementById(id).style.color = 'var(--text-secondary)';
-  });
-
-  // Crop oranları (2560x1440 base)
-  const crops = {
-    full:    { x: 0, y: 0, w: 2560, h: 1440 },
-    tv:      { x: 0, y: 0, w: 2560, h: 1440 },
-    desktop: { x: 0, y: 509, w: 2560, h: 423 },
-    tablet:  { x: 353, y: 509, w: 1855, h: 423 },
-    mobile:  { x: 507, y: 509, w: 1546, h: 423 }
-  };
-
-  const btnMap = { full:'prevModeAll', tv:'prevModeTV', desktop:'prevModeDesktop', tablet:'prevModeTablet', mobile:'prevModeMobile' };
-  const activeBtn = document.getElementById(btnMap[mode]);
-  activeBtn.style.borderColor = 'var(--accent)';
-  activeBtn.style.color = 'var(--accent)';
-
-  const c = crops[mode];
-  if (mode === 'full' || mode === 'tv') {
-    img.style.objectFit = 'contain';
-    img.style.objectPosition = 'center';
-    img.style.clipPath = '';
-  } else {
-    // Yüzde cinsinden clip-path
-    const l = (c.x / 2560) * 100;
-    const t = (c.y / 1440) * 100;
-    const r = ((2560 - c.x - c.w) / 2560) * 100;
-    const b = ((1440 - c.y - c.h) / 1440) * 100;
-    img.style.clipPath = `inset(${t}% ${r}% ${b}% ${l}%)`;
-  }
-
-  // Overlay'i güncelle
-  setTimeout(() => addBannerSafeZoneOverlay(), 50);
 }
 
 function approveImage(type) {
