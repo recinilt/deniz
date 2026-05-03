@@ -1,0 +1,1809 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💰 Kredi Takip</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #0f1117;
+            --bg-card: #1a1d28;
+            --bg-card-hover: #222636;
+            --bg-input: #151822;
+            --border: #2a2e3d;
+            --border-focus: #4f8cff;
+            --text-primary: #e8eaf0;
+            --text-secondary: #8b90a0;
+            --text-muted: #5a5f72;
+            --accent-blue: #4f8cff;
+            --accent-green: #34d399;
+            --accent-red: #f87171;
+            --accent-orange: #fbbf24;
+            --accent-purple: #a78bfa;
+            --accent-cyan: #22d3ee;
+            --accent-pink: #f472b6;
+            --gradient-blue: linear-gradient(135deg, #4f8cff 0%, #3b6de0 100%);
+            --gradient-green: linear-gradient(135deg, #34d399 0%, #059669 100%);
+            --gradient-red: linear-gradient(135deg, #f87171 0%, #dc2626 100%);
+            --shadow: 0 4px 24px rgba(0,0,0,0.3);
+            --radius: 12px;
+            --radius-sm: 8px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg-main);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* ═══ SCROLLBAR ═══ */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-main); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+        /* ═══ HEADER ═══ */
+        .header {
+            background: linear-gradient(135deg, #0f1117 0%, #1a1d28 50%, #0f1117 100%);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(12px);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.4em;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .storage-badge {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75em;
+            padding: 6px 14px;
+            border-radius: 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .storage-badge:hover { border-color: var(--accent-blue); color: var(--accent-blue); }
+
+        /* ═══ ALERTS BAR ═══ */
+        .alerts-bar {
+            background: rgba(251, 191, 36, 0.08);
+            border-bottom: 1px solid rgba(251, 191, 36, 0.2);
+            padding: 10px 24px;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+        .alerts-bar.active { display: flex; }
+
+        .alert-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+        .alert-warn { background: rgba(251, 191, 36, 0.15); color: var(--accent-orange); border: 1px solid rgba(251, 191, 36, 0.3); }
+        .alert-danger { background: rgba(248, 113, 113, 0.15); color: var(--accent-red); border: 1px solid rgba(248, 113, 113, 0.3); }
+
+        /* ═══ TABS ═══ */
+        .tabs {
+            display: flex;
+            gap: 4px;
+            padding: 12px 24px;
+            background: var(--bg-main);
+            border-bottom: 1px solid var(--border);
+            overflow-x: auto;
+        }
+
+        .tab-btn {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            padding: 10px 20px;
+            border: 1px solid transparent;
+            border-radius: var(--radius-sm);
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.85em;
+            font-weight: 600;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        .tab-btn:hover { background: var(--bg-card); color: var(--text-primary); }
+        .tab-btn.active {
+            background: var(--accent-blue);
+            color: #fff;
+            border-color: var(--accent-blue);
+        }
+
+        /* ═══ CONTENT ═══ */
+        .content { padding: 24px; max-width: 1400px; margin: 0 auto; }
+        .tab-content { display: none; animation: fadeIn 0.3s ease; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ═══ CARDS ═══ */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 20px;
+            transition: border-color 0.3s;
+        }
+        .card:hover { border-color: rgba(79, 140, 255, 0.3); }
+
+        .card-title {
+            font-size: 1em;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* ═══ FORM ELEMENTS ═══ */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 14px;
+        }
+
+        .form-group { display: flex; flex-direction: column; gap: 4px; }
+
+        .form-group label {
+            font-size: 0.75em;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--bg-input);
+            color: var(--text-primary);
+            font-size: 0.9em;
+            transition: border-color 0.3s;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+        .form-group select option { background: var(--bg-card); color: var(--text-primary); }
+
+        /* ═══ BUTTONS ═══ */
+        .btn {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            padding: 10px 20px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            font-size: 0.85em;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn:hover { transform: translateY(-1px); box-shadow: var(--shadow); }
+        .btn:active { transform: translateY(0); }
+
+        .btn-primary { background: var(--gradient-blue); color: #fff; }
+        .btn-success { background: var(--gradient-green); color: #fff; }
+        .btn-danger { background: var(--gradient-red); color: #fff; }
+        .btn-ghost {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+        .btn-ghost:hover { border-color: var(--accent-blue); color: var(--accent-blue); }
+        .btn-sm { padding: 6px 12px; font-size: 0.78em; }
+
+        .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+
+        /* ═══ TABLE ═══ */
+        .table-wrap { overflow-x: auto; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85em;
+        }
+
+        th {
+            text-align: left;
+            padding: 12px 14px;
+            background: var(--bg-input);
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75em;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+
+        tr:hover td { background: rgba(79, 140, 255, 0.04); }
+
+        .bank-color-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+        }
+
+        .status-badge {
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.78em;
+            font-weight: 600;
+        }
+        .status-active { background: rgba(52, 211, 153, 0.15); color: var(--accent-green); }
+        .status-closed { background: rgba(139, 144, 160, 0.15); color: var(--text-secondary); }
+        .status-overdue { background: rgba(248, 113, 113, 0.15); color: var(--accent-red); }
+
+        .progress-bar-bg {
+            width: 100%;
+            height: 6px;
+            background: var(--bg-input);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+
+        /* ═══ STATS GRID ═══ */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.8em;
+            font-weight: 700;
+        }
+        .stat-label {
+            font-size: 0.78em;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 320px;
+            margin-top: 16px;
+        }
+
+        /* ═══ TAKSIT TAKVİMİ ═══ */
+        .taksit-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(38px, 1fr));
+            gap: 4px;
+            margin-top: 10px;
+        }
+        .taksit-cell {
+            aspect-ratio: 1;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+        .taksit-cell.paid { background: rgba(52, 211, 153, 0.2); color: var(--accent-green); border-color: rgba(52, 211, 153, 0.3); }
+        .taksit-cell.unpaid { background: rgba(248, 113, 113, 0.1); color: var(--accent-red); border-color: rgba(248, 113, 113, 0.2); }
+        .taksit-cell.current { background: rgba(251, 191, 36, 0.2); color: var(--accent-orange); border-color: var(--accent-orange); animation: pulse 2s infinite; }
+        .taksit-cell:hover { transform: scale(1.15); z-index: 2; }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.4); }
+            50% { box-shadow: 0 0 0 6px rgba(251, 191, 36, 0); }
+        }
+
+        /* ═══ MODAL ═══ */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+        .modal-overlay.active { display: flex; }
+
+        .modal-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 28px;
+            max-width: 600px;
+            width: 92%;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        .modal-box h2 { margin-bottom: 20px; font-size: 1.1em; }
+
+        /* ═══ COLOR PICKER ═══ */
+        .color-picker-row {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .color-swatch {
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .color-swatch:hover { transform: scale(1.2); }
+        .color-swatch.selected { border-color: #fff; box-shadow: 0 0 0 2px var(--accent-blue); }
+
+        /* ═══ NOTIFICATION ═══ */
+        .notification {
+            position: fixed;
+            top: -80px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 28px;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            font-size: 0.88em;
+            z-index: 2000;
+            transition: top 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+        }
+        .notification.show { top: 24px; }
+
+        /* ═══ RESPONSIVE ═══ */
+        @media (max-width: 768px) {
+            .header { padding: 12px 16px; flex-wrap: wrap; gap: 8px; }
+            .logo { font-size: 1.1em; }
+            .tabs { padding: 8px 12px; }
+            .tab-btn { padding: 8px 14px; font-size: 0.8em; }
+            .content { padding: 12px; }
+            .card { padding: 16px; }
+            .form-grid { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .chart-container { height: 240px; }
+            .stat-value { font-size: 1.3em; }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid { grid-template-columns: 1fr; }
+        }
+
+        /* ═══ STORAGE MODAL ═══ */
+        .storage-options {
+            display: flex;
+            gap: 14px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .storage-opt {
+            flex: 1;
+            min-width: 180px;
+            padding: 20px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        .storage-opt:hover { border-color: var(--accent-blue); }
+        .storage-opt.selected { border-color: var(--accent-green); background: rgba(52, 211, 153, 0.05); }
+        .storage-opt h3 { margin-bottom: 6px; font-size: 1em; }
+        .storage-opt p { font-size: 0.78em; color: var(--text-secondary); }
+
+        .login-section { display: none; margin-top: 16px; }
+        .login-section.active { display: block; }
+
+        /* ═══ ERKEN KAPAMA ═══ */
+        .early-close-info {
+            background: rgba(167, 139, 250, 0.08);
+            border: 1px solid rgba(167, 139, 250, 0.2);
+            border-radius: var(--radius-sm);
+            padding: 12px 16px;
+            margin-top: 10px;
+            font-size: 0.85em;
+        }
+    </style>
+</head>
+<body>
+
+<!-- ═══ NOTIFICATION ═══ -->
+<div class="notification" id="notification"></div>
+
+<!-- ═══ HEADER ═══ -->
+<div class="header">
+    <div class="header-left">
+        <span class="logo">₺ KREDİ TAKİP</span>
+    </div>
+    <div class="header-right">
+        <span class="storage-badge" id="storageInfo" onclick="changeStorageMethod()">💻 Yerel</span>
+        <button class="btn btn-ghost btn-sm" onclick="openExportImport()">📦 Veri</button>
+    </div>
+</div>
+
+<!-- ═══ ALERTS BAR ═══ -->
+<div class="alerts-bar" id="alertsBar"></div>
+
+<!-- ═══ TABS ═══ -->
+<div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('krediler')">💳 Krediler</button>
+    <button class="tab-btn" onclick="switchTab('taksitler')">📅 Taksit Takvimi</button>
+    <button class="tab-btn" onclick="switchTab('bankalar')">🏦 Banka IBAN</button>
+    <button class="tab-btn" onclick="switchTab('odemeler')">💸 Aylık Ödemeler</button>
+    <button class="tab-btn" onclick="switchTab('istatistik')">📊 İstatistikler</button>
+</div>
+
+<!-- ═══ CONTENT ═══ -->
+<div class="content">
+
+    <!-- TAB 1: KREDİLER -->
+    <div class="tab-content active" id="tab-krediler">
+        <div class="card">
+            <div class="card-title">➕ Yeni Kredi Ekle</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Kredi No</label>
+                    <input type="number" id="krediNo" placeholder="1, 2, 3...">
+                </div>
+                <div class="form-group">
+                    <label>Banka</label>
+                    <select id="krediBanka">
+                        <option value="">Banka Seç...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Çekilen Tutar (₺)</label>
+                    <input type="number" id="krediTutar" placeholder="50000">
+                </div>
+                <div class="form-group">
+                    <label>Toplam Taksit</label>
+                    <input type="number" id="krediToplamTaksit" placeholder="36">
+                </div>
+                <div class="form-group">
+                    <label>Aylık Taksit (₺)</label>
+                    <input type="number" id="krediAylikTaksit" placeholder="2100" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>Ödeme Günü</label>
+                    <input type="number" id="krediOdemeGunu" placeholder="15" min="1" max="31">
+                </div>
+                <div class="form-group">
+                    <label>Başlangıç Tarihi</label>
+                    <input type="month" id="krediBaslangic">
+                </div>
+                <div class="form-group">
+                    <label>Faiz Oranı (%) <span style="color:var(--text-muted)">opsiyonel</span></label>
+                    <input type="number" id="krediFaiz" placeholder="2.45" step="0.01">
+                </div>
+            </div>
+            <div class="form-grid" style="margin-top:10px">
+                <div class="form-group" style="grid-column: 1/-1">
+                    <label>Not</label>
+                    <input type="text" id="krediNot" placeholder="Ev kredisi, taşıt kredisi vb.">
+                </div>
+            </div>
+            <div class="btn-row">
+                <button class="btn btn-primary" onclick="krediEkle()">➕ Kredi Ekle</button>
+                <button class="btn btn-ghost" onclick="krediFormTemizle()">🔄 Temizle</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">📋 Kredi Listesi</div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Banka</th>
+                            <th>Tutar</th>
+                            <th>Taksit</th>
+                            <th>Aylık</th>
+                            <th>Ödeme G.</th>
+                            <th>İlerleme</th>
+                            <th>Kalan</th>
+                            <th>Durum</th>
+                            <th>İşlem</th>
+                        </tr>
+                    </thead>
+                    <tbody id="krediTbody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 2: TAKSİT TAKVİMİ -->
+    <div class="tab-content" id="tab-taksitler">
+        <div id="taksitTakvimAlani"></div>
+    </div>
+
+    <!-- TAB 3: BANKA IBAN -->
+    <div class="tab-content" id="tab-bankalar">
+        <div class="card">
+            <div class="card-title">➕ Banka / IBAN Ekle</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Banka Adı</label>
+                    <input type="text" id="bankaAdi" placeholder="Ziraat Bankası">
+                </div>
+                <div class="form-group">
+                    <label>IBAN</label>
+                    <input type="text" id="bankaIBAN" placeholder="TR00 0000 0000 0000 0000 0000 00">
+                </div>
+                <div class="form-group">
+                    <label>Hesap Türü</label>
+                    <select id="bankaHesapTuru">
+                        <option value="TL">TL</option>
+                        <option value="Vadesiz">Vadesiz</option>
+                        <option value="Mevduat">Mevduat</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Renk</label>
+                    <div class="color-picker-row" id="bankaColorPicker"></div>
+                </div>
+            </div>
+            <div class="form-grid" style="margin-top:10px">
+                <div class="form-group" style="grid-column:1/-1">
+                    <label>Not</label>
+                    <input type="text" id="bankaNot" placeholder="Maaş hesabı vb.">
+                </div>
+            </div>
+            <div class="btn-row">
+                <button class="btn btn-primary" onclick="bankaEkle()">➕ Banka Ekle</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">🏦 Banka IBAN Listesi</div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Renk</th>
+                            <th>Banka</th>
+                            <th>IBAN</th>
+                            <th>Tür</th>
+                            <th>Not</th>
+                            <th>İşlem</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bankaTbody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 4: AYLIK ÖDEMELER -->
+    <div class="tab-content" id="tab-odemeler">
+        <div class="card">
+            <div class="card-title">➕ Manuel Ödeme Ekle</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Kime</label>
+                    <input type="text" id="odemeKime" placeholder="Elektrik, Doğalgaz vb.">
+                </div>
+                <div class="form-group">
+                    <label>IBAN</label>
+                    <input type="text" id="odemeIBAN" placeholder="TR...">
+                </div>
+                <div class="form-group">
+                    <label>Tutar (₺)</label>
+                    <input type="number" id="odemeTutar" placeholder="500" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>Not</label>
+                    <input type="text" id="odemeNot" placeholder="Ek bilgi">
+                </div>
+            </div>
+            <div class="btn-row">
+                <button class="btn btn-primary" onclick="odemeEkle()">➕ Ödeme Ekle</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">💸 Aylık Ödeme Tablosu
+                <span style="margin-left:auto; display:flex; gap:8px; align-items:center;">
+                    <label style="font-size:0.75em; color:var(--text-secondary)">Ay:</label>
+                    <input type="month" id="odemeAyFiltre" onchange="odemeTablosuRender()" style="padding:6px 10px; border:1px solid var(--border); border-radius:6px; background:var(--bg-input); color:var(--text-primary); font-size:0.85em;">
+                </span>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Kime</th>
+                            <th>IBAN</th>
+                            <th>Tutar (₺)</th>
+                            <th>Not</th>
+                            <th>Kaynak</th>
+                            <th>İşlem</th>
+                        </tr>
+                    </thead>
+                    <tbody id="odemeTbody"></tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="2" style="font-weight:700; text-align:right;">TOPLAM:</td>
+                            <td id="odemeToplam" style="font-weight:700; font-family:'JetBrains Mono',monospace; color:var(--accent-orange);"></td>
+                            <td colspan="3"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 5: İSTATİSTİKLER -->
+    <div class="tab-content" id="tab-istatistik">
+        <div class="stats-grid" id="statsCards"></div>
+
+        <div class="card">
+            <div class="card-title">📊 Aylık Ödeme Planı</div>
+            <div class="chart-container"><canvas id="chartAylik"></canvas></div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(400px,1fr)); gap:20px;">
+            <div class="card">
+                <div class="card-title">🍩 Banka Bazlı Dağılım</div>
+                <div class="chart-container"><canvas id="chartDoughnut"></canvas></div>
+            </div>
+            <div class="card">
+                <div class="card-title">📈 Yıllık Toplam Ödeme</div>
+                <div class="chart-container"><canvas id="chartYillik"></canvas></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">🏁 Kredi Bitiş Takvimi</div>
+            <div id="bitisTakvimi"></div>
+        </div>
+    </div>
+
+</div>
+
+<!-- ═══ STORAGE MODAL ═══ -->
+<div class="modal-overlay" id="storageModal">
+    <div class="modal-box">
+        <h2>💾 Veri Saklama Yöntemi</h2>
+        <div class="storage-options">
+            <div class="storage-opt" onclick="selectStorage('local')" id="optLocal">
+                <h3>💻 Yerel Kayıt</h3>
+                <p>Veriler bu tarayıcıda kalır</p>
+            </div>
+            <div class="storage-opt" onclick="selectStorage('github')" id="optGithub">
+                <h3>☁️ GitHub</h3>
+                <p>Veriler bulutta senkronize</p>
+            </div>
+        </div>
+        <div class="login-section" id="githubLogin">
+            <div class="form-group">
+                <label>Kullanıcı Adı</label>
+                <input type="text" id="loginUsername" placeholder="Kullanıcı adı">
+            </div>
+            <div class="form-group" style="margin-top:10px">
+                <label>Şifre</label>
+                <input type="password" id="loginPassword" placeholder="Şifre">
+            </div>
+        </div>
+        <div class="btn-row" style="justify-content:flex-end;">
+            <button class="btn btn-primary" onclick="confirmStorage()">✅ Onayla</button>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ EXPORT/IMPORT MODAL ═══ -->
+<div class="modal-overlay" id="exportModal">
+    <div class="modal-box">
+        <h2>📦 Veri Yönetimi</h2>
+        <div class="btn-row">
+            <button class="btn btn-primary" onclick="exportJSON()">📤 JSON İndir</button>
+            <button class="btn btn-success" onclick="document.getElementById('importFile').click()">📥 JSON Yükle</button>
+            <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
+        </div>
+        <div class="btn-row" style="margin-top:16px; justify-content:flex-end;">
+            <button class="btn btn-ghost" onclick="document.getElementById('exportModal').classList.remove('active')">❌ Kapat</button>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ ERKEN KAPAMA MODAL ═══ -->
+<div class="modal-overlay" id="erkenKapamaModal">
+    <div class="modal-box">
+        <h2>⚡ Erken Kapama</h2>
+        <input type="hidden" id="erkenKapamaId">
+        <div class="form-group">
+            <label>Kapama Tutarı (₺)</label>
+            <input type="number" id="erkenKapamaTutar" placeholder="Kalan borç tutarı" step="0.01">
+        </div>
+        <div class="form-group" style="margin-top:10px">
+            <label>Kapama Tarihi</label>
+            <input type="date" id="erkenKapamaTarih">
+        </div>
+        <div class="btn-row" style="justify-content:flex-end;">
+            <button class="btn btn-success" onclick="erkenKapamaOnayla()">✅ Kapat</button>
+            <button class="btn btn-ghost" onclick="document.getElementById('erkenKapamaModal').classList.remove('active')">İptal</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════
+// CLOUDFLARE WORKER BAĞLANTISI
+// ══════════════════════════════════════════════════════════
+const WORKER_URL = 'https://gh-reci-senkron.recepyeni.workers.dev';
+const dosyaAdi = 'kredilerim.json';
+
+// ══════════════════════════════════════════════════════════
+// GLOBAL DEĞİŞKENLER
+// ══════════════════════════════════════════════════════════
+let storageMethod = 'local';
+let currentUser = null;
+let userDatabase = {};
+
+const BANK_COLORS = [
+    '#4f8cff','#34d399','#f87171','#fbbf24','#a78bfa',
+    '#f472b6','#22d3ee','#fb923c','#818cf8','#2dd4bf',
+    '#e879f9','#84cc16','#f43f5e','#06b6d4','#8b5cf6'
+];
+
+let appData = {
+    krediler: [],
+    bankalar: [],
+    odemeler: [],
+    nextKrediId: 1,
+    nextBankaId: 1,
+    nextOdemeId: 1
+};
+
+// ══════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════
+window.onload = function() {
+    initColorPicker();
+    document.getElementById('odemeAyFiltre').value = getCurrentMonth();
+    document.getElementById('krediBaslangic').value = getCurrentMonth();
+    document.getElementById('erkenKapamaTarih').value = new Date().toISOString().split('T')[0];
+
+    if (!checkStorageSettings()) {
+        document.getElementById('storageModal').classList.add('active');
+    } else {
+        loadAllData();
+    }
+};
+
+function getCurrentMonth() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+}
+
+// ══════════════════════════════════════════════════════════
+// TAB SİSTEMİ
+// ══════════════════════════════════════════════════════════
+function switchTab(name) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById('tab-' + name).classList.add('active');
+
+    if (name === 'istatistik') renderIstatistikler();
+    if (name === 'taksitler') renderTaksitTakvimi();
+    if (name === 'odemeler') odemeTablosuRender();
+}
+
+// ══════════════════════════════════════════════════════════
+// BANKA RENK SEÇİCİ
+// ══════════════════════════════════════════════════════════
+let selectedBankaColor = BANK_COLORS[0];
+
+function initColorPicker() {
+    const container = document.getElementById('bankaColorPicker');
+    container.innerHTML = '';
+    BANK_COLORS.forEach((c, i) => {
+        const s = document.createElement('div');
+        s.className = 'color-swatch' + (i === 0 ? ' selected' : '');
+        s.style.background = c;
+        s.onclick = () => {
+            container.querySelectorAll('.color-swatch').forEach(x => x.classList.remove('selected'));
+            s.classList.add('selected');
+            selectedBankaColor = c;
+        };
+        container.appendChild(s);
+    });
+}
+
+// ══════════════════════════════════════════════════════════
+// BANKA İŞLEMLERİ
+// ══════════════════════════════════════════════════════════
+function bankaEkle() {
+    const ad = document.getElementById('bankaAdi').value.trim();
+    const iban = document.getElementById('bankaIBAN').value.trim();
+    const tur = document.getElementById('bankaHesapTuru').value;
+    const not_ = document.getElementById('bankaNot').value.trim();
+
+    if (!ad) { notify('⚠️ Banka adı gerekli!'); return; }
+
+    appData.bankalar.push({
+        id: appData.nextBankaId++,
+        ad, iban, tur, not: not_,
+        renk: selectedBankaColor
+    });
+
+    document.getElementById('bankaAdi').value = '';
+    document.getElementById('bankaIBAN').value = '';
+    document.getElementById('bankaNot').value = '';
+
+    renderBankaTablosu();
+    updateBankaSelect();
+    autoSave();
+    notify('✅ Banka eklendi!');
+}
+
+function bankaSil(id) {
+    if (!confirm('Bu bankayı silmek istediğinize emin misiniz?')) return;
+    appData.bankalar = appData.bankalar.filter(b => b.id !== id);
+    renderBankaTablosu();
+    updateBankaSelect();
+    autoSave();
+    notify('🗑️ Banka silindi!');
+}
+
+function renderBankaTablosu() {
+    const tbody = document.getElementById('bankaTbody');
+    tbody.innerHTML = '';
+    appData.bankalar.forEach(b => {
+        tbody.innerHTML += `<tr>
+            <td><span class="bank-color-dot" style="background:${b.renk}"></span></td>
+            <td>${b.ad}</td>
+            <td style="font-family:'JetBrains Mono',monospace; font-size:0.82em;">${b.iban || '-'}</td>
+            <td>${b.tur}</td>
+            <td style="color:var(--text-secondary)">${b.not || '-'}</td>
+            <td><button class="btn btn-danger btn-sm" onclick="bankaSil(${b.id})">🗑️</button></td>
+        </tr>`;
+    });
+}
+
+function updateBankaSelect() {
+    const sel = document.getElementById('krediBanka');
+    const current = sel.value;
+    sel.innerHTML = '<option value="">Banka Seç...</option>';
+    appData.bankalar.forEach(b => {
+        sel.innerHTML += `<option value="${b.id}" ${b.id == current ? 'selected':''}>${b.ad}</option>`;
+    });
+}
+
+function getBanka(id) {
+    return appData.bankalar.find(b => b.id === id) || null;
+}
+
+function getBankaRenk(bankaId) {
+    const b = getBanka(bankaId);
+    return b ? b.renk : '#666';
+}
+
+function getBankaAd(bankaId) {
+    const b = getBanka(bankaId);
+    return b ? b.ad : 'Bilinmeyen';
+}
+
+// ══════════════════════════════════════════════════════════
+// KREDİ İŞLEMLERİ
+// ══════════════════════════════════════════════════════════
+function krediEkle() {
+    const no = parseInt(document.getElementById('krediNo').value);
+    const bankaId = parseInt(document.getElementById('krediBanka').value);
+    const tutar = parseFloat(document.getElementById('krediTutar').value);
+    const toplamTaksit = parseInt(document.getElementById('krediToplamTaksit').value);
+    const aylikTaksit = parseFloat(document.getElementById('krediAylikTaksit').value);
+    const odemeGunu = parseInt(document.getElementById('krediOdemeGunu').value);
+    const baslangic = document.getElementById('krediBaslangic').value;
+    const faiz = parseFloat(document.getElementById('krediFaiz').value) || null;
+    const not_ = document.getElementById('krediNot').value.trim();
+
+    if (!tutar || !toplamTaksit || !aylikTaksit || !odemeGunu || !baslangic) {
+        notify('⚠️ Zorunlu alanları doldurun!');
+        return;
+    }
+    if (!bankaId) {
+        notify('⚠️ Önce Banka IBAN sekmesinden banka ekleyin!');
+        return;
+    }
+
+    const taksitDurumlari = [];
+    for (let i = 0; i < toplamTaksit; i++) {
+        taksitDurumlari.push({ no: i + 1, odendi: false });
+    }
+
+    appData.krediler.push({
+        id: appData.nextKrediId++,
+        no: no || appData.krediler.length + 1,
+        bankaId, tutar, toplamTaksit, aylikTaksit, odemeGunu,
+        baslangic, faiz, not: not_,
+        taksitler: taksitDurumlari,
+        durum: 'aktif',
+        erkenKapama: null
+    });
+
+    krediFormTemizle();
+    renderKrediTablosu();
+    checkAlerts();
+    autoSave();
+    notify('✅ Kredi eklendi!');
+}
+
+function krediFormTemizle() {
+    ['krediNo','krediTutar','krediToplamTaksit','krediAylikTaksit','krediOdemeGunu','krediFaiz','krediNot'].forEach(id => {
+        document.getElementById(id).value = '';
+    });
+    document.getElementById('krediBaslangic').value = getCurrentMonth();
+}
+
+function krediSil(id) {
+    if (!confirm('Bu krediyi silmek istediğinize emin misiniz?')) return;
+    appData.krediler = appData.krediler.filter(k => k.id !== id);
+    renderKrediTablosu();
+    checkAlerts();
+    autoSave();
+    notify('🗑️ Kredi silindi!');
+}
+
+function getOdenenTaksitSayisi(kredi) {
+    return kredi.taksitler.filter(t => t.odendi).length;
+}
+
+function getKalanBorc(kredi) {
+    if (kredi.durum === 'kapandi') return 0;
+    const kalan = kredi.toplamTaksit - getOdenenTaksitSayisi(kredi);
+    return kalan * kredi.aylikTaksit;
+}
+
+function getCurrentTaksitNo(kredi) {
+    const baslangic = new Date(kredi.baslangic + '-01');
+    const now = new Date();
+    const diffMonths = (now.getFullYear() - baslangic.getFullYear()) * 12 + (now.getMonth() - baslangic.getMonth());
+    return Math.min(Math.max(diffMonths + 1, 1), kredi.toplamTaksit);
+}
+
+function getTaksitTarih(kredi, taksitNo) {
+    const baslangic = new Date(kredi.baslangic + '-01');
+    const tarih = new Date(baslangic.getFullYear(), baslangic.getMonth() + taksitNo - 1, kredi.odemeGunu);
+    return tarih;
+}
+
+function renderKrediTablosu() {
+    const tbody = document.getElementById('krediTbody');
+    tbody.innerHTML = '';
+
+    appData.krediler.forEach(k => {
+        const odenen = getOdenenTaksitSayisi(k);
+        const yuzde = Math.round((odenen / k.toplamTaksit) * 100);
+        const kalan = getKalanBorc(k);
+        const bankaRenk = getBankaRenk(k.bankaId);
+        const bankaAd = getBankaAd(k.bankaId);
+
+        let durumHTML = '';
+        if (k.durum === 'kapandi') {
+            durumHTML = '<span class="status-badge status-closed">Kapandı</span>';
+        } else if (odenen >= k.toplamTaksit) {
+            durumHTML = '<span class="status-badge status-closed">Bitti</span>';
+        } else {
+            durumHTML = '<span class="status-badge status-active">Aktif</span>';
+        }
+
+        tbody.innerHTML += `<tr>
+            <td style="font-family:'JetBrains Mono',monospace; font-weight:700;">#${k.no}</td>
+            <td><span class="bank-color-dot" style="background:${bankaRenk}"></span>${bankaAd}</td>
+            <td style="font-family:'JetBrains Mono',monospace;">${formatTL(k.tutar)}</td>
+            <td style="font-family:'JetBrains Mono',monospace;">${odenen}/${k.toplamTaksit}</td>
+            <td style="font-family:'JetBrains Mono',monospace;">${formatTL(k.aylikTaksit)}</td>
+            <td>${k.odemeGunu}</td>
+            <td>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" style="width:${yuzde}%; background:${bankaRenk}"></div>
+                </div>
+                <span style="font-size:0.72em; color:var(--text-muted)">%${yuzde}</span>
+            </td>
+            <td style="font-family:'JetBrains Mono',monospace; color:var(--accent-orange);">${formatTL(kalan)}</td>
+            <td>${durumHTML}</td>
+            <td>
+                <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                    ${k.durum !== 'kapandi' ? `<button class="btn btn-ghost btn-sm" onclick="erkenKapamaAc(${k.id})" title="Erken Kapa">⚡</button>` : ''}
+                    ${k.erkenKapama ? `<span style="font-size:0.72em;color:var(--accent-purple);" title="Kapama: ${formatTL(k.erkenKapama.tutar)}">💰</span>` : ''}
+                    <button class="btn btn-danger btn-sm" onclick="krediSil(${k.id})">🗑️</button>
+                </div>
+            </td>
+        </tr>`;
+    });
+}
+
+// ══════════════════════════════════════════════════════════
+// ERKEN KAPAMA
+// ══════════════════════════════════════════════════════════
+function erkenKapamaAc(id) {
+    const kredi = appData.krediler.find(k => k.id === id);
+    if (!kredi) return;
+    document.getElementById('erkenKapamaId').value = id;
+    document.getElementById('erkenKapamaTutar').value = getKalanBorc(kredi).toFixed(2);
+    document.getElementById('erkenKapamaTarih').value = new Date().toISOString().split('T')[0];
+    document.getElementById('erkenKapamaModal').classList.add('active');
+}
+
+function erkenKapamaOnayla() {
+    const id = parseInt(document.getElementById('erkenKapamaId').value);
+    const tutar = parseFloat(document.getElementById('erkenKapamaTutar').value);
+    const tarih = document.getElementById('erkenKapamaTarih').value;
+
+    if (!tutar || !tarih) { notify('⚠️ Tutar ve tarih gerekli!'); return; }
+
+    const kredi = appData.krediler.find(k => k.id === id);
+    if (!kredi) return;
+
+    kredi.erkenKapama = { tutar, tarih };
+    kredi.durum = 'kapandi';
+    // Kalan taksitleri ödendi olarak işaretle
+    kredi.taksitler.forEach(t => { t.odendi = true; });
+
+    document.getElementById('erkenKapamaModal').classList.remove('active');
+    renderKrediTablosu();
+    checkAlerts();
+    autoSave();
+    notify('⚡ Kredi erken kapatıldı!');
+}
+
+// ══════════════════════════════════════════════════════════
+// TAKSİT TAKVİMİ
+// ══════════════════════════════════════════════════════════
+function renderTaksitTakvimi() {
+    const alan = document.getElementById('taksitTakvimAlani');
+    alan.innerHTML = '';
+
+    const aktifKrediler = appData.krediler.filter(k => k.durum !== 'kapandi');
+    if (aktifKrediler.length === 0) {
+        alan.innerHTML = '<div class="card"><p style="color:var(--text-secondary);text-align:center;">Aktif kredi yok.</p></div>';
+        return;
+    }
+
+    aktifKrediler.forEach(k => {
+        const bankaAd = getBankaAd(k.bankaId);
+        const bankaRenk = getBankaRenk(k.bankaId);
+        const currentNo = getCurrentTaksitNo(k);
+
+        let html = `<div class="card">
+            <div class="card-title">
+                <span class="bank-color-dot" style="background:${bankaRenk}"></span>
+                ${bankaAd} — Kredi #${k.no}
+                <span style="margin-left:auto; font-size:0.78em; color:var(--text-secondary);">${formatTL(k.aylikTaksit)}/ay</span>
+            </div>
+            <div class="taksit-grid">`;
+
+        k.taksitler.forEach(t => {
+            let cls = t.odendi ? 'paid' : 'unpaid';
+            if (!t.odendi && t.no === currentNo) cls = 'current';
+            const tarih = getTaksitTarih(k, t.no);
+            const tarihStr = `${tarih.getDate()}.${tarih.getMonth()+1}.${tarih.getFullYear()}`;
+            html += `<div class="taksit-cell ${cls}" onclick="taksitToggle(${k.id},${t.no})" title="${tarihStr} - Taksit ${t.no}">${t.no}</div>`;
+        });
+
+        html += `</div>
+            <div style="margin-top:10px; display:flex; gap:16px; font-size:0.78em; color:var(--text-secondary);">
+                <span>✅ Ödenen: ${getOdenenTaksitSayisi(k)}</span>
+                <span>⏳ Kalan: ${k.toplamTaksit - getOdenenTaksitSayisi(k)}</span>
+                <span>💰 Kalan Borç: <strong style="color:var(--accent-orange)">${formatTL(getKalanBorc(k))}</strong></span>
+            </div>`;
+
+        if (k.not) {
+            html += `<div style="margin-top:6px; font-size:0.78em; color:var(--text-muted);">📝 ${k.not}</div>`;
+        }
+
+        html += '</div>';
+        alan.innerHTML += html;
+    });
+}
+
+function taksitToggle(krediId, taksitNo) {
+    const kredi = appData.krediler.find(k => k.id === krediId);
+    if (!kredi || kredi.durum === 'kapandi') return;
+    const taksit = kredi.taksitler.find(t => t.no === taksitNo);
+    if (!taksit) return;
+    taksit.odendi = !taksit.odendi;
+    renderTaksitTakvimi();
+    renderKrediTablosu();
+    checkAlerts();
+    autoSave();
+}
+
+// ══════════════════════════════════════════════════════════
+// AYLIK ÖDEME TABLOSU
+// ══════════════════════════════════════════════════════════
+function odemeEkle() {
+    const kime = document.getElementById('odemeKime').value.trim();
+    const iban = document.getElementById('odemeIBAN').value.trim();
+    const tutar = parseFloat(document.getElementById('odemeTutar').value);
+    const not_ = document.getElementById('odemeNot').value.trim();
+
+    if (!kime || !tutar) { notify('⚠️ Kime ve tutar gerekli!'); return; }
+
+    appData.odemeler.push({
+        id: appData.nextOdemeId++,
+        kime, iban, tutar, not: not_,
+        kaynak: 'manuel'
+    });
+
+    document.getElementById('odemeKime').value = '';
+    document.getElementById('odemeIBAN').value = '';
+    document.getElementById('odemeTutar').value = '';
+    document.getElementById('odemeNot').value = '';
+
+    odemeTablosuRender();
+    autoSave();
+    notify('✅ Ödeme eklendi!');
+}
+
+function odemeSil(id) {
+    appData.odemeler = appData.odemeler.filter(o => o.id !== id);
+    odemeTablosuRender();
+    autoSave();
+}
+
+function odemeTablosuRender() {
+    const tbody = document.getElementById('odemeTbody');
+    tbody.innerHTML = '';
+    let toplam = 0;
+
+    // Manuel ödemeler
+    appData.odemeler.forEach(o => {
+        toplam += o.tutar;
+        tbody.innerHTML += `<tr>
+            <td>${o.kime}</td>
+            <td style="font-family:'JetBrains Mono',monospace; font-size:0.82em;">${o.iban || '-'}</td>
+            <td style="font-family:'JetBrains Mono',monospace;">${formatTL(o.tutar)}</td>
+            <td style="color:var(--text-secondary)">${o.not || '-'}</td>
+            <td><span style="font-size:0.75em; padding:2px 8px; border-radius:8px; background:rgba(79,140,255,0.1); color:var(--accent-blue);">Manuel</span></td>
+            <td><button class="btn btn-danger btn-sm" onclick="odemeSil(${o.id})">🗑️</button></td>
+        </tr>`;
+    });
+
+    // Kredi otomatik satırları — banka bazlı grupla
+    const ayFiltre = document.getElementById('odemeAyFiltre').value;
+    const bankaKrediMap = {};
+
+    appData.krediler.filter(k => k.durum !== 'kapandi').forEach(k => {
+        // Bu ay bu kredinin taksiti var mı?
+        const baslangic = new Date(k.baslangic + '-01');
+        const filtreDate = new Date(ayFiltre + '-01');
+        const diffMonths = (filtreDate.getFullYear() - baslangic.getFullYear()) * 12 + (filtreDate.getMonth() - baslangic.getMonth());
+        const taksitNo = diffMonths + 1;
+
+        if (taksitNo >= 1 && taksitNo <= k.toplamTaksit) {
+            const bankaAd = getBankaAd(k.bankaId);
+            if (!bankaKrediMap[k.bankaId]) {
+                bankaKrediMap[k.bankaId] = { ad: bankaAd, toplam: 0, krediler: [], iban: '' };
+                const banka = getBanka(k.bankaId);
+                if (banka) bankaKrediMap[k.bankaId].iban = banka.iban || '';
+            }
+            bankaKrediMap[k.bankaId].toplam += k.aylikTaksit;
+            bankaKrediMap[k.bankaId].krediler.push(`#${k.no}`);
+        }
+    });
+
+    Object.values(bankaKrediMap).forEach(g => {
+        toplam += g.toplam;
+        tbody.innerHTML += `<tr>
+            <td>${g.ad} <span style="color:var(--text-muted); font-size:0.78em;">(${g.krediler.join(', ')})</span></td>
+            <td style="font-family:'JetBrains Mono',monospace; font-size:0.82em;">${g.iban || '-'}</td>
+            <td style="font-family:'JetBrains Mono',monospace;">${formatTL(g.toplam)}</td>
+            <td style="color:var(--text-secondary)">Kredi ödemesi</td>
+            <td><span style="font-size:0.75em; padding:2px 8px; border-radius:8px; background:rgba(52,211,153,0.1); color:var(--accent-green);">Otomatik</span></td>
+            <td>—</td>
+        </tr>`;
+    });
+
+    document.getElementById('odemeToplam').textContent = formatTL(toplam);
+}
+
+// ══════════════════════════════════════════════════════════
+// İSTATİSTİKLER
+// ══════════════════════════════════════════════════════════
+let chartAylik = null, chartDoughnut = null, chartYillik = null;
+
+function renderIstatistikler() {
+    renderStatsCards();
+    renderChartAylik();
+    renderChartDoughnut();
+    renderChartYillik();
+    renderBitisTakvimi();
+}
+
+function renderStatsCards() {
+    const aktif = appData.krediler.filter(k => k.durum !== 'kapandi');
+    const toplamBorc = aktif.reduce((s, k) => s + getKalanBorc(k), 0);
+    const toplamAylik = aktif.reduce((s, k) => s + k.aylikTaksit, 0);
+    const toplamCekilen = appData.krediler.reduce((s, k) => s + k.tutar, 0);
+    const toplamOdenen = appData.krediler.reduce((s, k) => s + (getOdenenTaksitSayisi(k) * k.aylikTaksit), 0);
+    const erkenKapamaToplam = appData.krediler.filter(k => k.erkenKapama).reduce((s, k) => s + k.erkenKapama.tutar, 0);
+
+    document.getElementById('statsCards').innerHTML = `
+        <div class="stat-card">
+            <div class="stat-value" style="color:var(--accent-blue)">${aktif.length}</div>
+            <div class="stat-label">Aktif Kredi</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" style="color:var(--accent-orange)">${formatTL(toplamBorc)}</div>
+            <div class="stat-label">Toplam Kalan Borç</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" style="color:var(--accent-red)">${formatTL(toplamAylik)}</div>
+            <div class="stat-label">Aylık Toplam Taksit</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" style="color:var(--accent-green)">${formatTL(toplamOdenen)}</div>
+            <div class="stat-label">Toplam Ödenen</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" style="color:var(--accent-cyan)">${formatTL(toplamCekilen)}</div>
+            <div class="stat-label">Toplam Çekilen</div>
+        </div>
+        ${erkenKapamaToplam > 0 ? `<div class="stat-card">
+            <div class="stat-value" style="color:var(--accent-purple)">${formatTL(erkenKapamaToplam)}</div>
+            <div class="stat-label">Erken Kapama Toplamı</div>
+        </div>` : ''}
+    `;
+}
+
+function renderChartAylik() {
+    const ctx = document.getElementById('chartAylik');
+    if (chartAylik) chartAylik.destroy();
+
+    const aktif = appData.krediler.filter(k => k.durum !== 'kapandi');
+    if (aktif.length === 0) { ctx.parentElement.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:40px;">Aktif kredi yok.</p>'; return; }
+
+    // Tüm ayları bul
+    const allMonths = new Set();
+    aktif.forEach(k => {
+        for (let i = 0; i < k.toplamTaksit; i++) {
+            const d = getTaksitTarih(k, i + 1);
+            allMonths.add(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`);
+        }
+    });
+    const sortedMonths = [...allMonths].sort();
+    const labels = sortedMonths.map(m => {
+        const [y, mo] = m.split('-');
+        return `${mo}/${y.slice(2)}`;
+    });
+
+    const datasets = aktif.map(k => {
+        const data = sortedMonths.map(m => {
+            const [y, mo] = m.split('-').map(Number);
+            const baslangic = new Date(k.baslangic + '-01');
+            const target = new Date(y, mo - 1, 1);
+            const diff = (target.getFullYear() - baslangic.getFullYear()) * 12 + (target.getMonth() - baslangic.getMonth());
+            const taksitNo = diff + 1;
+            return (taksitNo >= 1 && taksitNo <= k.toplamTaksit) ? k.aylikTaksit : 0;
+        });
+        return {
+            label: `${getBankaAd(k.bankaId)} #${k.no}`,
+            data,
+            backgroundColor: getBankaRenk(k.bankaId) + '99',
+            borderColor: getBankaRenk(k.bankaId),
+            borderWidth: 1
+        };
+    });
+
+    chartAylik = new Chart(ctx, {
+        type: 'bar',
+        data: { labels, datasets },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { labels: { color: '#8b90a0', font: { family: 'Plus Jakarta Sans' } } }
+            },
+            scales: {
+                x: {
+                    stacked: true,
+                    ticks: { color: '#5a5f72', maxRotation: 45, font: { size: 10 } },
+                    grid: { color: 'rgba(42,46,61,0.5)' }
+                },
+                y: {
+                    stacked: true,
+                    ticks: { color: '#5a5f72', callback: v => formatTL(v) },
+                    grid: { color: 'rgba(42,46,61,0.5)' }
+                }
+            }
+        }
+    });
+}
+
+function renderChartDoughnut() {
+    const ctx = document.getElementById('chartDoughnut');
+    if (chartDoughnut) chartDoughnut.destroy();
+
+    const aktif = appData.krediler.filter(k => k.durum !== 'kapandi');
+    if (aktif.length === 0) return;
+
+    const bankaMap = {};
+    aktif.forEach(k => {
+        const ad = getBankaAd(k.bankaId);
+        if (!bankaMap[ad]) bankaMap[ad] = { toplam: 0, renk: getBankaRenk(k.bankaId) };
+        bankaMap[ad].toplam += getKalanBorc(k);
+    });
+
+    chartDoughnut = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(bankaMap),
+            datasets: [{
+                data: Object.values(bankaMap).map(b => b.toplam),
+                backgroundColor: Object.values(bankaMap).map(b => b.renk + 'cc'),
+                borderColor: Object.values(bankaMap).map(b => b.renk),
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '60%',
+            plugins: {
+                legend: { position: 'bottom', labels: { color: '#8b90a0', padding: 16, font: { family: 'Plus Jakarta Sans' } } }
+            }
+        }
+    });
+}
+
+function renderChartYillik() {
+    const ctx = document.getElementById('chartYillik');
+    if (chartYillik) chartYillik.destroy();
+
+    const yilMap = {};
+    appData.krediler.forEach(k => {
+        for (let i = 0; i < k.toplamTaksit; i++) {
+            const d = getTaksitTarih(k, i + 1);
+            const y = d.getFullYear();
+            if (!yilMap[y]) yilMap[y] = 0;
+            if (k.durum !== 'kapandi') {
+                yilMap[y] += k.aylikTaksit;
+            }
+        }
+    });
+
+    const years = Object.keys(yilMap).sort();
+    chartYillik = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: years,
+            datasets: [{
+                label: 'Yıllık Toplam',
+                data: years.map(y => yilMap[y]),
+                backgroundColor: 'rgba(79, 140, 255, 0.6)',
+                borderColor: '#4f8cff',
+                borderWidth: 1,
+                borderRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                x: { ticks: { color: '#5a5f72' }, grid: { color: 'rgba(42,46,61,0.5)' } },
+                y: { ticks: { color: '#5a5f72', callback: v => formatTL(v) }, grid: { color: 'rgba(42,46,61,0.5)' } }
+            }
+        }
+    });
+}
+
+function renderBitisTakvimi() {
+    const alan = document.getElementById('bitisTakvimi');
+    alan.innerHTML = '';
+
+    const aktif = appData.krediler.filter(k => k.durum !== 'kapandi');
+    if (aktif.length === 0) { alan.innerHTML = '<p style="color:var(--text-muted)">Aktif kredi yok.</p>'; return; }
+
+    const sorted = [...aktif].sort((a, b) => {
+        const aEnd = getTaksitTarih(a, a.toplamTaksit);
+        const bEnd = getTaksitTarih(b, b.toplamTaksit);
+        return aEnd - bEnd;
+    });
+
+    sorted.forEach(k => {
+        const bitisTarih = getTaksitTarih(k, k.toplamTaksit);
+        const now = new Date();
+        const kalanAy = Math.max(0, (bitisTarih.getFullYear() - now.getFullYear()) * 12 + (bitisTarih.getMonth() - now.getMonth()));
+        const bankaRenk = getBankaRenk(k.bankaId);
+
+        alan.innerHTML += `<div style="display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--border);">
+            <span class="bank-color-dot" style="background:${bankaRenk}; width:12px; height:12px;"></span>
+            <span style="font-weight:600;">${getBankaAd(k.bankaId)} #${k.no}</span>
+            <span style="font-family:'JetBrains Mono',monospace; font-size:0.85em; color:var(--accent-cyan);">
+                ${bitisTarih.toLocaleDateString('tr-TR', {month:'long', year:'numeric'})}
+            </span>
+            <span style="font-size:0.78em; color:var(--text-muted);">(${kalanAy} ay kaldı)</span>
+        </div>`;
+    });
+}
+
+// ══════════════════════════════════════════════════════════
+// UYARILAR (alerts)
+// ══════════════════════════════════════════════════════════
+function checkAlerts() {
+    const bar = document.getElementById('alertsBar');
+    bar.innerHTML = '';
+    const today = new Date();
+    const todayDay = today.getDate();
+    let hasAlert = false;
+
+    appData.krediler.filter(k => k.durum !== 'kapandi').forEach(k => {
+        const diff = k.odemeGunu - todayDay;
+        const currentNo = getCurrentTaksitNo(k);
+        const taksit = k.taksitler.find(t => t.no === currentNo);
+
+        if (taksit && !taksit.odendi) {
+            if (diff < 0) {
+                bar.innerHTML += `<span class="alert-chip alert-danger">🚨 ${getBankaAd(k.bankaId)} #${k.no} — Taksit gecikti! (${Math.abs(diff)} gün)</span>`;
+                hasAlert = true;
+            } else if (diff <= 5) {
+                bar.innerHTML += `<span class="alert-chip alert-warn">⚠️ ${getBankaAd(k.bankaId)} #${k.no} — ${diff === 0 ? 'Bugün ödeme günü!' : diff + ' gün kaldı!'}</span>`;
+                hasAlert = true;
+            }
+        }
+    });
+
+    bar.classList.toggle('active', hasAlert);
+}
+
+// ══════════════════════════════════════════════════════════
+// FORMAT HELPER
+// ══════════════════════════════════════════════════════════
+function formatTL(val) {
+    if (val == null || isNaN(val)) return '₺0';
+    return '₺' + val.toLocaleString('tr-TR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+}
+
+// ══════════════════════════════════════════════════════════
+// BİLDİRİM
+// ══════════════════════════════════════════════════════════
+function notify(msg) {
+    const el = document.getElementById('notification');
+    el.textContent = msg;
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// ══════════════════════════════════════════════════════════
+// JSON EXPORT / IMPORT
+// ══════════════════════════════════════════════════════════
+function openExportImport() {
+    document.getElementById('exportModal').classList.add('active');
+}
+
+function exportJSON() {
+    const json = JSON.stringify(appData, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'kredilerim.json';
+    a.click();
+    URL.revokeObjectURL(url);
+    notify('📤 JSON indirildi!');
+}
+
+function importJSON(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const data = JSON.parse(e.target.result);
+            if (data.krediler && data.bankalar) {
+                appData = data;
+                renderAll();
+                autoSave();
+                notify('📥 Veriler yüklendi!');
+                document.getElementById('exportModal').classList.remove('active');
+            } else {
+                notify('⚠️ Geçersiz dosya formatı!');
+            }
+        } catch (err) {
+            notify('⚠️ JSON okuma hatası!');
+        }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
+}
+
+// ══════════════════════════════════════════════════════════
+// STORAGE (GitHub + Local) — todo.html yapısına uygun
+// ══════════════════════════════════════════════════════════
+function selectStorage(method) {
+    storageMethod = method;
+    document.querySelectorAll('.storage-opt').forEach(o => o.classList.remove('selected'));
+    document.getElementById(method === 'local' ? 'optLocal' : 'optGithub').classList.add('selected');
+    document.getElementById('githubLogin').classList.toggle('active', method === 'github');
+}
+
+async function confirmStorage() {
+    if (storageMethod === 'github') {
+        const username = document.getElementById('loginUsername').value.trim();
+        const password = document.getElementById('loginPassword').value.trim();
+
+        if (!username || !password) { notify('⚠️ Kullanıcı adı ve şifre gerekli!'); return; }
+
+        try {
+            await loadUserDatabase();
+
+            if (userDatabase[username]) {
+                if (userDatabase[username].password === password) {
+                    currentUser = username;
+                    if (userDatabase[username].krediData) {
+                        appData = userDatabase[username].krediData;
+                    }
+                    renderAll();
+                    saveSettings();
+                    notify(`👋 Hoş geldin ${username}!`);
+                    document.getElementById('storageModal').classList.remove('active');
+                    updateStorageInfo();
+                } else {
+                    notify('❌ Şifre hatalı!');
+                }
+            } else {
+                userDatabase[username] = {
+                    password: password,
+                    krediData: appData,
+                    createdDate: new Date().toISOString()
+                };
+                currentUser = username;
+                await saveUserDatabase();
+                saveSettings();
+                notify(`🎉 Yeni kayıt! Hoş geldin ${username}!`);
+                document.getElementById('storageModal').classList.remove('active');
+                updateStorageInfo();
+            }
+        } catch (error) {
+            console.error('GitHub hatası:', error);
+            notify('⚠️ GitHub bağlantı hatası! Yerel kayıt kullanılıyor.');
+            storageMethod = 'local';
+            saveSettings();
+            document.getElementById('storageModal').classList.remove('active');
+            updateStorageInfo();
+        }
+    } else {
+        saveSettings();
+        notify('💻 Yerel kayıt seçildi!');
+        document.getElementById('storageModal').classList.remove('active');
+        updateStorageInfo();
+        loadFromLocal();
+    }
+}
+
+function saveSettings() {
+    const settings = { method: storageMethod };
+    if (storageMethod === 'github' && currentUser) settings.username = currentUser;
+    localStorage.setItem('kredi-storage-settings', JSON.stringify(settings));
+}
+
+function checkStorageSettings() {
+    const saved = localStorage.getItem('kredi-storage-settings');
+    if (saved) {
+        const settings = JSON.parse(saved);
+        storageMethod = settings.method;
+        if (settings.method === 'github' && settings.username) {
+            currentUser = settings.username;
+        }
+        updateStorageInfo();
+        return true;
+    }
+    return false;
+}
+
+function updateStorageInfo() {
+    const info = document.getElementById('storageInfo');
+    if (storageMethod === 'github') {
+        info.textContent = `☁️ GitHub${currentUser ? ` (${currentUser})` : ''}`;
+    } else {
+        info.textContent = '💻 Yerel';
+    }
+}
+
+function changeStorageMethod() {
+    localStorage.removeItem('kredi-storage-settings');
+    document.querySelectorAll('.storage-opt').forEach(o => o.classList.remove('selected'));
+    document.getElementById('githubLogin').classList.remove('active');
+    document.getElementById('loginUsername').value = '';
+    document.getElementById('loginPassword').value = '';
+    document.getElementById('storageModal').classList.add('active');
+    storageMethod = 'local';
+    currentUser = null;
+}
+
+async function loadUserDatabase() {
+    try {
+        const res = await fetch(WORKER_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'read', dosyaAdi: dosyaAdi })
+        });
+        const data = await res.json();
+        if (data.content) {
+            userDatabase = JSON.parse(data.content);
+        } else {
+            userDatabase = {};
+        }
+    } catch (error) {
+        userDatabase = {};
+        throw error;
+    }
+}
+
+async function saveUserDatabase() {
+    try {
+        const json = JSON.stringify(userDatabase, null, 2);
+        const res = await fetch(WORKER_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'write', dosyaAdi: dosyaAdi, content: json, message: 'Kredi verileri güncellendi' })
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error || 'Worker hatası');
+    } catch (error) {
+        console.error('Kaydetme hatası:', error);
+        throw error;
+    }
+}
+
+// ══════════════════════════════════════════════════════════
+// KAYDETME / YÜKLEME
+// ══════════════════════════════════════════════════════════
+function autoSave() {
+    if (storageMethod === 'local') {
+        saveToLocal();
+    }
+}
+
+function saveToLocal() {
+    localStorage.setItem('kredi-data', JSON.stringify(appData));
+}
+
+async function saveToGitHub() {
+    try {
+        await loadUserDatabase();
+        userDatabase[currentUser].krediData = appData;
+        userDatabase[currentUser].lastUpdated = new Date().toISOString();
+        await saveUserDatabase();
+    } catch (error) {
+        console.error('GitHub hatası:', error);
+        notify('⚠️ GitHub hatası! Yerel kayıt yapıldı.');
+        saveToLocal();
+    }
+}
+
+function loadFromLocal() {
+    const saved = localStorage.getItem('kredi-data');
+    if (saved) {
+        try {
+            appData = JSON.parse(saved);
+            renderAll();
+            notify('💻 Yerel veriler yüklendi!');
+        } catch (e) { }
+    }
+}
+
+async function loadFromGitHub() {
+    try {
+        await loadUserDatabase();
+        if (userDatabase[currentUser] && userDatabase[currentUser].krediData) {
+            appData = userDatabase[currentUser].krediData;
+            renderAll();
+            notify('☁️ GitHub\'dan veriler yüklendi!');
+        } else {
+            notify('⚠️ GitHub\'da veri bulunamadı!');
+        }
+    } catch (error) {
+        console.error('GitHub yükleme hatası:', error);
+        notify('⚠️ GitHub hatası!');
+        loadFromLocal();
+    }
+}
+
+function loadAllData() {
+    if (storageMethod === 'github' && currentUser) {
+        loadFromGitHub();
+    } else {
+        loadFromLocal();
+    }
+}
+
+async function saveAllData() {
+    if (storageMethod === 'github' && currentUser) {
+        await saveToGitHub();
+    } else {
+        saveToLocal();
+    }
+    notify('💾 Veriler kaydedildi!');
+}
+
+// ══════════════════════════════════════════════════════════
+// RENDER ALL
+// ══════════════════════════════════════════════════════════
+function renderAll() {
+    renderBankaTablosu();
+    updateBankaSelect();
+    renderKrediTablosu();
+    checkAlerts();
+}
+</script>
+</body>
+</html>
