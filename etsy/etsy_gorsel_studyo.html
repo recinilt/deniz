@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Etsy Görsel Stüdyo — PDF → Listing Görselleri</title>
+<style>
+  /* ===================== TASARIM TOKEN'LARI ===================== */
+  :root{
+    --kagit:#f7f2e7;
+    --kagit-koyu:#efe6d2;
+    --murekkep:#2b2438;
+    --murekkep-yumusak:#5a5068;
+    --lacivert:#27407a;
+    --lacivert-acik:#3d5ba8;
+    --altin:#c79a3b;
+    --altin-acik:#e4c373;
+    --yaprak:#6f9a5e;
+    --gul:#c96a8a;
+    --cizgi:#d9cbac;
+    --beyaz:#fffdf8;
+    --golge: 0 10px 30px rgba(43,36,56,.12);
+    --golge-kart: 0 4px 14px rgba(43,36,56,.10);
+    --radius:16px;
+    --radius-s:10px;
+    --font-baslik:"Georgia","Times New Roman",serif;
+    --font-govde:ui-sans-serif,-apple-system,"Segoe UI",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:var(--font-govde);
+    color:var(--murekkep);
+    background:
+      radial-gradient(1200px 600px at 12% -8%, #fff7e6 0%, transparent 55%),
+      radial-gradient(900px 500px at 92% 0%, #fdeef2 0%, transparent 50%),
+      var(--kagit);
+    background-attachment:fixed;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  /* yumuşak grain dokusu */
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.035;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  }
+  .wrap{position:relative;z-index:1;max-width:1280px;margin:0 auto;padding:28px 22px 80px}
+
+  /* ===================== BAŞLIK ===================== */
+  header.hero{
+    text-align:center;padding:26px 18px 8px;position:relative;
+  }
+  .crown{font-size:34px;line-height:1;filter:drop-shadow(0 3px 6px rgba(199,154,59,.4))}
+  header.hero h1{
+    font-family:var(--font-baslik);font-weight:700;color:var(--lacivert);
+    font-size:clamp(26px,4.4vw,42px);letter-spacing:.3px;margin:6px 0 2px;
+  }
+  header.hero h1 .ac{color:var(--altin)}
+  header.hero p{color:var(--murekkep-yumusak);max-width:640px;margin:4px auto 0;font-size:15px}
+  .rozet{
+    display:inline-flex;gap:8px;align-items:center;margin-top:14px;flex-wrap:wrap;justify-content:center;
+  }
+  .rozet span{
+    background:var(--beyaz);border:1px solid var(--cizgi);border-radius:999px;
+    padding:5px 13px;font-size:12.5px;color:var(--murekkep-yumusak);box-shadow:var(--golge-kart);
+  }
+
+  /* ===================== YÜKLEME ALANI ===================== */
+  .dropzone{
+    margin:26px auto 0;max-width:720px;background:var(--beyaz);
+    border:2px dashed var(--altin);border-radius:var(--radius);
+    padding:42px 28px;text-align:center;cursor:pointer;transition:.2s;
+    box-shadow:var(--golge-kart);
+  }
+  .dropzone:hover{border-color:var(--lacivert);transform:translateY(-2px)}
+  .dropzone.dragging{background:var(--kagit-koyu);border-color:var(--lacivert)}
+  .dropzone .ikon{font-size:48px}
+  .dropzone h2{font-family:var(--font-baslik);color:var(--lacivert);font-size:20px;margin:10px 0 4px}
+  .dropzone p{color:var(--murekkep-yumusak);font-size:14px}
+  .dropzone .min{font-size:12px;margin-top:8px;opacity:.8}
+  #pdfInput{display:none}
+
+  /* ===================== KONTROL PANELİ ===================== */
+  .panel{
+    display:none;margin-top:26px;background:var(--beyaz);border:1px solid var(--cizgi);
+    border-radius:var(--radius);box-shadow:var(--golge-kart);padding:18px 20px;
+  }
+  .panel.acik{display:block}
+  .panel h3{font-family:var(--font-baslik);color:var(--lacivert);font-size:17px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+  .grid-ayar{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px}
+  .alan label{display:block;font-size:12.5px;font-weight:600;color:var(--murekkep-yumusak);margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px}
+  select,input[type=text]{
+    width:100%;padding:9px 11px;border:1px solid var(--cizgi);border-radius:var(--radius-s);
+    font-family:var(--font-govde);font-size:14px;background:var(--kagit);color:var(--murekkep);
+  }
+  .seg{display:flex;border:1px solid var(--cizgi);border-radius:var(--radius-s);overflow:hidden;background:var(--kagit)}
+  .seg button{flex:1;border:none;background:transparent;padding:9px 6px;font-size:13px;cursor:pointer;color:var(--murekkep-yumusak);transition:.15s;font-family:var(--font-govde)}
+  .seg button.aktif{background:var(--lacivert);color:#fff;font-weight:600}
+  .switch-row{display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--murekkep-yumusak);margin-top:6px}
+  .switch{position:relative;width:42px;height:23px;flex:0 0 auto}
+  .switch input{display:none}
+  .switch .track{position:absolute;inset:0;background:var(--cizgi);border-radius:999px;transition:.2s}
+  .switch .knob{position:absolute;top:2px;left:2px;width:19px;height:19px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+  .switch input:checked + .track{background:var(--yaprak)}
+  .switch input:checked + .track + .knob{transform:translateX(19px)}
+
+  .slider-row{display:flex;align-items:center;gap:10px}
+  input[type=range]{flex:1;accent-color:var(--lacivert)}
+  .deger{min-width:54px;text-align:right;font-variant-numeric:tabular-nums;font-size:13px;color:var(--murekkep)}
+
+  /* ===================== TOPLU İŞLEM ÇUBUĞU ===================== */
+  .toolbar{
+    display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:16px;padding-top:16px;border-top:1px solid var(--cizgi);
+  }
+  .btn{
+    border:none;border-radius:var(--radius-s);padding:10px 16px;font-size:14px;font-weight:600;
+    cursor:pointer;font-family:var(--font-govde);transition:.15s;display:inline-flex;align-items:center;gap:7px;
+  }
+  .btn:active{transform:translateY(1px)}
+  .btn-ana{background:var(--lacivert);color:#fff;box-shadow:0 4px 12px rgba(39,64,122,.3)}
+  .btn-ana:hover{background:var(--lacivert-acik)}
+  .btn-altin{background:var(--altin);color:#3a2c08}
+  .btn-altin:hover{background:var(--altin-acik)}
+  .btn-cizgi{background:transparent;border:1px solid var(--cizgi);color:var(--murekkep-yumusak)}
+  .btn-cizgi:hover{background:var(--kagit-koyu)}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .sayac{margin-left:auto;font-size:13px;color:var(--murekkep-yumusak)}
+  .sayac b{color:var(--lacivert)}
+
+  /* ===================== SAYFA GRID ===================== */
+  .sayfalar{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;margin-top:26px;
+  }
+  .kart{
+    background:var(--beyaz);border:1px solid var(--cizgi);border-radius:var(--radius-s);
+    overflow:hidden;box-shadow:var(--golge-kart);cursor:pointer;transition:.18s;position:relative;
+  }
+  .kart:hover{transform:translateY(-3px);box-shadow:var(--golge)}
+  .kart.secili{border-color:var(--altin);box-shadow:0 0 0 3px rgba(199,154,59,.35),var(--golge-kart)}
+  .kart .tik{
+    position:absolute;top:8px;left:8px;width:24px;height:24px;border-radius:50%;
+    background:rgba(255,255,255,.85);border:1.5px solid var(--cizgi);display:flex;align-items:center;justify-content:center;
+    font-size:14px;color:transparent;transition:.15s;z-index:2;
+  }
+  .kart.secili .tik{background:var(--altin);border-color:var(--altin);color:#fff}
+  .kart canvas{display:block;width:100%;height:auto;background:#fff}
+  .kart .et{padding:6px 8px;font-size:12px;color:var(--murekkep-yumusak);display:flex;justify-content:space-between;align-items:center}
+  .kart .et b{color:var(--murekkep)}
+  .kart .duzenle{
+    background:var(--kagit-koyu);border:none;border-top:1px solid var(--cizgi);width:100%;
+    padding:7px;font-size:12px;cursor:pointer;color:var(--lacivert);font-weight:600;font-family:var(--font-govde);
+  }
+  .kart .duzenle:hover{background:var(--altin-acik)}
+
+  /* ===================== MODAL (KIRPMA) ===================== */
+  .modal-bg{
+    display:none;position:fixed;inset:0;z-index:50;background:rgba(43,36,56,.55);
+    backdrop-filter:blur(3px);align-items:center;justify-content:center;padding:18px;
+  }
+  .modal-bg.acik{display:flex}
+  .modal{
+    background:var(--kagit);border-radius:var(--radius);max-width:980px;width:100%;max-height:94vh;
+    overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.4);
+  }
+  .modal-head{
+    display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--cizgi);
+    position:sticky;top:0;background:var(--kagit);z-index:3;
+  }
+  .modal-head h3{font-family:var(--font-baslik);color:var(--lacivert);font-size:18px;flex:1}
+  .modal-head .kapat{background:none;border:none;font-size:24px;cursor:pointer;color:var(--murekkep-yumusak);line-height:1}
+  .modal-body{padding:18px 20px;display:grid;grid-template-columns:1fr 280px;gap:20px}
+  @media(max-width:760px){.modal-body{grid-template-columns:1fr}}
+  .sahne{
+    background:
+      repeating-conic-gradient(#e7ddc6 0% 25%, #f2ead6 0% 50%) 0 0 / 22px 22px;
+    border:1px solid var(--cizgi);border-radius:var(--radius-s);
+    position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;min-height:340px;
+  }
+  .sahne canvas{max-width:100%;max-height:64vh;display:block}
+  /* kırpma çerçevesi overlay */
+  #cropOverlay{position:absolute;inset:0;pointer-events:none}
+  .modal-yan h4{font-size:13px;text-transform:uppercase;letter-spacing:.5px;color:var(--murekkep-yumusak);margin:2px 0 10px}
+  .modal-yan .alan{margin-bottom:14px}
+  .ipucu{font-size:12px;color:var(--murekkep-yumusak);background:var(--beyaz);border:1px solid var(--cizgi);border-radius:var(--radius-s);padding:10px 12px;margin-top:8px}
+  .modal-foot{padding:14px 20px;border-top:1px solid var(--cizgi);display:flex;gap:10px;justify-content:flex-end;position:sticky;bottom:0;background:var(--kagit)}
+
+  /* ===================== İLERLEME / DURUM ===================== */
+  .durum{
+    position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:60;
+    background:var(--murekkep);color:#fff;padding:12px 20px;border-radius:999px;
+    font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.3);display:none;align-items:center;gap:10px;
+  }
+  .durum.goster{display:flex}
+  .spin{width:16px;height:16px;border:2.5px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:dn .7s linear infinite}
+  @keyframes dn{to{transform:rotate(360deg)}}
+
+  .bos-bilgi{text-align:center;color:var(--murekkep-yumusak);padding:50px 20px;font-size:15px}
+  .footnote{text-align:center;margin-top:40px;font-size:12.5px;color:var(--murekkep-yumusak)}
+  .footnote code{background:var(--kagit-koyu);padding:1px 6px;border-radius:5px;font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="crown">👑</div>
+    <h1>Etsy Görsel <span class="ac">Stüdyo</span></h1>
+    <p>PDF'ini yükle, satışa koymak istediğin sayfaları seç, Etsy standartlarına göre kırp ve indir. Her şey tarayıcında çalışır — dosyaların buradan hiçbir yere gitmez.</p>
+    <div class="rozet">
+      <span>📐 Min 2000px · Önerilen 3000px</span>
+      <span>🖼️ JPG düz zemin (PNG-siyah tuzağı yok)</span>
+      <span>🔒 %100 çevrimdışı</span>
+    </div>
+  </header>
+
+  <!-- YÜKLEME -->
+  <label class="dropzone" id="dropzone" for="pdfInput">
+    <div class="ikon">📄</div>
+    <h2>PDF'ini buraya sürükle veya tıkla</h2>
+    <p>Prince Finn kitabın gibi çok sayfalı PDF'ler desteklenir</p>
+    <p class="min">Tüm işlem cihazında yapılır, internet gerekmez</p>
+  </label>
+  <input type="file" id="pdfInput" accept="application/pdf">
+
+  <!-- KONTROL PANELİ -->
+  <div class="panel" id="panel">
+    <h3>⚙️ Çıktı Ayarları <span style="font-weight:400;font-size:13px;color:var(--murekkep-yumusak)">(seçili tüm sayfalara uygulanır)</span></h3>
+    <div class="grid-ayar">
+
+      <div class="alan">
+        <label>En-Boy Oranı (Etsy)</label>
+        <select id="oran">
+          <option value="1:1" selected>1:1 Kare — Kapak / ana görsel (önerilen)</option>
+          <option value="4:5">4:5 Portre — listing & mobil thumbnail</option>
+          <option value="4:3">4:3 Yatay — galeri</option>
+          <option value="3:2">3:2 Yatay — geniş sahne</option>
+          <option value="orijinal">Orijinal — sayfanın kendi oranı</option>
+        </select>
+      </div>
+
+      <div class="alan">
+        <label>Sığdırma Modu</label>
+        <div class="seg" id="modSeg">
+          <button data-mod="kirp" class="aktif">Kırp (içeri sığdır)</button>
+          <button data-mod="tam">Tam sayfa (genişlet)</button>
+        </div>
+        <div class="switch-row" style="margin-top:8px" id="genisletYontemRow">
+          <span>Genişletme: kenar uzatma</span>
+        </div>
+      </div>
+
+      <div class="alan">
+        <label>Hedef Çözünürlük (kısa kenar)</label>
+        <div class="seg" id="cozSeg">
+          <button data-coz="2000" >2000px (min)</button>
+          <button data-coz="3000" class="aktif">3000px (önerilen)</button>
+        </div>
+      </div>
+
+      <div class="alan">
+        <label>Dosya Boyutu Önceliği</label>
+        <div class="seg" id="boyutSeg">
+          <button data-boyut="kalite" class="aktif">Kalite (~1.5MB)</button>
+          <button data-boyut="kucuk">Küçük (&lt;1MB)</button>
+        </div>
+        <div class="slider-row" style="margin-top:8px">
+          <input type="range" id="kalite" min="60" max="95" value="88">
+          <span class="deger" id="kaliteDeger">88%</span>
+        </div>
+      </div>
+
+      <div class="alan">
+        <label>Arka Plan (şeffaf → düz)</label>
+        <div class="seg" id="zeminSeg">
+          <button data-zemin="#ffffff" class="aktif">Beyaz</button>
+          <button data-zemin="#f7f2e7">Krem</button>
+          <button data-zemin="#27407a">Lacivert</button>
+        </div>
+      </div>
+
+      <div class="alan">
+        <label>Filigran (Önizleme için)</label>
+        <div class="switch-row">
+          <label class="switch"><input type="checkbox" id="filigranAc"><span class="track"></span><span class="knob"></span></label>
+          <span>Filigran ekle</span>
+        </div>
+        <input type="text" id="filigranYazi" value="ÖNİZLEME • reccirik" placeholder="Filigran metni" style="margin-top:8px">
+      </div>
+
+      <div class="alan">
+        <label>Mockup Zemin</label>
+        <div class="seg" id="mockupSeg">
+          <button data-mockup="yok" class="aktif">Yok (düz)</button>
+          <button data-mockup="cerceve">Çerçeve</button>
+          <button data-mockup="tablet">Tablet</button>
+        </div>
+      </div>
+
+      <div class="alan">
+        <label>Dosya Adı Ön Eki</label>
+        <input type="text" id="adOnek" value="prince_finn" placeholder="örn: prince_finn">
+      </div>
+
+    </div>
+
+    <div class="toolbar">
+      <button class="btn btn-cizgi" id="tumSec">☑️ Tümünü Seç</button>
+      <button class="btn btn-cizgi" id="hicSec">☐ Seçimi Temizle</button>
+      <button class="btn btn-altin" id="indirSecili">⬇️ Seçilenleri İndir</button>
+      <button class="btn btn-ana" id="zipIndir">🗜️ Hepsini ZIP yap</button>
+      <span class="sayac"><b id="seciliSayi">0</b> sayfa seçili / <span id="toplamSayi">0</span></span>
+    </div>
+  </div>
+
+  <!-- SAYFALAR -->
+  <div class="sayfalar" id="sayfalar"></div>
+  <div class="bos-bilgi" id="bosBilgi" style="display:none">Yukarıdan bir PDF yükle, sayfalar burada görünecek.</div>
+
+  <div class="footnote">
+    Notlar: Etsy şeffaf PNG'leri siyah gösterir — bu araç her zaman düz zemine basar. Kapak görselini <code>1:1</code> tut, thumbnail kırpılmasın.
+    "Tam sayfa (genişlet)" = kenar pikselleri akıllıca uzatılır (tarayıcıda, AI'sız). Çıktılar JPG'dir.
+  </div>
+</div>
+
+<!-- KIRPMA MODALI -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modalBaslik">Sayfa Kırpma</h3>
+      <button class="kapat" id="modalKapat">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="sahne" id="sahne">
+        <canvas id="onizleCanvas"></canvas>
+        <svg id="cropOverlay" xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
+      <div class="modal-yan">
+        <h4>Bu sayfaya özel ayar</h4>
+        <div class="alan">
+          <label>Oran</label>
+          <select id="mOran">
+            <option value="1:1">1:1 Kare</option>
+            <option value="4:5">4:5 Portre</option>
+            <option value="4:3">4:3 Yatay</option>
+            <option value="3:2">3:2 Yatay</option>
+            <option value="orijinal">Orijinal</option>
+          </select>
+        </div>
+        <div class="alan">
+          <label>Mod</label>
+          <div class="seg" id="mModSeg">
+            <button data-mod="kirp" class="aktif">Kırp</button>
+            <button data-mod="tam">Tam (genişlet)</button>
+          </div>
+        </div>
+        <div class="alan" id="mZoomAlan">
+          <label>Yakınlaştır</label>
+          <div class="slider-row">
+            <input type="range" id="mZoom" min="100" max="300" value="100">
+            <span class="deger" id="mZoomDeger">1.0x</span>
+          </div>
+        </div>
+        <div class="alan">
+          <label>Konum</label>
+          <div class="slider-row"><span style="font-size:12px;width:14px">↔</span><input type="range" id="mX" min="0" max="100" value="50"></div>
+          <div class="slider-row"><span style="font-size:12px;width:14px">↕</span><input type="range" id="mY" min="0" max="100" value="50"></div>
+        </div>
+        <div class="ipucu">Kesik çizgili çerçeve = Etsy'ye gidecek alan. Dışında kalan gri bölge atılır. "Tam" modunda çerçeve sayfayı aşarsa kenarlar uzatılır.</div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-cizgi" id="modalIptal">Vazgeç</button>
+      <button class="btn btn-altin" id="modalIndir">⬇️ Bu Sayfayı İndir</button>
+      <button class="btn btn-ana" id="modalKaydet">✓ Ayarı Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<div class="durum" id="durum"><span class="spin"></span><span id="durumYazi">İşleniyor…</span></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script type="module">
+/* ===================== KÜTÜPHANE YÜKLE (pdf.js v5 ESM) ===================== */
+import * as pdfjsLib from "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/5.4.149/pdf.min.mjs";
+pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/5.4.149/pdf.worker.min.mjs";
+
+/* ===================== GLOBAL DURUM ===================== */
+const G = {
+  pdf:null,
+  sayfalar:[],          // {no, render:canvas, secili, ayar:{...}}
+  varsayilan:{ oran:"1:1", mod:"kirp", zemin:"#ffffff", coz:3000, kalite:88, mockup:"yok", filigran:false, filigranYazi:"" },
+  aktifModalNo:null,
+  RENDER_OLCEK:3.0      // pdf -> yüksek çöz. raster (kalite için)
+};
+
+const $ = id => document.getElementById(id);
+const durumGoster = (m)=>{ $("durumYazi").textContent=m; $("durum").classList.add("goster"); };
+const durumGizle = ()=> $("durum").classList.remove("goster");
+
+/* ===================== PDF YÜKLEME ===================== */
+const dz = $("dropzone");
+$("pdfInput").addEventListener("change", e=>{ if(e.target.files[0]) pdfYukle(e.target.files[0]); });
+["dragenter","dragover"].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.add("dragging");}));
+["dragleave","drop"].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.remove("dragging");}));
+dz.addEventListener("drop",e=>{ const f=e.dataTransfer.files[0]; if(f && f.type==="application/pdf") pdfYukle(f); });
+
+async function pdfYukle(file){
+  durumGoster("PDF okunuyor…");
+  try{
+    const buf = await file.arrayBuffer();
+    G.pdf = await pdfjsLib.getDocument({data:buf}).promise;
+    G.sayfalar = [];
+    $("sayfalar").innerHTML="";
+    $("panel").classList.add("acik");
+    $("bosBilgi").style.display="none";
+    $("toplamSayi").textContent = G.pdf.numPages;
+
+    for(let i=1;i<=G.pdf.numPages;i++){
+      durumGoster(`Sayfa ${i}/${G.pdf.numPages} hazırlanıyor…`);
+      const c = await sayfaRenderEt(i, 0.4);          // küçük önizleme
+      const obj = { no:i, onizleCanvas:c, secili:false, ayar:{...G.varsayilan} };
+      G.sayfalar.push(obj);
+      kartEkle(obj);
+    }
+    sayaclariGuncelle();
+  }catch(err){
+    alert("PDF okunamadı: "+err.message);
+  }finally{ durumGizle(); }
+}
+
+/* Bir sayfayı verilen ölçekte canvas'a render et */
+async function sayfaRenderEt(no, olcek){
+  const page = await G.pdf.getPage(no);
+  const vp = page.getViewport({scale:olcek});
+  const c = document.createElement("canvas");
+  c.width = Math.round(vp.width); c.height = Math.round(vp.height);
+  const ctx = c.getContext("2d");
+  await page.render({canvasContext:ctx, viewport:vp, background:"#ffffff"}).promise;
+  return c;
+}
+
+/* ===================== SAYFA KARTLARI ===================== */
+function kartEkle(obj){
+  const div = document.createElement("div");
+  div.className="kart"; div.dataset.no=obj.no;
+  const cv = obj.onizleCanvas; cv.style.width="100%";
+  div.innerHTML = `<div class="tik">✓</div>`;
+  div.appendChild(cv);
+  const et = document.createElement("div");
+  et.className="et"; et.innerHTML=`<span>Sayfa <b>${obj.no}</b></span><span data-rol="oranEt">${obj.ayar.oran}</span>`;
+  div.appendChild(et);
+  const dz2 = document.createElement("button");
+  dz2.className="duzenle"; dz2.textContent="✏️ Kırp / Düzenle";
+  div.appendChild(dz2);
+
+  div.addEventListener("click", e=>{
+    if(e.target===dz2) return;
+    obj.secili=!obj.secili; div.classList.toggle("secili",obj.secili); sayaclariGuncelle();
+  });
+  dz2.addEventListener("click", e=>{ e.stopPropagation(); modalAc(obj.no); });
+  $("sayfalar").appendChild(div);
+}
+
+function kartOranEtiketGuncelle(no){
+  const k=document.querySelector(`.kart[data-no="${no}"] [data-rol="oranEt"]`);
+  if(k){ const o=G.sayfalar.find(s=>s.no===no); k.textContent=o.ayar.oran; }
+}
+
+function sayaclariGuncelle(){
+  const s = G.sayfalar.filter(x=>x.secili).length;
+  $("seciliSayi").textContent=s;
+  const yok = s===0;
+  $("indirSecili").disabled=yok; $("zipIndir").disabled=yok;
+}
+
+/* ===================== PANEL: GENEL AYARLARI VARSAYILANA YAZ ===================== */
+function segKur(segId, key, deger=(b)=>b.dataset[Object.keys(b.dataset)[0]]){
+  const seg=$(segId);
+  seg.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{
+    seg.querySelectorAll("button").forEach(x=>x.classList.remove("aktif"));
+    b.classList.add("aktif"); key(b);
+  }));
+}
+segKur("modSeg", b=>{ G.varsayilan.mod=b.dataset.mod; });
+segKur("cozSeg", b=>{ G.varsayilan.coz=parseInt(b.dataset.coz); });
+segKur("zeminSeg", b=>{ G.varsayilan.zemin=b.dataset.zemin; });
+segKur("mockupSeg", b=>{ G.varsayilan.mockup=b.dataset.mockup; });
+segKur("boyutSeg", b=>{
+  if(b.dataset.boyut==="kucuk"){ $("kalite").value=78; G.varsayilan.kalite=78; }
+  else { $("kalite").value=88; G.varsayilan.kalite=88; }
+  $("kaliteDeger").textContent=$("kalite").value+"%";
+});
+$("oran").addEventListener("change",e=>{ G.varsayilan.oran=e.target.value; kartlarinOranEtiketleriniYenile(); });
+$("kalite").addEventListener("input",e=>{ G.varsayilan.kalite=+e.target.value; $("kaliteDeger").textContent=e.target.value+"%"; });
+$("filigranAc").addEventListener("change",e=>G.varsayilan.filigran=e.target.checked);
+$("filigranYazi").addEventListener("input",e=>G.varsayilan.filigranYazi=e.target.value);
+
+/* MODEL: Panel ayarları = G.varsayilan (elle düzenlenmemiş tüm sayfalar bunu kullanır).
+   Bir sayfayı modalda "Ayarı Kaydet" yaparsan obj.elle=true olur ve kendi ayarını kullanır. */
+function kartlarinOranEtiketleriniYenile(){
+  G.sayfalar.forEach(s=>{ if(!s.elle){ s.ayar.oran=G.varsayilan.oran; kartOranEtiketGuncelle(s.no); }});
+}
+
+/* ===================== ORAN HESABI ===================== */
+function oranDegeri(oranStr, w, h){
+  if(oranStr==="orijinal") return w/h;
+  const [a,b]=oranStr.split(":").map(Number); return a/b;
+}
+
+/* ===================== ANA ÜRETİM: bir sayfayı Etsy görseline çevir ===================== */
+/* ayar: {oran, mod, zemin, coz, kalite, mockup, filigran, filigranYazi, zoom, offX, offY} */
+async function gorselUret(no, ayar){
+  // 1) yüksek çöz. kaynak raster
+  const src = await sayfaRenderEt(no, G.RENDER_OLCEK);
+  const sw=src.width, sh=src.height;
+
+  // 2) hedef oran ve boyut
+  const oranWH = oranDegeri(ayar.oran, sw, sh);   // genişlik/yükseklik
+  const kisa = ayar.coz;
+  let outW, outH;
+  if(oranWH>=1){ outH=kisa; outW=Math.round(kisa*oranWH); }
+  else { outW=kisa; outH=Math.round(kisa/oranWH); }
+
+  const out = document.createElement("canvas");
+  out.width=outW; out.height=outH;
+  const ctx=out.getContext("2d");
+  ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality="high";
+
+  // zemin (şeffaflık → düz) önce bas
+  ctx.fillStyle=ayar.zemin; ctx.fillRect(0,0,outW,outH);
+
+  const zoom = (ayar.zoom||100)/100;
+  const offX = (ayar.offX!=null?ayar.offX:50)/100;
+  const offY = (ayar.offY!=null?ayar.offY:50)/100;
+
+  if(ayar.mod==="tam"){
+    // TAM SAYFA: kaynağı orana "contain" yerleştir, boşlukları kenar-uzatma ile doldur
+    // hedef içindeki kaynak ölçeği (sığacak şekilde)
+    const olc = Math.min(outW/sw, outH/sh) * 1; // tamamı görünsün
+    const dw = Math.round(sw*olc), dh=Math.round(sh*olc);
+    const dx = Math.round((outW-dw)/2), dy=Math.round((outH-dh)/2);
+    // önce kenar uzatma ile boşlukları doldur (sol/sağ/üst/alt şeritler)
+    kenarUzat(ctx, src, dx,dy,dw,dh, outW,outH);
+    // sonra net kaynağı ortala
+    ctx.drawImage(src, 0,0,sw,sh, dx,dy,dw,dh);
+  } else {
+    // KIRP: orana "cover" + zoom + konum
+    let baseOlc = Math.max(outW/sw, outH/sh);
+    const olc = baseOlc*zoom;
+    const dw=sw*olc, dh=sh*olc;
+    // konumlama: offX/offY 0..1
+    const maxX = outW-dw, maxY=outH-dh;
+    const dx = maxX*offX, dy=maxY*offY;
+    ctx.drawImage(src, 0,0,sw,sh, dx,dy,dw,dh);
+  }
+
+  // mockup
+  if(ayar.mockup && ayar.mockup!=="yok") mockupUygula(ayar.mockup, out);
+
+  // filigran
+  if(ayar.filigran && ayar.filigranYazi) filigranUygula(out, ayar.filigranYazi);
+
+  return out;
+}
+
+/* kenar pikselini şerit halinde uzatarak boşlukları doldur (akıllı edge-extend) */
+function kenarUzat(ctx, src, dx,dy,dw,dh, W,H){
+  const sw=src.width, sh=src.height;
+  // sol boşluk: kaynağın 1px sol şeridini genişlet
+  if(dx>0){ ctx.drawImage(src, 0,0, 2,sh, 0,dy, dx+1,dh); }
+  // sağ boşluk
+  if(dx+dw<W){ ctx.drawImage(src, sw-2,0, 2,sh, dx+dw-1,dy, (W-(dx+dw))+1,dh); }
+  // üst boşluk (köşeler dahil olsun diye tüm genişlik)
+  if(dy>0){ ctx.drawImage(src, 0,0, sw,2, dx,0, dw,dy+1);
+            // üst köşe blokları
+            if(dx>0) ctx.drawImage(src,0,0,2,2,0,0,dx+1,dy+1);
+            if(dx+dw<W) ctx.drawImage(src,sw-2,0,2,2,dx+dw-1,0,(W-(dx+dw))+1,dy+1); }
+  // alt boşluk
+  if(dy+dh<H){ ctx.drawImage(src, 0,sh-2, sw,2, dx,dy+dh-1, dw,(H-(dy+dh))+1);
+            if(dx>0) ctx.drawImage(src,0,sh-2,2,2,0,dy+dh-1,dx+1,(H-(dy+dh))+1);
+            if(dx+dw<W) ctx.drawImage(src,sw-2,sh-2,2,2,dx+dw-1,dy+dh-1,(W-(dx+dw))+1,(H-(dy+dh))+1); }
+}
+
+/* basit mockup zeminleri (vektörel çizim) */
+function mockupUygula(tip, cv){
+  const ctx=cv.getContext("2d"); const W=cv.width,H=cv.height;
+  // mevcut görseli al, küçült, zemine yerleştir
+  const icerik = document.createElement("canvas"); icerik.width=W; icerik.height=H;
+  icerik.getContext("2d").drawImage(cv,0,0);
+  ctx.clearRect(0,0,W,H);
+  if(tip==="cerceve"){
+    // ahşap/krem çerçeve
+    const grd=ctx.createLinearGradient(0,0,W,H); grd.addColorStop(0,"#efe6d2"); grd.addColorStop(1,"#e2d4b6");
+    ctx.fillStyle=grd; ctx.fillRect(0,0,W,H);
+    const pad=Math.round(W*0.07);
+    ctx.fillStyle="#c79a3b"; ctx.fillRect(pad-12,pad-12,W-2*pad+24,H-2*pad+24);
+    ctx.fillStyle="#fff"; ctx.fillRect(pad-4,pad-4,W-2*pad+8,H-2*pad+8);
+    ctx.shadowColor="rgba(0,0,0,.25)"; ctx.shadowBlur=24; ctx.shadowOffsetY=10;
+    ctx.drawImage(icerik, 0,0,W,H, pad,pad,W-2*pad,H-2*pad);
+    ctx.shadowColor="transparent";
+  } else if(tip==="tablet"){
+    const grd=ctx.createLinearGradient(0,0,0,H); grd.addColorStop(0,"#f3eee2"); grd.addColorStop(1,"#e6ddc8");
+    ctx.fillStyle=grd; ctx.fillRect(0,0,W,H);
+    const pad=Math.round(W*0.10), r=Math.round(W*0.03);
+    ctx.fillStyle="#2b2438";
+    yuvarlakDik(ctx, pad-18, pad-18, W-2*pad+36, H-2*pad+36, r);
+    ctx.fill();
+    ctx.save(); yuvarlakDik(ctx,pad,pad,W-2*pad,H-2*pad,r*0.5); ctx.clip();
+    ctx.drawImage(icerik,0,0,W,H,pad,pad,W-2*pad,H-2*pad); ctx.restore();
+  }
+}
+function yuvarlakDik(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+
+/* filigran */
+function filigranUygula(cv, yazi){
+  const ctx=cv.getContext("2d"); const W=cv.width,H=cv.height;
+  ctx.save();
+  ctx.translate(W/2,H/2); ctx.rotate(-Math.PI/6);
+  ctx.font=`bold ${Math.round(W*0.07)}px Georgia, serif`;
+  ctx.textAlign="center"; ctx.textBaseline="middle";
+  ctx.fillStyle="rgba(255,255,255,.42)"; ctx.strokeStyle="rgba(43,36,56,.28)"; ctx.lineWidth=Math.max(2,W*0.003);
+  for(let i=-1;i<=1;i++){ ctx.strokeText(yazi,0,i*H*0.28); ctx.fillText(yazi,0,i*H*0.28); }
+  ctx.restore();
+}
+
+/* canvas -> jpeg blob (kalite ile) */
+function blobAl(cv, kalite){ return new Promise(r=>cv.toBlob(r,"image/jpeg",kalite/100)); }
+function indirBlob(blob, ad){ const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=ad; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),2000); }
+function dosyaAdi(no, ayar){ const onek=($("adOnek").value||"sayfa").trim().replace(/\s+/g,"_"); const o=ayar.oran.replace(":","x"); return `${onek}_${String(no).padStart(2,"0")}_${o}_${ayar.coz}.jpg`; }
+
+/* ===================== TOPLU İŞLEMLER ===================== */
+$("tumSec").addEventListener("click",()=>{ G.sayfalar.forEach(s=>{s.secili=true;}); document.querySelectorAll(".kart").forEach(k=>k.classList.add("secili")); sayaclariGuncelle(); });
+$("hicSec").addEventListener("click",()=>{ G.sayfalar.forEach(s=>{s.secili=false;}); document.querySelectorAll(".kart").forEach(k=>k.classList.remove("secili")); sayaclariGuncelle(); });
+
+$("indirSecili").addEventListener("click", async ()=>{
+  const sec=G.sayfalar.filter(s=>s.secili); if(!sec.length) return;
+  for(const s of sec){
+    durumGoster(`Sayfa ${s.no} üretiliyor…`);
+    const ayar = s.elle? s.ayar : {...G.varsayilan};
+    const cv = await gorselUret(s.no, ayar);
+    const blob = await blobAl(cv, ayar.kalite);
+    indirBlob(blob, dosyaAdi(s.no,ayar));
+    await new Promise(r=>setTimeout(r,250)); // tarayıcı çoklu indirme nefes payı
+  }
+  durumGizle();
+});
+
+$("zipIndir").addEventListener("click", async ()=>{
+  const sec=G.sayfalar.filter(s=>s.secili); if(!sec.length) return;
+  const zip=new JSZip();
+  for(const s of sec){
+    durumGoster(`ZIP: sayfa ${s.no}…`);
+    const ayar = s.elle? s.ayar : {...G.varsayilan};
+    const cv = await gorselUret(s.no, ayar);
+    const blob = await blobAl(cv, ayar.kalite);
+    zip.file(dosyaAdi(s.no,ayar), blob);
+  }
+  durumGoster("ZIP paketleniyor…");
+  const icerik = await zip.generateAsync({type:"blob"});
+  indirBlob(icerik, ($("adOnek").value||"etsy")+"_gorseller.zip");
+  durumGizle();
+});
+
+/* ===================== KIRPMA MODALI ===================== */
+let mAyar=null, mSrc=null, mSrcCanvas=null;
+
+async function modalAc(no){
+  G.aktifModalNo=no;
+  const obj=G.sayfalar.find(s=>s.no===no);
+  mAyar = obj.elle ? {...obj.ayar} : {...G.varsayilan, zoom:100, offX:50, offY:50};
+  if(mAyar.zoom==null)mAyar.zoom=100; if(mAyar.offX==null)mAyar.offX=50; if(mAyar.offY==null)mAyar.offY=50;
+  $("modalBaslik").textContent=`Sayfa ${no} — Kırpma`;
+  // form doldur
+  $("mOran").value=mAyar.oran;
+  $("mZoom").value=mAyar.zoom; $("mZoomDeger").textContent=(mAyar.zoom/100).toFixed(1)+"x";
+  $("mX").value=mAyar.offX; $("mY").value=mAyar.offY;
+  $("mModSeg").querySelectorAll("button").forEach(b=>b.classList.toggle("aktif",b.dataset.mod===mAyar.mod));
+  modVisibility();
+  // yüksek çöz kaynağı bir kez hazırla
+  durumGoster("Önizleme hazırlanıyor…");
+  mSrcCanvas = await sayfaRenderEt(no, 1.6);
+  durumGizle();
+  $("modalBg").classList.add("acik");
+  modalCiz();
+}
+function modVisibility(){ $("mZoomAlan").style.display = mAyar.mod==="kirp" ? "block":"none"; }
+
+/* modal canvas + kesik çizgili çerçeve çizimi */
+function modalCiz(){
+  const sw=mSrcCanvas.width, sh=mSrcCanvas.height;
+  const cv=$("onizleCanvas"); cv.width=sw; cv.height=sh;
+  const ctx=cv.getContext("2d");
+  ctx.fillStyle=mAyar.zemin; ctx.fillRect(0,0,sw,sh);
+  ctx.drawImage(mSrcCanvas,0,0);
+
+  // çerçeve hesabı: çıkış oranını kaynağa göre konumla
+  const oranWH=oranDegeri(mAyar.oran, sw, sh);
+  const ov=$("cropOverlay");
+  // overlay'i canvas'ın görüntülenen ölçüsüne göre konumla
+  requestAnimationFrame(()=>{
+    const rect=cv.getBoundingClientRect();
+    const sahneRect=$("sahne").getBoundingClientRect();
+    const ox=rect.left-sahneRect.left, oy=rect.top-sahneRect.top;
+    ov.setAttribute("viewBox",`0 0 ${sahneRect.width} ${sahneRect.height}`);
+    const dispW=rect.width, dispH=rect.height;
+    const px=v=>v*(dispW/sw); // kaynak px -> ekran px
+
+    // çıktı çerçevesinin kaynak üzerindeki yeri
+    let fw,fh; // kaynak piksel cinsinden çerçeve
+    if(mAyar.mod==="kirp"){
+      // cover: çerçeve = görünen kırpılan alan
+      const zoom=mAyar.zoom/100;
+      // hedef oranına göre kaynaktan alınan pencere
+      let winW,winH;
+      if(oranWH>= (sw/sh)){ winW=sw/zoom; winH=winW/oranWH; }
+      else { winH=sh/zoom; winW=winH*oranWH; }
+      winW=Math.min(winW,sw); winH=Math.min(winH,sh);
+      const fx=(sw-winW)*(mAyar.offX/100), fy=(sh-winH)*(mAyar.offY/100);
+      cerceveCiz(ov, ox+px(fx), oy+px(fy), px(winW), px(winH), sahneRect, "kirp", dispW,dispH,ox,oy);
+    } else {
+      // tam: çerçeve tüm çıktı = kaynak + uzatma; kaynağın sınırını göster
+      cerceveCiz(ov, ox, oy, dispW, dispH, sahneRect, "tam", dispW,dispH,ox,oy);
+    }
+  });
+}
+
+function cerceveCiz(ov, x,y,w,h, sahneRect, mod, dispW,dispH,ox,oy){
+  const W=sahneRect.width, H=sahneRect.height;
+  // dışını karart
+  let mask=`<rect x="0" y="0" width="${W}" height="${H}" fill="rgba(43,36,56,0.45)"/>`;
+  // çerçeve içini "delik" gibi göstermek için ikinci dikdörtgenle temizleme: SVG'de mask kullan
+  ov.innerHTML=`
+    <defs><mask id="delik">
+      <rect x="0" y="0" width="${W}" height="${H}" fill="white"/>
+      <rect x="${x}" y="${y}" width="${w}" height="${h}" fill="black"/>
+    </mask></defs>
+    <rect x="0" y="0" width="${W}" height="${H}" fill="rgba(43,36,56,0.45)" mask="url(#delik)"/>
+    <rect x="${x}" y="${y}" width="${w}" height="${h}" fill="none" stroke="#c79a3b" stroke-width="3" stroke-dasharray="10 7"/>
+    <rect x="${x}" y="${y}" width="${w}" height="${h}" fill="none" stroke="#fff" stroke-width="1"/>
+    ${mod==="tam"?`<text x="${x+8}" y="${y+22}" fill="#fff" font-size="14" font-family="Georgia">Tam sayfa — kenarlar uzatılacak</text>`:""}
+  `;
+}
+
+/* modal kontrolleri */
+$("mOran").addEventListener("change",e=>{ mAyar.oran=e.target.value; modalCiz(); });
+$("mZoom").addEventListener("input",e=>{ mAyar.zoom=+e.target.value; $("mZoomDeger").textContent=(mAyar.zoom/100).toFixed(1)+"x"; modalCiz(); });
+$("mX").addEventListener("input",e=>{ mAyar.offX=+e.target.value; modalCiz(); });
+$("mY").addEventListener("input",e=>{ mAyar.offY=+e.target.value; modalCiz(); });
+$("mModSeg").querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{
+  $("mModSeg").querySelectorAll("button").forEach(x=>x.classList.remove("aktif"));
+  b.classList.add("aktif"); mAyar.mod=b.dataset.mod; modVisibility(); modalCiz();
+}));
+window.addEventListener("resize",()=>{ if($("modalBg").classList.contains("acik")) modalCiz(); });
+
+function modalKapat(){ $("modalBg").classList.remove("acik"); }
+$("modalKapat").addEventListener("click",modalKapat);
+$("modalIptal").addEventListener("click",modalKapat);
+$("modalBg").addEventListener("click",e=>{ if(e.target===$("modalBg")) modalKapat(); });
+
+$("modalKaydet").addEventListener("click",()=>{
+  const obj=G.sayfalar.find(s=>s.no===G.aktifModalNo);
+  obj.elle=true; obj.ayar={...G.varsayilan, ...mAyar};
+  kartOranEtiketGuncelle(obj.no);
+  obj.secili=true; document.querySelector(`.kart[data-no="${obj.no}"]`).classList.add("secili"); sayaclariGuncelle();
+  modalKapat();
+});
+
+$("modalIndir").addEventListener("click", async ()=>{
+  durumGoster("Görsel üretiliyor…");
+  const ayar={...G.varsayilan, ...mAyar};
+  const cv=await gorselUret(G.aktifModalNo, ayar);
+  const blob=await blobAl(cv, ayar.kalite);
+  indirBlob(blob, dosyaAdi(G.aktifModalNo, ayar));
+  durumGizle();
+});
+
+</script>
+</body>
+</html>
