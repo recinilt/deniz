@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resim Maskeleyici · Şeffaf PNG</title>
+<style>
+  :root{
+    --bg:#0d1017; --panel:#161b26; --panel2:#1e2533; --line:#2a3346;
+    --txt:#e8edf6; --dim:#8a96ab; --acc:#ff7a3d; --acc2:#34d8c4;
+    --ok:#43d17a; --shadow:0 12px 40px rgba(0,0,0,.45);
+    --r:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:"Segoe UI",system-ui,sans-serif;
+    background:
+      radial-gradient(1200px 600px at 80% -10%, rgba(255,122,61,.08), transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, rgba(52,216,196,.07), transparent 55%),
+      var(--bg);
+    color:var(--txt); min-height:100vh; padding:22px;
+  }
+  header{display:flex;align-items:center;gap:14px;margin-bottom:20px;flex-wrap:wrap}
+  .logo{
+    width:42px;height:42px;border-radius:12px;flex:none;
+    background:linear-gradient(135deg,var(--acc),#ff4d6d);
+    display:grid;place-items:center;font-size:22px;box-shadow:var(--shadow)
+  }
+  h1{font-size:22px;font-weight:700;letter-spacing:.3px}
+  h1 small{display:block;font-size:12px;color:var(--dim);font-weight:400;letter-spacing:.5px}
+  .wrap{display:grid;grid-template-columns:320px 1fr;gap:18px;align-items:start}
+  @media(max-width:880px){.wrap{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
+  .pad{padding:18px}
+  .sec-title{font-size:11px;text-transform:uppercase;letter-spacing:1.4px;color:var(--dim);margin-bottom:12px;font-weight:600}
+  /* yükleme alanı */
+  #drop{
+    border:2px dashed var(--line);border-radius:12px;padding:26px 16px;text-align:center;
+    cursor:pointer;transition:.2s;background:var(--panel2)
+  }
+  #drop:hover,#drop.hot{border-color:var(--acc);background:#222a3a}
+  #drop .ic{font-size:34px;margin-bottom:8px}
+  #drop p{font-size:13px;color:var(--dim)}
+  #drop b{color:var(--acc)}
+  /* şekil grid */
+  .shapes{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .shape-btn{
+    aspect-ratio:1;border:1px solid var(--line);border-radius:10px;background:var(--panel2);
+    cursor:pointer;display:grid;place-items:center;transition:.15s;color:var(--dim)
+  }
+  .shape-btn:hover{border-color:var(--acc2);color:var(--txt)}
+  .shape-btn.active{border-color:var(--acc);background:#2a2017;color:var(--acc);box-shadow:inset 0 0 0 1px var(--acc)}
+  .shape-btn svg{width:26px;height:26px}
+  /* kontroller */
+  .ctrl{margin-bottom:14px}
+  .ctrl label{display:flex;justify-content:space-between;font-size:12px;color:var(--dim);margin-bottom:6px}
+  .ctrl label span{color:var(--txt);font-variant-numeric:tabular-nums}
+  input[type=range]{width:100%;accent-color:var(--acc);cursor:pointer}
+  .row{display:flex;gap:8px}
+  .row .ctrl{flex:1}
+  .hide{display:none!important}
+  .btn{
+    width:100%;padding:13px;border:none;border-radius:11px;font-size:14px;font-weight:700;
+    cursor:pointer;transition:.18s;letter-spacing:.3px
+  }
+  .btn-primary{background:linear-gradient(135deg,var(--acc),#ff4d6d);color:#fff;box-shadow:0 8px 24px rgba(255,77,61,.35)}
+  .btn-primary:hover{transform:translateY(-1px);box-shadow:0 12px 28px rgba(255,77,61,.45)}
+  .btn-primary:active{transform:translateY(0)}
+  .btn-ghost{background:var(--panel2);color:var(--dim);border:1px solid var(--line);margin-top:8px}
+  .btn-ghost:hover{color:var(--txt);border-color:var(--acc2)}
+  .btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important;box-shadow:none}
+  /* sahne */
+  .stage-card{padding:0;overflow:hidden;min-height:420px;display:flex;flex-direction:column}
+  .stage-bar{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--line)}
+  .stage-bar .hint{font-size:12px;color:var(--dim)}
+  .stage{
+    flex:1;position:relative;display:grid;place-items:center;padding:24px;min-height:380px;
+    background:
+      repeating-conic-gradient(#1a212e 0% 25%, #131925 0% 50%) 0/26px 26px;
+  }
+  #cv{max-width:100%;max-height:62vh;touch-action:none;cursor:grab;border-radius:6px}
+  #cv.drag{cursor:grabbing}
+  .empty{color:var(--dim);text-align:center;font-size:14px}
+  .empty .big{font-size:48px;opacity:.4;margin-bottom:10px}
+  .tag{display:inline-block;font-size:11px;color:var(--acc2);border:1px solid var(--acc2);border-radius:20px;padding:3px 10px;margin-top:10px}
+  .foot{font-size:11px;color:var(--dim);text-align:center;margin-top:18px;line-height:1.6}
+  kbd{background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:11px}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">🎬</div>
+  <h1>Resim Maskeleyici<small>Şekille kırp · Şeffaf PNG indir</small></h1>
+</header>
+
+<div class="wrap">
+  <!-- SOL PANEL -->
+  <div class="card pad">
+    <div class="sec-title">1 · Resim</div>
+    <div id="drop">
+      <div class="ic">🖼️</div>
+      <p><b>Tıkla / Sürükle</b> ya da <b>Ctrl+V</b> ile yapıştır</p>
+    </div>
+    <input type="file" id="file" accept="image/*" class="hide">
+
+    <div id="tools" class="hide">
+      <div class="sec-title" style="margin-top:22px">2 · Şekil</div>
+      <div class="shapes" id="shapes"></div>
+
+      <div class="ctrl hide" id="sidesCtrl" style="margin-top:14px">
+        <label>Çokgen köşe sayısı <span id="sidesV">5</span></label>
+        <input type="range" id="sides" min="3" max="12" value="5">
+      </div>
+
+      <div class="sec-title" style="margin-top:22px">3 · Ayarla</div>
+      <div class="row">
+        <div class="ctrl"><label>Boyut <span id="scaleV">80%</span></label>
+          <input type="range" id="scale" min="10" max="100" value="80"></div>
+      </div>
+      <div class="ctrl"><label>Döndür <span id="rotV">0°</span></label>
+        <input type="range" id="rot" min="0" max="360" value="0"></div>
+      <div class="ctrl"><label>Kenar yumuşatma <span id="featherV">0px</span></label>
+        <input type="range" id="feather" min="0" max="60" value="0"></div>
+      <div class="row">
+        <div class="ctrl"><label>Yatay <span id="xV">0</span></label>
+          <input type="range" id="ox" min="-100" max="100" value="0"></div>
+        <div class="ctrl"><label>Dikey <span id="yV">0</span></label>
+          <input type="range" id="oy" min="-100" max="100" value="0"></div>
+      </div>
+
+      <div class="sec-title" style="margin-top:22px">4 · Çerçeve
+        <input type="checkbox" id="bdOn" style="float:right;accent-color:var(--acc)"></div>
+      <div id="bdBox" class="hide">
+        <div class="ctrl"><label>Kalınlık <span id="bdWV">8px</span></label>
+          <input type="range" id="bdW" min="1" max="60" value="8"></div>
+        <div class="ctrl"><label>Boşluk (offset) <span id="bdGapV">0px</span></label>
+          <input type="range" id="bdGap" min="0" max="60" value="0"></div>
+        <div class="ctrl"><label>Renk <input type="color" id="bdColor" value="#ffffff" style="border:none;background:none;width:34px;height:22px;cursor:pointer;padding:0"></label></div>
+      </div>
+
+      <div class="sec-title" style="margin-top:14px">5 · Gölge
+        <input type="checkbox" id="shOn" style="float:right;accent-color:var(--acc)"></div>
+      <div id="shBox" class="hide">
+        <div class="ctrl"><label>Bulanıklık <span id="shBlurV">20px</span></label>
+          <input type="range" id="shBlur" min="0" max="80" value="20"></div>
+        <div class="row">
+          <div class="ctrl"><label>Yatay <span id="shXV">0</span></label>
+            <input type="range" id="shX" min="-60" max="60" value="0"></div>
+          <div class="ctrl"><label>Dikey <span id="shYV">8</span></label>
+            <input type="range" id="shY" min="-60" max="60" value="8"></div>
+        </div>
+        <div class="ctrl"><label>Renk <input type="color" id="shColor" value="#000000" style="border:none;background:none;width:34px;height:22px;cursor:pointer;padding:0"></label></div>
+      </div>
+
+      <div class="sec-title" style="margin-top:14px">6 · İndir</div>
+      <button class="btn btn-primary" id="dl">⬇ Şeffaf PNG indir</button>
+      <button class="btn btn-ghost" id="reset">↺ Sıfırla</button>
+    </div>
+  </div>
+
+  <!-- SAĞ: SAHNE -->
+  <div class="card stage-card">
+    <div class="stage-bar">
+      <span class="hint">▶️ Önizleme</span>
+      <span class="hint" id="dim">—</span>
+    </div>
+    <div class="stage">
+      <div class="empty" id="empty">
+        <div class="big">📋</div>
+        Önce bir resim yükle.<br>Sonra şekil seçip kırp.
+        <div class="tag">Çöğüş işini böyle yapmışsın 🚀</div>
+      </div>
+      <canvas id="cv" class="hide"></canvas>
+    </div>
+  </div>
+</div>
+
+<p class="foot">
+  Maske fareyle sürüklenebilir · <kbd>Ctrl+V</kbd> yapıştır · indirilen PNG, maske dışını şeffaf bırakır.<br>
+  Tüm işlem tarayıcında çalışır, resim hiçbir yere yüklenmez.
+</p>
+
+<script>
+"use strict";
+
+// ===== Durum =====
+const S = {
+  img:null, shape:"circle", sides:5,
+  scale:.8, rot:0, feather:0, ox:0, oy:0, // ox/oy oran (-1..1)
+  // çerçeve
+  bdOn:false, bdW:8, bdColor:"#ffffff", bdGap:0,
+  // gölge
+  shOn:false, shBlur:20, shColor:"#000000", shX:0, shY:8,
+  dragging:false, sx:0, sy:0
+};
+
+// ===== Şekil tanımları (ikon + path çizici) =====
+const SHAPES = {
+  circle:   {icon:'<circle cx="13" cy="13" r="10"/>', name:"Daire"},
+  ellipse:  {icon:'<ellipse cx="13" cy="13" rx="11" ry="7"/>', name:"Elips"},
+  square:   {icon:'<rect x="3" y="3" width="20" height="20" rx="2"/>', name:"Kare"},
+  rect:     {icon:'<rect x="1" y="6" width="24" height="14" rx="2"/>', name:"Dikdörtgen"},
+  triangle: {icon:'<polygon points="13,3 23,22 3,22"/>', name:"Üçgen"},
+  pentagon: {icon:'<polygon points="13,3 23,11 19,23 7,23 3,11"/>', name:"Beşgen"},
+  hexagon:  {icon:'<polygon points="13,3 22,8 22,18 13,23 4,18 4,8"/>', name:"Altıgen"},
+  star:     {icon:'<polygon points="13,2 16,10 24,10 17,15 20,23 13,18 6,23 9,15 2,10 10,10"/>', name:"Yıldız"},
+  heart:    {icon:'<path d="M13 23 3 13a5.5 5.5 0 0 1 8-7.5 5.5 5.5 0 0 1 8 7.5z"/>', name:"Kalp"},
+  polygon:  {icon:'<polygon points="13,3 21,9 18,21 8,21 5,9"/>', name:"Çokgen (serbest)"}
+};
+
+// ===== DOM =====
+const $ = id => document.getElementById(id);
+const drop=$("drop"), file=$("file"), tools=$("tools"), shapesEl=$("shapes"),
+      cv=$("cv"), ctx=cv.getContext("2d"), empty=$("empty"), dimEl=$("dim");
+const sidesCtrl=$("sidesCtrl");
+
+// Şekil butonlarını üret
+for(const [k,v] of Object.entries(SHAPES)){
+  const b=document.createElement("button");
+  b.className="shape-btn"+(k===S.shape?" active":"");
+  b.title=v.name; b.dataset.shape=k;
+  b.innerHTML=`<svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round">${v.icon}</svg>`;
+  b.onclick=()=>{
+    S.shape=k;
+    document.querySelectorAll(".shape-btn").forEach(x=>x.classList.remove("active"));
+    b.classList.add("active");
+    sidesCtrl.classList.toggle("hide", k!=="polygon");
+    render();
+  };
+  shapesEl.appendChild(b);
+}
+
+// ===== Resim yükleme =====
+drop.onclick=()=>file.click();
+file.onchange=e=>{ if(e.target.files[0]) loadFile(e.target.files[0]); };
+["dragover","dragenter"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add("hot");}));
+["dragleave","drop"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove("hot");}));
+drop.addEventListener("drop",e=>{const f=e.dataTransfer.files[0]; if(f&&f.type.startsWith("image/")) loadFile(f);});
+window.addEventListener("paste",e=>{
+  for(const it of e.clipboardData.items){
+    if(it.type.startsWith("image/")){ loadFile(it.getAsFile()); break; }
+  }
+});
+
+function loadFile(f){
+  const r=new FileReader();
+  r.onload=ev=>{
+    const im=new Image();
+    im.onload=()=>{
+      S.img=im;
+      tools.classList.remove("hide");
+      empty.classList.add("hide");
+      cv.classList.remove("hide");
+      resetParams(false);
+      render();
+    };
+    im.src=ev.target.result;
+  };
+  r.readAsDataURL(f);
+}
+
+// ===== Kontrol bağlama =====
+const bind=(id,prop,fmt,div=1)=>{
+  const el=$(id), out=$(id+"V"||"");
+  el.oninput=()=>{
+    S[prop]=(+el.value)/div;
+    const lbl=$(({scale:"scaleV",rot:"rotV",feather:"featherV",ox:"xV",oy:"yV",sides:"sidesV"})[id]);
+    if(lbl) lbl.textContent=fmt(+el.value);
+    render();
+  };
+};
+bind("scale","scale",v=>v+"%",100);
+bind("rot","rot",v=>v+"°");
+bind("feather","feather",v=>v+"px");
+bind("ox","ox",v=>v,100);
+bind("oy","oy",v=>v,100);
+$("sides").oninput=e=>{ S.sides=+e.target.value; $("sidesV").textContent=S.sides; render(); };
+
+// çerçeve
+$("bdOn").onchange=e=>{ S.bdOn=e.target.checked; $("bdBox").classList.toggle("hide",!S.bdOn); render(); };
+$("bdW").oninput=e=>{ S.bdW=+e.target.value; $("bdWV").textContent=S.bdW+"px"; render(); };
+$("bdGap").oninput=e=>{ S.bdGap=+e.target.value; $("bdGapV").textContent=S.bdGap+"px"; render(); };
+$("bdColor").oninput=e=>{ S.bdColor=e.target.value; render(); };
+// gölge
+$("shOn").onchange=e=>{ S.shOn=e.target.checked; $("shBox").classList.toggle("hide",!S.shOn); render(); };
+$("shBlur").oninput=e=>{ S.shBlur=+e.target.value; $("shBlurV").textContent=S.shBlur+"px"; render(); };
+$("shX").oninput=e=>{ S.shX=+e.target.value; $("shXV").textContent=S.shX; render(); };
+$("shY").oninput=e=>{ S.shY=+e.target.value; $("shYV").textContent=S.shY; render(); };
+$("shColor").oninput=e=>{ S.shColor=e.target.value; render(); };
+
+$("reset").onclick=()=>{ resetParams(true); render(); };
+function resetParams(updateUI){
+  S.scale=.8; S.rot=0; S.feather=0; S.ox=0; S.oy=0;
+  if(updateUI||true){
+    $("scale").value=80; $("scaleV").textContent="80%";
+    $("rot").value=0; $("rotV").textContent="0°";
+    $("feather").value=0; $("featherV").textContent="0px";
+    $("ox").value=0; $("xV").textContent="0";
+    $("oy").value=0; $("yV").textContent="0";
+  }
+}
+
+// ===== Maske yolu çizimi (merkez cx,cy ; yarı genişlik/yükseklik rx,ry) =====
+function maskePath(c, cx, cy, rx, ry, shape, sides){
+  c.beginPath();
+  switch(shape){
+    case "circle":{ const r=Math.min(rx,ry); c.arc(cx,cy,r,0,Math.PI*2); break; }
+    case "ellipse": c.ellipse(cx,cy,rx,ry,0,0,Math.PI*2); break;
+    case "square":{ const s=Math.min(rx,ry); c.rect(cx-s,cy-s,s*2,s*2); break; }
+    case "rect": c.rect(cx-rx,cy-ry,rx*2,ry*2); break;
+    case "triangle": polyPath(c,cx,cy,rx,ry,3,-90); break;
+    case "pentagon": polyPath(c,cx,cy,rx,ry,5,-90); break;
+    case "hexagon":  polyPath(c,cx,cy,rx,ry,6,-90); break;
+    case "polygon":  polyPath(c,cx,cy,rx,ry,sides,-90); break;
+    case "star":     starPath(c,cx,cy,rx,ry,5); break;
+    case "heart":    heartPath(c,cx,cy,rx,ry); break;
+  }
+  c.closePath();
+}
+function polyPath(c,cx,cy,rx,ry,n,startDeg){
+  const st=startDeg*Math.PI/180;
+  for(let i=0;i<n;i++){
+    const a=st+i*2*Math.PI/n;
+    const x=cx+rx*Math.cos(a), y=cy+ry*Math.sin(a);
+    i?c.lineTo(x,y):c.moveTo(x,y);
+  }
+}
+function starPath(c,cx,cy,rx,ry,points){
+  const st=-Math.PI/2, inner=.5;
+  for(let i=0;i<points*2;i++){
+    const a=st+i*Math.PI/points;
+    const rr=(i%2?inner:1);
+    const x=cx+rx*rr*Math.cos(a), y=cy+ry*rr*Math.sin(a);
+    i?c.lineTo(x,y):c.moveTo(x,y);
+  }
+}
+function heartPath(c,cx,cy,rx,ry){
+  // parametrik kalp, (rx,ry) kutusuna ölçeklenir
+  const steps=60;
+  for(let i=0;i<=steps;i++){
+    const t=Math.PI - i*2*Math.PI/steps; // tepe ortada
+    const px=16*Math.pow(Math.sin(t),3);
+    const py=13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t);
+    const x=cx+(px/17)*rx;
+    const y=cy-(py/17)*ry;
+    i?c.lineTo(x,y):c.moveTo(x,y);
+  }
+}
+
+// ===== Yardımcı: hex → rgba =====
+function hexA(hex,a){
+  const n=parseInt(hex.slice(1),16);
+  return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;
+}
+
+// ===== Render (önizleme = tam çözünürlük + kenar payı) =====
+function render(){
+  if(!S.img) return;
+  const iw=S.img.naturalWidth, ih=S.img.naturalHeight;
+
+  // Çerçeve/gölge taşmasını barındırmak için kenar payı (padding)
+  const bdExtra = S.bdOn ? (S.bdW + S.bdGap) : 0;
+  const shExtra = S.shOn ? (S.shBlur + Math.max(Math.abs(S.shX),Math.abs(S.shY))) : 0;
+  const pad = Math.ceil(Math.max(bdExtra, shExtra) + S.feather + 2);
+
+  const w=iw+pad*2, h=ih+pad*2;
+  cv.width=w; cv.height=h;
+  ctx.clearRect(0,0,w,h);
+
+  // Maske geometrisi (resim içi koordinat + pad kayması)
+  const cx=pad + iw/2 + S.ox*(iw/2);
+  const cy=pad + ih/2 + S.oy*(ih/2);
+  const rx=(iw/2)*S.scale;
+  const ry=(ih/2)*S.scale;
+  const rad=S.rot*Math.PI/180;
+
+  // --- 1) Maskelenmiş resmi ayrı katmanda hazırla ---
+  const cut=document.createElement("canvas"); cut.width=w; cut.height=h;
+  const cc=cut.getContext("2d");
+
+  if(S.feather>0){
+    const mc=document.createElement("canvas"); mc.width=w; mc.height=h;
+    const m=mc.getContext("2d");
+    m.save();
+    m.translate(cx,cy); m.rotate(rad); m.translate(-cx,-cy);
+    m.filter=`blur(${S.feather}px)`;
+    m.fillStyle="#fff";
+    maskePath(m,cx,cy,rx,ry,S.shape,S.sides);
+    m.fill(); m.restore();
+
+    cc.drawImage(S.img,pad,pad);
+    cc.globalCompositeOperation="destination-in";
+    cc.drawImage(mc,0,0);
+    cc.globalCompositeOperation="source-over";
+  } else {
+    cc.save();
+    cc.translate(cx,cy); cc.rotate(rad); cc.translate(-cx,-cy);
+    maskePath(cc,cx,cy,rx,ry,S.shape,S.sides);
+    cc.clip();
+    cc.drawImage(S.img,pad,pad);
+    cc.restore();
+  }
+
+  // --- 2) Gölge (kesilmiş şeklin altına) ---
+  if(S.shOn){
+    ctx.save();
+    ctx.shadowColor=hexA(S.shColor,1);
+    ctx.shadowBlur=S.shBlur;
+    ctx.shadowOffsetX=S.shX;
+    ctx.shadowOffsetY=S.shY;
+    ctx.drawImage(cut,0,0); // gölge bu çizimden türer
+    ctx.restore();
+  }
+
+  // --- 3) Maskelenmiş resmi yerleştir ---
+  ctx.drawImage(cut,0,0);
+
+  // --- 4) Çerçeve (offset'li dış hat) ---
+  if(S.bdOn){
+    const orx=rx+S.bdGap+S.bdW/2;
+    const ory=ry+S.bdGap+S.bdW/2;
+    ctx.save();
+    ctx.translate(cx,cy); ctx.rotate(rad); ctx.translate(-cx,-cy);
+    ctx.lineWidth=S.bdW;
+    ctx.strokeStyle=S.bdColor;
+    ctx.lineJoin="round";
+    maskePath(ctx,cx,cy,orx,ory,S.shape,S.sides);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  dimEl.textContent=`${w} × ${h} px`;
+}
+
+// ===== Fareyle maske sürükleme =====
+function evtPos(e){
+  const r=cv.getBoundingClientRect();
+  const t=e.touches?e.touches[0]:e;
+  return {x:(t.clientX-r.left)/r.width, y:(t.clientY-r.top)/r.height};
+}
+cv.addEventListener("pointerdown",e=>{
+  S.dragging=true; cv.classList.add("drag"); cv.setPointerCapture(e.pointerId);
+  const p=evtPos(e); S.sx=p.x; S.sy=p.y;
+});
+cv.addEventListener("pointermove",e=>{
+  if(!S.dragging) return;
+  const p=evtPos(e);
+  S.ox=Math.max(-1,Math.min(1, S.ox+(p.x-S.sx)*2));
+  S.oy=Math.max(-1,Math.min(1, S.oy+(p.y-S.sy)*2));
+  S.sx=p.x; S.sy=p.y;
+  $("ox").value=Math.round(S.ox*100); $("xV").textContent=Math.round(S.ox*100);
+  $("oy").value=Math.round(S.oy*100); $("yV").textContent=Math.round(S.oy*100);
+  render();
+});
+["pointerup","pointercancel"].forEach(ev=>cv.addEventListener(ev,()=>{S.dragging=false;cv.classList.remove("drag");}));
+
+// ===== PNG indir =====
+$("dl").onclick=()=>{
+  if(!S.img) return;
+  cv.toBlob(blob=>{
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url; a.download=`maske-${S.shape}-${Date.now()}.png`;
+    a.click();
+    setTimeout(()=>URL.revokeObjectURL(url),1500);
+  },"image/png");
+};
+</script>
+</body>
+</html>

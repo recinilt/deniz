@@ -29,11 +29,14 @@
   }
   h1{font-size:22px;font-weight:700;letter-spacing:.3px}
   h1 small{display:block;font-size:12px;color:var(--dim);font-weight:400;letter-spacing:.5px}
-  .wrap{display:grid;grid-template-columns:320px 1fr;gap:18px;align-items:start}
+  .wrap{display:grid;grid-template-columns:330px 1fr;gap:18px;align-items:start}
   @media(max-width:880px){.wrap{grid-template-columns:1fr}}
   .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
   .pad{padding:18px}
-  .sec-title{font-size:11px;text-transform:uppercase;letter-spacing:1.4px;color:var(--dim);margin-bottom:12px;font-weight:600}
+  .panel-scroll{max-height:calc(100vh - 120px);overflow-y:auto}
+  .panel-scroll::-webkit-scrollbar{width:8px}
+  .panel-scroll::-webkit-scrollbar-thumb{background:var(--line);border-radius:8px}
+  .sec-title{font-size:11px;text-transform:uppercase;letter-spacing:1.4px;color:var(--dim);margin-bottom:12px;font-weight:600;display:flex;align-items:center;justify-content:space-between}
   /* yükleme alanı */
   #drop{
     border:2px dashed var(--line);border-radius:12px;padding:26px 16px;text-align:center;
@@ -52,14 +55,29 @@
   .shape-btn:hover{border-color:var(--acc2);color:var(--txt)}
   .shape-btn.active{border-color:var(--acc);background:#2a2017;color:var(--acc);box-shadow:inset 0 0 0 1px var(--acc)}
   .shape-btn svg{width:26px;height:26px}
+  /* preset / chip grid */
+  .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{
+    border:1px solid var(--line);border-radius:8px;background:var(--panel2);color:var(--dim);
+    padding:6px 11px;font-size:12px;cursor:pointer;transition:.15s
+  }
+  .chip:hover{border-color:var(--acc2);color:var(--txt)}
+  .chip.active{border-color:var(--acc);color:var(--acc);background:#2a2017}
   /* kontroller */
   .ctrl{margin-bottom:14px}
-  .ctrl label{display:flex;justify-content:space-between;font-size:12px;color:var(--dim);margin-bottom:6px}
+  .ctrl label{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--dim);margin-bottom:6px}
   .ctrl label span{color:var(--txt);font-variant-numeric:tabular-nums}
   input[type=range]{width:100%;accent-color:var(--acc);cursor:pointer}
+  input[type=color]{border:none;background:none;width:34px;height:22px;cursor:pointer;padding:0}
+  select{
+    width:100%;background:var(--panel2);color:var(--txt);border:1px solid var(--line);
+    border-radius:8px;padding:8px 10px;font-size:13px;cursor:pointer
+  }
   .row{display:flex;gap:8px}
   .row .ctrl{flex:1}
   .hide{display:none!important}
+  .switch{display:flex;align-items:center;gap:8px}
+  .switch input{accent-color:var(--acc);width:15px;height:15px;cursor:pointer}
   .btn{
     width:100%;padding:13px;border:none;border-radius:11px;font-size:14px;font-weight:700;
     cursor:pointer;transition:.18s;letter-spacing:.3px
@@ -70,6 +88,13 @@
   .btn-ghost{background:var(--panel2);color:var(--dim);border:1px solid var(--line);margin-top:8px}
   .btn-ghost:hover{color:var(--txt);border-color:var(--acc2)}
   .btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important;box-shadow:none}
+  .mini-row{display:flex;gap:8px;margin-bottom:8px}
+  .mini-btn{
+    flex:1;padding:9px;border:1px solid var(--line);border-radius:9px;background:var(--panel2);
+    color:var(--dim);font-size:13px;font-weight:600;cursor:pointer;transition:.15s
+  }
+  .mini-btn:hover:not(:disabled){color:var(--txt);border-color:var(--acc2)}
+  .mini-btn:disabled{opacity:.35;cursor:not-allowed}
   /* sahne */
   .stage-card{padding:0;overflow:hidden;min-height:420px;display:flex;flex-direction:column}
   .stage-bar{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--line)}
@@ -79,24 +104,25 @@
     background:
       repeating-conic-gradient(#1a212e 0% 25%, #131925 0% 50%) 0/26px 26px;
   }
-  #cv{max-width:100%;max-height:62vh;touch-action:none;cursor:grab;border-radius:6px}
+  #cv{max-width:100%;max-height:64vh;touch-action:none;cursor:grab;border-radius:6px}
   #cv.drag{cursor:grabbing}
   .empty{color:var(--dim);text-align:center;font-size:14px}
   .empty .big{font-size:48px;opacity:.4;margin-bottom:10px}
   .tag{display:inline-block;font-size:11px;color:var(--acc2);border:1px solid var(--acc2);border-radius:20px;padding:3px 10px;margin-top:10px}
   .foot{font-size:11px;color:var(--dim);text-align:center;margin-top:18px;line-height:1.6}
   kbd{background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:11px}
+  .divider{height:1px;background:var(--line);margin:18px 0}
 </style>
 </head>
 <body>
 <header>
   <div class="logo">🎬</div>
-  <h1>Resim Maskeleyici<small>Şekille kırp · Şeffaf PNG indir</small></h1>
+  <h1>Resim Maskeleyici<small>Şekille kırp · Çerçeve · Gölge · Şeffaf PNG/WebP/JPG</small></h1>
 </header>
 
 <div class="wrap">
   <!-- SOL PANEL -->
-  <div class="card pad">
+  <div class="card pad panel-scroll">
     <div class="sec-title">1 · Resim</div>
     <div id="drop">
       <div class="ic">🖼️</div>
@@ -105,19 +131,28 @@
     <input type="file" id="file" accept="image/*" class="hide">
 
     <div id="tools" class="hide">
+      <!-- 2 ŞEKİL -->
       <div class="sec-title" style="margin-top:22px">2 · Şekil</div>
       <div class="shapes" id="shapes"></div>
-
       <div class="ctrl hide" id="sidesCtrl" style="margin-top:14px">
         <label>Çokgen köşe sayısı <span id="sidesV">5</span></label>
         <input type="range" id="sides" min="3" max="12" value="5">
       </div>
-
-      <div class="sec-title" style="margin-top:22px">3 · Ayarla</div>
-      <div class="row">
-        <div class="ctrl"><label>Boyut <span id="scaleV">80%</span></label>
-          <input type="range" id="scale" min="10" max="100" value="80"></div>
+      <div class="switch" style="margin-top:12px">
+        <input type="checkbox" id="invert">
+        <label style="font-size:12px;color:var(--dim);margin:0">Ters maske (içini kes, dışını göster)</label>
       </div>
+
+      <!-- 3 ORAN PRESET -->
+      <div class="sec-title" style="margin-top:22px">3 · Hazır Oran</div>
+      <div class="chips" id="presets"></div>
+
+      <!-- 4 AYARLA -->
+      <div class="sec-title" style="margin-top:22px">4 · Ayarla</div>
+      <div class="ctrl"><label>Boyut <span id="scaleV">80%</span></label>
+        <input type="range" id="scale" min="10" max="100" value="80"></div>
+      <div class="ctrl"><label>En/Boy oranı (maske) <span id="aspectV">otomatik</span></label>
+        <input type="range" id="aspect" min="50" max="200" value="100"></div>
       <div class="ctrl"><label>Döndür <span id="rotV">0°</span></label>
         <input type="range" id="rot" min="0" max="360" value="0"></div>
       <div class="ctrl"><label>Kenar yumuşatma <span id="featherV">0px</span></label>
@@ -128,19 +163,31 @@
         <div class="ctrl"><label>Dikey <span id="yV">0</span></label>
           <input type="range" id="oy" min="-100" max="100" value="0"></div>
       </div>
+      <p style="font-size:11px;color:var(--dim);margin-top:-6px">Maskeyi sürükle · köşeden boyutlandır · ok tuşlarıyla ince ayar (<kbd>Shift</kbd> hızlı)</p>
 
-      <div class="sec-title" style="margin-top:22px">4 · Çerçeve
-        <input type="checkbox" id="bdOn" style="float:right;accent-color:var(--acc)"></div>
+      <!-- 5 ÇERÇEVE 1 -->
+      <div class="sec-title" style="margin-top:22px">5 · Çerçeve
+        <span class="switch"><input type="checkbox" id="bdOn"></span></div>
       <div id="bdBox" class="hide">
         <div class="ctrl"><label>Kalınlık <span id="bdWV">8px</span></label>
           <input type="range" id="bdW" min="1" max="60" value="8"></div>
         <div class="ctrl"><label>Boşluk (offset) <span id="bdGapV">0px</span></label>
           <input type="range" id="bdGap" min="0" max="60" value="0"></div>
-        <div class="ctrl"><label>Renk <input type="color" id="bdColor" value="#ffffff" style="border:none;background:none;width:34px;height:22px;cursor:pointer;padding:0"></label></div>
+        <div class="ctrl"><label>Renk <input type="color" id="bdColor" value="#ffffff"></label></div>
+        <!-- ÇERÇEVE 2 -->
+        <div class="switch" style="margin:4px 0 10px"><input type="checkbox" id="bd2On"><label style="font-size:12px;color:var(--dim);margin:0">İkinci çerçeve (çift hat)</label></div>
+        <div id="bd2Box" class="hide">
+          <div class="ctrl"><label>Kalınlık 2 <span id="bd2WV">6px</span></label>
+            <input type="range" id="bd2W" min="1" max="60" value="6"></div>
+          <div class="ctrl"><label>Boşluk 2 <span id="bd2GapV">2px</span></label>
+            <input type="range" id="bd2Gap" min="0" max="60" value="2"></div>
+          <div class="ctrl"><label>Renk 2 <input type="color" id="bd2Color" value="#ff7a3d"></label></div>
+        </div>
       </div>
 
-      <div class="sec-title" style="margin-top:14px">5 · Gölge
-        <input type="checkbox" id="shOn" style="float:right;accent-color:var(--acc)"></div>
+      <!-- 6 DIŞ GÖLGE -->
+      <div class="sec-title" style="margin-top:14px">6 · Dış Gölge
+        <span class="switch"><input type="checkbox" id="shOn"></span></div>
       <div id="shBox" class="hide">
         <div class="ctrl"><label>Bulanıklık <span id="shBlurV">20px</span></label>
           <input type="range" id="shBlur" min="0" max="80" value="20"></div>
@@ -150,12 +197,87 @@
           <div class="ctrl"><label>Dikey <span id="shYV">8</span></label>
             <input type="range" id="shY" min="-60" max="60" value="8"></div>
         </div>
-        <div class="ctrl"><label>Renk <input type="color" id="shColor" value="#000000" style="border:none;background:none;width:34px;height:22px;cursor:pointer;padding:0"></label></div>
+        <div class="ctrl"><label>Renk <input type="color" id="shColor" value="#000000"></label></div>
       </div>
 
-      <div class="sec-title" style="margin-top:14px">6 · İndir</div>
-      <button class="btn btn-primary" id="dl">⬇ Şeffaf PNG indir</button>
-      <button class="btn btn-ghost" id="reset">↺ Sıfırla</button>
+      <!-- 7 İÇ GÖLGE -->
+      <div class="sec-title" style="margin-top:14px">7 · İç Gölge
+        <span class="switch"><input type="checkbox" id="inOn"></span></div>
+      <div id="inBox" class="hide">
+        <div class="ctrl"><label>Bulanıklık <span id="inBlurV">15px</span></label>
+          <input type="range" id="inBlur" min="1" max="60" value="15"></div>
+        <div class="ctrl"><label>Yoğunluk <span id="inAlphaV">60%</span></label>
+          <input type="range" id="inAlpha" min="10" max="100" value="60"></div>
+        <div class="ctrl"><label>Renk <input type="color" id="inColor" value="#000000"></label></div>
+      </div>
+
+      <!-- 8 ARKA PLAN -->
+      <div class="sec-title" style="margin-top:14px">8 · Arka Plan</div>
+      <select id="bgMode">
+        <option value="transparent">Şeffaf (varsayılan)</option>
+        <option value="solid">Düz renk</option>
+        <option value="gradient">Degrade</option>
+      </select>
+      <div id="bgSolid" class="hide" style="margin-top:10px">
+        <div class="ctrl"><label>Renk <input type="color" id="bgColor" value="#ffffff"></label></div>
+      </div>
+      <div id="bgGrad" class="hide" style="margin-top:10px">
+        <div class="row">
+          <div class="ctrl"><label>Renk A <input type="color" id="bgC1" value="#ff7a3d"></label></div>
+          <div class="ctrl"><label>Renk B <input type="color" id="bgC2" value="#34d8c4"></label></div>
+        </div>
+        <div class="ctrl"><label>Açı <span id="bgAngleV">90°</span></label>
+          <input type="range" id="bgAngle" min="0" max="360" value="90"></div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- GERİ/İLERİ -->
+      <div class="mini-row">
+        <button class="mini-btn" id="undo" disabled>↶ Geri</button>
+        <button class="mini-btn" id="redo" disabled>↷ İleri</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- AYAR PRESET (localStorage) -->
+      <div class="sec-title">Kayıtlı Ayarlar</div>
+      <div class="row">
+        <div class="ctrl" style="flex:2;margin-bottom:8px"><label style="margin-bottom:6px">Uygula</label>
+          <select id="presetList"><option value="">— seç —</option></select></div>
+        <div class="ctrl" style="flex:0 0 auto;display:flex;align-items:flex-end;margin-bottom:8px">
+          <button class="mini-btn" id="presetDel" style="flex:none;padding:8px 12px" disabled>🗑</button></div>
+      </div>
+      <div class="row" style="gap:8px">
+        <input type="text" id="presetName" placeholder="ayar adı (örn: Logo dairesi)"
+          style="flex:1;background:var(--panel2);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:9px 10px;font-size:13px">
+        <button class="mini-btn" id="presetSave" style="flex:0 0 auto;padding:9px 14px">💾 Kaydet</button>
+      </div>
+      <p style="font-size:11px;color:var(--dim);margin-top:6px">Ayarlar tarayıcında saklanır. Yeni resim yükleyip ayarı seç → anında uygulanır (resim kaydedilmez).</p>
+      <div class="mini-row" style="margin-top:8px">
+        <button class="mini-btn" id="presetExport">⬆ JSON dışa aktar</button>
+        <button class="mini-btn" id="presetImport">⬇ JSON içe aktar</button>
+      </div>
+      <input type="file" id="presetFile" accept="application/json,.json" class="hide">
+
+      <div class="divider"></div>
+
+      <!-- 9 İNDİR -->
+      <div class="sec-title">9 · İndir</div>
+      <div class="row">
+        <div class="ctrl"><label>Format</label>
+          <select id="fmt">
+            <option value="png">PNG (şeffaf)</option>
+            <option value="webp">WebP</option>
+            <option value="jpeg">JPG</option>
+          </select></div>
+        <div class="ctrl"><label>Genişlik <span id="outWV">orijinal</span></label>
+          <input type="range" id="outW" min="64" max="100" value="100"></div>
+      </div>
+      <div class="ctrl hide" id="qualityCtrl"><label>Kalite <span id="qualityV">92%</span></label>
+        <input type="range" id="quality" min="40" max="100" value="92"></div>
+      <button class="btn btn-primary" id="dl">⬇ İndir</button>
+      <button class="btn btn-ghost" id="reset">↺ Tümünü sıfırla</button>
     </div>
   </div>
 
@@ -177,7 +299,7 @@
 </div>
 
 <p class="foot">
-  Maske fareyle sürüklenebilir · <kbd>Ctrl+V</kbd> yapıştır · indirilen PNG, maske dışını şeffaf bırakır.<br>
+  Köşe tutamaçlarından boyutlandır · gövdeden sürükle · <kbd>Ctrl+Z</kbd>/<kbd>Ctrl+Y</kbd> geri-ileri · <kbd>Ctrl+V</kbd> yapıştır.<br>
   Tüm işlem tarayıcında çalışır, resim hiçbir yere yüklenmez.
 </p>
 
@@ -186,16 +308,29 @@
 
 // ===== Durum =====
 const S = {
-  img:null, shape:"circle", sides:5,
-  scale:.8, rot:0, feather:0, ox:0, oy:0, // ox/oy oran (-1..1)
-  // çerçeve
+  img:null, shape:"circle", sides:5, invert:false,
+  scale:.8, aspect:1, rot:0, feather:0, ox:0, oy:0, // ox/oy oran (-1..1)
+  // çerçeve 1
   bdOn:false, bdW:8, bdColor:"#ffffff", bdGap:0,
-  // gölge
+  // çerçeve 2
+  bd2On:false, bd2W:6, bd2Color:"#ff7a3d", bd2Gap:2,
+  // dış gölge
   shOn:false, shBlur:20, shColor:"#000000", shX:0, shY:8,
-  dragging:false, sx:0, sy:0
+  // iç gölge
+  inOn:false, inBlur:15, inAlpha:.6, inColor:"#000000",
+  // arka plan
+  bgMode:"transparent", bgColor:"#ffffff", bgC1:"#ff7a3d", bgC2:"#34d8c4", bgAngle:90,
+  // çıktı
+  fmt:"png", outW:1, quality:.92
 };
 
-// ===== Şekil tanımları (ikon + path çizici) =====
+// İzlenen (undo/redo) anahtarlar — img ve etkileşim durumu hariç
+const TRACK = ["shape","sides","invert","scale","aspect","rot","feather","ox","oy",
+  "bdOn","bdW","bdColor","bdGap","bd2On","bd2W","bd2Color","bd2Gap",
+  "shOn","shBlur","shColor","shX","shY","inOn","inBlur","inAlpha","inColor",
+  "bgMode","bgColor","bgC1","bgC2","bgAngle","fmt","outW","quality"];
+
+// ===== Şekil tanımları =====
 const SHAPES = {
   circle:   {icon:'<circle cx="13" cy="13" r="10"/>', name:"Daire"},
   ellipse:  {icon:'<ellipse cx="13" cy="13" rx="11" ry="7"/>', name:"Elips"},
@@ -209,13 +344,23 @@ const SHAPES = {
   polygon:  {icon:'<polygon points="13,3 21,9 18,21 8,21 5,9"/>', name:"Çokgen (serbest)"}
 };
 
+// ===== Hazır oranlar (aspect = w/h hedefi) =====
+const PRESETS = [
+  {id:"free",  label:"Serbest", aspect:null, shape:null},
+  {id:"1:1",   label:"1:1 Kare", aspect:1, shape:null},
+  {id:"4:5",   label:"4:5", aspect:0.8, shape:null},
+  {id:"9:16",  label:"9:16 Story", aspect:9/16, shape:null},
+  {id:"16:9",  label:"16:9", aspect:16/9, shape:null},
+  {id:"avatar",label:"Avatar ◯", aspect:1, shape:"circle"}
+];
+
 // ===== DOM =====
 const $ = id => document.getElementById(id);
 const drop=$("drop"), file=$("file"), tools=$("tools"), shapesEl=$("shapes"),
-      cv=$("cv"), ctx=cv.getContext("2d"), empty=$("empty"), dimEl=$("dim");
-const sidesCtrl=$("sidesCtrl");
+      cv=$("cv"), ctx=cv.getContext("2d"), empty=$("empty"), dimEl=$("dim"),
+      sidesCtrl=$("sidesCtrl"), presetsEl=$("presets");
 
-// Şekil butonlarını üret
+// Şekil butonları
 for(const [k,v] of Object.entries(SHAPES)){
   const b=document.createElement("button");
   b.className="shape-btn"+(k===S.shape?" active":"");
@@ -226,10 +371,35 @@ for(const [k,v] of Object.entries(SHAPES)){
     document.querySelectorAll(".shape-btn").forEach(x=>x.classList.remove("active"));
     b.classList.add("active");
     sidesCtrl.classList.toggle("hide", k!=="polygon");
-    render();
+    snapshot(); render();
   };
   shapesEl.appendChild(b);
 }
+
+// Preset chip'leri
+PRESETS.forEach(p=>{
+  const c=document.createElement("button");
+  c.className="chip"+(p.id==="free"?" active":"");
+  c.textContent=p.label; c.dataset.id=p.id;
+  c.onclick=()=>{
+    document.querySelectorAll(".chip").forEach(x=>x.classList.remove("active"));
+    c.classList.add("active");
+    if(p.aspect!=null){
+      S.aspect=p.aspect;
+      $("aspect").value=Math.round(p.aspect*100);
+      $("aspectV").textContent=p.label;
+    } else {
+      $("aspectV").textContent="serbest";
+    }
+    if(p.shape){
+      S.shape=p.shape;
+      document.querySelectorAll(".shape-btn").forEach(x=>x.classList.toggle("active",x.dataset.shape===p.shape));
+      sidesCtrl.classList.toggle("hide", p.shape!=="polygon");
+    }
+    snapshot(); render();
+  };
+  presetsEl.appendChild(c);
+});
 
 // ===== Resim yükleme =====
 drop.onclick=()=>file.click();
@@ -252,7 +422,8 @@ function loadFile(f){
       tools.classList.remove("hide");
       empty.classList.add("hide");
       cv.classList.remove("hide");
-      resetParams(false);
+      resetParams();
+      history.length=0; hIndex=-1; snapshot();
       render();
     };
     im.src=ev.target.result;
@@ -261,47 +432,150 @@ function loadFile(f){
 }
 
 // ===== Kontrol bağlama =====
-const bind=(id,prop,fmt,div=1)=>{
-  const el=$(id), out=$(id+"V"||"");
-  el.oninput=()=>{
-    S[prop]=(+el.value)/div;
-    const lbl=$(({scale:"scaleV",rot:"rotV",feather:"featherV",ox:"xV",oy:"yV",sides:"sidesV"})[id]);
-    if(lbl) lbl.textContent=fmt(+el.value);
-    render();
-  };
-};
-bind("scale","scale",v=>v+"%",100);
-bind("rot","rot",v=>v+"°");
-bind("feather","feather",v=>v+"px");
-bind("ox","ox",v=>v,100);
-bind("oy","oy",v=>v,100);
+// slider: değer + label + snapshot (debounce)
+function slider(id,prop,fmt,div=1){
+  const el=$(id), lbl=$(id+"V");
+  el.oninput=()=>{ S[prop]=(+el.value)/div; if(lbl) lbl.textContent=fmt(+el.value); render(); };
+  el.onchange=()=>snapshot();
+}
+slider("scale","scale",v=>v+"%",100);
+slider("aspect","aspect",v=>(v/100).toFixed(2)+"×",100);
+slider("rot","rot",v=>v+"°");
+slider("feather","feather",v=>v+"px");
+slider("ox","ox",v=>v,100);
+slider("oy","oy",v=>v,100);
 $("sides").oninput=e=>{ S.sides=+e.target.value; $("sidesV").textContent=S.sides; render(); };
+$("sides").onchange=snapshot;
+$("invert").onchange=e=>{ S.invert=e.target.checked; snapshot(); render(); };
+$("aspect").addEventListener("input",()=>{ $("aspectV").textContent=(+$("aspect").value/100).toFixed(2)+"×"; });
 
-// çerçeve
-$("bdOn").onchange=e=>{ S.bdOn=e.target.checked; $("bdBox").classList.toggle("hide",!S.bdOn); render(); };
-$("bdW").oninput=e=>{ S.bdW=+e.target.value; $("bdWV").textContent=S.bdW+"px"; render(); };
-$("bdGap").oninput=e=>{ S.bdGap=+e.target.value; $("bdGapV").textContent=S.bdGap+"px"; render(); };
-$("bdColor").oninput=e=>{ S.bdColor=e.target.value; render(); };
-// gölge
-$("shOn").onchange=e=>{ S.shOn=e.target.checked; $("shBox").classList.toggle("hide",!S.shOn); render(); };
-$("shBlur").oninput=e=>{ S.shBlur=+e.target.value; $("shBlurV").textContent=S.shBlur+"px"; render(); };
-$("shX").oninput=e=>{ S.shX=+e.target.value; $("shXV").textContent=S.shX; render(); };
-$("shY").oninput=e=>{ S.shY=+e.target.value; $("shYV").textContent=S.shY; render(); };
-$("shColor").oninput=e=>{ S.shColor=e.target.value; render(); };
+// çerçeve 1
+toggle("bdOn","bdOn","bdBox");
+slider("bdW","bdW",v=>v+"px");
+slider("bdGap","bdGap",v=>v+"px");
+color("bdColor","bdColor");
+// çerçeve 2
+toggle("bd2On","bd2On","bd2Box");
+slider("bd2W","bd2W",v=>v+"px");
+slider("bd2Gap","bd2Gap",v=>v+"px");
+color("bd2Color","bd2Color");
+// dış gölge
+toggle("shOn","shOn","shBox");
+slider("shBlur","shBlur",v=>v+"px");
+slider("shX","shX",v=>v);
+slider("shY","shY",v=>v);
+color("shColor","shColor");
+// iç gölge
+toggle("inOn","inOn","inBox");
+slider("inBlur","inBlur",v=>v+"px");
+slider("inAlpha","inAlpha",v=>v+"%",100);
+color("inColor","inColor");
+// arka plan
+$("bgMode").onchange=e=>{
+  S.bgMode=e.target.value;
+  $("bgSolid").classList.toggle("hide",S.bgMode!=="solid");
+  $("bgGrad").classList.toggle("hide",S.bgMode!=="gradient");
+  snapshot(); render();
+};
+color("bgColor","bgColor");
+color("bgC1","bgC1"); color("bgC2","bgC2");
+slider("bgAngle","bgAngle",v=>v+"°");
+// çıktı
+$("fmt").onchange=e=>{
+  S.fmt=e.target.value;
+  $("qualityCtrl").classList.toggle("hide",S.fmt==="png");
+  snapshot();
+};
+$("outW").oninput=e=>{ S.outW=(+e.target.value)/100; updateOutLabel(); };
+$("outW").onchange=snapshot;
+slider("quality","quality",v=>v+"%",100);
 
-$("reset").onclick=()=>{ resetParams(true); render(); };
-function resetParams(updateUI){
-  S.scale=.8; S.rot=0; S.feather=0; S.ox=0; S.oy=0;
-  if(updateUI||true){
-    $("scale").value=80; $("scaleV").textContent="80%";
-    $("rot").value=0; $("rotV").textContent="0°";
-    $("feather").value=0; $("featherV").textContent="0px";
-    $("ox").value=0; $("xV").textContent="0";
-    $("oy").value=0; $("yV").textContent="0";
-  }
+function toggle(id,prop,boxId){
+  $(id).onchange=e=>{ S[prop]=e.target.checked; $(boxId).classList.toggle("hide",!S[prop]); snapshot(); render(); };
+}
+function color(id,prop){
+  $(id).oninput=e=>{ S[prop]=e.target.value; render(); };
+  $(id).onchange=snapshot;
+}
+function updateOutLabel(){
+  if(!S.img){ $("outWV").textContent="orijinal"; return; }
+  const w=Math.round(S.img.naturalWidth*S.outW);
+  $("outWV").textContent = S.outW>=1 ? "orijinal" : w+"px";
 }
 
-// ===== Maske yolu çizimi (merkez cx,cy ; yarı genişlik/yükseklik rx,ry) =====
+$("reset").onclick=()=>{ resetParams(); snapshot(); render(); };
+function resetParams(){
+  Object.assign(S,{
+    scale:.8, aspect:1, rot:0, feather:0, ox:0, oy:0, invert:false,
+    bdOn:false, bdW:8, bdColor:"#ffffff", bdGap:0,
+    bd2On:false, bd2W:6, bd2Color:"#ff7a3d", bd2Gap:2,
+    shOn:false, shBlur:20, shColor:"#000000", shX:0, shY:8,
+    inOn:false, inBlur:15, inAlpha:.6, inColor:"#000000",
+    bgMode:"transparent", bgColor:"#ffffff", bgC1:"#ff7a3d", bgC2:"#34d8c4", bgAngle:90,
+    fmt:"png", outW:1, quality:.92
+  });
+  syncUI();
+}
+
+// Tüm UI'ı S'e göre senkronla (reset / undo / redo sonrası)
+function syncUI(){
+  const set=(id,val)=>{ if($(id)) $(id).value=val; };
+  const txt=(id,val)=>{ if($(id)) $(id).textContent=val; };
+  const chk=(id,val)=>{ if($(id)) $(id).checked=val; };
+  set("scale",Math.round(S.scale*100)); txt("scaleV",Math.round(S.scale*100)+"%");
+  set("aspect",Math.round(S.aspect*100)); txt("aspectV",S.aspect.toFixed(2)+"×");
+  set("rot",S.rot); txt("rotV",S.rot+"°");
+  set("feather",S.feather); txt("featherV",S.feather+"px");
+  set("ox",Math.round(S.ox*100)); txt("xV",Math.round(S.ox*100));
+  set("oy",Math.round(S.oy*100)); txt("yV",Math.round(S.oy*100));
+  set("sides",S.sides); txt("sidesV",S.sides);
+  chk("invert",S.invert);
+  // çerçeve
+  chk("bdOn",S.bdOn); $("bdBox").classList.toggle("hide",!S.bdOn);
+  set("bdW",S.bdW); txt("bdWV",S.bdW+"px"); set("bdGap",S.bdGap); txt("bdGapV",S.bdGap+"px"); set("bdColor",S.bdColor);
+  chk("bd2On",S.bd2On); $("bd2Box").classList.toggle("hide",!S.bd2On);
+  set("bd2W",S.bd2W); txt("bd2WV",S.bd2W+"px"); set("bd2Gap",S.bd2Gap); txt("bd2GapV",S.bd2Gap+"px"); set("bd2Color",S.bd2Color);
+  // gölgeler
+  chk("shOn",S.shOn); $("shBox").classList.toggle("hide",!S.shOn);
+  set("shBlur",S.shBlur); txt("shBlurV",S.shBlur+"px"); set("shX",S.shX); txt("shXV",S.shX); set("shY",S.shY); txt("shYV",S.shY); set("shColor",S.shColor);
+  chk("inOn",S.inOn); $("inBox").classList.toggle("hide",!S.inOn);
+  set("inBlur",S.inBlur); txt("inBlurV",S.inBlur+"px"); set("inAlpha",Math.round(S.inAlpha*100)); txt("inAlphaV",Math.round(S.inAlpha*100)+"%"); set("inColor",S.inColor);
+  // arka plan
+  set("bgMode",S.bgMode); $("bgSolid").classList.toggle("hide",S.bgMode!=="solid"); $("bgGrad").classList.toggle("hide",S.bgMode!=="gradient");
+  set("bgColor",S.bgColor); set("bgC1",S.bgC1); set("bgC2",S.bgC2); set("bgAngle",S.bgAngle); txt("bgAngleV",S.bgAngle+"°");
+  // çıktı
+  set("fmt",S.fmt); $("qualityCtrl").classList.toggle("hide",S.fmt==="png");
+  set("outW",Math.round(S.outW*100)); updateOutLabel();
+  set("quality",Math.round(S.quality*100)); txt("qualityV",Math.round(S.quality*100)+"%");
+  // şekil
+  document.querySelectorAll(".shape-btn").forEach(x=>x.classList.toggle("active",x.dataset.shape===S.shape));
+  sidesCtrl.classList.toggle("hide",S.shape!=="polygon");
+}
+
+// ===== Geri/İleri (undo/redo) =====
+let history=[], hIndex=-1;
+function snapshot(){
+  const snap={}; TRACK.forEach(k=>snap[k]=S[k]);
+  // aynı durumsa kaydetme
+  if(hIndex>=0 && JSON.stringify(history[hIndex])===JSON.stringify(snap)) return;
+  history=history.slice(0,hIndex+1);
+  history.push(snap); hIndex=history.length-1;
+  if(history.length>60){ history.shift(); hIndex--; }
+  updateHistBtns();
+}
+function applySnap(snap){ TRACK.forEach(k=>S[k]=snap[k]); syncUI(); render(); }
+function undo(){ if(hIndex>0){ hIndex--; applySnap(history[hIndex]); updateHistBtns(); } }
+function redo(){ if(hIndex<history.length-1){ hIndex++; applySnap(history[hIndex]); updateHistBtns(); } }
+function updateHistBtns(){ $("undo").disabled=hIndex<=0; $("redo").disabled=hIndex>=history.length-1; }
+$("undo").onclick=undo; $("redo").onclick=redo;
+
+// ===== Yardımcı =====
+function hexA(hex,a){
+  const n=parseInt(hex.slice(1),16);
+  return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;
+}
+
+// ===== Maske yolu çizimi =====
 function maskePath(c, cx, cy, rx, ry, shape, sides){
   c.beginPath();
   switch(shape){
@@ -336,10 +610,9 @@ function starPath(c,cx,cy,rx,ry,points){
   }
 }
 function heartPath(c,cx,cy,rx,ry){
-  // parametrik kalp, (rx,ry) kutusuna ölçeklenir
   const steps=60;
   for(let i=0;i<=steps;i++){
-    const t=Math.PI - i*2*Math.PI/steps; // tepe ortada
+    const t=Math.PI - i*2*Math.PI/steps;
     const px=16*Math.pow(Math.sin(t),3);
     const py=13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t);
     const x=cx+(px/17)*rx;
@@ -348,124 +621,358 @@ function heartPath(c,cx,cy,rx,ry){
   }
 }
 
-// ===== Yardımcı: hex → rgba =====
-function hexA(hex,a){
-  const n=parseInt(hex.slice(1),16);
-  return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;
+// ===== Geometri hesabı (maske kutusu) =====
+function geom(iw,ih,pad){
+  const cx=pad + iw/2 + S.ox*(iw/2);
+  const cy=pad + ih/2 + S.oy*(ih/2);
+  const base=Math.min(iw,ih)/2;
+  // aspect: >1 yatay genişler, <1 dikey
+  let rx=base*S.scale*Math.sqrt(S.aspect);
+  let ry=base*S.scale/Math.sqrt(S.aspect);
+  return {cx,cy,rx,ry,rad:S.rot*Math.PI/180};
 }
 
-// ===== Render (önizleme = tam çözünürlük + kenar payı) =====
+// ===== Ortak çizim (hem önizleme hem export) =====
+// targetCtx üzerine, verilen iw/ih/pad ile tam kompozisyonu çizer (handle hariç)
+function compose(c, iw, ih, pad, W, H){
+  c.clearRect(0,0,W,H);
+  const g=geom(iw,ih,pad);
+  const {cx,cy,rx,ry,rad}=g;
+
+  // 0) arka plan
+  if(S.bgMode==="solid"){ c.fillStyle=S.bgColor; c.fillRect(0,0,W,H); }
+  else if(S.bgMode==="gradient"){
+    const a=S.bgAngle*Math.PI/180, dx=Math.cos(a)*W/2, dy=Math.sin(a)*H/2;
+    const gr=c.createLinearGradient(W/2-dx,H/2-dy,W/2+dx,H/2+dy);
+    gr.addColorStop(0,S.bgC1); gr.addColorStop(1,S.bgC2);
+    c.fillStyle=gr; c.fillRect(0,0,W,H);
+  }
+
+  // 1) maskelenmiş resim (ayrı katman)
+  const cut=document.createElement("canvas"); cut.width=W; cut.height=H;
+  const cc=cut.getContext("2d");
+  if(S.feather>0){
+    const mc=document.createElement("canvas"); mc.width=W; mc.height=H;
+    const m=mc.getContext("2d");
+    m.save(); m.translate(cx,cy); m.rotate(rad); m.translate(-cx,-cy);
+    m.filter=`blur(${S.feather}px)`; m.fillStyle="#fff";
+    maskePath(m,cx,cy,rx,ry,S.shape,S.sides); m.fill(); m.restore();
+    cc.drawImage(S.img,pad,pad,iw,ih);
+    // normal: şekil içini tut (destination-in) / ters: şekil içini sil (destination-out)
+    cc.globalCompositeOperation = S.invert ? "destination-out" : "destination-in";
+    cc.drawImage(mc,0,0);
+    cc.globalCompositeOperation="source-over";
+  } else if(S.invert){
+    // ters keskin: tüm resmi çiz, sonra şeklin içini sil
+    cc.drawImage(S.img,pad,pad,iw,ih);
+    cc.save(); cc.translate(cx,cy); cc.rotate(rad); cc.translate(-cx,-cy);
+    cc.globalCompositeOperation="destination-out";
+    maskePath(cc,cx,cy,rx,ry,S.shape,S.sides); cc.fill();
+    cc.restore(); cc.globalCompositeOperation="source-over";
+  } else {
+    cc.save(); cc.translate(cx,cy); cc.rotate(rad); cc.translate(-cx,-cy);
+    maskePath(cc,cx,cy,rx,ry,S.shape,S.sides); cc.clip();
+    cc.drawImage(S.img,pad,pad,iw,ih); cc.restore();
+  }
+
+  // 2) iç gölge → cut katmanına işle
+  if(S.inOn){
+    const sc=document.createElement("canvas"); sc.width=W; sc.height=H;
+    const s=sc.getContext("2d");
+    // ters maske: büyük dikdörtgen - şekil deliği → blur → şekille kırp
+    s.save(); s.translate(cx,cy); s.rotate(rad); s.translate(-cx,-cy);
+    s.fillStyle=hexA(S.inColor,1);
+    s.fillRect(-W,-H,W*3,H*3);
+    s.globalCompositeOperation="destination-out";
+    maskePath(s,cx,cy,rx,ry,S.shape,S.sides); s.fill();
+    s.restore();
+    // blur
+    const bc=document.createElement("canvas"); bc.width=W; bc.height=H;
+    const b=bc.getContext("2d");
+    b.filter=`blur(${S.inBlur}px)`; b.drawImage(sc,0,0);
+    // sadece şekil içinde göster
+    b.globalCompositeOperation="destination-in";
+    b.save(); b.filter="none"; b.translate(cx,cy); b.rotate(rad); b.translate(-cx,-cy);
+    maskePath(b,cx,cy,rx,ry,S.shape,S.sides); b.fillStyle="#fff"; b.fill(); b.restore();
+    // cut üstüne bindir
+    cc.globalAlpha=S.inAlpha;
+    cc.drawImage(bc,0,0);
+    cc.globalAlpha=1;
+  }
+
+  // 3) dış gölge
+  if(S.shOn){
+    c.save();
+    c.shadowColor=hexA(S.shColor,1);
+    c.shadowBlur=S.shBlur; c.shadowOffsetX=S.shX; c.shadowOffsetY=S.shY;
+    c.drawImage(cut,0,0);
+    c.restore();
+  }
+
+  // 4) maskeli resmi yerleştir
+  c.drawImage(cut,0,0);
+
+  // 5) çerçeve 1
+  if(S.bdOn){
+    const orx=rx+S.bdGap+S.bdW/2, ory=ry+S.bdGap+S.bdW/2;
+    c.save(); c.translate(cx,cy); c.rotate(rad); c.translate(-cx,-cy);
+    c.lineWidth=S.bdW; c.strokeStyle=S.bdColor; c.lineJoin="round";
+    maskePath(c,cx,cy,orx,ory,S.shape,S.sides); c.stroke(); c.restore();
+  }
+  // 6) çerçeve 2 (daha dışta)
+  if(S.bdOn && S.bd2On){
+    const base2=S.bdGap+S.bdW+S.bd2Gap;
+    const orx=rx+base2+S.bd2W/2, ory=ry+base2+S.bd2W/2;
+    c.save(); c.translate(cx,cy); c.rotate(rad); c.translate(-cx,-cy);
+    c.lineWidth=S.bd2W; c.strokeStyle=S.bd2Color; c.lineJoin="round";
+    maskePath(c,cx,cy,orx,ory,S.shape,S.sides); c.stroke(); c.restore();
+  }
+
+  return g;
+}
+
+// ===== Önizleme render =====
+let lastGeom=null, lastPad=0, lastIW=0, lastIH=0;
 function render(){
   if(!S.img) return;
   const iw=S.img.naturalWidth, ih=S.img.naturalHeight;
-
-  // Çerçeve/gölge taşmasını barındırmak için kenar payı (padding)
-  const bdExtra = S.bdOn ? (S.bdW + S.bdGap) : 0;
-  const shExtra = S.shOn ? (S.shBlur + Math.max(Math.abs(S.shX),Math.abs(S.shY))) : 0;
-  const pad = Math.ceil(Math.max(bdExtra, shExtra) + S.feather + 2);
-
-  const w=iw+pad*2, h=ih+pad*2;
-  cv.width=w; cv.height=h;
-  ctx.clearRect(0,0,w,h);
-
-  // Maske geometrisi (resim içi koordinat + pad kayması)
-  const cx=pad + iw/2 + S.ox*(iw/2);
-  const cy=pad + ih/2 + S.oy*(ih/2);
-  const rx=(iw/2)*S.scale;
-  const ry=(ih/2)*S.scale;
-  const rad=S.rot*Math.PI/180;
-
-  // --- 1) Maskelenmiş resmi ayrı katmanda hazırla ---
-  const cut=document.createElement("canvas"); cut.width=w; cut.height=h;
-  const cc=cut.getContext("2d");
-
-  if(S.feather>0){
-    const mc=document.createElement("canvas"); mc.width=w; mc.height=h;
-    const m=mc.getContext("2d");
-    m.save();
-    m.translate(cx,cy); m.rotate(rad); m.translate(-cx,-cy);
-    m.filter=`blur(${S.feather}px)`;
-    m.fillStyle="#fff";
-    maskePath(m,cx,cy,rx,ry,S.shape,S.sides);
-    m.fill(); m.restore();
-
-    cc.drawImage(S.img,pad,pad);
-    cc.globalCompositeOperation="destination-in";
-    cc.drawImage(mc,0,0);
-    cc.globalCompositeOperation="source-over";
-  } else {
-    cc.save();
-    cc.translate(cx,cy); cc.rotate(rad); cc.translate(-cx,-cy);
-    maskePath(cc,cx,cy,rx,ry,S.shape,S.sides);
-    cc.clip();
-    cc.drawImage(S.img,pad,pad);
-    cc.restore();
-  }
-
-  // --- 2) Gölge (kesilmiş şeklin altına) ---
-  if(S.shOn){
-    ctx.save();
-    ctx.shadowColor=hexA(S.shColor,1);
-    ctx.shadowBlur=S.shBlur;
-    ctx.shadowOffsetX=S.shX;
-    ctx.shadowOffsetY=S.shY;
-    ctx.drawImage(cut,0,0); // gölge bu çizimden türer
-    ctx.restore();
-  }
-
-  // --- 3) Maskelenmiş resmi yerleştir ---
-  ctx.drawImage(cut,0,0);
-
-  // --- 4) Çerçeve (offset'li dış hat) ---
-  if(S.bdOn){
-    const orx=rx+S.bdGap+S.bdW/2;
-    const ory=ry+S.bdGap+S.bdW/2;
-    ctx.save();
-    ctx.translate(cx,cy); ctx.rotate(rad); ctx.translate(-cx,-cy);
-    ctx.lineWidth=S.bdW;
-    ctx.strokeStyle=S.bdColor;
-    ctx.lineJoin="round";
-    maskePath(ctx,cx,cy,orx,ory,S.shape,S.sides);
-    ctx.stroke();
-    ctx.restore();
-  }
-
-  dimEl.textContent=`${w} × ${h} px`;
+  const bdExtra = S.bdOn ? (S.bdW+S.bdGap+(S.bd2On?S.bd2Gap+S.bd2W:0)) : 0;
+  const shExtra = S.shOn ? (S.shBlur+Math.max(Math.abs(S.shX),Math.abs(S.shY))) : 0;
+  const pad = Math.ceil(Math.max(bdExtra,shExtra)+S.feather+2);
+  const W=iw+pad*2, H=ih+pad*2;
+  cv.width=W; cv.height=H;
+  lastGeom=compose(ctx,iw,ih,pad,W,H);
+  lastPad=pad; lastIW=iw; lastIH=ih;
+  drawHandles();
+  dimEl.textContent=`${W} × ${H} px`;
+  updateOutLabel();
 }
 
-// ===== Fareyle maske sürükleme =====
-function evtPos(e){
+// Köşe tutamaçlarını önizlemeye çiz (export'a değil)
+function drawHandles(){
+  if(!lastGeom) return;
+  const {cx,cy,rx,ry,rad}=lastGeom;
+  const corners=handleCorners();
+  ctx.save();
+  // bağlantı kutusu
+  ctx.translate(cx,cy); ctx.rotate(rad); ctx.translate(-cx,-cy);
+  ctx.strokeStyle="rgba(255,122,61,.6)"; ctx.lineWidth=1; ctx.setLineDash([5,4]);
+  ctx.strokeRect(cx-rx,cy-ry,rx*2,ry*2); ctx.setLineDash([]);
+  ctx.restore();
+  // handle daireleri (ekran uzayında)
+  const sc=cv.width/cv.getBoundingClientRect().width;
+  const r=7*sc;
+  corners.forEach(p=>{
+    ctx.beginPath(); ctx.arc(p.x,p.y,r,0,Math.PI*2);
+    ctx.fillStyle="#fff"; ctx.fill();
+    ctx.lineWidth=2*sc; ctx.strokeStyle="#ff7a3d"; ctx.stroke();
+  });
+}
+// 4 köşe (döndürülmüş) — canvas koordinatında
+function handleCorners(){
+  const {cx,cy,rx,ry,rad}=lastGeom;
+  const cos=Math.cos(rad), sin=Math.sin(rad);
+  const pts=[[-rx,-ry],[rx,-ry],[rx,ry],[-rx,ry]];
+  return pts.map(([dx,dy])=>({x:cx+dx*cos-dy*sin, y:cy+dx*sin+dy*cos}));
+}
+
+// ===== Etkileşim: sürükle + köşe boyutlandır =====
+let mode=null; // "move" | "resize"
+function evtCanvasPos(e){
   const r=cv.getBoundingClientRect();
   const t=e.touches?e.touches[0]:e;
-  return {x:(t.clientX-r.left)/r.width, y:(t.clientY-r.top)/r.height};
+  return { x:(t.clientX-r.left)/r.width*cv.width, y:(t.clientY-r.top)/r.height*cv.height };
 }
 cv.addEventListener("pointerdown",e=>{
-  S.dragging=true; cv.classList.add("drag"); cv.setPointerCapture(e.pointerId);
-  const p=evtPos(e); S.sx=p.x; S.sy=p.y;
+  if(!S.img) return;
+  cv.setPointerCapture(e.pointerId);
+  const p=evtCanvasPos(e);
+  const sc=cv.width/cv.getBoundingClientRect().width;
+  const hit=handleCorners().findIndex(c=>Math.hypot(c.x-p.x,c.y-p.y)<12*sc);
+  if(hit>=0){ mode="resize"; }
+  else { mode="move"; S.sx=p.x; S.sy=p.y; }
+  cv.classList.add("drag");
 });
 cv.addEventListener("pointermove",e=>{
-  if(!S.dragging) return;
-  const p=evtPos(e);
-  S.ox=Math.max(-1,Math.min(1, S.ox+(p.x-S.sx)*2));
-  S.oy=Math.max(-1,Math.min(1, S.oy+(p.y-S.sy)*2));
-  S.sx=p.x; S.sy=p.y;
-  $("ox").value=Math.round(S.ox*100); $("xV").textContent=Math.round(S.ox*100);
-  $("oy").value=Math.round(S.oy*100); $("yV").textContent=Math.round(S.oy*100);
-  render();
+  if(!mode||!S.img) return;
+  const p=evtCanvasPos(e);
+  const {cx,cy}=lastGeom;
+  if(mode==="resize"){
+    // merkeze uzaklıktan yeni scale türet
+    const base=Math.min(lastIW,lastIH)/2;
+    const d=Math.hypot(p.x-cx,p.y-cy);
+    // köşe = sqrt(rx^2+ry^2); rx=base*scale*sqrt(asp), ry=base*scale/sqrt(asp)
+    const k=Math.sqrt(S.aspect+1/S.aspect);
+    let ns=d/(base*k);
+    ns=Math.max(.05,Math.min(2,ns));
+    S.scale=ns;
+    $("scale").value=Math.round(ns*100); $("scaleV").textContent=Math.round(ns*100)+"%";
+    render();
+  } else {
+    S.ox=Math.max(-1,Math.min(1, S.ox+(p.x-S.sx)/(lastIW/2)));
+    S.oy=Math.max(-1,Math.min(1, S.oy+(p.y-S.sy)/(lastIH/2)));
+    S.sx=p.x; S.sy=p.y;
+    $("ox").value=Math.round(S.ox*100); $("xV").textContent=Math.round(S.ox*100);
+    $("oy").value=Math.round(S.oy*100); $("yV").textContent=Math.round(S.oy*100);
+    render();
+  }
 });
-["pointerup","pointercancel"].forEach(ev=>cv.addEventListener(ev,()=>{S.dragging=false;cv.classList.remove("drag");}));
+["pointerup","pointercancel"].forEach(ev=>cv.addEventListener(ev,()=>{
+  if(mode){ mode=null; cv.classList.remove("drag"); snapshot(); }
+}));
 
-// ===== PNG indir =====
+// ===== Klavye: ince konum + undo/redo =====
+window.addEventListener("keydown",e=>{
+  if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==="z"){ e.preventDefault(); undo(); return; }
+  if((e.ctrlKey||e.metaKey) && (e.key.toLowerCase()==="y"||(e.shiftKey&&e.key.toLowerCase()==="z"))){ e.preventDefault(); redo(); return; }
+  if(!S.img) return;
+  const step=(e.shiftKey?10:1);
+  let moved=false;
+  if(e.key==="ArrowLeft"){ S.ox=Math.max(-1,S.ox-step/(lastIW/2)); moved=true; }
+  if(e.key==="ArrowRight"){ S.ox=Math.min(1,S.ox+step/(lastIW/2)); moved=true; }
+  if(e.key==="ArrowUp"){ S.oy=Math.max(-1,S.oy-step/(lastIH/2)); moved=true; }
+  if(e.key==="ArrowDown"){ S.oy=Math.min(1,S.oy+step/(lastIH/2)); moved=true; }
+  if(moved){
+    e.preventDefault();
+    $("ox").value=Math.round(S.ox*100); $("xV").textContent=Math.round(S.ox*100);
+    $("oy").value=Math.round(S.oy*100); $("yV").textContent=Math.round(S.oy*100);
+    render(); clearTimeout(window._kt); window._kt=setTimeout(snapshot,400);
+  }
+});
+
+// ===== İndir =====
 $("dl").onclick=()=>{
   if(!S.img) return;
-  cv.toBlob(blob=>{
+  const iw=S.img.naturalWidth, ih=S.img.naturalHeight;
+  const bdExtra = S.bdOn ? (S.bdW+S.bdGap+(S.bd2On?S.bd2Gap+S.bd2W:0)) : 0;
+  const shExtra = S.shOn ? (S.shBlur+Math.max(Math.abs(S.shX),Math.abs(S.shY))) : 0;
+  const pad = Math.ceil(Math.max(bdExtra,shExtra)+S.feather+2);
+  const W=iw+pad*2, H=ih+pad*2;
+
+  // tam çözünürlük kompozisyonu (handle YOK)
+  const full=document.createElement("canvas"); full.width=W; full.height=H;
+  compose(full.getContext("2d"),iw,ih,pad,W,H);
+
+  // çıkış ölçekleme
+  let out=full;
+  if(S.outW<1){
+    const ow=Math.round(W*S.outW), oh=Math.round(H*S.outW);
+    out=document.createElement("canvas"); out.width=ow; out.height=oh;
+    const o=out.getContext("2d");
+    o.imageSmoothingQuality="high";
+    // JPG şeffaflık tutmaz → arka plan şeffafsa beyaz bas
+    if(S.fmt==="jpeg" && S.bgMode==="transparent"){ o.fillStyle="#ffffff"; o.fillRect(0,0,ow,oh); }
+    o.drawImage(full,0,0,ow,oh);
+  } else if(S.fmt==="jpeg" && S.bgMode==="transparent"){
+    out=document.createElement("canvas"); out.width=W; out.height=H;
+    const o=out.getContext("2d");
+    o.fillStyle="#ffffff"; o.fillRect(0,0,W,H); o.drawImage(full,0,0);
+  }
+
+  const mime = S.fmt==="png" ? "image/png" : S.fmt==="webp" ? "image/webp" : "image/jpeg";
+  const q = S.fmt==="png" ? undefined : S.quality;
+  out.toBlob(blob=>{
+    if(!blob){ alert("Bu format tarayıcıda desteklenmiyor, PNG deneyin."); return; }
     const url=URL.createObjectURL(blob);
     const a=document.createElement("a");
-    a.href=url; a.download=`maske-${S.shape}-${Date.now()}.png`;
+    const ext = S.fmt==="jpeg" ? "jpg" : S.fmt;
+    a.href=url; a.download=`maske-${S.shape}-${Date.now()}.${ext}`;
     a.click();
     setTimeout(()=>URL.revokeObjectURL(url),1500);
-  },"image/png");
+  }, mime, q);
 };
+
+// ===== Kayıtlı ayarlar (localStorage) =====
+const LS_KEY="maskeleyici_presetleri_v1";
+function presetOku(){
+  try{ return JSON.parse(localStorage.getItem(LS_KEY)||"{}"); }
+  catch(e){ return {}; }
+}
+function presetYaz(obj){
+  try{ localStorage.setItem(LS_KEY,JSON.stringify(obj)); }
+  catch(e){ alert("Tarayıcı depolaması kullanılamıyor (gizli sekme olabilir)."); }
+}
+function presetListeYenile(seciliAd){
+  const obj=presetOku();
+  const sel=$("presetList");
+  sel.innerHTML='<option value="">— seç —</option>';
+  Object.keys(obj).sort().forEach(ad=>{
+    const o=document.createElement("option");
+    o.value=ad; o.textContent=ad; sel.appendChild(o);
+  });
+  if(seciliAd && obj[seciliAd]) sel.value=seciliAd;
+  $("presetDel").disabled = !sel.value;
+}
+// Kaydet
+$("presetSave").onclick=()=>{
+  const ad=$("presetName").value.trim();
+  if(!ad){ $("presetName").focus(); return; }
+  const obj=presetOku();
+  const snap={}; TRACK.forEach(k=>snap[k]=S[k]);
+  obj[ad]=snap; presetYaz(obj);
+  $("presetName").value="";
+  presetListeYenile(ad);
+};
+// Uygula (seçince anında)
+$("presetList").onchange=e=>{
+  const ad=e.target.value;
+  $("presetDel").disabled=!ad;
+  if(!ad) return;
+  const obj=presetOku();
+  if(!obj[ad]) return;
+  TRACK.forEach(k=>{ if(ad in obj && k in obj[ad]) S[k]=obj[ad][k]; });
+  syncUI();
+  if(S.img){ snapshot(); render(); }
+};
+// Sil
+$("presetDel").onclick=()=>{
+  const ad=$("presetList").value;
+  if(!ad) return;
+  if(!confirm(`"${ad}" ayarı silinsin mi?`)) return;
+  const obj=presetOku(); delete obj[ad]; presetYaz(obj);
+  presetListeYenile("");
+};
+// Dışa aktar (tüm kayıtlı ayarları JSON dosyası olarak indir)
+$("presetExport").onclick=()=>{
+  const obj=presetOku();
+  if(!Object.keys(obj).length){ alert("Kayıtlı ayar yok."); return; }
+  const data={ tip:"maskeleyici-preset", surum:1, presetler:obj };
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url; a.download=`maske-ayarlari-${Date.now()}.json`;
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1500);
+};
+// İçe aktar (JSON dosyasından oku, mevcutla birleştir)
+$("presetImport").onclick=()=>$("presetFile").click();
+$("presetFile").onchange=e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    try{
+      const d=JSON.parse(ev.target.result);
+      const gelen = d && d.presetler ? d.presetler : d; // hem sarmalı hem düz nesne kabul
+      if(typeof gelen!=="object" || gelen===null) throw new Error("biçim");
+      const mevcut=presetOku();
+      let eklenen=0, uzerine=0;
+      for(const [ad,snap] of Object.entries(gelen)){
+        if(typeof snap!=="object"||snap===null) continue;
+        if(ad in mevcut) uzerine++; else eklenen++;
+        mevcut[ad]=snap;
+      }
+      presetYaz(mevcut);
+      presetListeYenile("");
+      alert(`İçe aktarıldı: ${eklenen} yeni, ${uzerine} güncellendi.`);
+    }catch(err){
+      alert("Geçersiz JSON dosyası.");
+    }
+    $("presetFile").value="";
+  };
+  r.readAsText(f);
+};
+// başlangıçta listeyi doldur
+presetListeYenile("");
 </script>
 </body>
 </html>
