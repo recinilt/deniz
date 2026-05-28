@@ -1,0 +1,3573 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📖 Kitap Sahne Üretici V3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400;1,600&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+:root {
+  --bg:      #0b0906;
+  --bg2:     #131008;
+  --sf:      #1a1510;
+  --sf2:     #221c14;
+  --sf3:     #2e2519;
+  --bd:      #3d3020;
+  --bd2:     #5a4830;
+  --gold:    #c9a84c;
+  --goldd:   #a8873a;
+  --goldl:   #e8c96a;
+  --cream:   #e8dcc8;
+  --cream2:  #c4b49a;
+  --cream3:  #8a7a64;
+  --red:     #c0533a;
+  --green:   #5a8f5a;
+  --sky:     #4a7fa8;
+  --goldglow: rgba(201,168,76,0.12);
+  --goldborder: rgba(201,168,76,0.25);
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+
+body {
+  font-family:'Crimson Pro',Georgia,serif;
+  background:var(--bg);
+  color:var(--cream);
+  min-height:100vh;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(201,168,76,0.06) 0%, transparent 70%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+}
+
+.wrap { max-width:1100px; margin:0 auto; padding:24px 20px; }
+
+/* ── HEADER ── */
+header {
+  text-align:center;
+  padding:40px 0 32px;
+  position:relative;
+}
+header::before {
+  content:'';
+  position:absolute;
+  top:0; left:50%; transform:translateX(-50%);
+  width:300px; height:1px;
+  background:linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+header::after {
+  content:'';
+  position:absolute;
+  bottom:0; left:50%; transform:translateX(-50%);
+  width:500px; height:1px;
+  background:linear-gradient(90deg, transparent, var(--bd2), transparent);
+}
+header h1 {
+  font-family:'Cormorant Garamond',serif;
+  font-size:2.6rem;
+  font-weight:600;
+  color:var(--gold);
+  letter-spacing:.04em;
+  line-height:1.1;
+}
+header .sub {
+  font-family:'Cormorant Garamond',serif;
+  font-size:.85rem;
+  color:var(--cream3);
+  letter-spacing:.25em;
+  text-transform:uppercase;
+  margin-top:6px;
+  font-style:italic;
+}
+.ornament {
+  color:var(--goldd);
+  font-size:1.1rem;
+  letter-spacing:.3em;
+  margin:8px 0 0;
+  opacity:.7;
+}
+
+/* ── CARD ── */
+.card {
+  background:var(--sf);
+  border:1px solid var(--bd);
+  border-radius:4px;
+  padding:20px;
+  margin-bottom:14px;
+  position:relative;
+}
+.card::before {
+  content:'';
+  position:absolute;
+  top:0; left:16px; right:16px; height:1px;
+  background:linear-gradient(90deg, transparent, var(--goldborder), transparent);
+}
+.card-title {
+  font-family:'Cormorant Garamond',serif;
+  font-size:.72rem;
+  color:var(--gold);
+  letter-spacing:.2em;
+  text-transform:uppercase;
+  margin-bottom:14px;
+  padding-bottom:8px;
+  border-bottom:1px solid var(--bd);
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.card-title .num {
+  width:20px; height:20px;
+  border:1px solid var(--goldborder);
+  border-radius:50%;
+  display:inline-flex;
+  align-items:center; justify-content:center;
+  font-size:.65rem;
+  color:var(--goldd);
+  flex-shrink:0;
+}
+
+/* ── INPUTS ── */
+label.lbl {
+  display:block;
+  font-size:.7rem;
+  font-weight:600;
+  color:var(--cream3);
+  text-transform:uppercase;
+  letter-spacing:.12em;
+  margin-bottom:5px;
+}
+input[type=text], input[type=password], textarea, select {
+  width:100%;
+  background:var(--sf2);
+  border:1px solid var(--bd);
+  border-radius:3px;
+  padding:9px 12px;
+  color:var(--cream);
+  font-family:'Crimson Pro',serif;
+  font-size:.95rem;
+  outline:none;
+  transition:border-color .2s;
+}
+input:focus, textarea:focus { border-color:var(--gold); }
+textarea { resize:vertical; min-height:80px; }
+
+/* ── BUTTONS ── */
+.btn {
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  border:none;
+  border-radius:3px;
+  padding:10px 18px;
+  font-family:'Crimson Pro',serif;
+  font-size:.85rem;
+  font-weight:600;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  cursor:pointer;
+  transition:all .2s;
+}
+.btn-gold {
+  background:linear-gradient(135deg, var(--gold), var(--goldd));
+  color:#0b0906;
+}
+.btn-gold:hover:not(:disabled) { filter:brightness(1.15); transform:translateY(-1px); }
+.btn-gold:disabled { opacity:.35; cursor:not-allowed; transform:none; }
+.btn-outline {
+  background:var(--goldglow);
+  color:var(--gold);
+  border:1px solid var(--goldborder);
+}
+.btn-outline:hover:not(:disabled) { background:rgba(201,168,76,.2); }
+.btn-outline:disabled { opacity:.3; cursor:not-allowed; }
+.btn-red {
+  background:rgba(192,83,58,.1);
+  color:var(--red);
+  border:1px solid rgba(192,83,58,.3);
+}
+.btn-sky {
+  background:rgba(74,127,168,.1);
+  color:var(--sky);
+  border:1px solid rgba(74,127,168,.3);
+}
+
+/* ── DROP ZONE ── */
+.drop-zone {
+  border:1px dashed var(--bd2);
+  border-radius:4px;
+  padding:28px 20px;
+  text-align:center;
+  cursor:pointer;
+  transition:all .2s;
+  display:block;
+}
+.drop-zone:hover {
+  border-color:var(--gold);
+  background:var(--goldglow);
+}
+.drop-zone input { display:none; }
+.drop-zone .dz-icon { font-size:2rem; margin-bottom:6px; }
+.drop-zone .dz-text { font-size:.85rem; color:var(--cream3); font-style:italic; }
+
+/* ── JSON INFO ── */
+.json-info {
+  padding:12px 14px;
+  background:var(--sf2);
+  border:1px solid var(--bd);
+  border-radius:3px;
+  margin-top:12px;
+}
+.json-info .title {
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.3rem;
+  color:var(--gold);
+}
+.json-info .meta {
+  font-size:.8rem;
+  color:var(--cream3);
+  margin-top:3px;
+  font-style:italic;
+}
+
+/* ── API KEY ── */
+.key-row {
+  display:flex;
+  gap:8px;
+  align-items:flex-end;
+}
+.key-row input { flex:1; }
+.key-status {
+  font-size:.78rem;
+  margin-top:5px;
+  color:var(--cream3);
+  font-style:italic;
+}
+.key-status.saved { color:var(--green); }
+.key-status.cleared { color:var(--red); }
+
+/* ── SUMMARY GRID ── */
+.sum-grid {
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:8px;
+  margin-bottom:16px;
+}
+.sum-card {
+  background:var(--sf2);
+  border:1px solid var(--bd);
+  border-radius:3px;
+  padding:10px 8px;
+  text-align:center;
+}
+.sum-card .num {
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.8rem;
+  color:var(--gold);
+  line-height:1;
+}
+.sum-card .lbl {
+  font-size:.65rem;
+  color:var(--cream3);
+  text-transform:uppercase;
+  letter-spacing:.1em;
+  margin-top:3px;
+}
+
+/* ── PROGRESS ── */
+.prog-wrap { margin:10px 0 6px; }
+.prog-bar {
+  width:100%; height:3px;
+  background:var(--sf2);
+  border-radius:2px;
+  overflow:hidden;
+}
+.prog-fill {
+  height:100%;
+  background:linear-gradient(90deg, var(--goldd), var(--goldl));
+  width:0%;
+  transition:width .4s;
+  border-radius:2px;
+}
+.prog-txt {
+  font-size:.78rem;
+  color:var(--cream3);
+  margin-top:4px;
+  font-style:italic;
+}
+
+/* ── BUTTON ROW ── */
+.btn-row {
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-bottom:10px;
+}
+.btn-row .btn { flex:1; justify-content:center; }
+
+/* ── GALLERY ── */
+.gallery {
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(155px,1fr));
+  gap:8px;
+}
+.g-item {
+  border-radius:3px;
+  overflow:hidden;
+  border:1px solid var(--bd);
+  background:var(--sf2);
+  cursor:pointer;
+  transition:all .2s;
+  position:relative;
+}
+.g-item:hover {
+  border-color:var(--gold);
+  transform:translateY(-2px);
+  box-shadow:0 4px 16px rgba(0,0,0,.4);
+}
+.g-item img { width:100%; display:block; }
+.g-item .g-placeholder {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--cream3);
+  font-size:.75rem;
+  font-style:italic;
+  background:var(--sf3);
+}
+.g-item .g-info {
+  padding:6px 8px;
+  background:var(--sf2);
+}
+.g-item .g-name {
+  font-size:.72rem;
+  font-weight:600;
+  color:var(--gold);
+  text-transform:uppercase;
+  letter-spacing:.04em;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.g-item .g-sub {
+  font-size:.65rem;
+  color:var(--cream3);
+  font-style:italic;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.g-badge {
+  position:absolute;
+  top:4px; right:4px;
+  font-size:.65rem;
+  padding:2px 5px;
+  border-radius:2px;
+  background:rgba(0,0,0,.75);
+  color:var(--green);
+  border:1px solid rgba(90,143,90,.3);
+}
+.g-badge-ref {
+  position:absolute;
+  top:4px; left:4px;
+  font-size:.65rem;
+  padding:2px 5px;
+  border-radius:2px;
+  background:rgba(0,0,0,.75);
+  color:var(--sky);
+  border:1px solid rgba(74,127,168,.3);
+}
+
+/* ── KONSOL ── */
+#log {
+  max-height:160px;
+  overflow-y:auto;
+  font-family:'Courier New',monospace;
+  font-size:.72rem;
+  padding:8px;
+  background:var(--bg2);
+  border-radius:3px;
+  border:1px solid var(--bd);
+  line-height:1.6;
+}
+#log::-webkit-scrollbar { width:3px; }
+#log::-webkit-scrollbar-thumb { background:var(--bd2); border-radius:2px; }
+
+/* ── DOWNLOAD AREA ── */
+.dl-area {
+  display:flex;
+  gap:8px;
+  margin-top:12px;
+  flex-wrap:wrap;
+}
+.dl-area .btn { flex:1; justify-content:center; min-width:160px; }
+.path-display {
+  margin-top:8px;
+  font-size:.78rem;
+  color:var(--cream3);
+  font-style:italic;
+  padding:6px 10px;
+  background:var(--sf2);
+  border:1px solid var(--bd);
+  border-radius:3px;
+  word-break:break-all;
+}
+.path-display span { color:var(--gold); }
+.path-manual {
+  margin-top:6px;
+  font-size:.72rem;
+  color:var(--cream3);
+}
+
+/* ── MODAL ── */
+.modal-bg {
+  position:fixed; inset:0;
+  background:rgba(0,0,0,.88);
+  backdrop-filter:blur(8px);
+  z-index:100;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .25s;
+}
+.modal-bg.open { opacity:1; pointer-events:all; }
+.modal-inner {
+  background:var(--sf);
+  border:1px solid var(--bd2);
+  border-radius:4px;
+  padding:20px;
+  max-width:700px;
+  width:95%;
+  max-height:90vh;
+  overflow-y:auto;
+  transform:scale(.96);
+  transition:transform .25s;
+  position:relative;
+}
+.modal-inner::before {
+  content:'';
+  position:absolute;
+  top:0; left:16px; right:16px; height:1px;
+  background:linear-gradient(90deg,transparent,var(--goldborder),transparent);
+}
+.modal-bg.open .modal-inner { transform:scale(1); }
+.modal-head {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:14px;
+}
+.modal-title {
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.2rem;
+  color:var(--gold);
+}
+.modal-grid {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+}
+.modal-img-wrap {
+  border-radius:3px;
+  overflow:hidden;
+  border:1px solid var(--bd);
+  background:var(--bg2);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:200px;
+}
+.modal-img-wrap img { width:100%; display:block; }
+.modal-meta {
+  font-size:.72rem;
+  color:var(--cream3);
+  margin-top:5px;
+  text-align:center;
+  font-style:italic;
+}
+.modal-actions { display:flex; flex-direction:column; gap:8px; }
+
+/* ── HIDDEN ── */
+.hidden { display:none !important; }
+
+/* ── SECTION HEADER ── */
+.sec-head {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:12px;
+}
+.sec-cnt {
+  font-size:.75rem;
+  color:var(--cream3);
+  font-style:italic;
+}
+
+/* ── DIVIDER ── */
+.divider {
+  height:1px;
+  background:linear-gradient(90deg,transparent,var(--bd),transparent);
+  margin:6px 0 14px;
+}
+
+/* ── MODEL SEÇİCİ ── */
+.model-btn {
+  padding:8px 14px;
+  border-radius:3px;
+  border:1px solid var(--bd);
+  background:transparent;
+  color:var(--cream3);
+  font-family:'Crimson Pro',serif;
+  font-size:.82rem;
+  cursor:pointer;
+  transition:all .2s;
+  line-height:1.3;
+  text-align:left;
+}
+.model-btn.sel {
+  border-color:var(--gold);
+  background:var(--goldglow);
+  color:var(--gold);
+}
+.model-btn:hover:not(.sel) {
+  border-color:var(--bd2);
+  color:var(--cream2);
+}
+.model-btn .mb-name { font-weight:700; display:block; }
+.model-btn .mb-tag  { font-size:.68rem; opacity:.7; font-style:italic; display:block; margin-top:1px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- HEADER -->
+  <header>
+    <h1>📖 Kitap Sahne Üretici</h1>
+    <div class="sub">Gemini Image · Claude AI · CapCut Draft</div>
+    <div class="ornament">— ✦ —</div>
+  </header>
+
+  <!-- 01. JSON -->
+  <div class="card">
+    <div class="card-title"><span class="num">I</span> Sahne Verisi</div>
+    <label class="drop-zone" id="dropZone">
+      <input type="file" id="jsonInput" accept=".json">
+      <div class="dz-icon">📋</div>
+      <div class="dz-text">Claude.ai'dan aldığın JSON dosyasını sürükle veya tıkla</div>
+    </label>
+    <div id="jsonInfo" class="hidden"></div>
+  </div>
+
+  <!-- 02. API KEYS -->
+  <div class="card" id="step2" hidden>
+    <div class="card-title"><span class="num">II</span> API Anahtarları</div>
+    <!-- Gemini Key -->
+    <div style="margin-bottom:12px;">
+      <div class="key-row">
+        <div style="flex:1">
+          <label class="lbl">🍌 Gemini API Key</label>
+          <input type="password" id="geminiKey" placeholder="AIza...">
+        </div>
+        <button class="btn btn-gold" onclick="keyKaydet()" style="margin-bottom:1px">Kaydet</button>
+        <button class="btn btn-red" onclick="keySil()" style="margin-bottom:1px">Sil</button>
+      </div>
+      <div id="keyStatus" class="key-status"></div>
+    </div>
+    <!-- Runway Key -->
+    <div>
+      <div class="key-row">
+        <div style="flex:1">
+          <label class="lbl">🎬 Runway API Secret</label>
+          <input type="password" id="runwayKey" placeholder="key_abc123...">
+        </div>
+        <button class="btn btn-gold" onclick="runwayKeyKaydet()" style="margin-bottom:1px">Kaydet</button>
+        <button class="btn btn-red" onclick="runwayKeySil()" style="margin-bottom:1px">Sil</button>
+      </div>
+      <div id="runwayKeyStatus" class="key-status"></div>
+    </div>
+    <div style="font-size:.72rem;color:var(--cream3);margin-top:8px;font-style:italic;">
+      🔒 localStorage'da şifrelenmemiş saklanır. Paylaşımlı bilgisayarda kullanmayın.<br>
+      <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:var(--gold);">Gemini Key al →</a>
+      &nbsp;|&nbsp;
+      <a href="https://dev.runwayml.com/" target="_blank" style="color:var(--sky);">Runway Key al →</a>
+    </div>
+  </div>
+
+  <!-- 02b. MODEL -->
+  <div class="card" id="step2b" hidden>
+    <div class="card-title"><span class="num">II</span> Görsel Üretim Modeli</div>
+    <div style="font-size:.68rem;color:var(--gold);letter-spacing:.15em;text-transform:uppercase;margin-bottom:6px;font-family:'Cormorant Garamond',serif;">🍌 Gemini — Nano Banana Ailesi</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px;">
+      <button class="model-btn sel" id="mNB" onclick="modelSec('nb')">
+        <span class="mb-name">🍌 Nano Banana</span>
+        <span class="mb-tag">$0.039/görsel · Stabil</span>
+        <span class="mb-tag" style="color:var(--red);font-size:.6rem;">⚠ Ekim'26 kapanır</span>
+      </button>
+      <button class="model-btn" id="mNB2" onclick="modelSec('nb2')">
+        <span class="mb-name">🍌 Nano Banana 2</span>
+        <span class="mb-tag">$0.045/görsel (1K) · Yeni</span>
+        <span class="mb-tag" style="color:var(--green);font-size:.6rem;">★ Önerilen</span>
+      </button>
+      <button class="model-btn" id="mNBPro" onclick="modelSec('nbpro')">
+        <span class="mb-name">🍌 NB Pro</span>
+        <span class="mb-tag">$0.134/görsel (1K) · 4K</span>
+        <span class="mb-tag" style="font-size:.6rem;">En kaliteli</span>
+      </button>
+    </div>
+    <div style="font-size:.68rem;color:var(--sky);letter-spacing:.15em;text-transform:uppercase;margin-bottom:6px;font-family:'Cormorant Garamond',serif;">🎬 Runway — Gen4 Image</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+      <button class="model-btn" id="mRWImg" onclick="modelSec('rwimg')">
+        <span class="mb-name">🎨 Gen4 Image</span>
+        <span class="mb-tag">$0.05-0.08/görsel · Kaliteli</span>
+        <span class="mb-tag" style="font-size:.6rem;">Referans + @tag</span>
+      </button>
+      <button class="model-btn" id="mRWTurbo" onclick="modelSec('rwturbo')">
+        <span class="mb-name">🚀 Gen4 Turbo</span>
+        <span class="mb-tag">$0.02/görsel · En ucuz</span>
+        <span class="mb-tag" style="color:var(--gold);font-size:.6rem;">Referans zorunlu*</span>
+      </button>
+    </div>
+    <div id="modelNote" style="font-size:.72rem;color:var(--cream3);margin-top:8px;font-style:italic;">
+      🍌 Nano Banana seçili. Güvenilir, üretim ortamı için önerilir.
+    </div>
+  </div>
+
+  <!-- 03. ÜRETİM -->
+  <div class="card hidden" id="step3">
+    <div class="card-title"><span class="num">III</span> Görsel Üretimi</div>
+    <div class="sum-grid" id="sumGrid"></div>
+    <div class="btn-row">
+      <button class="btn btn-gold" id="btnPort" onclick="portreleriUret()">👤 Portreleri Üret</button>
+      <button class="btn btn-gold hidden" id="btnScene" onclick="sahneleriUret()">🎬 Sahneleri Üret</button>
+      <button class="btn btn-outline hidden" id="btnRestore" onclick="gorselleriYukle()">📂 Görselleri Geri Yükle</button>
+    </div>
+    <div class="prog-wrap">
+      <div class="prog-bar"><div class="prog-fill" id="prog"></div></div>
+      <div class="prog-txt" id="stTxt">Hazır</div>
+    </div>
+  </div>
+
+  <!-- 04. KARAKTERLER -->
+  <div class="card hidden" id="charSec">
+    <div class="sec-head">
+      <div class="card-title" style="margin:0;border:none;padding:0">✦ Karakterler</div>
+      <div class="sec-cnt" id="charCnt"></div>
+    </div>
+    <div class="gallery" id="charGrid"></div>
+  </div>
+
+  <!-- 05. SAHNELER -->
+  <div class="card hidden" id="sceneSec">
+    <div class="sec-head">
+      <div class="card-title" style="margin:0;border:none;padding:0">✦ Sahneler</div>
+      <div class="sec-cnt" id="sceneCnt"></div>
+    </div>
+    <div class="gallery" id="sceneGrid"></div>
+  </div>
+
+  <!-- 06. İNDİR -->
+  <div class="card hidden" id="dlSec">
+    <div class="card-title"><span class="num">IV</span> Dışa Aktar</div>
+
+    <!-- SRT & Kaynak Yükleme -->
+    <div style="margin-bottom:12px;">
+      <label class="lbl">Zamanlama Kaynakları (öncelik: Aeneas → Word DTW → 10-Katman)</label>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:6px;">
+        <label class="btn btn-sky" style="cursor:pointer;flex:0 0 auto;font-size:.78rem;">
+          📄 Cümle SRT
+          <input type="file" id="srtInputCumle" accept=".srt" style="display:none;" onchange="cumleSrtYukle(event)">
+        </label>
+        <label class="btn btn-sky" style="cursor:pointer;flex:0 0 auto;font-size:.78rem;">
+          📄 Word SRT
+          <input type="file" id="srtInputWord" accept=".srt" style="display:none;" onchange="wordSrtYukle(event)">
+        </label>
+        <label class="btn btn-sky" style="cursor:pointer;flex:0 0 auto;font-size:.78rem;">
+          📄 Hikaye TXT
+          <input type="file" id="txtInput" accept=".txt" style="display:none;" onchange="hikayeTxtYukle(event)">
+        </label>
+        <label class="btn btn-gold" style="cursor:pointer;flex:0 0 auto;font-size:.78rem;">
+          ⚡ Aeneas JSON
+          <input type="file" id="aeneasInput" accept=".json" style="display:none;" onchange="aeneasYukle(event)">
+        </label>
+      </div>
+      <div id="srtStatusBar" style="font-size:.72rem;color:var(--cream3);font-style:italic;line-height:1.6;">
+        <span id="stCumle">⬜ Cümle SRT</span> &nbsp;
+        <span id="stWord">⬜ Word SRT</span> &nbsp;
+        <span id="stTxt2">⬜ Hikaye TXT</span> &nbsp;
+        <span id="stAeneas">⬜ Aeneas</span>
+      </div>
+    </div>
+    <div class="divider"></div>
+
+    <div class="dl-area">
+      <button class="btn btn-outline" onclick="klasorSec()">📁 Resim Klasörü Seç</button>
+      <button class="btn btn-gold" onclick="zipIndir()">📦 ZIP İndir</button>
+      <button class="btn btn-gold" onclick="draftIndir()">📋 CapCut Draft</button>
+      <button class="btn btn-outline" onclick="srtIndir()">📄 SRT İndir</button>
+    </div>
+    <div id="pathDisplay" class="path-display hidden"></div>
+    <div class="path-manual">
+      Ya da klasör yolunu elle gir:
+      <input type="text" id="manualPath" placeholder="C:\Users\Recep\Downloads\kurt_ve_kuzu" style="margin-top:5px;font-size:.8rem;">
+    </div>
+    <div class="divider" style="margin-top:12px;"></div>
+    <div style="font-size:.75rem;color:var(--cream);line-height:1.9;">
+      <div style="color:var(--gold);font-family:'Cormorant Garamond',serif;font-size:.8rem;letter-spacing:.15em;text-transform:uppercase;margin-bottom:8px;">📌 CapCut'a Aktarma Adımları</div>
+      <div style="color:var(--cream2);">
+        <strong style="color:var(--goldl);">1.</strong> CapCut'u <strong>tamamen kapat</strong> (system tray'den de çık → sağ tık → Exit)<br>
+        <strong style="color:var(--goldl);">2.</strong> CapCut draft klasörüne git:<br>
+        <span style="color:var(--cream3);font-size:.7rem;margin-left:16px;display:inline-block;">Varsayılan: <code style="color:var(--gold);background:var(--sf2);padding:1px 5px;border-radius:2px;">AppData\Local\CapCut\User Data\Projects\com.lveditor.draft\</code></span><br>
+        <strong style="color:var(--goldl);">3.</strong> Yeni klasör oluştur: <code style="color:var(--gold);background:var(--sf2);padding:1px 5px;border-radius:2px;">dfd_proje_adi</code> (dfd_ ön eki zorunlu)<br>
+        <strong style="color:var(--goldl);">4.</strong> İndirdiğin ZIP'i aç, içindeki <strong>2 dosyayı</strong> bu klasöre koy:<br>
+        <span style="color:var(--cream3);font-size:.7rem;margin-left:16px;display:inline-block;">
+          <code style="color:var(--green);">draft_content.json</code> + <code style="color:var(--green);">draft_meta_info.json</code>
+        </span><br>
+        <strong style="color:var(--goldl);">5.</strong> CapCut'u aç → ana ekranda proje görünür → tıkla<br>
+        <strong style="color:var(--goldl);">6.</strong> Resimler import panelinde + timeline'da yerleşmiş olarak görünecek
+      </div>
+      <div style="color:var(--red);font-size:.7rem;margin-top:6px;">
+        ⚠ Resim dosyaları yukarıda girdiğin klasör yolunda durmalı, yoksa CapCut "Media Missing" verir.
+      </div>
+    </div>
+  </div>
+
+  <!-- KONSOL -->
+  <div class="card">
+    <div class="card-title">✦ Konsol</div>
+    <div id="log"></div>
+  </div>
+
+</div><!-- /wrap -->
+
+<!-- MODAL -->
+<div id="modal" class="modal-bg">
+  <div class="modal-inner">
+    <div class="modal-head">
+      <div class="modal-title" id="modalTitle"></div>
+      <button class="btn btn-outline" style="padding:5px 10px;font-size:.72rem;" onclick="modalKapat()">✕ Kapat</button>
+    </div>
+    <div class="modal-grid">
+      <div>
+        <div class="modal-img-wrap" id="modalImg">
+          <span style="color:var(--cream3);font-size:.8rem;font-style:italic;">Görsel yok</span>
+        </div>
+        <div class="modal-meta" id="modalMeta"></div>
+      </div>
+      <div class="modal-actions">
+        <div>
+          <label class="lbl">Prompt</label>
+          <textarea id="modalPrompt" rows="6"></textarea>
+        </div>
+        <button class="btn btn-gold" onclick="modalUret()" style="justify-content:center;">⚡ Bu Prompt ile Üret</button>
+        <button class="btn btn-outline" onclick="modalYeniFikir()" style="justify-content:center;">🎲 Yeni Fikir</button>
+        <label class="btn btn-sky" style="justify-content:center;cursor:pointer;">
+          📁 Resim Yükle
+          <input type="file" accept="image/*" style="display:none;" onchange="modalResimYukle(event)">
+        </label>
+        <label class="btn btn-sky" style="justify-content:center;cursor:pointer;font-size:.72rem;">
+          📷 Referans Fotoğraf
+          <input type="file" accept="image/*" style="display:none;" id="modalRefInput" onchange="modalRefYukle(event)">
+        </label>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+var D = null;          // JSON verisi
+var charRefs = {};     // karakter adı → base64
+var sceneImgs = {};    // filename → base64
+var modalType = '';
+var modalKey  = '';
+var capCutDir = null;  // FileSystemDirectoryHandle
+var srtDataCumle = null; // cümle SRT [{index, startRaw, endRaw, startUs, endUs, text}, ...]
+var srtDataWord = null;  // word SRT (her kelime ayrı segment)
+var srtText = '';        // ham SRT metni
+var hikayeText = null;   // orijinal metin kelimeleri [{word, index}, ...]
+var hikayeLines = null;  // orijinal metin satırları [{no, metin, words}, ...]
+var aeneasData = null;   // aeneas forced alignment JSON
+var LS_KEY = 'gemini_api_key_v3';
+var LS_KEY_RUNWAY = 'runway_api_key_v1';
+var LS_KEY_MODEL = 'selected_model_v1';
+var GEMINI_MODEL = 'gemini-2.5-flash-image'; // varsayılan
+var SELECTED_MODEL_KEY = 'nb'; // model kısa adı
+var CORS_PROXY = 'https://mycors.recepyeni.workers.dev/?url=';
+
+var MODEL_DEFS = {
+  nb:      {id:'gemini-2.5-flash-image',         motor:'gemini',  ad:'Nano Banana',    fiyat:'$0.039'},
+  nb2:     {id:'gemini-3.1-flash-image-preview',  motor:'gemini',  ad:'Nano Banana 2',  fiyat:'$0.045 (1K)'},
+  nbpro:   {id:'gemini-3-pro-image-preview',      motor:'gemini',  ad:'NB Pro',         fiyat:'$0.134 (1K)'},
+  rwimg:   {id:'gen4_image',                      motor:'runway',  ad:'Gen4 Image',     fiyat:'$0.05-0.08'},
+  rwturbo: {id:'gen4_image_turbo',                motor:'runway',  ad:'Gen4 Turbo',     fiyat:'$0.02'}
+};
+
+var RATIO_MAP_RUNWAY = {
+  '16:9':'1920:1080','9:16':'1080:1920','1:1':'1080:1080',
+  '4:3':'1440:1080','3:4':'1080:1440','21:9':'1920:823'
+};
+
+function getMotor(){
+  var def = MODEL_DEFS[SELECTED_MODEL_KEY];
+  return def ? def.motor : 'gemini';
+}
+
+var sleep = function(ms){ return new Promise(function(r){ setTimeout(r,ms); }); };
+
+// ═══════════════════════════════════════════
+// API KEY — localStorage
+// ═══════════════════════════════════════════
+(function initKey(){
+  var saved = localStorage.getItem(LS_KEY);
+  if(saved){
+    document.getElementById('geminiKey').value = saved;
+    keyStatusGoster('saved');
+  }
+  var savedRW = localStorage.getItem(LS_KEY_RUNWAY);
+  if(savedRW){
+    document.getElementById('runwayKey').value = savedRW;
+    runwayKeyStatusGoster('saved');
+  }
+  var savedModel = localStorage.getItem(LS_KEY_MODEL);
+  if(savedModel && MODEL_DEFS[savedModel]){
+    modelSec(savedModel);
+  }
+})();
+
+function keyKaydet(){
+  var v = document.getElementById('geminiKey').value.trim();
+  if(!v){ keyStatusGoster('empty'); return; }
+  localStorage.setItem(LS_KEY, v);
+  keyStatusGoster('saved');
+  log('🔑 API key kaydedildi.','success');
+}
+function keySil(){
+  localStorage.removeItem(LS_KEY);
+  document.getElementById('geminiKey').value = '';
+  keyStatusGoster('cleared');
+  log('🔑 API key silindi.','warn');
+}
+function keyStatusGoster(t){
+  var el = document.getElementById('keyStatus');
+  if(t==='saved'){
+    el.textContent = '✓ Kaydedildi (localStorage)';
+    el.className = 'key-status saved';
+  } else if(t==='cleared'){
+    el.textContent = '✗ Silindi';
+    el.className = 'key-status cleared';
+  } else if(t==='empty'){
+    el.textContent = '⚠ Key boş';
+    el.className = 'key-status';
+  } else {
+    el.textContent = '';
+    el.className = 'key-status';
+  }
+}
+function getKey(){
+  return document.getElementById('geminiKey').value.trim() || localStorage.getItem(LS_KEY) || '';
+}
+function getRunwayKey(){
+  return document.getElementById('runwayKey').value.trim() || localStorage.getItem(LS_KEY_RUNWAY) || '';
+}
+
+// Runway Key
+function runwayKeyKaydet(){
+  var v = document.getElementById('runwayKey').value.trim();
+  if(!v){ runwayKeyStatusGoster('empty'); return; }
+  localStorage.setItem(LS_KEY_RUNWAY, v);
+  runwayKeyStatusGoster('saved');
+  log('🎬 Runway API key kaydedildi.','success');
+}
+function runwayKeySil(){
+  localStorage.removeItem(LS_KEY_RUNWAY);
+  document.getElementById('runwayKey').value = '';
+  runwayKeyStatusGoster('cleared');
+  log('🎬 Runway API key silindi.','warn');
+}
+function runwayKeyStatusGoster(t){
+  var el = document.getElementById('runwayKeyStatus');
+  if(t==='saved'){
+    el.textContent = '✓ Kaydedildi (localStorage)';
+    el.className = 'key-status saved';
+  } else if(t==='cleared'){
+    el.textContent = '✗ Silindi';
+    el.className = 'key-status cleared';
+  } else if(t==='empty'){
+    el.textContent = '⚠ Key boş';
+    el.className = 'key-status';
+  } else {
+    el.textContent = '';
+    el.className = 'key-status';
+  }
+}
+
+// ═══════════════════════════════════════════
+// MODEL SEÇİCİ — 5 model (3 Gemini + 2 Runway)
+// ═══════════════════════════════════════════
+function modelSec(m){
+  if(!MODEL_DEFS[m]) return;
+  SELECTED_MODEL_KEY = m;
+  var def = MODEL_DEFS[m];
+  GEMINI_MODEL = def.id;
+  localStorage.setItem(LS_KEY_MODEL, m);
+
+  // Tüm butonlardan sel kaldır
+  var ids = ['mNB','mNB2','mNBPro','mRWImg','mRWTurbo'];
+  var keys = ['nb','nb2','nbpro','rwimg','rwturbo'];
+  for(var i=0;i<ids.length;i++){
+    var btn = document.getElementById(ids[i]);
+    if(btn) btn.classList.toggle('sel', keys[i]===m);
+  }
+
+  var note = document.getElementById('modelNote');
+  var notlar = {
+    nb:      '🍌 Nano Banana — Stabil, $0.039/görsel. ⚠ Ekim 2, 2026\'da kapanacak.',
+    nb2:     '🍌 Nano Banana 2 — Yeni varsayılan, $0.045/görsel (1K), 4K desteği, 14 referans.',
+    nbpro:   '🍌 NB Pro — En yüksek kalite, $0.134/görsel (1K), 4K, 11 referans.',
+    rwimg:   '🎬 Runway Gen4 Image — $0.05-0.08/görsel, referans + @tag, yüksek kalite.',
+    rwturbo: '🚀 Runway Gen4 Turbo — $0.02/görsel. *Referans zorunlu — portreler Gen4 Image\'e düşürülür.'
+  };
+  note.textContent = notlar[m] || '';
+  note.style.color = (def.motor==='runway') ? 'var(--sky)' : 'var(--cream3)';
+  if(m==='nb') note.style.color = 'var(--red)';
+  if(m==='nb2') note.style.color = 'var(--green)';
+
+  log('Model: ' + def.ad + ' (' + def.id + ') — ' + def.motor.toUpperCase(), 'info');
+}
+
+// ═══════════════════════════════════════════
+// LOG
+// ═══════════════════════════════════════════
+function log(m, t){
+  var c = {info:'#7aa8c8', success:'#5a8f5a', err:'#c0533a', warn:'#c9a84c'};
+  var el = document.getElementById('log');
+  var d = document.createElement('div');
+  var time = document.createElement('span');
+  time.style.cssText = 'color:#5a4830;margin-right:7px;font-size:.68rem;';
+  time.textContent = new Date().toLocaleTimeString();
+  var msg = document.createElement('span');
+  msg.style.color = (c[t||'info'] || c.info);
+  msg.textContent = m;
+  d.appendChild(time);
+  d.appendChild(msg);
+  el.appendChild(d);
+  el.scrollTop = el.scrollHeight;
+}
+
+function prog(pct){ document.getElementById('prog').style.width = pct + '%'; }
+function status(t){ document.getElementById('stTxt').textContent = t; }
+
+// ═══════════════════════════════════════════
+// JSON
+// ═══════════════════════════════════════════
+document.getElementById('jsonInput').onchange = function(e){
+  var f = e.target.files[0]; if(!f) return;
+  var r = new FileReader();
+  r.onload = function(ev){
+    try {
+      D = JSON.parse(ev.target.result);
+      if(!D.meta || !D.characters || !D.scenes) throw new Error('Geçersiz JSON formatı');
+      charRefs = {}; sceneImgs = {};
+
+      // JSON'daki referans görselleri yükle (data URI prefix kontrolü)
+      // NOT: ref_image_b64 sadece D.characters içinde tutulur.
+      // charRefs'e ATANMAZ — charRefs portre üretimi sonrası dolar.
+      // Bu sayede "Portreleri Üret" butonuna basınca AI gerçekten üretim yapar.
+      Object.entries(D.characters).forEach(function(e){
+        if(e[1].ref_image_b64){
+          var b = e[1].ref_image_b64;
+          // Ham base64 ise data URI prefix ekle
+          if(b && b.indexOf('data:') !== 0){
+            b = 'data:image/jpeg;base64,' + b;
+            e[1].ref_image_b64 = b;
+          }
+          // charRefs'e ATAMA — portre üretildikten sonra atanacak
+        }
+      });
+
+      // JSON info
+      var m = D.meta;
+      var chLen = Object.keys(D.characters).length;
+      var info = document.getElementById('jsonInfo');
+      info.classList.remove('hidden');
+      info.innerHTML = '';
+      var wrap = document.createElement('div');
+      wrap.className = 'json-info';
+      var t1 = document.createElement('div'); t1.className = 'title';
+      t1.textContent = m.title || '?';
+      var t2 = document.createElement('div'); t2.className = 'meta';
+      t2.textContent = (m.author||'') + (m.author?' — ':'') + (m.style||'').substring(0,60) + ' | ' + (m.aspect_ratio||'16:9') + ' | ' + chLen + ' karakter, ' + D.scenes.length + ' sahne';
+      wrap.appendChild(t1);
+      wrap.appendChild(t2);
+      info.appendChild(wrap);
+
+      // Step 2 - API KEY göster
+      document.getElementById('step2').hidden = false;
+      document.getElementById('step2b').hidden = false;
+
+      // Step 3
+      document.getElementById('step3').classList.remove('hidden');
+
+      // Summary
+      var sg = document.getElementById('sumGrid');
+      sg.innerHTML = '';
+      [[chLen,'Karakter'],[D.scenes.length,'Sahne'],[(m.aspect_ratio||'—'),'Oran'],[MODEL_DEFS[SELECTED_MODEL_KEY].ad,'Motor']].forEach(function(p){
+        var c = document.createElement('div'); c.className = 'sum-card';
+        var n = document.createElement('div'); n.className = 'num'; n.textContent = p[0];
+        var l = document.createElement('div'); l.className = 'lbl'; l.textContent = p[1];
+        c.appendChild(n); c.appendChild(l);
+        sg.appendChild(c);
+      });
+
+      // Karakter & sahne alanlarını göster
+      document.getElementById('charSec').classList.remove('hidden');
+      document.getElementById('btnScene').classList.remove('hidden');
+      document.getElementById('btnRestore').classList.remove('hidden');
+      renderChars();
+      renderScenes();
+
+      log('✓ JSON yüklendi: ' + (m.title||'?') + ' — ' + chLen + ' karakter, ' + D.scenes.length + ' sahne','success');
+    } catch(err){
+      log('✗ JSON hata: ' + err.message,'err');
+    }
+  };
+  r.readAsText(f);
+};
+
+// ═══════════════════════════════════════════
+// GEMİNİ GÖRSEL ÜRETİMİ
+// ═══════════════════════════════════════════
+// === ASPECT RATIO GÜVENLİĞİ (v6) ===
+// Gemini/Nano Banana yalnızca şu oranları kabul eder; uydurma token (spread_2to1, 2:1) 400 verir.
+var VALID_RATIOS = ['1:1','2:3','3:2','3:4','4:3','4:5','5:4','9:16','16:9','21:9','1:4','4:1','1:8','8:1'];
+function normalizeRatio(r, isPortrait){
+  r = (r==null?'':r).toString().trim();
+  var map = { 'spread_2to1':'21:9', '2:1':'21:9', 'spread':'21:9', '2to1':'21:9', 'wide':'21:9' };
+  if(map[r]) r = map[r];
+  if(VALID_RATIOS.indexOf(r) !== -1) return r;
+  return isPortrait ? '1:1' : '21:9';   // geçersizse güvenli varsayılan
+}
+function ratioCompositionHint(ratio){
+  var p = ratio.split(':'); var w = parseFloat(p[0])||1, h = parseFloat(p[1])||1;
+  if(w > h*1.15) return 'Wide horizontal composition, fill the frame completely.';
+  if(h > w*1.15) return 'Vertical portrait composition, fill the frame completely.';
+  return 'Centered square composition, fill the frame completely.';
+}
+
+async function geminiUret(prompt, refB64, aspectRatio){
+  var key = getKey();
+  if(!key) throw new Error('Gemini API key yok');
+
+  var ratio = normalizeRatio(aspectRatio || (D && D.meta && (D.meta.scene_aspect_ratio || D.meta.aspect_ratio)) || '1:1');
+  // Yön-duyarlı kompozisyon ipucu (yatay spread'e "Vertical portrait" yazma!)
+  var fullPrompt = prompt + '. ' + ratioCompositionHint(ratio);
+
+  // refB64: string (tek referans) veya array (çoklu referans) olabilir
+  var refs = [];
+  if(refB64){
+    if(Array.isArray(refB64)){
+      refs = refB64.filter(function(r){ return !!r; });
+    } else {
+      refs = [refB64];
+    }
+  }
+
+  var parts = [];
+  if(refs.length > 0){
+    parts.push({text: 'Use these ' + refs.length + ' reference image(s) for character consistency: ' + fullPrompt});
+    for(var ri=0; ri<refs.length; ri++){
+      var b = refs[ri].indexOf(',')>=0 ? refs[ri].split(',')[1] : refs[ri];
+      parts.push({inline_data:{mime_type:'image/jpeg', data:b}});
+    }
+  } else {
+    parts.push({text: fullPrompt});
+  }
+
+  var body = {
+    contents:[{parts: parts}],
+    generationConfig:{
+      responseModalities:['IMAGE'],
+      imageConfig:{ aspectRatio: ratio }
+    }
+  };
+
+  var r = await fetch(
+    'https://generativelanguage.googleapis.com/v1beta/models/' + GEMINI_MODEL + ':generateContent?key=' + key,
+    {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body), signal:AbortSignal.timeout(120000)}
+  );
+
+  if(r.status === 429){
+    var err429 = new Error('RATE_LIMIT_429');
+    err429.isRateLimit = true;
+    throw err429;
+  }
+  if(!r.ok){
+    var errBody = await r.json().catch(function(){return{};});
+    throw new Error('Gemini ' + r.status + ': ' + (errBody.error && errBody.error.message ? errBody.error.message : r.statusText));
+  }
+
+  var d = await r.json();
+  if(d.error) throw new Error(d.error.message || JSON.stringify(d.error));
+
+  var cands = d.candidates || [];
+  if(!cands.length) throw new Error('Gemini yanıt boş');
+  var ps = (cands[0].content && cands[0].content.parts) || [];
+  for(var i=0;i<ps.length;i++){
+    if(ps[i].inlineData){
+      return 'data:' + ps[i].inlineData.mimeType + ';base64,' + ps[i].inlineData.data;
+    }
+  }
+  throw new Error('Görsell bulunamadı — model metin döndürdü: ' + (ps[0]&&ps[0].text ? ps[0].text.substring(0,100) : 'bilinmiyor'));
+}
+
+// Retry wrapper — 429'da 3 kez dener
+async function uretRetry(prompt, refB64, aspectRatio){
+  var maxTry = 3;
+  for(var i=0;i<maxTry;i++){
+    try {
+      return await geminiUret(prompt, refB64, aspectRatio);
+    } catch(e){
+      if(e.isRateLimit && i < maxTry-1){
+        var wait = (i+1)*10000;
+        log('  ⏳ Rate limit — ' + (wait/1000) + 's bekleniyor...','warn');
+        await sleep(wait);
+        continue;
+      }
+      throw e;
+    }
+  }
+}
+
+// ═══════════════════════════════════════════
+// RUNWAY GEN4 IMAGE ÜRETİMİ — Asenkron Task-Based
+// ═══════════════════════════════════════════
+function ratioToRunway(r){
+  return RATIO_MAP_RUNWAY[r] || '1080:1920';
+}
+
+async function runwayUret(prompt, refB64, aspectRatio){
+  var key = getRunwayKey();
+  if(!key) throw new Error('Runway API key yok');
+
+  // file:// protokolünde CORS proxy çalışmaz
+  if(window.location.protocol === 'file:'){
+    throw new Error('Runway motoru file:// protokolünde çalışmaz. Lütfen VS Code Live Server kullanın (http://127.0.0.1:5500)');
+  }
+
+  var ratio = ratioToRunway(aspectRatio || (D && D.meta && D.meta.aspect_ratio) || '9:16');
+  var model = GEMINI_MODEL; // aslında runway model id
+
+  var body = {
+    model: model,
+    promptText: prompt,
+    ratio: ratio
+  };
+
+  // refB64: string (tek referans) veya array (çoklu referans) olabilir
+  var refs = [];
+  if(refB64){
+    if(Array.isArray(refB64)){
+      refs = refB64.filter(function(r){ return !!r; });
+    } else {
+      refs = [refB64];
+    }
+  }
+
+  // gen4_image_turbo referans görseli ZORUNLU kılıyor (min 1)
+  // Referans yoksa gen4_image'e otomatik düşür
+  if(refs.length === 0 && model === 'gen4_image_turbo'){
+    log('  ⚠ Gen4 Turbo referans görseli zorunlu kılıyor — Gen4 Image\'e düşürülüyor','warn');
+    body.model = 'gen4_image';
+  }
+
+  // Referans görseller varsa ekle (Runway max 3)
+  if(refs.length > 0){
+    var maxRef = Math.min(refs.length, 3); // Runway max 3 referans
+    body.referenceImages = [];
+    var tagNames = [];
+    for(var ri=0; ri<maxRef; ri++){
+      var b64uri = refs[ri];
+      if(b64uri.indexOf('data:') !== 0){
+        b64uri = 'data:image/jpeg;base64,' + b64uri;
+      }
+      var tag = 'char' + (ri+1);
+      body.referenceImages.push({uri: b64uri, tag: tag});
+      tagNames.push('@' + tag);
+    }
+    // Prompt'a @tag ekle
+    if(prompt.indexOf('@char') < 0){
+      body.promptText = 'Generate image with ' + tagNames.join(' and ') + ': ' + prompt;
+    }
+    if(refs.length > 3){
+      log('  ⚠ Runway max 3 referans — ' + refs.length + ' referanstan ilk 3\'ü gönderildi','warn');
+    }
+  }
+
+  // Task oluştur
+  var createUrl = CORS_PROXY + encodeURIComponent('https://api.dev.runwayml.com/v1/text_to_image');
+  var bodyStr = JSON.stringify(body);
+  console.log('Runway request:', createUrl);
+  console.log('Runway body:', bodyStr.substring(0, 500));
+  var r = await fetch(createUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + key,
+      'X-Runway-Version': '2024-11-06'
+    },
+    body: bodyStr,
+    signal: AbortSignal.timeout(30000)
+  });
+
+  if(r.status === 429){
+    var err429 = new Error('RATE_LIMIT_429');
+    err429.isRateLimit = true;
+    throw err429;
+  }
+  if(!r.ok){
+    var errText = await r.text().catch(function(){return '';});
+    console.error('Runway API Hata:', r.status, errText);
+    var errObj = {};
+    try { errObj = JSON.parse(errText); } catch(pe){}
+    var errMsg = errObj.error || errObj.message || errText || r.statusText;
+    if(typeof errMsg === 'object') errMsg = JSON.stringify(errMsg);
+    log('  ⚠ Runway API yanıtı: ' + errMsg, 'err');
+    throw new Error('Runway ' + r.status + ': ' + errMsg);
+  }
+
+  var taskData = await r.json();
+  var taskId = taskData.id;
+  if(!taskId) throw new Error('Runway task ID alınamadı');
+
+  log('  🎬 Runway task başlatıldı: ' + taskId.substring(0,12) + '...','info');
+
+  // Poll et (5sn aralıkla, max 2dk)
+  var maxPoll = 24; // 24 × 5s = 120s
+  for(var p=0; p<maxPoll; p++){
+    await sleep(5000);
+    var pollUrl = CORS_PROXY + encodeURIComponent('https://api.dev.runwayml.com/v1/tasks/' + taskId);
+    var pr = await fetch(pollUrl, {
+      headers: {
+        'Authorization': 'Bearer ' + key,
+        'X-Runway-Version': '2024-11-06'
+      },
+      signal: AbortSignal.timeout(15000)
+    });
+    if(!pr.ok) continue;
+    var task = await pr.json();
+
+    if(task.status === 'SUCCEEDED'){
+      if(!task.output || !task.output.length) throw new Error('Runway çıktı URL boş');
+      var imgUrl = task.output[0];
+      log('  🎬 Runway görsel hazır, indiriliyor...','success');
+      // URL'den base64'e çevir
+      return await runwayUrlToBase64(imgUrl);
+    }
+    if(task.status === 'FAILED'){
+      throw new Error('Runway task başarısız: ' + (task.failure || task.failureCode || 'bilinmiyor'));
+    }
+    // PENDING veya RUNNING — devam
+  }
+  throw new Error('Runway timeout — 2dk içinde tamamlanamadı (task: ' + taskId + ')');
+}
+
+async function runwayUrlToBase64(url){
+  // Runway output URL'sini CORS proxy üzerinden fetch et
+  var fetchUrl = CORS_PROXY + encodeURIComponent(url);
+  var r = await fetch(fetchUrl, {signal: AbortSignal.timeout(30000)});
+  if(!r.ok) throw new Error('Runway görsel indirilemedi: ' + r.status);
+  var blob = await r.blob();
+  return await new Promise(function(resolve, reject){
+    var reader = new FileReader();
+    reader.onload = function(e){ resolve(e.target.result); };
+    reader.onerror = function(){ reject(new Error('Blob okunamadı')); };
+    reader.readAsDataURL(blob);
+  });
+}
+
+// Runway Retry wrapper — 429'da 3 kez dener
+async function runwayRetry(prompt, refB64, aspectRatio){
+  var maxTry = 3;
+  for(var i=0;i<maxTry;i++){
+    try {
+      return await runwayUret(prompt, refB64, aspectRatio);
+    } catch(e){
+      if(e.isRateLimit && i < maxTry-1){
+        var wait = (i+1)*15000;
+        log('  ⏳ Runway rate limit — ' + (wait/1000) + 's bekleniyor...','warn');
+        await sleep(wait);
+        continue;
+      }
+      throw e;
+    }
+  }
+}
+
+// ═══════════════════════════════════════════
+// BİRLEŞİK ÜRETİM — Motor bazlı yönlendirme
+// ═══════════════════════════════════════════
+async function birlesikUret(prompt, refB64, aspectRatio){
+  if(getMotor() === 'runway'){
+    return await runwayRetry(prompt, refB64, aspectRatio);
+  } else {
+    return await uretRetry(prompt, refB64, aspectRatio);
+  }
+}
+
+function birlesikKeyKontrol(){
+  if(getMotor() === 'runway'){
+    var k = getRunwayKey();
+    if(!k){ log('✗ Runway API key girilmedi','err'); return false; }
+    if(k.indexOf('key_') !== 0){ log('✗ Runway key "key_" ile başlamalı (dev.runwayml.com → API Keys)','err'); return false; }
+    return true;
+  } else {
+    var k2 = getKey();
+    if(!k2){ log('✗ Gemini API key girilmedi','err'); return false; }
+    return true;
+  }
+}
+
+// ═══════════════════════════════════════════
+// PORTRE ÜRETİMİ
+// ═══════════════════════════════════════════
+async function portreleriUret(){
+  if(!D) return;
+  if(!birlesikKeyKontrol()) return;
+
+  var btn = document.getElementById('btnPort');
+  btn.disabled = true;
+  var chars = Object.entries(D.characters);
+  var total = chars.length;
+
+  for(var i=0;i<chars.length;i++){
+    var name = chars[i][0];
+    var info = chars[i][1];
+    btn.textContent = '👤 ' + (i+1) + '/' + total + ' ' + name;
+    prog((i+1)/total*50);
+    status('Portre üretiliyor: ' + name + ' [' + MODEL_DEFS[SELECTED_MODEL_KEY].ad + ']');
+
+    if(charRefs[name]){ log('  ✓ ' + name + ' — mevcut','success'); continue; }
+    log('Portre: ' + name + ' [' + getMotor().toUpperCase() + ']...');
+    try {
+      var personRef = (info.ref_image_b64 && info.reference_person) ? info.ref_image_b64 : null;
+      var ratio = normalizeRatio((D.meta && D.meta.portrait_aspect_ratio) || '1:1', true);
+      var img = await birlesikUret(info.portrait_prompt || ('portrait of ' + name), personRef, ratio);
+      charRefs[name] = img;
+      renderChars();
+      log('  ✓ ' + name,'success');
+    } catch(e){
+      log('  ✗ ' + name + ' — ' + e.message,'err');
+    }
+    if(i < chars.length-1) await sleep(3000);
+  }
+
+  btn.disabled = false;
+  btn.textContent = '👤 Portreleri Yenile';
+  document.getElementById('btnScene').classList.remove('hidden');
+  document.getElementById('btnRestore').classList.remove('hidden');
+  status('Portreler hazır — sahneleri üretebilirsin.');
+  log('✓ Portreler tamamlandı.','success');
+}
+
+// ═══════════════════════════════════════════
+// SAHNE ÜRETİMİ
+// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════
+// GÖRSELLERİ GERİ YÜKLE — klasörden portre + sahne
+// ═══════════════════════════════════════════
+async function gorselleriYukle(){
+  if(!D){ log('JSON yüklenmedi','err'); return; }
+
+  // showDirectoryPicker destekleniyor mu?
+  if(window.showDirectoryPicker){
+    try {
+      var dirHandle = await window.showDirectoryPicker({mode:'read', startIn:'downloads'});
+      log('📂 Klasör seçildi: ' + dirHandle.name, 'info');
+      await _klasordenYukle(dirHandle);
+    } catch(e){
+      if(e.name !== 'AbortError') log('Klasör seçimi hatası: ' + e.message, 'err');
+    }
+  } else {
+    // Fallback: çoklu dosya seçimi
+    log('⚠ Tarayıcı klasör seçimini desteklemiyor — dosya seçici açılıyor', 'warn');
+    var input = document.createElement('input');
+    input.type = 'file';
+    input.multiple = true;
+    input.accept = '.jpg,.jpeg,.png,.webp';
+    input.onchange = function(ev){
+      var files = ev.target.files;
+      if(!files || !files.length) return;
+      _dosyalardanYukle(files);
+    };
+    input.click();
+  }
+}
+
+async function _klasordenYukle(dirHandle){
+  var portreYuklenen = 0, sahneYuklenen = 0;
+  var portreEksik = 0, sahneEksik = 0;
+
+  // Beklenen dosya isimleri
+  var beklenenPortreler = {};
+  Object.keys(D.characters).forEach(function(name){
+    beklenenPortreler[safeName(name).toLowerCase()] = name;
+  });
+  var beklenenSahneler = {};
+  D.scenes.forEach(function(sc, i){
+    var fn = sc.filename || ('scene_' + String(i+1).padStart(3,'0'));
+    beklenenSahneler[fn.toLowerCase()] = fn;
+  });
+
+  // Recursive klasör tarama (scenes/, portraits/ alt klasörleri dahil)
+  var tumDosyalar = [];
+  await _klasorTara(dirHandle, '', tumDosyalar);
+
+  log('📂 Klasörde ' + tumDosyalar.length + ' dosya bulundu — eşleştiriliyor...', 'info');
+
+  for(var i = 0; i < tumDosyalar.length; i++){
+    var dosya = tumDosyalar[i];
+    var ad = dosya.name;
+    var adSiz = ad.replace(/\.(jpg|jpeg|png|webp)$/i, '').toLowerCase();
+
+    // Portre mi?
+    var portreKey = beklenenPortreler[adSiz];
+    if(portreKey && !charRefs[portreKey]){
+      var b64 = await _dosyaToBase64(dosya.handle);
+      if(b64){
+        charRefs[portreKey] = b64;
+        portreYuklenen++;
+      }
+      continue;
+    }
+
+    // Sahne mi?
+    var sahneKey = beklenenSahneler[adSiz];
+    if(sahneKey && !sceneImgs[sahneKey]){
+      var b64s = await _dosyaToBase64(dosya.handle);
+      if(b64s){
+        sceneImgs[sahneKey] = b64s;
+        sahneYuklenen++;
+      }
+    }
+  }
+
+  // Eksikleri say
+  Object.keys(D.characters).forEach(function(name){ if(!charRefs[name]) portreEksik++; });
+  D.scenes.forEach(function(sc, i){
+    var fn = sc.filename || ('scene_' + String(i+1).padStart(3,'0'));
+    if(!sceneImgs[fn]) sahneEksik++;
+  });
+
+  renderChars();
+  renderScenes();
+  document.getElementById('sceneSec').classList.remove('hidden');
+
+  // Portreler yüklendiyse sahne üret butonunu aç
+  if(portreYuklenen > 0){
+    document.getElementById('btnScene').classList.remove('hidden');
+  }
+  // Tüm sahneler yüklendiyse indirme bölümünü aç
+  if(sahneEksik === 0 && sahneYuklenen > 0){
+    document.getElementById('dlSec').classList.remove('hidden');
+  }
+
+  log('📂 Yükleme tamamlandı:', 'success');
+  log('   👤 Portre: ' + portreYuklenen + ' yüklendi' + (portreEksik > 0 ? ', ' + portreEksik + ' eksik' : ' ✓ tam'), portreEksik > 0 ? 'warn' : 'success');
+  log('   🎬 Sahne: ' + sahneYuklenen + ' yüklendi' + (sahneEksik > 0 ? ', ' + sahneEksik + ' eksik — üretilmeyi bekliyor' : ' ✓ tam'), sahneEksik > 0 ? 'warn' : 'success');
+}
+
+async function _klasorTara(dirHandle, yol, sonuc){
+  for await (var entry of dirHandle.values()){
+    if(entry.kind === 'file'){
+      var name = entry.name.toLowerCase();
+      if(name.endsWith('.jpg') || name.endsWith('.jpeg') || name.endsWith('.png') || name.endsWith('.webp')){
+        sonuc.push({name: entry.name, path: yol + '/' + entry.name, handle: entry});
+      }
+    } else if(entry.kind === 'directory'){
+      await _klasorTara(entry, yol + '/' + entry.name, sonuc);
+    }
+  }
+}
+
+async function _dosyaToBase64(fileHandle){
+  try {
+    var file = await fileHandle.getFile();
+    return await new Promise(function(resolve, reject){
+      var reader = new FileReader();
+      reader.onload = function(e){ resolve(e.target.result); };
+      reader.onerror = function(){ reject(new Error('Dosya okunamadı')); };
+      reader.readAsDataURL(file);
+    });
+  } catch(e){
+    return null;
+  }
+}
+
+function _dosyalardanYukle(files){
+  var portreYuklenen = 0, sahneYuklenen = 0;
+
+  var beklenenPortreler = {};
+  Object.keys(D.characters).forEach(function(name){
+    beklenenPortreler[safeName(name).toLowerCase()] = name;
+  });
+  var beklenenSahneler = {};
+  D.scenes.forEach(function(sc, i){
+    var fn = sc.filename || ('scene_' + String(i+1).padStart(3,'0'));
+    beklenenSahneler[fn.toLowerCase()] = fn;
+  });
+
+  var loaded = 0;
+  var total = files.length;
+
+  for(var i = 0; i < files.length; i++){
+    (function(file){
+      var adSiz = file.name.replace(/\.(jpg|jpeg|png|webp)$/i, '').toLowerCase();
+      var reader = new FileReader();
+      reader.onload = function(e){
+        var b64 = e.target.result;
+        var portreKey = beklenenPortreler[adSiz];
+        if(portreKey && !charRefs[portreKey]){
+          charRefs[portreKey] = b64;
+          portreYuklenen++;
+        }
+        var sahneKey = beklenenSahneler[adSiz];
+        if(sahneKey && !sceneImgs[sahneKey]){
+          sceneImgs[sahneKey] = b64;
+          sahneYuklenen++;
+        }
+        loaded++;
+        if(loaded === total){
+          renderChars();
+          renderScenes();
+          document.getElementById('sceneSec').classList.remove('hidden');
+          if(portreYuklenen > 0) document.getElementById('btnScene').classList.remove('hidden');
+
+          var portreEksik = 0, sahneEksik = 0;
+          Object.keys(D.characters).forEach(function(name){ if(!charRefs[name]) portreEksik++; });
+          D.scenes.forEach(function(sc, idx){
+            var fn2 = sc.filename || ('scene_' + String(idx+1).padStart(3,'0'));
+            if(!sceneImgs[fn2]) sahneEksik++;
+          });
+          if(sahneEksik === 0 && sahneYuklenen > 0) document.getElementById('dlSec').classList.remove('hidden');
+
+          log('📂 Dosyalardan yükleme tamamlandı:', 'success');
+          log('   👤 Portre: ' + portreYuklenen + (portreEksik > 0 ? ', ' + portreEksik + ' eksik' : ' ✓'), portreEksik > 0 ? 'warn' : 'success');
+          log('   🎬 Sahne: ' + sahneYuklenen + (sahneEksik > 0 ? ', ' + sahneEksik + ' eksik' : ' ✓'), sahneEksik > 0 ? 'warn' : 'success');
+        }
+      };
+      reader.readAsDataURL(file);
+    })(files[i]);
+  }
+}
+
+async function sahneleriUret(){
+  if(!D) return;
+  if(!birlesikKeyKontrol()) return;
+
+  var btn = document.getElementById('btnScene');
+  btn.disabled = true;
+  var scenes = D.scenes;
+  var total = scenes.length;
+  document.getElementById('sceneSec').classList.remove('hidden');
+
+  for(var i=0;i<scenes.length;i++){
+    var sc = scenes[i];
+    var fn = sc.filename || ('scene_' + String(i+1).padStart(3,'0'));
+    btn.textContent = '🎬 ' + (i+1) + '/' + total;
+    prog(50 + (i+1)/total*50);
+    status('Sahne üretiliyor: ' + fn + ' [' + MODEL_DEFS[SELECTED_MODEL_KEY].ad + ']');
+
+    if(sceneImgs[fn]){ renderScenes(); continue; }
+
+    // Sahnedeki TÜM karakterlerin portre referanslarını topla
+    var sceneChars = sc.characters_in_scene || (sc.character && sc.character !== 'ANLATICI' ? [sc.character] : []);
+    var refArray = [];
+    for(var ci2=0; ci2<sceneChars.length; ci2++){
+      if(charRefs[sceneChars[ci2]]) refArray.push(charRefs[sceneChars[ci2]]);
+    }
+    var ref = refArray.length > 0 ? refArray : null;
+
+    log('[' + (i+1) + '/' + total + '] ' + fn + ' [' + getMotor().toUpperCase() + '] — ' + (refArray.length) + ' referans...');
+    try {
+      var ratio = normalizeRatio((D.meta && (D.meta.scene_aspect_ratio || D.meta.aspect_ratio)) || '21:9');
+      var img = await birlesikUret(sc.prompt || fn, ref, ratio);
+      sceneImgs[fn] = img;
+      renderScenes();
+      log('  ✓ ' + fn,'success');
+    } catch(e){
+      log('  ✗ ' + fn + ' — ' + e.message,'err');
+    }
+    if(i < scenes.length-1) await sleep(3000);
+  }
+
+  btn.disabled = false;
+  btn.textContent = '🎬 Sahneleri Yenile';
+  prog(100);
+  status('Tamamlandı!');
+  document.getElementById('dlSec').classList.remove('hidden');
+  log('✓ Tüm sahneler tamamlandı!','success');
+}
+
+// ═══════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════
+function renderChars(){
+  if(!D) return;
+  var g = document.getElementById('charGrid');
+  g.innerHTML = '';
+  document.getElementById('charCnt').textContent = Object.keys(D.characters).length + ' karakter';
+  var ratio = (D.meta.aspect_ratio||'1:1').replace(':','/');
+
+  Object.entries(D.characters).forEach(function(entry){
+    var name = entry[0];
+    var info = entry[1];
+    var item = document.createElement('div');
+    item.className = 'g-item';
+
+    if(charRefs[name]){
+      var img = document.createElement('img');
+      img.src = charRefs[name];
+      img.style.aspectRatio = ratio;
+      img.style.objectFit = 'cover';
+      item.appendChild(img);
+      var badge = document.createElement('div');
+      badge.className = 'g-badge';
+      badge.textContent = '✓';
+      item.appendChild(badge);
+    } else if(info.ref_image_b64){
+      // Referans fotoğraf var ama AI portresi henüz üretilmedi
+      var refImg = document.createElement('img');
+      refImg.src = info.ref_image_b64;
+      refImg.style.aspectRatio = ratio;
+      refImg.style.objectFit = 'cover';
+      refImg.style.opacity = '0.5';
+      refImg.style.filter = 'grayscale(0.5)';
+      item.appendChild(refImg);
+      var badge2 = document.createElement('div');
+      badge2.className = 'g-badge';
+      badge2.style.color = 'var(--gold)';
+      badge2.textContent = '📷 ref';
+      item.appendChild(badge2);
+    } else {
+      var ph = document.createElement('div');
+      ph.className = 'g-placeholder';
+      ph.style.aspectRatio = ratio;
+      ph.textContent = 'Bekliyor';
+      item.appendChild(ph);
+    }
+
+    if(info.reference_person){
+      var rb = document.createElement('div');
+      rb.className = 'g-badge-ref';
+      rb.textContent = info.ref_image_b64 ? '📷' : '📷?';
+      item.appendChild(rb);
+    }
+
+    var inf = document.createElement('div');
+    inf.className = 'g-info';
+    var nm = document.createElement('div');
+    nm.className = 'g-name';
+    nm.textContent = name;
+    inf.appendChild(nm);
+
+    if(info.reference_person){
+      var lbl2 = document.createElement('label');
+      lbl2.style.cssText = 'display:block;margin-top:3px;font-size:.65rem;color:var(--sky);cursor:pointer;';
+      lbl2.textContent = info.ref_image_b64 ? '📷 Referans yüklü' : '📷 Fotoğraf yükle';
+      var inp2 = document.createElement('input');
+      inp2.type = 'file'; inp2.accept = 'image/*'; inp2.style.display = 'none';
+      inp2.dataset.char = name;
+      inp2.onchange = refFotoYukle;
+      lbl2.appendChild(inp2);
+      inf.appendChild(lbl2);
+    }
+
+    item.appendChild(inf);
+
+    item.addEventListener('click', function(ev){
+      if(ev.target.tagName==='INPUT'||ev.target.tagName==='LABEL') return;
+      modalAc('char', name);
+    });
+    g.appendChild(item);
+  });
+}
+
+function renderScenes(){
+  if(!D) return;
+  var g = document.getElementById('sceneGrid');
+  g.innerHTML = '';
+  var ratio = (D.meta.aspect_ratio||'9:16').replace(':','/');
+  document.getElementById('sceneCnt').textContent = D.scenes.length + ' sahne';
+
+  D.scenes.forEach(function(sc, i){
+    var fn = sc.filename || ('scene_' + String(i+1).padStart(3,'0'));
+    var item = document.createElement('div');
+    item.className = 'g-item';
+
+    if(sceneImgs[fn]){
+      var img = document.createElement('img');
+      img.src = sceneImgs[fn];
+      img.style.aspectRatio = ratio;
+      img.style.objectFit = 'cover';
+      item.appendChild(img);
+      var badge = document.createElement('div');
+      badge.className = 'g-badge';
+      badge.textContent = '✓';
+      item.appendChild(badge);
+    } else {
+      var ph = document.createElement('div');
+      ph.className = 'g-placeholder';
+      ph.style.aspectRatio = ratio;
+      ph.textContent = 'Bekliyor';
+      item.appendChild(ph);
+    }
+
+    var inf = document.createElement('div');
+    inf.className = 'g-info';
+    var nm = document.createElement('div');
+    nm.className = 'g-name';
+    nm.textContent = fn;
+    var sub = document.createElement('div');
+    sub.className = 'g-sub';
+    sub.textContent = (sc.srt_trigger||'') + ' | ' + (sc.character||'') + (sc.characters_in_scene && sc.characters_in_scene.length > 1 ? ' +' + (sc.characters_in_scene.length-1) : '');
+    inf.appendChild(nm);
+    inf.appendChild(sub);
+    item.appendChild(inf);
+
+    item.addEventListener('click', function(){ modalAc('scene', fn); });
+    g.appendChild(item);
+  });
+}
+
+// ═══════════════════════════════════════════
+// REF FOTO
+// ═══════════════════════════════════════════
+function refFotoYukle(ev){
+  var f = ev.target.files[0]; if(!f) return;
+  var charName = ev.target.dataset.char;
+  if(!charName || !D || !D.characters[charName]) return;
+  var reader = new FileReader();
+  reader.onload = function(e){
+    var imgEl = new Image();
+    imgEl.onload = function(){
+      var maxDim = 512;
+      var w = imgEl.width, h = imgEl.height;
+      if(w>maxDim||h>maxDim){
+        if(w>h){ h=Math.round(h*maxDim/w); w=maxDim; }
+        else{ w=Math.round(w*maxDim/h); h=maxDim; }
+      }
+      var canvas = document.createElement('canvas');
+      canvas.width=w; canvas.height=h;
+      canvas.getContext('2d').drawImage(imgEl,0,0,w,h);
+      var b64 = canvas.toDataURL('image/jpeg',0.75);
+      D.characters[charName].ref_image_b64 = b64;
+      D.characters[charName].reference_person = true;
+      renderChars();
+      log('📷 ' + charName + ' referans foto yüklendi (' + w + 'x' + h + ')','success');
+    };
+    imgEl.src = e.target.result;
+  };
+  reader.readAsDataURL(f);
+}
+
+// ═══════════════════════════════════════════
+// MODAL
+// ═══════════════════════════════════════════
+function modalAc(type, key){
+  modalType = type; modalKey = key;
+  var m = document.getElementById('modal');
+
+  if(type==='char'){
+    var info = D.characters[key]||{};
+    document.getElementById('modalTitle').textContent = '👤 ' + key;
+    document.getElementById('modalPrompt').value = info.portrait_prompt||'';
+    document.getElementById('modalMeta').textContent = (info.color||'') + (info.reference_person?' | 📷 Referans kişi':'') + ' | Portre';
+    var mi = document.getElementById('modalImg');
+    mi.innerHTML = '';
+    if(charRefs[key]){
+      var img = document.createElement('img'); img.src = charRefs[key];
+      mi.appendChild(img);
+    } else {
+      mi.innerHTML = '<span style="color:var(--cream3);font-size:.8rem;font-style:italic;">Görsel yok</span>';
+    }
+  } else {
+    var sc = D.scenes.find(function(s){ return (s.filename||'')===key; });
+    if(!sc) return;
+    document.getElementById('modalTitle').textContent = '🎬 ' + key;
+    document.getElementById('modalPrompt').value = sc.prompt||'';
+    document.getElementById('modalMeta').textContent = (sc.srt_trigger||'?') + ' → ' + (sc.srt_end||'?') + ' | ' + (sc.character||'');
+    var mi2 = document.getElementById('modalImg');
+    mi2.innerHTML = '';
+    if(sceneImgs[key]){
+      var img2 = document.createElement('img'); img2.src = sceneImgs[key];
+      mi2.appendChild(img2);
+    } else {
+      mi2.innerHTML = '<span style="color:var(--cream3);font-size:.8rem;font-style:italic;">Görsel yok</span>';
+    }
+  }
+  m.classList.add('open');
+}
+
+function modalKapat(){
+  if(D && modalType==='char' && D.characters[modalKey]){
+    D.characters[modalKey].portrait_prompt = document.getElementById('modalPrompt').value;
+  } else if(D && modalType==='scene'){
+    var sc = D.scenes.find(function(s){ return (s.filename||'')===modalKey; });
+    if(sc) sc.prompt = document.getElementById('modalPrompt').value;
+  }
+  document.getElementById('modal').classList.remove('open');
+}
+
+async function modalUret(){
+  var prompt = document.getElementById('modalPrompt').value.trim();
+  if(!prompt) return;
+  if(!birlesikKeyKontrol()) return;
+  var mi = document.getElementById('modalImg');
+  mi.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;min-height:140px;color:var(--gold);font-style:italic;">⏳ Üretiliyor [' + MODEL_DEFS[SELECTED_MODEL_KEY].ad + ']...</div>';
+  try {
+    var ref = null;
+    var ratio = (modalType==='char')
+      ? normalizeRatio((D && D.meta && D.meta.portrait_aspect_ratio) || '1:1', true)
+      : normalizeRatio((D && D.meta && (D.meta.scene_aspect_ratio || D.meta.aspect_ratio)) || '21:9');
+    if(modalType==='char'){
+      var ci = D.characters[modalKey];
+      if(ci && ci.ref_image_b64 && ci.reference_person) ref = ci.ref_image_b64;
+    } else {
+      var sc2 = D.scenes.find(function(s){ return (s.filename||'')===modalKey; });
+      if(sc2){
+        var scChars2 = sc2.characters_in_scene || (sc2.character && sc2.character !== 'ANLATICI' ? [sc2.character] : []);
+        var refArr2 = [];
+        for(var ci3=0; ci3<scChars2.length; ci3++){
+          if(charRefs[scChars2[ci3]]) refArr2.push(charRefs[scChars2[ci3]]);
+        }
+        ref = refArr2.length > 0 ? refArr2 : null;
+      }
+    }
+    var img = await birlesikUret(prompt, ref, ratio);
+    mi.innerHTML = '';
+    var imgEl = document.createElement('img'); imgEl.src = img;
+    mi.appendChild(imgEl);
+    if(modalType==='char'){ charRefs[modalKey]=img; renderChars(); log('✓ Portre güncellendi: '+modalKey,'success'); }
+    else { sceneImgs[modalKey]=img; renderScenes(); log('✓ Sahne güncellendi: '+modalKey,'success'); }
+  } catch(e){
+    mi.innerHTML = '<span style="color:var(--red);font-size:.8rem;">Hata: ' + escTxt(e.message) + '</span>';
+    log('✗ Modal üretim hatası: '+e.message,'err');
+  }
+}
+
+async function modalYeniFikir(){
+  var old = document.getElementById('modalPrompt').value;
+  var v = old.replace(/dramatic/g,'soft').replace(/warm/g,'cool').replace(/close-up/g,'wide shot');
+  if(v===old) v = old + ', different angle, alternative lighting';
+  document.getElementById('modalPrompt').value = v;
+  await modalUret();
+}
+
+function modalResimYukle(ev){
+  var f = ev.target.files[0]; if(!f) return;
+  var r = new FileReader();
+  r.onload = function(e){
+    var imgData = e.target.result;
+    var mi = document.getElementById('modalImg');
+    mi.innerHTML = '';
+    var imgEl = document.createElement('img'); imgEl.src = imgData;
+    mi.appendChild(imgEl);
+    if(modalType==='char'){ charRefs[modalKey]=imgData; renderChars(); }
+    else { sceneImgs[modalKey]=imgData; renderScenes(); }
+    log('✓ Resim yüklendi: '+modalKey,'success');
+  };
+  r.readAsDataURL(f);
+}
+
+function modalRefYukle(ev){
+  var f = ev.target.files[0]; if(!f) return;
+  if(modalType!=='char'){ log('Referans sadece karakterler için','warn'); return; }
+  var charName = modalKey;
+  var reader = new FileReader();
+  reader.onload = function(e){
+    var imgEl = new Image();
+    imgEl.onload = function(){
+      var maxDim=512, w=imgEl.width, h=imgEl.height;
+      if(w>maxDim||h>maxDim){ if(w>h){h=Math.round(h*maxDim/w);w=maxDim;}else{w=Math.round(w*maxDim/h);h=maxDim;} }
+      var cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+      cv.getContext('2d').drawImage(imgEl,0,0,w,h);
+      var b64=cv.toDataURL('image/jpeg',0.75);
+      D.characters[charName].ref_image_b64=b64;
+      D.characters[charName].reference_person=true;
+      renderChars();
+      log('📷 '+charName+' referans yüklendi','success');
+    };
+    imgEl.src=e.target.result;
+  };
+  reader.readAsDataURL(f);
+}
+
+// ESC kapat
+document.addEventListener('keydown',function(e){ if(e.key==='Escape') modalKapat(); });
+document.getElementById('modal').addEventListener('click',function(e){ if(e.target===this) modalKapat(); });
+
+// ═══════════════════════════════════════════
+// CAPCUT — KLASÖR SEÇ
+// ═══════════════════════════════════════════
+async function klasorSec(){
+  if(!window.showDirectoryPicker){
+    log('⚠ showDirectoryPicker desteklenmiyor — manuel path girin','warn');
+    return;
+  }
+  try {
+    capCutDir = await window.showDirectoryPicker({ mode:'readwrite', startIn:'downloads' });
+    var pd = document.getElementById('pathDisplay');
+    pd.classList.remove('hidden');
+    pd.innerHTML = '';
+    var sp = document.createElement('span');
+    sp.textContent = '📁 Seçilen: ';
+    pd.appendChild(sp);
+    var folder = document.createElement('span');
+    folder.style.color = 'var(--gold)';
+    folder.textContent = capCutDir.name;
+    pd.appendChild(folder);
+    document.getElementById('manualPath').value = capCutDir.name;
+    log('📁 Klasör seçildi: ' + capCutDir.name,'success');
+  } catch(e){
+    if(e.name!=='AbortError') log('Klasör seçimi hatası: '+e.message,'err');
+  }
+}
+
+function getCapCutPath(){
+  if(capCutDir) return capCutDir.name;
+  return document.getElementById('manualPath').value.trim() || '';
+}
+
+// ═══════════════════════════════════════════
+// ZIP İNDİR
+// ═══════════════════════════════════════════
+async function zipIndir(){
+  if(!D){ log('JSON yüklenmedi','err'); return; }
+  log('ZIP oluşturuluyor...','info');
+  var zip = new JSZip();
+  var title = safeTitle();
+  var folder = zip.folder(title);
+  var portraits = folder.folder('portraits');
+  var scenes = folder.folder('scenes');
+
+  Object.entries(charRefs).forEach(function(e){
+    var b = e[1]; if(b.indexOf(',')>=0) b=b.split(',')[1];
+    portraits.file(safeName(e[0])+'.jpg', b, {base64:true});
+  });
+
+  D.scenes.forEach(function(sc,i){
+    var fn = sc.filename || ('scene_'+String(i+1).padStart(3,'0'));
+    if(sceneImgs[fn]){
+      var b = sceneImgs[fn]; if(b.indexOf(',')>=0) b=b.split(',')[1];
+      scenes.file(fn+'.jpg', b, {base64:true});
+    }
+  });
+
+  var draftData = capCutDraft();
+  folder.file('draft_content.json', JSON.stringify(draftData, null, 2));
+  folder.file('draft_meta_info.json', JSON.stringify(draftMetaInfo(draftData), null, 2));
+  folder.file('sahne_rapor.txt', raporOlustur());
+  folder.file('kaynak.json', JSON.stringify(D, null, 2));
+
+  var blob = await zip.generateAsync({type:'blob', compression:'DEFLATE', compressionOptions:{level:6}});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = title + '.zip';
+  a.click();
+  log('✓ ZIP indirildi: '+title+'.zip','success');
+}
+
+// ═══════════════════════════════════════════
+// CAPCUT DRAFT
+// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════
+// SRT YÜKLEME & PARSE — v3 (İkili SRT + DTW + Aeneas)
+// ═══════════════════════════════════════════
+
+function _srtDurumGuncelle(){
+  var e1 = document.getElementById('stCumle');
+  var e2 = document.getElementById('stWord');
+  var e3 = document.getElementById('stTxt2');
+  var e4 = document.getElementById('stAeneas');
+  if(e1) e1.innerHTML = srtDataCumle ? '<span style="color:var(--green)">✅ Cümle SRT ('+srtDataCumle.length+')</span>' : '⬜ Cümle SRT';
+  if(e2) e2.innerHTML = srtDataWord ? '<span style="color:var(--green)">✅ Word SRT ('+srtDataWord.length+')</span>' : '⬜ Word SRT';
+  if(e3) e3.innerHTML = hikayeText ? '<span style="color:var(--green)">✅ Hikaye TXT ('+hikayeText.length+' kelime)</span>' : '⬜ Hikaye TXT';
+  if(e4) e4.innerHTML = aeneasData ? '<span style="color:var(--gold)">⚡ Aeneas ('+aeneasData.satirlar.length+' satır)</span>' : '⬜ Aeneas';
+}
+
+function cumleSrtYukle(ev){
+  var f = ev.target.files[0]; if(!f) return;
+  var r = new FileReader();
+  r.onload = function(e){
+    var raw = srtParseRaw(e.target.result);
+    var totalWords = 0;
+    for(var i=0;i<raw.length;i++) totalWords += raw[i].text.split(/\s+/).length;
+    var avgWords = raw.length > 0 ? totalWords / raw.length : 0;
+    if(avgWords < 2){
+      // Kullanıcı yanlış butona yüklemiş — word SRT algılandı, otomatik yönlendir
+      log('⚠ Bu dosya word SRT gibi görünüyor (ort. '+avgWords.toFixed(1)+' kelime/satır). Word SRT olarak da kaydediliyor.','warn');
+      srtDataWord = raw;
+      srtDataCumle = wordSrtToCumle(raw);
+      log('📄 '+raw.length+' kelime → '+srtDataCumle.length+' cümle oluşturuldu','success');
+    } else {
+      srtDataCumle = raw;
+    }
+    log('📄 Cümle SRT yüklendi: ' + f.name + ' (' + srtDataCumle.length + ' satır)','success');
+    _srtDurumGuncelle();
+  };
+  r.readAsText(f,'utf-8');
+}
+
+function wordSrtYukle(ev){
+  var f = ev.target.files[0]; if(!f) return;
+  var r = new FileReader();
+  r.onload = function(e){
+    var raw = srtParseRaw(e.target.result);
+    srtDataWord = raw;
+    // Ayrıca cümle SRT yoksa, word'den cümle de üret
+    if(!srtDataCumle){
+      srtDataCumle = wordSrtToCumle(raw);
+      log('📄 Cümle SRT yoktu — word SRT\'den '+srtDataCumle.length+' cümle üretildi','info');
+    }
+    log('📄 Word SRT yüklendi: ' + f.name + ' (' + srtDataWord.length + ' kelime)','success');
+    _srtDurumGuncelle();
+  };
+  r.readAsText(f,'utf-8');
+}
+
+function hikayeTxtYukle(ev){
+  var f = ev.target.files[0]; if(!f) return;
+  var r = new FileReader();
+  r.onload = function(e){
+    var text = e.target.result;
+    var lines = text.trim().replace(/\r\n/g,'\n').split('\n');
+    hikayeLines = [];
+    hikayeText = [];
+    var wordIdx = 0;
+    for(var i=0;i<lines.length;i++){
+      var line = lines[i].trim();
+      if(!line) continue;
+      // [ANLATICI], [RAMAZAN] vs. etiketleri temizle
+      var clean = line.replace(/\[[^\]]*\]\s*/g, '');
+      // <eager>, <calm> vs. duygu etiketleri temizle
+      clean = clean.replace(/<[^>]*>\s*/g, '');
+      // Tırnak işaretlerini kaldır ama kelimeleri koru
+      clean = clean.replace(/[""'']/g, '').trim();
+      if(!clean) continue;
+      var words = clean.split(/\s+/).filter(function(w){ return w.length > 0; });
+      var lineWords = [];
+      for(var j=0;j<words.length;j++){
+        hikayeText.push({word: words[j], index: wordIdx, lineNo: hikayeLines.length+1});
+        lineWords.push(wordIdx);
+        wordIdx++;
+      }
+      hikayeLines.push({no: hikayeLines.length+1, metin: clean, wordIndices: lineWords});
+    }
+    log('📄 Hikaye TXT yüklendi: ' + f.name + ' (' + hikayeText.length + ' kelime, ' + hikayeLines.length + ' satır)','success');
+    _srtDurumGuncelle();
+  };
+  r.readAsText(f,'utf-8');
+}
+
+function aeneasYukle(ev){
+  var f = ev.target.files[0]; if(!f) return;
+  var r = new FileReader();
+  r.onload = function(e){
+    try {
+      var json = JSON.parse(e.target.result);
+      // Aeneas native format: {fragments: [{begin, end, id, lines}, ...]}
+      if(json.fragments){
+        aeneasData = {satirlar:[]};
+        for(var i=0;i<json.fragments.length;i++){
+          var frag = json.fragments[i];
+          aeneasData.satirlar.push({
+            no: i+1,
+            metin: (frag.lines||[]).join(' '),
+            start_ms: Math.round(parseFloat(frag.begin)*1000),
+            end_ms: Math.round(parseFloat(frag.end)*1000)
+          });
+        }
+      }
+      // Bizim format: {satirlar: [{no, metin, start_ms, end_ms}, ...]}
+      else if(json.satirlar){
+        aeneasData = json;
+      } else {
+        log('✗ Tanınmayan Aeneas JSON formatı','err');
+        return;
+      }
+      log('⚡ Aeneas alignment yüklendi: ' + f.name + ' (' + aeneasData.satirlar.length + ' satır)','success');
+      _srtDurumGuncelle();
+    } catch(err){
+      log('✗ Aeneas JSON parse hatası: '+err.message,'err');
+    }
+  };
+  r.readAsText(f,'utf-8');
+}
+
+function srtParseRaw(text){
+  var blocks = text.trim().replace(/\r\n/g,'\n').split(/\n\n+/);
+  var result = [];
+  for(var i=0;i<blocks.length;i++){
+    var lines = blocks[i].trim().split('\n');
+    if(lines.length < 2) continue;
+    var timeLine = lines.find(function(l){ return l.indexOf('-->') >= 0; });
+    if(!timeLine) continue;
+    var tp = timeLine.split('-->');
+    var content = '';
+    var timeIdx = lines.indexOf(timeLine);
+    for(var j=timeIdx+1;j<lines.length;j++){
+      if(content) content += ' ';
+      content += lines[j].replace(/\[SPEAKER_\d+\]\s*/g,'').trim();
+    }
+    result.push({
+      index: parseInt(lines[0]) || (i+1),
+      startRaw: tp[0].trim(),
+      endRaw: tp[1].trim(),
+      startUs: srtToUs(tp[0].trim()),
+      endUs: srtToUs(tp[1].trim()),
+      text: content
+    });
+  }
+  return result;
+}
+
+// Word SRT → cümle birleştirme (150ms+ sessizlik = yeni cümle)
+function wordSrtToCumle(words){
+  if(!words.length) return [];
+  var GAP = 150000; // 150ms mikrosaniye
+  var cumle = [];
+  var curText = words[0].text;
+  var curStart = words[0].startUs;
+  var curStartRaw = words[0].startRaw;
+  var curEnd = words[0].endUs;
+
+  for(var i=1; i<words.length; i++){
+    var gap = words[i].startUs - curEnd;
+    var endsWithPunct = /[.!?]$/.test(curText.trim());
+    if(gap > GAP || (endsWithPunct && gap > 50000)){
+      cumle.push({
+        index: cumle.length + 1,
+        startRaw: curStartRaw,
+        endRaw: words[i-1].endRaw,
+        startUs: curStart,
+        endUs: curEnd,
+        text: curText.trim()
+      });
+      curText = words[i].text;
+      curStart = words[i].startUs;
+      curStartRaw = words[i].startRaw;
+    } else {
+      curText += ' ' + words[i].text;
+    }
+    curEnd = words[i].endUs;
+  }
+  cumle.push({
+    index: cumle.length + 1,
+    startRaw: curStartRaw,
+    endRaw: words[words.length-1].endRaw,
+    startUs: curStart,
+    endUs: curEnd,
+    text: curText.trim()
+  });
+  return cumle;
+}
+
+// ═══════════════════════════════════════════
+// EŞLEŞTİRME YARDIMCILARI — v2
+// ═══════════════════════════════════════════
+
+// Temel metin temizleme
+function cleanText(s){
+  if(!s) return '';
+  return s.replace(/\[SPEAKER_\d+\]\s*/g,'')
+    .replace(/[''""\.!?,;:\-–—…\(\)\[\]\"\']/g,'')
+    .replace(/\s+/g,' ').trim().toLowerCase();
+}
+
+// Türkçe ASR hata toleransı: özel karakterleri ASCII'ye dönüştür
+function asrNormalize(s){
+  return cleanText(s)
+    .replace(/ğ/g,'g').replace(/ü/g,'u').replace(/ş/g,'s')
+    .replace(/ı/g,'i').replace(/ö/g,'o').replace(/ç/g,'c')
+    .replace(/â/g,'a').replace(/î/g,'i').replace(/û/g,'u');
+}
+
+// Damerau-Levenshtein mesafesi (transposition destekli)
+function damerauLevenshtein(a, b){
+  var la = a.length, lb = b.length;
+  if(la === 0) return lb;
+  if(lb === 0) return la;
+  var d = [];
+  for(var i=0; i<=la; i++){ d[i] = []; d[i][0] = i; }
+  for(var j=0; j<=lb; j++){ d[0][j] = j; }
+  for(var i=1; i<=la; i++){
+    for(var j=1; j<=lb; j++){
+      var cost = a[i-1] === b[j-1] ? 0 : 1;
+      d[i][j] = Math.min(
+        d[i-1][j] + 1,      // silme
+        d[i][j-1] + 1,      // ekleme
+        d[i-1][j-1] + cost   // değiştirme
+      );
+      // Transposition (ASR'de yaygın: harf yer değiştirme)
+      if(i > 1 && j > 1 && a[i-1] === b[j-2] && a[i-2] === b[j-1]){
+        d[i][j] = Math.min(d[i][j], d[i-2][j-2] + cost);
+      }
+    }
+  }
+  return d[la][lb];
+}
+
+function damerauSimilarity(a, b){
+  var maxLen = Math.max(a.length, b.length);
+  return maxLen === 0 ? 1 : 1 - damerauLevenshtein(a, b) / maxLen;
+}
+
+// Karakter N-gram oluştur
+function charNgrams(s, n){
+  var grams = {};
+  for(var i=0; i<=s.length-n; i++){
+    var g = s.substring(i, i+n);
+    grams[g] = (grams[g]||0) + 1;
+  }
+  return grams;
+}
+
+// Jaccard benzerliği (n-gram bazlı)
+function ngramJaccard(a, b, n){
+  var ga = charNgrams(a, n);
+  var gb = charNgrams(b, n);
+  var intersection = 0, union = 0;
+  var allKeys = {};
+  for(var k in ga) allKeys[k] = true;
+  for(var k in gb) allKeys[k] = true;
+  for(var k in allKeys){
+    var va = ga[k]||0, vb = gb[k]||0;
+    intersection += Math.min(va, vb);
+    union += Math.max(va, vb);
+  }
+  return union === 0 ? 0 : intersection / union;
+}
+
+// Token Set Ratio: kelime sırasına bakmadan ortak kelime oranı
+function tokenSetRatio(a, b){
+  var wa = cleanText(a).split(/\s+/).filter(function(x){return x.length>0;});
+  var wb = cleanText(b).split(/\s+/).filter(function(x){return x.length>0;});
+  if(wa.length === 0 || wb.length === 0) return 0;
+  var setA = {}; wa.forEach(function(w){ setA[w]=true; });
+  var setB = {}; wb.forEach(function(w){ setB[w]=true; });
+  var inter = 0;
+  for(var k in setA){ if(setB[k]) inter++; }
+  return inter / Math.min(Object.keys(setA).length, Object.keys(setB).length);
+}
+
+// Partial Match: kısa metni uzun metin içinde kelime penceresi kaydırarak en iyi eşleşme
+function partialWordMatch(short_, long_){
+  var sw = cleanText(short_).split(/\s+/).filter(function(x){return x.length>0;});
+  var lw = cleanText(long_).split(/\s+/).filter(function(x){return x.length>0;});
+  if(sw.length === 0 || lw.length === 0) return 0;
+  if(sw.length > lw.length) return tokenSetRatio(short_, long_);
+  var best = 0;
+  for(var start=0; start <= lw.length - sw.length; start++){
+    var match = 0;
+    for(var k=0; k<sw.length; k++){
+      // Fuzzy kelime karşılaştırma (1 edit tolerans)
+      if(sw[k] === lw[start+k]){
+        match++;
+      } else if(sw[k].length > 2 && lw[start+k].length > 2){
+        if(damerauLevenshtein(sw[k], lw[start+k]) <= 1) match += 0.8;
+      }
+    }
+    var ratio = match / sw.length;
+    if(ratio > best) best = ratio;
+  }
+  return best;
+}
+
+// LCS Word-Level: kelime bazlı Longest Common Subsequence oranı
+function lcsWordRatio(a, b){
+  var wa = cleanText(a).split(/\s+/).filter(function(x){return x.length>0;});
+  var wb = cleanText(b).split(/\s+/).filter(function(x){return x.length>0;});
+  if(wa.length === 0 || wb.length === 0) return 0;
+  var m = wa.length, n = wb.length;
+  var dp = [];
+  for(var i=0; i<=m; i++){ dp[i] = []; for(var j=0; j<=n; j++) dp[i][j] = 0; }
+  for(var i=1; i<=m; i++){
+    for(var j=1; j<=n; j++){
+      if(wa[i-1] === wb[j-1]){
+        dp[i][j] = dp[i-1][j-1] + 1;
+      } else {
+        dp[i][j] = Math.max(dp[i-1][j], dp[i][j-1]);
+      }
+    }
+  }
+  return dp[m][n] / Math.max(m, n);
+}
+
+// ═══════════════════════════════════════════
+// WORD DTW HİZALAMA — Needleman-Wunsch Global Alignment
+// ═══════════════════════════════════════════
+
+function wordDTWHizala(){
+  if(!hikayeText || !hikayeText.length || !srtDataWord || !srtDataWord.length) return null;
+  var origWords = [];
+  for(var i=0;i<hikayeText.length;i++) origWords.push(asrNormalize(hikayeText[i].word));
+  var srtWords = [];
+  for(var i=0;i<srtDataWord.length;i++) srtWords.push(asrNormalize(srtDataWord[i].text));
+
+  var n = origWords.length;
+  var m = srtWords.length;
+  var MATCH = 2, FUZZY = 1, MISMATCH = -1, GAP = -0.5;
+  var BAND = Math.max(200, Math.round(Math.max(n,m)*0.35));
+
+  log('🔗 Word DTW başlıyor: '+n+' orijinal × '+m+' SRT kelime, band='+BAND,'info');
+
+  // Skor matrisi (banded)
+  var INF = -1e9;
+  var score = [];
+  var trace = []; // 0=diag, 1=up(gap in SRT), 2=left(gap in orig)
+  for(var i=0;i<=n;i++){
+    score[i] = [];
+    trace[i] = [];
+    for(var j=0;j<=m;j++){
+      score[i][j] = INF;
+      trace[i][j] = -1;
+    }
+  }
+  score[0][0] = 0;
+  for(var i=1;i<=n;i++){ score[i][0] = GAP * i; trace[i][0] = 1; }
+  for(var j=1;j<=m;j++){ score[0][j] = GAP * j; trace[0][j] = 2; }
+
+  for(var i=1;i<=n;i++){
+    var jMin = Math.max(1, Math.round(i * m / n) - BAND);
+    var jMax = Math.min(m, Math.round(i * m / n) + BAND);
+    for(var j=jMin;j<=jMax;j++){
+      var s;
+      if(origWords[i-1] === srtWords[j-1]){
+        s = MATCH;
+      } else {
+        var dl = damerauLevenshtein(origWords[i-1], srtWords[j-1]);
+        var maxL = Math.max(origWords[i-1].length, srtWords[j-1].length);
+        if(maxL > 0 && dl <= Math.max(1, Math.floor(maxL*0.3))){
+          s = FUZZY;
+        } else {
+          s = MISMATCH;
+        }
+      }
+      var diagScore = (score[i-1][j-1] > INF) ? score[i-1][j-1] + s : INF;
+      var upScore = (score[i-1][j] > INF) ? score[i-1][j] + GAP : INF;
+      var leftScore = (score[i][j-1] > INF) ? score[i][j-1] + GAP : INF;
+
+      if(diagScore >= upScore && diagScore >= leftScore){
+        score[i][j] = diagScore; trace[i][j] = 0;
+      } else if(upScore >= leftScore){
+        score[i][j] = upScore; trace[i][j] = 1;
+      } else {
+        score[i][j] = leftScore; trace[i][j] = 2;
+      }
+    }
+  }
+
+  // Traceback
+  var alignment = []; // [{origIdx, srtIdx}] veya {origIdx, srtIdx:-1} (gap)
+  var ci = n, cj = m;
+  while(ci > 0 || cj > 0){
+    var t = trace[ci][cj];
+    if(t === 0){ // diagonal — match/mismatch
+      alignment.push({origIdx: ci-1, srtIdx: cj-1});
+      ci--; cj--;
+    } else if(t === 1){ // up — gap in SRT
+      alignment.push({origIdx: ci-1, srtIdx: -1});
+      ci--;
+    } else { // left — gap in orig
+      alignment.push({origIdx: -1, srtIdx: cj-1});
+      cj--;
+    }
+  }
+  alignment.reverse();
+
+  // Orijinal kelime → SRT zamanı eşlemesi
+  var origToSrt = []; // origIdx → {startUs, endUs} veya null
+  for(var i=0;i<n;i++) origToSrt[i] = null;
+  var matchCount = 0;
+  for(var i=0;i<alignment.length;i++){
+    var a = alignment[i];
+    if(a.origIdx >= 0 && a.srtIdx >= 0){
+      origToSrt[a.origIdx] = {
+        startUs: srtDataWord[a.srtIdx].startUs,
+        endUs: srtDataWord[a.srtIdx].endUs,
+        srtIdx: a.srtIdx
+      };
+      matchCount++;
+    }
+  }
+
+  // Gap'leri interpolasyon ile doldur
+  for(var i=0;i<n;i++){
+    if(origToSrt[i]) continue;
+    var prevUs = null, nextUs = null;
+    for(var p=i-1;p>=0;p--){ if(origToSrt[p]){ prevUs = origToSrt[p]; break; } }
+    for(var nx=i+1;nx<n;nx++){ if(origToSrt[nx]){ nextUs = origToSrt[nx]; break; } }
+    if(prevUs && nextUs){
+      var ratio = 0.5;
+      origToSrt[i] = {
+        startUs: Math.round(prevUs.endUs + (nextUs.startUs - prevUs.endUs)*ratio),
+        endUs: Math.round(prevUs.endUs + (nextUs.startUs - prevUs.endUs)*ratio) + 50000,
+        srtIdx: -1, interpolated: true
+      };
+    } else if(prevUs){
+      origToSrt[i] = {startUs: prevUs.endUs, endUs: prevUs.endUs + 100000, srtIdx: -1, interpolated: true};
+    } else if(nextUs){
+      origToSrt[i] = {startUs: Math.max(0, nextUs.startUs - 100000), endUs: nextUs.startUs, srtIdx: -1, interpolated: true};
+    }
+  }
+
+  log('🔗 Word DTW tamamlandı: '+matchCount+'/'+n+' kelime eşleşti (%'+Math.round(matchCount*100/n)+')','success');
+  return origToSrt;
+}
+
+function dtwSahneZamanlari(){
+  if(!D || !D.scenes) return null;
+  var origToSrt = wordDTWHizala();
+  if(!origToSrt) return null;
+
+  // Orijinal metin kelimelerinden sahne başlangıçlarını bul
+  var results = [];
+  var totalScenes = D.scenes.length;
+
+  log('🔗 DTW → Sahne zamanlama eşleştirmesi başlıyor ('+totalScenes+' sahne)','info');
+
+  for(var si=0;si<totalScenes;si++){
+    var scene = D.scenes[si];
+    var fn = scene.filename || ('scene_'+String(si+1).padStart(3,'0'));
+    var startWords = scene.scene_start_words || '';
+    var endWords = scene.scene_end_words || '';
+
+    // scene_start_words'ü orijinal metinde bul
+    var startIdx = _findWordsInOrig(startWords);
+    var endIdx = _findWordsInOrig(endWords);
+
+    var startUs = -1, endUs = -1;
+    if(startIdx >= 0 && origToSrt[startIdx]){
+      startUs = origToSrt[startIdx].startUs;
+    }
+    if(endIdx >= 0 && origToSrt[endIdx]){
+      endUs = origToSrt[endIdx].endUs;
+    }
+    // endIdx bulunamazsa, sonraki sahnenin başından 1µs öncesini kullan
+    if(endUs < 0 && startUs >= 0){
+      endUs = startUs + 5000000; // fallback 5s
+    }
+
+    var confidence = 0;
+    var method = 'DTW';
+    if(startUs >= 0){
+      confidence = (startIdx >= 0 && origToSrt[startIdx] && !origToSrt[startIdx].interpolated) ? 95 : 60;
+      method = origToSrt[startIdx] && origToSrt[startIdx].interpolated ? 'DTW:interpolated' : 'DTW:exact';
+    }
+
+    results.push({
+      sceneIndex: si, filename: fn,
+      startUs: startUs, endUs: endUs,
+      foundInSrt: startUs >= 0,
+      matchMethod: method, confidence: confidence,
+      matchDetail: 'DTW: "'+cleanText(startWords).substring(0,25)+'" → origIdx#'+(startIdx+1),
+      srtLine: null, _srtIdx: -1
+    });
+
+    if(startUs >= 0){
+      var timeStr = (startUs/1e6).toFixed(3)+'s';
+      log('  ✓ Sahne '+(si+1)+' ['+method+', %'+confidence+'] ('+fn+'): '+timeStr,'success');
+    } else {
+      log('  ⚠ Sahne '+(si+1)+' [DTW] ('+fn+'): bulunamadı — fallback gerekli','warn');
+    }
+  }
+
+  // Bulunamayanlar için 10 katmanlı fallback
+  var unfound = results.filter(function(r){ return !r.foundInSrt; }).length;
+  if(unfound > 0 && srtDataCumle){
+    log('🔗 '+unfound+' sahne DTW ile bulunamadı — 10-Katman fallback çalışıyor...','info');
+    var fallback = _eslestir10Katman();
+    if(fallback){
+      for(var i=0;i<results.length;i++){
+        if(!results[i].foundInSrt && fallback[i] && fallback[i].foundInSrt){
+          results[i] = fallback[i];
+          results[i].matchMethod = 'DTW→' + fallback[i].matchMethod;
+        }
+      }
+    }
+  }
+
+  return results;
+}
+
+function _findWordsInOrig(phrase){
+  if(!phrase || !hikayeText || !hikayeText.length) return -1;
+  var sw = cleanText(phrase).split(/\s+/).filter(function(w){ return w.length > 0; });
+  if(!sw.length) return -1;
+  var firstWord = asrNormalize(sw[0]);
+
+  // Orijinal metinde ilk kelimeyi ara
+  for(var i=0;i<hikayeText.length;i++){
+    if(asrNormalize(hikayeText[i].word) === firstWord){
+      // Sonraki kelimeleri de kontrol et
+      if(sw.length === 1) return i;
+      var allMatch = true;
+      for(var k=1;k<sw.length && (i+k)<hikayeText.length;k++){
+        var sim = damerauSimilarity(asrNormalize(sw[k]), asrNormalize(hikayeText[i+k].word));
+        if(sim < 0.6){ allMatch = false; break; }
+      }
+      if(allMatch) return i;
+    }
+  }
+  // Fuzzy fallback
+  for(var i=0;i<hikayeText.length;i++){
+    var sim = damerauSimilarity(asrNormalize(hikayeText[i].word), firstWord);
+    if(sim >= 0.75){
+      if(sw.length === 1) return i;
+      var score = sim;
+      var cnt = 1;
+      for(var k=1;k<sw.length && (i+k)<hikayeText.length;k++){
+        score += damerauSimilarity(asrNormalize(sw[k]), asrNormalize(hikayeText[i+k].word));
+        cnt++;
+      }
+      if(score/cnt >= 0.65) return i;
+    }
+  }
+  return -1;
+}
+
+function aeneasSahneZamanlari(){
+  if(!D || !D.scenes || !aeneasData || !aeneasData.satirlar) return null;
+  var results = [];
+  var totalScenes = D.scenes.length;
+  log('⚡ Aeneas → Sahne zamanlama eşleştirmesi ('+totalScenes+' sahne)','info');
+
+  for(var si=0;si<totalScenes;si++){
+    var scene = D.scenes[si];
+    var fn = scene.filename || ('scene_'+String(si+1).padStart(3,'0'));
+    var srtLines = scene.srt_lines || [];
+
+    var startUs = -1, endUs = -1;
+    if(srtLines.length > 0){
+      var firstLine = srtLines[0] - 1; // 0-indexed
+      var lastLine = srtLines[srtLines.length-1] - 1;
+      if(firstLine >= 0 && firstLine < aeneasData.satirlar.length){
+        startUs = aeneasData.satirlar[firstLine].start_ms * 1000; // ms → µs
+      }
+      if(lastLine >= 0 && lastLine < aeneasData.satirlar.length){
+        endUs = aeneasData.satirlar[lastLine].end_ms * 1000;
+      }
+    }
+
+    results.push({
+      sceneIndex: si, filename: fn,
+      startUs: startUs, endUs: endUs,
+      foundInSrt: startUs >= 0,
+      matchMethod: 'Aeneas', confidence: startUs >= 0 ? 100 : 0,
+      matchDetail: 'Aeneas satır ' + srtLines.join(','),
+      srtLine: null, _srtIdx: -1
+    });
+
+    if(startUs >= 0){
+      log('  ✓ Sahne '+(si+1)+' [Aeneas, %100] ('+fn+'): '+(startUs/1e6).toFixed(3)+'s','success');
+    } else {
+      log('  ⚠ Sahne '+(si+1)+' [Aeneas] srt_lines eşleşmedi','warn');
+    }
+  }
+  return results;
+}
+
+// ═══════════════════════════════════════════
+// ANA EŞLEŞTİRME — 10 KATMANLI v2
+// ═══════════════════════════════════════════
+
+// Tek bir sahneyi verilen aralıkta eşleştirmeye çalış (katman 1-7)
+// Eşik çarpanı ile eşikleri düşürebilir (anchor propagation için)
+function _eslesDir(startWords, srtArr, fromIdx, toIdx, esikCarpan){
+  if(!startWords || startWords.trim().length < 2) return null;
+  var ec = esikCarpan || 1.0;
+  var swClean = cleanText(startWords);
+  var swNorm = asrNormalize(startWords);
+  if(swClean.length < 2) return null;
+
+  // Katman 1: Exact substring
+  for(var j=fromIdx; j<toIdx; j++){
+    if(cleanText(srtArr[j].text).indexOf(swClean) >= 0){
+      return {idx:j, method:'K1:exact', confidence:100};
+    }
+  }
+
+  // Katman 2: ASR-Tolerant Exact (Türkçe karakter normalize)
+  for(var j=fromIdx; j<toIdx; j++){
+    if(asrNormalize(srtArr[j].text).indexOf(swNorm) >= 0){
+      return {idx:j, method:'K2:asr-norm', confidence:95};
+    }
+  }
+
+  // Katman 3: Character 3-gram Jaccard
+  var best3 = 0, best3Idx = -1;
+  for(var j=fromIdx; j<toIdx; j++){
+    var srtClean = cleanText(srtArr[j].text);
+    // Kısa startWords için SRT metninin ilk kısmını karşılaştır
+    var compareText = srtClean.length > swClean.length * 3
+      ? srtClean.substring(0, swClean.length * 3)
+      : srtClean;
+    var sim = ngramJaccard(swClean, compareText, 3);
+    if(sim > best3){ best3 = sim; best3Idx = j; }
+  }
+  if(best3 >= 0.80 * ec && best3Idx >= 0){
+    return {idx:best3Idx, method:'K3:ngram('+Math.round(best3*100)+'%)', confidence:90};
+  }
+
+  // Katman 4: Token Set Ratio
+  var best4 = 0, best4Idx = -1;
+  for(var j=fromIdx; j<toIdx; j++){
+    var tsr = tokenSetRatio(startWords, srtArr[j].text);
+    if(tsr > best4){ best4 = tsr; best4Idx = j; }
+  }
+  if(best4 >= 0.75 * ec && best4Idx >= 0){
+    return {idx:best4Idx, method:'K4:tokenSet('+Math.round(best4*100)+'%)', confidence:85};
+  }
+
+  // Katman 5: Partial Word Window Match
+  var best5 = 0, best5Idx = -1;
+  for(var j=fromIdx; j<toIdx; j++){
+    var pm = partialWordMatch(startWords, srtArr[j].text);
+    if(pm > best5){ best5 = pm; best5Idx = j; }
+  }
+  if(best5 >= 0.70 * ec && best5Idx >= 0){
+    return {idx:best5Idx, method:'K5:partial('+Math.round(best5*100)+'%)', confidence:80};
+  }
+
+  // Katman 6: LCS Word-Level Ratio
+  var best6 = 0, best6Idx = -1;
+  for(var j=fromIdx; j<toIdx; j++){
+    var lr = lcsWordRatio(startWords, srtArr[j].text);
+    if(lr > best6){ best6 = lr; best6Idx = j; }
+  }
+  if(best6 >= 0.60 * ec && best6Idx >= 0){
+    return {idx:best6Idx, method:'K6:lcs('+Math.round(best6*100)+'%)', confidence:70};
+  }
+
+  // Katman 7: Damerau-Levenshtein Character
+  var best7 = 0, best7Idx = -1;
+  for(var j=fromIdx; j<toIdx; j++){
+    var srtC = cleanText(srtArr[j].text);
+    var cmpLen = Math.min(swClean.length + 15, srtC.length);
+    var sim7 = damerauSimilarity(swClean, srtC.substring(0, cmpLen));
+    if(sim7 > best7){ best7 = sim7; best7Idx = j; }
+  }
+  if(best7 >= 0.55 * ec && best7Idx >= 0){
+    return {idx:best7Idx, method:'K7:damerau('+Math.round(best7*100)+'%)', confidence:60};
+  }
+
+  return null; // bulunamadı
+}
+
+function eslestirSrtSahne(){
+  // ═══ ÖNCELİK ZİNCİRİ ═══
+  // 1. Aeneas JSON yüklü mü?
+  if(aeneasData && aeneasData.satirlar && aeneasData.satirlar.length > 0){
+    log('🔗 Eşleştirme yöntemi: AENEAS (en yüksek öncelik)','success');
+    return aeneasSahneZamanlari();
+  }
+  // 2. Word SRT + Hikaye TXT yüklü mü? → DTW
+  if(srtDataWord && srtDataWord.length > 0 && hikayeText && hikayeText.length > 0){
+    log('🔗 Eşleştirme yöntemi: WORD DTW (Word SRT + Hikaye TXT)','success');
+    return dtwSahneZamanlari();
+  }
+  // 3. Sadece Cümle SRT → 10 katmanlı
+  if(srtDataCumle && srtDataCumle.length > 0){
+    log('🔗 Eşleştirme yöntemi: 10-KATMAN (Cümle SRT)','info');
+    return _eslestir10Katman();
+  }
+  // 4. SRT yok
+  log('🔗 SRT/Aeneas yüklenmedi — JSON zamanlamaları kullanılacak','warn');
+  return null;
+}
+
+function _eslestir10Katman(){
+  if(!D || !D.scenes || !srtDataCumle || !srtDataCumle.length) return null;
+
+  var results = [];
+  var searchFrom = 0;
+  var totalScenes = D.scenes.length;
+
+  log('🔗 SRT-Sahne eşleştirmesi (10 katmanlı v2):','info');
+  log('   SRT: '+srtDataCumle.length+' satır | Sahne: '+totalScenes+(srtDataWord ? ' | Word SRT: '+srtDataWord.length+' kelime':''),'info');
+
+  // ── İLK GEÇİŞ: Katman 1-7 ile startWords eşleştir ──
+  for(var si=0; si<totalScenes; si++){
+    var scene = D.scenes[si];
+    var startWords = scene.scene_start_words||'';
+    var fn = scene.filename || ('scene_'+String(si+1).padStart(3,'0'));
+
+    var match = _eslesDir(startWords, srtDataCumle, searchFrom, srtDataCumle.length, 1.0);
+
+    if(match){
+      results.push({
+        sceneIndex: si, filename: fn,
+        startUs: srtDataCumle[match.idx].startUs,
+        endUs: srtDataCumle[match.idx].endUs,
+        foundInSrt: true,
+        matchMethod: match.method,
+        confidence: match.confidence,
+        matchDetail: match.method + ": '" + cleanText(startWords).substring(0,30) + "' → SRT#" + (match.idx+1),
+        srtLine: srtDataCumle[match.idx],
+        _srtIdx: match.idx
+      });
+      searchFrom = match.idx + 1;
+    } else {
+      results.push({
+        sceneIndex: si, filename: fn,
+        startUs: -1, endUs: -1,
+        foundInSrt: false,
+        matchMethod: '', confidence: 0,
+        matchDetail: 'İlk geçişte bulunamadı',
+        srtLine: null, _srtIdx: -1
+      });
+    }
+  }
+
+  // ── KATMAN 8: End-Words Reverse Search ──
+  for(var si=0; si<totalScenes; si++){
+    if(results[si].foundInSrt) continue;
+    var scene = D.scenes[si];
+    var endWords = scene.scene_end_words||'';
+    if(!endWords || endWords.trim().length < 2) continue;
+
+    // searchFrom: önceki eşleşen sahnenin SRT index'i
+    var sf8 = 0;
+    for(var p=si-1; p>=0; p--){
+      if(results[p]._srtIdx >= 0){ sf8 = results[p]._srtIdx + 1; break; }
+    }
+    // searchTo: sonraki eşleşen sahnenin SRT index'i
+    var st8 = srtDataCumle.length;
+    for(var n=si+1; n<totalScenes; n++){
+      if(results[n]._srtIdx >= 0){ st8 = results[n]._srtIdx; break; }
+    }
+
+    var endMatch = _eslesDir(endWords, srtDataCumle, sf8, st8, 1.0);
+    if(endMatch){
+      // End bulundu — sahne başlangıcını tahmin et (end satırından geriye)
+      // Önceki sahnenin end SRT'si + 1 = bu sahnenin başlangıcı
+      var startIdx = sf8; // en güvenli tahmin: önceki sahne sonrası
+      results[si].startUs = srtDataCumle[startIdx].startUs;
+      results[si].endUs = srtDataCumle[endMatch.idx].endUs;
+      results[si].foundInSrt = true;
+      results[si].matchMethod = 'K8:endWords→' + endMatch.method;
+      results[si].confidence = 50;
+      results[si].matchDetail = 'EndWords: "' + cleanText(endWords).substring(0,25) + '" → SRT#' + (endMatch.idx+1) + ', start tahmin SRT#' + (startIdx+1);
+      results[si].srtLine = srtDataCumle[startIdx];
+      results[si]._srtIdx = startIdx;
+      log('  ◆ Sahne '+(si+1)+' [K8:endWords] ('+results[si].filename+'): end@SRT#'+(endMatch.idx+1)+', start→SRT#'+(startIdx+1),'info');
+    }
+  }
+
+  // ── KATMAN 9: Anchor Propagation ──
+  for(var si=0; si<totalScenes; si++){
+    if(results[si].foundInSrt) continue;
+    var scene = D.scenes[si];
+    var startWords = scene.scene_start_words||'';
+
+    // Önceki ve sonraki anchor bul
+    var prevIdx = -1, nextIdx = -1;
+    for(var p=si-1; p>=0; p--){
+      if(results[p]._srtIdx >= 0){ prevIdx = results[p]._srtIdx; break; }
+    }
+    for(var n=si+1; n<totalScenes; n++){
+      if(results[n]._srtIdx >= 0){ nextIdx = results[n]._srtIdx; break; }
+    }
+
+    if(prevIdx >= 0 && nextIdx >= 0 && nextIdx > prevIdx + 1){
+      // Dar aralıkta düşürülmüş eşiklerle tekrar dene
+      var match9 = _eslesDir(startWords, srtDataCumle, prevIdx + 1, nextIdx, 0.85);
+      if(match9){
+        results[si].startUs = srtDataCumle[match9.idx].startUs;
+        results[si].endUs = srtDataCumle[match9.idx].endUs;
+        results[si].foundInSrt = true;
+        results[si].matchMethod = 'K9:anchor→' + match9.method;
+        results[si].confidence = 35;
+        results[si].matchDetail = 'Anchor[SRT#'+(prevIdx+1)+'→SRT#'+(nextIdx+1)+'] dar aralıkta: ' + match9.method;
+        results[si].srtLine = srtDataCumle[match9.idx];
+        results[si]._srtIdx = match9.idx;
+        log('  ◆ Sahne '+(si+1)+' [K9:anchor] ('+results[si].filename+'): SRT#'+(match9.idx+1),'info');
+      }
+    }
+  }
+
+  // ── SIRALIK TUTARLILIK KONTROLÜ ──
+  // Eşleşmelerin sıralı olup olmadığını kontrol et
+  var lastValidIdx = -1;
+  for(var si=0; si<totalScenes; si++){
+    if(!results[si].foundInSrt) continue;
+    if(results[si]._srtIdx <= lastValidIdx){
+      // Sıralama bozuk — düşük güvenli olanı sıfırla
+      log('  ⚠ Sıralama çakışması: Sahne '+(si+1)+' SRT#'+(results[si]._srtIdx+1)+' ≤ önceki SRT#'+(lastValidIdx+1)+' → sıfırlanıyor','warn');
+      results[si].foundInSrt = false;
+      results[si].startUs = -1;
+      results[si].matchMethod = '';
+      results[si].confidence = 0;
+      results[si]._srtIdx = -1;
+    } else {
+      lastValidIdx = results[si]._srtIdx;
+    }
+  }
+
+  // ── END-WORDS ÇAPRAZ DOĞRULAMA (bonus güven) ──
+  for(var si=0; si<totalScenes; si++){
+    if(!results[si].foundInSrt) continue;
+    var endWords = D.scenes[si].scene_end_words||'';
+    if(!endWords || endWords.trim().length < 2) continue;
+    var startIdx = results[si]._srtIdx;
+    // Son SRT satırı: bir sonraki sahnenin SRT başlangıcı - 1
+    var endBound = srtDataCumle.length;
+    for(var n=si+1; n<totalScenes; n++){
+      if(results[n]._srtIdx >= 0){ endBound = results[n]._srtIdx; break; }
+    }
+    var endMatch = _eslesDir(endWords, srtDataCumle, startIdx, endBound, 1.0);
+    if(endMatch){
+      results[si].confidence = Math.min(100, results[si].confidence + 10);
+      results[si].endUs = srtDataCumle[endMatch.idx].endUs;
+    }
+  }
+
+  // ── WORD SRT ÇİFT KATMANLI DOĞRULAMA (opsiyonel) ──
+  if(srtDataWord && srtDataWord.length > 0){
+    for(var si=0; si<totalScenes; si++){
+      if(!results[si].foundInSrt) continue;
+      var startWords = D.scenes[si].scene_start_words||'';
+      if(!startWords) continue;
+      var swFirst = cleanText(startWords).split(/\s+/)[0];
+      if(!swFirst || swFirst.length < 2) continue;
+      var cumleSrtUs = results[si].startUs;
+      // Word SRT'de aynı kelimeyi ara (±2sn tolerans)
+      var wordFound = false;
+      for(var w=0; w<srtDataWord.length; w++){
+        if(cleanText(srtDataWord[w].text) === swFirst){
+          var diff = Math.abs(srtDataWord[w].startUs - cumleSrtUs);
+          if(diff <= 2000000){ // ±2sn
+            // Word SRT zamanlaması daha kesin — kullan
+            results[si].startUs = srtDataWord[w].startUs;
+            wordFound = true;
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  // ── KATMAN 10: Akıllı İnterpolasyon ──
+  for(var i=0; i<totalScenes; i++){
+    if(results[i].startUs >= 0) continue;
+
+    // Önceki ve sonraki eşleşmeyi bul
+    var prevUs = 0, prevSrtIdx = 0;
+    for(var p=i-1; p>=0; p--){
+      if(results[p].startUs >= 0){
+        prevUs = results[p].startUs;
+        prevSrtIdx = results[p]._srtIdx;
+        break;
+      }
+    }
+    var nextUs = -1, nextSrtIdx = srtDataCumle.length - 1;
+    for(var n=i+1; n<totalScenes; n++){
+      if(results[n].startUs >= 0){
+        nextUs = results[n].startUs;
+        nextSrtIdx = results[n]._srtIdx;
+        break;
+      }
+    }
+
+    if(nextUs >= 0 && nextUs > prevUs){
+      // SRT satırları arasındaki gerçek zaman boşluklarını kullan
+      var gapCount = 0;
+      for(var g=i; g<totalScenes && results[g].startUs < 0; g++) gapCount++;
+
+      // SRT zaman akışına göre orantılı dağıt
+      var totalSrtLines = nextSrtIdx - prevSrtIdx;
+      var linesPerScene = totalSrtLines > 0 ? totalSrtLines / (gapCount + 1) : 1;
+      var offset = 1;
+      for(var g=i; g<totalScenes && results[g].startUs < 0; g++){
+        var targetSrtIdx = Math.min(Math.round(prevSrtIdx + linesPerScene * offset), srtDataCumle.length - 1);
+        results[g].startUs = srtDataCumle[targetSrtIdx].startUs;
+        results[g].endUs = srtDataCumle[targetSrtIdx].endUs;
+        results[g].matchMethod = 'K10:interpolasyon';
+        results[g].confidence = 20;
+        results[g].matchDetail = 'İnterpolasyon: SRT#'+(prevSrtIdx+1)+'→SRT#'+(nextSrtIdx+1)+' arası, →SRT#'+(targetSrtIdx+1);
+        results[g].srtLine = srtDataCumle[targetSrtIdx];
+        results[g]._srtIdx = targetSrtIdx;
+        results[g].foundInSrt = true;
+        offset++;
+      }
+    } else {
+      // Son çare: önceki eşleşmeden +5s
+      var offset2 = 1;
+      for(var g=i; g<totalScenes && results[g].startUs < 0; g++){
+        results[g].startUs = prevUs + (5000000 * offset2);
+        results[g].endUs = results[g].startUs + 5000000;
+        results[g].matchMethod = 'K10:interpolasyon(+5s)';
+        results[g].confidence = 10;
+        results[g].matchDetail = 'Fallback: öncekinden +'+(5*offset2)+'s';
+        results[g].foundInSrt = true;
+        offset2++;
+      }
+    }
+  }
+
+  // ── LOGLAMA ──
+  var kesinCount = 0, dolayli = 0, interpol = 0, totalConf = 0;
+  for(var si=0; si<totalScenes; si++){
+    var r = results[si];
+    totalConf += r.confidence;
+    var timeStr = (r.startUs/1e6).toFixed(3) + 's';
+    var srtNo = r._srtIdx >= 0 ? 'SRT#'+(r._srtIdx+1) : '?';
+    var preview = r.srtLine ? r.srtLine.text.substring(0,40) : '';
+
+    if(r.confidence >= 60){
+      kesinCount++;
+      log('  ✓ Sahne '+(si+1)+' ['+r.matchMethod+', %'+r.confidence+'] ('+r.filename+'): '+srtNo+' → '+timeStr+' "'+preview+'..."','success');
+    } else if(r.confidence >= 30){
+      dolayli++;
+      log('  ◆ Sahne '+(si+1)+' ['+r.matchMethod+', %'+r.confidence+'] ('+r.filename+'): '+srtNo+' → '+timeStr+' "'+preview+'..."','info');
+    } else {
+      interpol++;
+      log('  ⚠ Sahne '+(si+1)+' ['+r.matchMethod+', %'+r.confidence+'] ('+r.filename+'): '+srtNo+' → '+timeStr,'warn');
+    }
+  }
+
+  var avgConf = totalScenes > 0 ? Math.round(totalConf / totalScenes) : 0;
+  log('🔗 Eşleştirme tamamlandı: '+totalScenes+' sahne','success');
+  log('   ✓ '+kesinCount+' kesin (K1-K7) | ◆ '+dolayli+' dolaylı (K8-K9) | ⚠ '+interpol+' interpolasyon (K10)','info');
+  log('   Ortalama güven: %'+avgConf,'info');
+
+  return results;
+}
+
+// ═══════════════════════════════════════════
+// CAPCUT DRAFT — GERÇEK FORMAT
+// ═══════════════════════════════════════════
+function genUUID(){
+  // CapCut tarzı UUID: XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX (büyük harf hex)
+  var h = '0123456789ABCDEF';
+  function b(n){ var s=''; for(var i=0;i<n;i++) s+=h[Math.floor(Math.random()*16)]; return s; }
+  return b(8)+'-'+b(4)+'-'+b(4)+'-'+b(4)+'-'+b(12);
+}
+
+function capCutDraft(){
+  var rm = {'16:9':[1920,1080],'9:16':[1080,1920],'1:1':[1080,1080],'4:3':[1024,768],'3:4':[768,1024],'21:9':[1920,823]};
+  var ratio = (D.meta.aspect_ratio || '9:16');
+  var wh = rm[ratio] || [1080,1920];
+  var cW = wh[0], cH = wh[1];
+  var capCutPath = getCapCutPath();
+  var basePath = capCutPath ? capCutPath.replace(/[\/\\]$/, '') : '';
+
+  // SRT eşleştirme
+  var matches = null;
+  if(srtDataCumle && srtDataCumle.length){
+    log('🔗 SRT-Sahne eşleştirmesi başlıyor...','info');
+    matches = eslestirSrtSahne();
+  }
+
+  var DURATION_1S = 1000000; // 1 saniye mikrosaniye
+
+  // Her sahne için material + segment + yardımcı material'ler üret
+  var videos = [];
+  var segments = [];
+  var canvases = [];
+  var speeds = [];
+  var placeholderInfos = [];
+  var soundChannelMappings = [];
+  var materialColors = [];
+  var vocalSeparations = [];
+  var loudnesses = [];
+
+  var totalDuration = 0;
+
+  D.scenes.forEach(function(sc, i){
+    var fn = sc.filename || ('scene_'+String(i+1).padStart(3,'0'));
+    var fullPath = basePath ? (basePath + '/' + fn + '.jpg') : (fn + '.jpg');
+    // CapCut forward slash kullanır — tüm backslash'ları düzelt
+    fullPath = fullPath.replace(/\\/g, '/');
+
+    // Zamanlama
+    var startUs;
+    if(matches && matches[i]){
+      startUs = matches[i].startUs;
+    } else {
+      startUs = srtToUs(sc.srt_trigger || '00:00:00,000');
+    }
+
+    // Her resim 1 saniye süreli
+    var durUs = DURATION_1S;
+
+    // Sonraki sahnenin başlangıcını aşmamalı
+    if(i < D.scenes.length - 1){
+      var nextStartUs;
+      if(matches && matches[i+1]){
+        nextStartUs = matches[i+1].startUs;
+      } else {
+        nextStartUs = srtToUs(D.scenes[i+1].srt_trigger || '00:00:00,000');
+      }
+      if(startUs + durUs > nextStartUs && nextStartUs > startUs){
+        durUs = nextStartUs - startUs;
+      }
+    }
+
+    // Material UUID'leri
+    var matId = genUUID();
+    var segId = genUUID();
+    var speedId = genUUID();
+    var placeholderId = genUUID();
+    var canvasId = genUUID();
+    var soundChId = genUUID();
+    var matColorId = genUUID();
+    var vocalSepId = genUUID();
+    var loudnessId = genUUID();
+
+    // Video Material (photo tipi — gerçek CapCut yapısı)
+    videos.push({
+      aigc_history_id:'', aigc_item_id:'', aigc_type:'none',
+      audio_fade:null, beauty_body_auto_preset:null, beauty_body_preset_id:'',
+      beauty_face_auto_preset:{name:'',preset_id:'',rate_map:'',scene:''},
+      beauty_face_auto_preset_infos:[], beauty_face_preset_infos:[],
+      cartoon_path:'', category_id:'', category_name:'local',
+      check_flag:62978047, content_feature_info:null, corner_pin:null,
+      crop:{lower_left_x:0,lower_left_y:1,lower_right_x:1,lower_right_y:1,upper_left_x:0,upper_left_y:0,upper_right_x:1,upper_right_y:0},
+      crop_ratio:'free', crop_scale:1.0,
+      duration:10800000000, extra_type_option:0, formula_id:'', freeze:null,
+      has_audio:false, has_sound_separated:false,
+      height:cH, id:matId,
+      intensifies_audio_path:'', intensifies_path:'',
+      is_ai_generate_content:false, is_copyright:false,
+      is_text_edit_overdub:false, is_unified_beauty_mode:false,
+      live_photo_cover_path:'', live_photo_timestamp:-1,
+      local_id:'', local_material_from:'', local_material_id:'',
+      material_id:'', material_name:fn+'.jpg', material_url:'',
+      matting:{custom_matting_id:'',enable_matting_stroke:false,expansion:0,feather:0,flag:0,has_use_quick_brush:false,has_use_quick_eraser:false,interactiveTime:[],path:'',reverse:false,strokes:[]},
+      media_path:'', multi_camera_info:null, object_locked:null,
+      origin_material_id:'',
+      path:fullPath,
+      picture_from:'none', picture_set_category_id:'', picture_set_category_name:'',
+      request_id:'', reverse_intensifies_path:'', reverse_path:'',
+      smart_match_info:null, smart_motion:null, source:0, source_platform:0,
+      stable:{matrix_path:'',stable_level:0,time_range:{duration:0,start:0}},
+      surface_trackings:[], team_id:'',
+      type:'photo',
+      video_algorithm:{ai_background_configs:[],ai_expression_driven:null,ai_in_painting_config:[],ai_motion_driven:null,aigc_generate:null,aigc_generate_list:[],algorithms:[],complement_frame_config:null,deflicker:null,gameplay_configs:[],image_interpretation:null,motion_blur_config:null,mouth_shape_driver:null,noise_reduction:null,path:'',quality_enhance:null,skip_algorithm_index:[],smart_complement_frame:null,story_video_modify_video_config:{is_overwrite_last_video:false,task_id:'',tracker_task_id:''},super_resolution:null,time_range:null},
+      video_mask_shadow:{alpha:0,angle:0,blur:0,color:'',distance:0,path:'',resource_id:''},
+      video_mask_stroke:{alpha:0,color:'',distance:0,horizontal_shift:0,path:'',resource_id:'',size:0,texture:0,type:'',vertical_shift:0},
+      width:cW
+    });
+
+    // Segment
+    segments.push({
+      caption_info:null, cartoon:false,
+      clip:{alpha:1.0,flip:{horizontal:false,vertical:false},rotation:0.0,scale:{x:1.0,y:1.0},transform:{x:0.0,y:0.0}},
+      color_correct_alg_result:'', common_keyframes:[], desc:'',
+      digital_human_template_group_id:'',
+      enable_adjust:true, enable_adjust_mask:false,
+      enable_color_correct_adjust:false, enable_color_curves:true,
+      enable_color_match_adjust:false, enable_color_wheels:true,
+      enable_hsl:false, enable_hsl_curves:true, enable_lut:true,
+      enable_mask_shadow:false, enable_mask_stroke:false,
+      enable_smart_color_adjust:false, enable_video_mask:true,
+      extra_material_refs:[speedId, placeholderId, canvasId, soundChId, matColorId, loudnessId, vocalSepId],
+      group_id:'',
+      hdr_settings:{intensity:1.0,mode:1,nits:1000},
+      id:segId, intensifies_audio:false, is_loop:false,
+      is_placeholder:false, is_tone_modify:false,
+      keyframe_refs:[], last_nonzero_volume:1.0, lyric_keyframes:null,
+      material_id:matId, raw_segment_id:'',
+      render_index:0, render_timerange:{duration:0,start:0},
+      responsive_layout:{enable:false,horizontal_pos_layout:0,size_layout:0,target_follow:'',vertical_pos_layout:0},
+      reverse:false, source:'segmentsourcenormal',
+      source_timerange:{duration:durUs, start:0},
+      speed:1.0, state:0,
+      target_timerange:{duration:durUs, start:startUs},
+      template_id:'', template_scene:'default',
+      track_attribute:0, track_render_index:0,
+      uniform_scale:{on:true,value:1.0},
+      visible:true, volume:1.0
+    });
+
+    // Yardımcı material'ler
+    canvases.push({album_image:'',blur:0.0,color:'',id:canvasId,image:'',image_id:'',image_name:'',source_platform:0,team_id:'',type:'canvas_color'});
+    speeds.push({curve_speed:null,id:speedId,mode:0,speed:1.0,type:'speed'});
+    placeholderInfos.push({error_path:'',error_text:'',id:placeholderId,meta_type:'none',res_path:'',res_text:'',type:'placeholder_info'});
+    soundChannelMappings.push({audio_channel_mapping:0,id:soundChId,is_config_open:false,type:'none'});
+    materialColors.push({gradient_angle:90.0,gradient_colors:[],gradient_percents:[],height:0.0,id:matColorId,is_color_clip:false,is_gradient:false,solid_color:'',width:0.0});
+    vocalSeparations.push({choice:0,enter_from:'',final_algorithm:'',id:vocalSepId,production_path:'',removed_sounds:[],time_range:null,type:'vocal_separation'});
+    loudnesses.push({enable:false,file_id:'',id:loudnessId,loudness_param:null,target_loudness:0.0,time_range:null});
+
+    var endUs = startUs + durUs;
+    if(endUs > totalDuration) totalDuration = endUs;
+  });
+
+  var now = Math.floor(Date.now()/1000);
+
+  return {
+    canvas_config:{background:null, height:cH, ratio:'original', width:cW},
+    color_space:0,
+    config:{adjust_max_index:1,attachment_info:[],combination_max_index:1,export_range:null,extract_audio_last_index:1,lyrics_recognition_id:'',lyrics_sync:true,lyrics_taskinfo:[],maintrack_adsorb:false,material_save_mode:0,multi_language_current:'none',multi_language_list:[],multi_language_main:'none',multi_language_mode:'none',original_sound_last_index:1,record_audio_last_index:1,sticker_max_index:1,subtitle_keywords_config:null,subtitle_recognition_id:'',subtitle_sync:true,subtitle_taskinfo:[],system_font_list:[],use_float_render:false,video_mute:false,zoom_info_params:null},
+    cover:null,
+    create_time:now,
+    draft_type:'video',
+    duration:totalDuration,
+    extra_info:null,
+    fps:60.0,
+    free_render_index_mode_on:false,
+    function_assistant_info:{audio_noise_segid_list:[],auto_adjust:false,auto_adjust_fixed:false,auto_adjust_fixed_value:50.0,auto_adjust_segid_list:[],auto_caption:false,auto_caption_segid_list:[],auto_caption_template_id:'',caption_opt:false,caption_opt_segid_list:[],color_correction:false,color_correction_fixed:false,color_correction_fixed_value:50.0,color_correction_segid_list:[],deflicker_segid_list:[],enhance_quality:false,enhance_quality_fixed:false,enhance_quality_segid_list:[],enhance_voice_segid_list:[],enhande_voice:false,enhande_voice_fixed:false,eye_correction:false,eye_correction_segid_list:[],fixed_rec_applied:false,fps:{den:1,num:0},normalize_loudness:false,normalize_loudness_audio_denoise_segid_list:[],normalize_loudness_fixed:false,normalize_loudness_segid_list:[],retouch:false,retouch_fixed:false,retouch_segid_list:[],smart_rec_applied:false,smart_segid_list:[],smooth_slow_motion:false,smooth_slow_motion_fixed:false,video_noise_segid_list:[]},
+    group_container:null,
+    id:genUUID(),
+    is_drop_frame_timecode:false,
+    keyframe_graph_list:[],
+    keyframes:{adjusts:[],audios:[],effects:[],filters:[],handwrites:[],stickers:[],texts:[],videos:[]},
+    last_modified_platform:{app_id:359289,app_source:'cc',app_version:'8.2.0',device_id:'',hard_disk_id:'',mac_address:'',os:'windows',os_version:'10.0.26200'},
+    lyrics_effects:[],
+    materials:{
+      ai_translates:[],audio_balances:[],audio_effects:[],audio_fades:[],
+      audio_pannings:[],audio_pitch_shifts:[],audio_track_indexes:[],audios:[],
+      beats:[],canvases:canvases,chromas:[],color_curves:[],common_mask:[],
+      digital_human_model_dressing:[],digital_humans:[],drafts:[],effects:[],
+      flowers:[],green_screens:[],handwrites:[],hsl:[],hsl_curves:[],images:[],
+      log_color_wheels:[],loudnesses:loudnesses,manual_beautys:[],manual_deformations:[],
+      material_animations:[],material_colors:materialColors,multi_language_refs:[],
+      placeholder_infos:placeholderInfos,placeholders:[],plugin_effects:[],
+      primary_color_wheels:[],realtime_denoises:[],shapes:[],smart_crops:[],
+      smart_relights:[],sound_channel_mappings:soundChannelMappings,
+      speeds:speeds,stickers:[],tail_leaders:[],text_templates:[],texts:[],
+      time_marks:[],transitions:[],video_effects:[],video_radius:[],
+      video_shadows:[],video_strokes:[],video_trackings:[],
+      videos:videos,vocal_beautifys:[],vocal_separations:vocalSeparations
+    },
+    mutable_config:null,
+    name:D.meta.title||'Kitap',
+    new_version:'161.0.0',
+    path:'',
+    platform:{app_id:359289,app_source:'cc',app_version:'8.2.0',device_id:'',hard_disk_id:'',mac_address:'',os:'windows',os_version:'10.0.26200'},
+    relationships:[],
+    render_index_track_mode_on:true,
+    retouch_cover:null,
+    smart_ads_info:{draft_url:'',page_from:'',routine:''},
+    source:'default',
+    static_cover_image_path:'',
+    time_marks:null,
+    tracks:[{attribute:0, flag:0, id:genUUID(), is_default_name:true, name:'', type:'video', segments:segments}],
+    uneven_animation_template_info:{composition:'',content:'',order:'',sub_template_info_list:[]},
+    update_time:now,
+    version:360000
+  };
+}
+
+function draftIndir(){
+  if(!D){ log('JSON yüklenmedi','err'); return; }
+  log('📋 CapCut draft oluşturuluyor...','info');
+  var draft = capCutDraft();
+  var meta = draftMetaInfo(draft);
+
+  // ZIP olarak indir (draft_content.json + draft_meta_info.json)
+  var draftZip = new JSZip();
+  draftZip.file('draft_content.json', JSON.stringify(draft,null,2));
+  draftZip.file('draft_meta_info.json', JSON.stringify(meta,null,2));
+  draftZip.generateAsync({type:'blob'}).then(function(blob){
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'capcut_draft.zip';
+    a.click();
+  });
+  log('✓ CapCut draft indirildi. (' + draft.tracks[0].segments.length + ' segment, ' + (draft.duration/1000000).toFixed(1) + 's)','success');
+  log('📌 ZIP içindeki 2 dosyayı dfd_ klasörüne koy → CapCut aç','info');
+}
+
+// ═══════════════════════════════════════════
+// DRAFT META INFO — CapCut proje tanıma dosyası
+// ═══════════════════════════════════════════
+function draftMetaInfo(draft){
+  var capCutPath = getCapCutPath();
+  var basePath = capCutPath ? capCutPath.replace(/[\/\\]$/, '').replace(/\\/g, '/') : '';
+  var now = Date.now();
+  var nowUs = now * 1000; // mikrosaniye
+  var nowSec = Math.floor(now / 1000);
+  var draftName = (D.meta.title || 'kitap').replace(/[<>:"/\\|?*]/g, '_');
+
+  // draft_materials — import edilen materyaller (type:0 = photo/video)
+  var photoMaterials = [];
+  D.scenes.forEach(function(sc, i){
+    var fn = sc.filename || ('scene_' + String(i+1).padStart(3,'0'));
+    var fullPath = basePath ? (basePath + '/' + fn + '.jpg') : (fn + '.jpg');
+
+    photoMaterials.push({
+      ai_group_type: '',
+      create_time: nowSec,
+      duration: 3000000,
+      enter_from: 0,
+      extra_info: fn + '.jpg',
+      file_Path: fullPath,
+      height: 1344,
+      id: genUUID().toLowerCase(),
+      import_time: nowSec + i,
+      import_time_ms: nowUs + (i * 1000),
+      item_source: 1,
+      md5: '',
+      metetype: 'photo',
+      roughcut_time_range: {duration: -1, start: -1},
+      sub_time_range: {duration: -1, start: -1},
+      type: 0,
+      width: 768
+    });
+  });
+
+  return {
+    cloud_draft_cover: false,
+    cloud_draft_sync: false,
+    cloud_package_completed_time: '',
+    draft_cloud_capcut_purchase_info: '',
+    draft_cloud_last_action_download: false,
+    draft_cloud_package_type: '',
+    draft_cloud_purchase_info: '',
+    draft_cloud_template_id: '',
+    draft_cloud_tutorial_info: '',
+    draft_cloud_videocut_purchase_info: '',
+    draft_cover: 'draft_cover.jpg',
+    draft_deeplink_url: '',
+    draft_enterprise_info: {
+      draft_enterprise_extra: '',
+      draft_enterprise_id: '',
+      draft_enterprise_name: '',
+      enterprise_material: []
+    },
+    draft_fold_path: basePath || '',
+    draft_id: draft.id,
+    draft_is_ae_produce: false,
+    draft_is_ai_packaging_used: false,
+    draft_is_ai_shorts: false,
+    draft_is_ai_translate: false,
+    draft_is_article_video_draft: false,
+    draft_is_cloud_temp_draft: false,
+    draft_is_from_deeplink: 'false',
+    draft_is_invisible: false,
+    draft_is_web_article_video: false,
+    draft_materials: [
+      {type: 0, value: photoMaterials},
+      {type: 1, value: []},
+      {type: 2, value: []},
+      {type: 3, value: []},
+      {type: 6, value: []},
+      {type: 7, value: []},
+      {type: 8, value: []}
+    ],
+    draft_materials_copied_info: [],
+    draft_name: draftName,
+    draft_need_rename_folder: false,
+    draft_new_version: '',
+    draft_removable_storage_device: '',
+    draft_root_path: '',
+    draft_segment_extra_info: [],
+    draft_timeline_materials_size_: 0,
+    draft_type: '',
+    draft_web_article_video_enter_from: '',
+    tm_draft_cloud_completed: '',
+    tm_draft_cloud_entry_id: -1,
+    tm_draft_cloud_modified: 0,
+    tm_draft_cloud_parent_entry_id: -1,
+    tm_draft_cloud_space_id: -1,
+    tm_draft_cloud_user_id: -1,
+    tm_draft_create: nowUs,
+    tm_draft_modified: nowUs,
+    tm_draft_removed: 0,
+    tm_duration: draft.duration
+  };
+}
+
+// ═══════════════════════════════════════════
+// YARDIMCILAR
+// ═══════════════════════════════════════════
+function safeTitle(){
+  return ((D&&D.meta&&D.meta.title)?D.meta.title:'kitap')
+    .toLowerCase().replace(/[^a-z0-9ğüşıöçğüşiöç]/gi,'_').replace(/_{2,}/g,'_').substring(0,40);
+}
+function safeName(s){
+  return s.toLowerCase().replace(/[^a-z0-9ğüşıöçğüşiöç]/gi,'_').substring(0,40);
+}
+function escTxt(s){ return String(s).replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function srtToUs(t){
+  if(!t||t==='?') return 0;
+  var p = t.trim().replace(',','.').split(':');
+  var ss = p[2].split('.');
+  return (parseInt(p[0])*3600+parseInt(p[1])*60+parseInt(ss[0]))*1000000+(parseInt(ss[1]||'0'))*1000;
+}
+function raporOlustur(){
+  var r='Kitap: '+(D.meta.title||'?')+'\nStil: '+(D.meta.style||'?')+'\nOran: '+(D.meta.aspect_ratio||'?')+'\nSahne: '+D.scenes.length+'\n\n';
+  D.scenes.forEach(function(sc,i){
+    var fn=sc.filename||('scene_'+String(i+1).padStart(3,'0'));
+    r+='['+String(i+1).padStart(3,'0')+'] '+fn+'.jpg\n';
+    r+='    SRT: '+(sc.srt_trigger||'?')+' -> '+(sc.srt_end||'?')+' | '+(sc.character||'?')+'\n';
+    r+='    Mekan: '+(sc.location||'')+' | Duygu: '+(sc.emotion||'')+'\n';
+    r+='    Prompt: '+(sc.prompt||'').substring(0,100)+'...\n\n';
+  });
+  return r;
+}
+
+// ═══════════════════════════════════════════
+// SRT İNDİR — TXT metninden temiz YouTube SRT
+// ═══════════════════════════════════════════
+
+function _txtMetinTemizle(s){
+  if(!s) return '';
+  return s
+    .replace(/\[[^\]]*\]\s*/g, '')       // [ANLATICI], [TİLKİ] vb
+    .replace(/<[^>]*>\s*/g, '')          // <cheerfully>, <sarcastic> vb
+    .replace(/[\u201C\u201D\u201E\u201F\u0022]/g, '') // " " „ ‟ "
+    .replace(/[\u2018\u2019\u201A\u201B\u0027]/g, '') // ' ' ‚ ‛ '
+    .trim();
+}
+
+function _msToSrtTime(ms){
+  if(ms < 0) ms = 0;
+  var h = Math.floor(ms / 3600000);
+  var m = Math.floor((ms % 3600000) / 60000);
+  var s = Math.floor((ms % 60000) / 1000);
+  var mi = ms % 1000;
+  return String(h).padStart(2,'0') + ':' +
+         String(m).padStart(2,'0') + ':' +
+         String(s).padStart(2,'0') + ',' +
+         String(mi).padStart(3,'0');
+}
+
+function _satiriBol(metin, startMs, endMs){
+  // Temiz metni SRT bloklarına böl (42 char/satır, 2 satır/blok, 84 char/blok)
+  var temiz = _txtMetinTemizle(metin);
+  if(!temiz) return [];
+
+  var MIN_SURE = 300;   // 0.3sn
+  var MAX_SURE = 13000;  // 13sn
+  var MAX_BLOK = 84;     // 2 satır × 42 char
+
+  // Kısa metin — tek blok
+  if(temiz.length <= MAX_BLOK){
+    var satirlar = _ikiSatiraBol(temiz);
+    var sure = Math.max(MIN_SURE, Math.min(MAX_SURE, endMs - startMs));
+    return [{text: satirlar, startMs: startMs, endMs: startMs + sure}];
+  }
+
+  // Uzun metin — cümlelere böl, sonra blok grupla
+  var cumleler = temiz.split(/(?<=[.!?])\s+/);
+  if(cumleler.length <= 1){
+    // Cümle bölünemiyorsa virgülden böl
+    cumleler = temiz.split(/(?<=[,;:])\s+/);
+  }
+  if(cumleler.length <= 1){
+    // Hâlâ bölünemiyorsa kelime bazlı böl
+    var kelimeler = temiz.split(/\s+/);
+    cumleler = [];
+    var parca = '';
+    for(var i=0; i<kelimeler.length; i++){
+      if(parca.length + 1 + kelimeler[i].length > 80 && parca.length > 0){
+        cumleler.push(parca);
+        parca = kelimeler[i];
+      } else {
+        parca = parca ? parca + ' ' + kelimeler[i] : kelimeler[i];
+      }
+    }
+    if(parca) cumleler.push(parca);
+  }
+
+  // Cümleleri bloklara grupla (84 char sınırı)
+  var bloklar = [];
+  var curText = '';
+  for(var c=0; c<cumleler.length; c++){
+    var eklenecek = cumleler[c].trim();
+    if(!eklenecek) continue;
+    if(curText.length + 1 + eklenecek.length <= MAX_BLOK){
+      curText = curText ? curText + ' ' + eklenecek : eklenecek;
+    } else {
+      if(curText) bloklar.push(curText);
+      curText = eklenecek;
+    }
+  }
+  if(curText) bloklar.push(curText);
+
+  // Her bloğa zamanlama — kelime sayısına orantılı
+  var toplamKelime = 0;
+  var blokKelimeleri = [];
+  for(var b=0; b<bloklar.length; b++){
+    var kc = bloklar[b].split(/\s+/).length;
+    blokKelimeleri.push(kc);
+    toplamKelime += kc;
+  }
+
+  var toplamSure = endMs - startMs;
+  var sonuc = [];
+  var cursor = startMs;
+  for(var b=0; b<bloklar.length; b++){
+    var oran = toplamKelime > 0 ? blokKelimeleri[b] / toplamKelime : 1 / bloklar.length;
+    var blokSure = Math.round(toplamSure * oran);
+    blokSure = Math.max(MIN_SURE, Math.min(MAX_SURE, blokSure));
+    var blokEnd = Math.min(cursor + blokSure, endMs);
+    if(b === bloklar.length - 1) blokEnd = Math.max(blokEnd, endMs); // son blok tam bitsin
+    sonuc.push({text: _ikiSatiraBol(bloklar[b]), startMs: cursor, endMs: blokEnd});
+    cursor = blokEnd;
+  }
+  return sonuc;
+}
+
+function _ikiSatiraBol(metin){
+  if(metin.length <= 42) return metin;
+  // Virgül, noktalı virgül veya bağlaç noktasından böl
+  var ortaNokta = Math.floor(metin.length / 2);
+  var enIyi = -1;
+  var enIyiUzaklik = 999;
+
+  // Önce virgül/noktalı virgül/tire ara
+  for(var i=0; i<metin.length; i++){
+    var ch = metin[i];
+    if((ch === ',' || ch === ';' || ch === ':' || ch === '\u2014') && i > 5 && i < metin.length - 5){
+      var uzaklik = Math.abs(i - ortaNokta);
+      if(uzaklik < enIyiUzaklik){ enIyi = i + 1; enIyiUzaklik = uzaklik; }
+    }
+  }
+  // Virgül bulunamadıysa boşluktan böl
+  if(enIyi < 0){
+    for(var i = ortaNokta; i >= 0; i--){
+      if(metin[i] === ' '){ enIyi = i; break; }
+    }
+  }
+  if(enIyi < 0) return metin; // bölünemedi
+
+  var satir1 = metin.substring(0, enIyi).trim();
+  var satir2 = metin.substring(enIyi).trim();
+  return satir1 + '\n' + satir2;
+}
+
+function nihaiSrtUret(){
+  if(!D){ log('JSON yüklenmedi','err'); return null; }
+
+  var satirlar = []; // [{metin, startMs, endMs}, ...]
+
+  // ═══ KAYNAK 1: Aeneas ═══
+  if(aeneasData && aeneasData.satirlar && aeneasData.satirlar.length > 0){
+    log('📄 SRT kaynağı: AENEAS ('+aeneasData.satirlar.length+' satır)','success');
+    for(var i=0; i<aeneasData.satirlar.length; i++){
+      var sat = aeneasData.satirlar[i];
+      satirlar.push({metin: sat.metin, startMs: sat.start_ms, endMs: sat.end_ms});
+    }
+  }
+  // ═══ KAYNAK 2: Word DTW + Hikaye TXT ═══
+  else if(srtDataWord && srtDataWord.length > 0 && hikayeText && hikayeText.length > 0 && hikayeLines && hikayeLines.length > 0){
+    log('📄 SRT kaynağı: WORD DTW + Hikaye TXT','success');
+    var origToSrt = wordDTWHizala();
+    if(origToSrt){
+      for(var i=0; i<hikayeLines.length; i++){
+        var line = hikayeLines[i];
+        var wIdx = line.wordIndices;
+        if(!wIdx || !wIdx.length) continue;
+        var firstIdx = wIdx[0];
+        var lastIdx = wIdx[wIdx.length - 1];
+        var sMs = origToSrt[firstIdx] ? origToSrt[firstIdx].startUs / 1000 : -1;
+        var eMs = origToSrt[lastIdx] ? origToSrt[lastIdx].endUs / 1000 : -1;
+        if(sMs >= 0 && eMs >= 0){
+          satirlar.push({metin: line.metin, startMs: Math.round(sMs), endMs: Math.round(eMs)});
+        }
+      }
+    }
+  }
+  // ═══ KAYNAK 3: Cümle SRT + TXT satırları ═══
+  else if(srtDataCumle && srtDataCumle.length > 0 && hikayeLines && hikayeLines.length > 0){
+    log('📄 SRT kaynağı: Cümle SRT zamanları + TXT metni','info');
+    // SRT zamanlarını TXT satırlarına sırayla eşle
+    var srtIdx = 0;
+    for(var i=0; i<hikayeLines.length; i++){
+      if(srtIdx < srtDataCumle.length){
+        satirlar.push({
+          metin: hikayeLines[i].metin,
+          startMs: Math.round(srtDataCumle[srtIdx].startUs / 1000),
+          endMs: Math.round(srtDataCumle[srtIdx].endUs / 1000)
+        });
+        srtIdx++;
+      }
+    }
+  }
+  // ═══ KAYNAK 4: JSON zamanlamaları (fallback) ═══
+  else {
+    log('📄 SRT kaynağı: JSON srt_trigger/srt_end (fallback)','warn');
+    // TXT yüklenmişse TXT satırları, yoksa sahne metinleri
+    if(hikayeLines && hikayeLines.length > 0){
+      // Sahne zamanlarını satırlara dağıt
+      var scenes = D.scenes;
+      var satirPerScene = Math.ceil(hikayeLines.length / scenes.length);
+      for(var i=0; i<hikayeLines.length; i++){
+        var si = Math.min(Math.floor(i / satirPerScene), scenes.length - 1);
+        var sc = scenes[si];
+        var scStartMs = srtToUs(sc.srt_trigger || '00:00:00,000') / 1000;
+        var scEndMs = srtToUs(sc.srt_end || '00:00:10,000') / 1000;
+        var localIdx = i - si * satirPerScene;
+        var localTotal = Math.min(satirPerScene, hikayeLines.length - si * satirPerScene);
+        var durPerLine = (scEndMs - scStartMs) / localTotal;
+        satirlar.push({
+          metin: hikayeLines[i].metin,
+          startMs: Math.round(scStartMs + localIdx * durPerLine),
+          endMs: Math.round(scStartMs + (localIdx + 1) * durPerLine)
+        });
+      }
+    } else {
+      // Son çare: sahne başına scene_start_words
+      for(var i=0; i<D.scenes.length; i++){
+        var sc2 = D.scenes[i];
+        satirlar.push({
+          metin: sc2.scene_start_words + ' ... ' + sc2.scene_end_words,
+          startMs: Math.round(srtToUs(sc2.srt_trigger || '00:00:00,000') / 1000),
+          endMs: Math.round(srtToUs(sc2.srt_end || '00:00:10,000') / 1000)
+        });
+      }
+    }
+  }
+
+  if(!satirlar.length){ log('✗ SRT üretilemedi — veri yok','err'); return null; }
+
+  // SRT bloklarına çevir (uzun satırları böl)
+  var srtBloklar = [];
+  for(var i=0; i<satirlar.length; i++){
+    var parcalar = _satiriBol(satirlar[i].metin, satirlar[i].startMs, satirlar[i].endMs);
+    for(var p=0; p<parcalar.length; p++){
+      srtBloklar.push(parcalar[p]);
+    }
+  }
+
+  // SRT string oluştur
+  var srtStr = '';
+  for(var i=0; i<srtBloklar.length; i++){
+    srtStr += (i+1) + '\n';
+    srtStr += _msToSrtTime(srtBloklar[i].startMs) + ' --> ' + _msToSrtTime(srtBloklar[i].endMs) + '\n';
+    srtStr += srtBloklar[i].text + '\n';
+    srtStr += '\n';
+  }
+
+  log('✓ SRT üretildi: ' + srtBloklar.length + ' blok','success');
+  return srtStr;
+}
+
+function srtIndir(){
+  var srtStr = nihaiSrtUret();
+  if(!srtStr) return;
+  var blob = new Blob([srtStr], {type:'text/plain;charset=utf-8'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = safeTitle() + '.srt';
+  a.click();
+  log('✓ SRT indirildi: ' + safeTitle() + '.srt','success');
+}
+
+// ═══════════════════════════════════════════
+// INIT LOG
+// ═══════════════════════════════════════════
+log('📖 Kitap Sahne Üretici V3 hazır.','info');
+log('Motor: ' + getMotor().toUpperCase() + ' | Model: ' + GEMINI_MODEL + ' | ' + MODEL_DEFS[SELECTED_MODEL_KEY].fiyat,'info');
+</script>
+</body>
+</html>
