@@ -144,16 +144,6 @@ details.meta[open] summary::before{transform:rotate(90deg)}
 .misra.cont{padding-left:1.7rem}
 .pfoot{display:flex;justify-content:center;gap:.6rem;margin-top:1.8rem}
 
-/* favoriler (yıldız) */
-.btn.star[aria-pressed="true"]{background:var(--gold);color:#fff;border-color:var(--gold)}
-[data-theme="dark"] .btn.star[aria-pressed="true"]{color:#1a1610}
-.plist li.faved>a::after{content:"★";margin-left:auto;color:var(--gold2);font-size:.82rem;flex:0 0 auto}
-.plist li.fav-row{display:flex;align-items:center;gap:.2rem}
-.fav-row>a{flex:1 1 auto;min-width:0}
-.fav-row .unfav{flex:0 0 auto;background:none;border:0;color:var(--gold2);font-size:1.1rem;line-height:1;cursor:pointer;padding:.25rem .45rem;border-radius:6px}
-.fav-row .unfav:hover{background:var(--hl-bg)}
-.favhead{display:flex;align-items:center;justify-content:space-between;gap:.6rem;margin:.4rem 0 .5rem;flex-wrap:wrap}
-
 /* glossary word highlight */
 .gl{font:inherit;color:var(--hl);background:var(--hl-bg);border:0;border-bottom:1px dotted var(--hl-line);
   border-radius:3px;padding:0 .05em;margin:0;cursor:help;transition:background .15s}
@@ -215,15 +205,12 @@ footer{border-top:1px solid var(--rule);color:var(--faint);font-size:.78rem;text
   <section id="view-index">
     <div class="tabs" role="tablist">
       <button class="tab" role="tab" data-tab="divan" aria-selected="true">Dîvân</button>
-      <button class="tab" role="tab" data-tab="yildiz">★ Yıldızlılar</button>
       <button class="tab" role="tab" data-tab="matla">İlk Mısralar</button>
       <button class="tab" role="tab" data-tab="sozluk">Sözlük</button>
       <button class="tab" role="tab" data-tab="giris">Giriş</button>
     </div>
 
     <div class="panel on" id="p-divan" role="tabpanel"></div>
-
-    <div class="panel" id="p-yildiz" role="tabpanel"></div>
 
     <div class="panel" id="p-matla" role="tabpanel">
       <div class="orn"><span>✦</span></div>
@@ -266,16 +253,6 @@ const esc = s => s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))
 const SZMAP = new Map();
 for(const e of DATA.sozluk){ if(!SZMAP.has(e.kelime)) SZMAP.set(e.kelime, e); }
 
-/* ---------- favoriler (yıldız) ---------- */
-let FAV;
-try{ FAV = new Set(JSON.parse(store.get('fav','[]'))); }catch(e){ FAV = new Set(); }
-function saveFav(){ store.set('fav', JSON.stringify([...FAV])); }
-function isFav(no){ return FAV.has(no); }
-function toggleFav(no){ if(FAV.has(no)) FAV.delete(no); else FAV.add(no); saveFav(); refreshStars(); }
-function refreshStars(){
-  $$('.plist li[data-no]').forEach(li=>{ li.classList.toggle('faved', FAV.has(parseInt(li.dataset.no,10))); });
-}
-
 /* ---------- ayarlar (yerel kayıt; başarısızsa sorun değil) ---------- */
 const store = {
   get(k,d){ try{const v=localStorage.getItem('ye_'+k);return v===null?d:v;}catch(e){return d;} },
@@ -306,7 +283,7 @@ const fold = s => s.toLowerCase()
 
 /* ---------- DÎVÂN sekmesi ---------- */
 function poemLineHTML(no, ln){
-  return `<li data-no="${no}"><a href="#siir-${no}"><span class="no">${no}</span><span class="ln">${esc(ln)}</span></a></li>`;
+  return `<li><a href="#siir-${no}"><span class="no">${no}</span><span class="ln">${esc(ln)}</span></a></li>`;
 }
 (function buildDivan(){
   let h='<div class="orn"><span>❖</span></div><p class="lead">Dîvân-ı İlâhiyât — '
@@ -336,31 +313,6 @@ function poemLineHTML(no, ln){
   }
   $('#giris-body').innerHTML=h;
 })();
-
-/* ---------- favoriler paneli ---------- */
-function buildFav(){
-  const nos=[...FAV].filter(n=>n>=1 && n<=DATA.siirler.length).sort((a,b)=>a-b);
-  let h='<div class="orn"><span>★</span></div>';
-  if(!nos.length){
-    h+='<p class="empty">Henüz yıldızlı şiir yok.<br>Bir şiiri açıp başlıktaki ☆ düğmesine dokununca burada toplanır.</p>';
-    $('#p-yildiz').innerHTML=h; return;
-  }
-  h+=`<div class="favhead"><span class="lead" style="margin:0">${nos.length} yıldızlı şiir</span>`
-   + `<button class="btn" id="favclear" title="Tüm yıldızları kaldır">Tümünü kaldır</button></div>`;
-  h+='<ul class="plist" style="grid-template-columns:1fr">';
-  for(const no of nos){
-    const p=DATA.siirler[no-1];
-    h+=`<li class="fav-row"><a href="#siir-${no}"><span class="no">${no}</span><span class="ln">${esc(p.ilk)}</span></a>`
-     + `<button class="unfav" data-no="${no}" title="Yıldızı kaldır" aria-label="Yıldızı kaldır">★</button></li>`;
-  }
-  h+='</ul>';
-  $('#p-yildiz').innerHTML=h;
-}
-$('#p-yildiz').addEventListener('click',e=>{
-  const u=e.target.closest('.unfav');
-  if(u){ e.preventDefault(); toggleFav(parseInt(u.dataset.no,10)); buildFav(); return; }
-  if(e.target.id==='favclear'){ if(confirm('Tüm yıldızlı şiirler kaldırılsın mı?')){ FAV.clear(); saveFav(); refreshStars(); buildFav(); } }
-});
 
 /* ---------- SÖZLÜK ---------- */
 const szItems=[];
@@ -422,7 +374,6 @@ function renderPoem(no){
   h+=`<div class="pnav"><div class="crumb"><a href="#divan">İçindekiler</a> › ${esc(p.bolum||'')} › Şiir ${no}</div>`;
   h+=`<div class="pno">`;
   if(no>1) h+=`<a class="btn" href="#siir-${no-1}">‹ Önceki</a>`;
-  h+=`<button class="btn star" id="favb" aria-pressed="${isFav(no)?'true':'false'}" title="Bu şiiri yıldızla">${isFav(no)?'★ Yıldızlı':'☆ Yıldızla'}</button>`;
   h+=`<button class="btn" id="copyp" title="Şiiri kopyala">Kopyala</button>`;
   if(no<DATA.siirler.length) h+=`<a class="btn" href="#siir-${no+1}">Sonraki ›</a>`;
   h+=`</div></div>`;
@@ -455,12 +406,6 @@ function renderPoem(no){
   h+=`</div></article>`;
   $('#view-siir').innerHTML=h;
 
-  $('#favb').onclick=()=>{
-    toggleFav(no);
-    const on=isFav(no);
-    $('#favb').setAttribute('aria-pressed', on?'true':'false');
-    $('#favb').textContent = on?'★ Yıldızlı':'☆ Yıldızla';
-  };
   $('#copyp').onclick=()=>{
     const txt = p.kitalar.map(k=>k.misralar.join('\n')).join('\n\n');
     navigator.clipboard.writeText(txt).then(()=>{
@@ -523,14 +468,13 @@ function runSearch(q){
     h+='<ul class="plist" style="grid-template-columns:1fr">';
     for(const {it,i} of res){
       const s=Math.max(0,i-26), snip=(s>0?'…':'')+it.raw.slice(s, i+q.length+40)+'…';
-      h+=`<li data-no="${it.no}"><a href="#siir-${it.no}"><span class="no">${it.no}</span><span class="ln">${esc(snip)}</span></a></li>`;
+      h+=`<li><a href="#siir-${it.no}"><span class="no">${it.no}</span><span class="ln">${esc(snip)}</span></a></li>`;
     }
     h+='</ul>';
   }
   // arama sonucu divan paneline çiz
   showIndex(); selectTab('divan');
   $('#p-divan').innerHTML=h;
-  refreshStars();
   searchMode=true;
 }
 let searchMode=false, qT;
@@ -547,7 +491,6 @@ function buildDivanRefresh(){
     h += '</ul>';
   }
   $('#p-divan').innerHTML=h;
-  refreshStars();
 }
 
 /* ---------- sekme + yönlendirme ---------- */
@@ -576,14 +519,12 @@ function route(){
   const m=h.match(/^siir-(\d+)$/);
   if(m){ showPoemView(); renderPoem(parseInt(m[1],10)); return; }
   showIndex();
-  if(['giris','sozluk','matla','divan','yildiz'].includes(h)){
+  if(['giris','sozluk','matla','divan'].includes(h)){
     if(h==='divan' && searchMode){ searchMode=false; buildDivanRefresh(); }
-    if(h==='yildiz') buildFav();
     selectTab(h);
   } else {
     selectTab('divan');
   }
-  refreshStars();
 }
 window.addEventListener('hashchange',route);
 route();

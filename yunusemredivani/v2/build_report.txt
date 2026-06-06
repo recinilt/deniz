@@ -151,11 +151,3 @@ PWA (mobil "ana ekrana ekle" + çevrimdışı)
   uygulama yine tam çalışır. Göreli yollar kullanıldığından alt-dizinde de sorunsuzdur.
   Güncelleme: SWR sayesinde yeni sürüm bir sonraki açılışta yüklenir; istenirse
   sw.js içindeki  CACHE='ye-divan-v1'  sürümü (v2…) artırılarak önbellek tazelenebilir.
-
-FAVORİLER (yıldızlama)
-  Şiir görünümünde "☆ Yıldızla" düğmesi; "★ Yıldızlılar" sekmesi yıldızlıları (sıralı) listeler.
-  Dîvân ve İlk Mısralar listelerinde yıldızlı şiirlerin yanında ★ görünür.
-  Kayıt: tarayıcı/cihaz yerel deposunda (localStorage) tutulur; çevrimdışı ve yeniden
-  açılışta korunur. Cihaza özeldir, cihazlar arası eşitlenmez; tarayıcı verisi silinirse gider.
-  Yalnızca index.html değişti (yalnızca ekleme); değişken/fonksiyon adları korunmuştur.
-  sw.js önbellek sürümü v2'ye yükseltildi (güncel sürümün temiz yüklenmesi için).
