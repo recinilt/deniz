@@ -5,17 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Yûnus Emre Dîvânı</title>
 <meta name="description" content="Yûnus Emre Dîvânı — tam metin, sözlüklü ve aramalı dijital neşir (Tatcı neşri).">
-<!-- PWA -->
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" media="(prefers-color-scheme: light)" content="#f4ecd9">
-<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#161310">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Dîvân">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
-<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
-<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <style>
 :root{
   --bg:#f4ecd9; --bg2:#ece0c4; --panel:#fbf5e6;
@@ -528,12 +517,6 @@ function route(){
 }
 window.addEventListener('hashchange',route);
 route();
-</script>
-<script>
-/* PWA: service worker kaydı (yalnız http/https; file:// ve önizlemede atlanır) */
-if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
-  addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
-}
 </script>
 </body>
 </html>

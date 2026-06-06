@@ -140,14 +140,3 @@ TEKNİK
   Özellikler: hash derin-link (#siir-152), tam-metin arama, matla' indeksi,
   yazı boyutu, açık/koyu tema, vurgu aç/kapa, şiir kopyala, baskı stili,
   katlanır vezin+künye, dokun/üzerine-gel sözlük baloncuğu (WCAG uyumlu).
-PWA (mobil "ana ekrana ekle" + çevrimdışı)
-  Eklenen dosyalar: manifest.json, sw.js, icon-192.png, icon-512.png,
-  icon-512-maskable.png, apple-touch-icon.png, favicon-32.png
-  index.html'e YALNIZCA eklendi: manifest linki, theme-color, apple meta etiketleri,
-  ikon linkleri ve service worker kaydı. Uygulama mantığı değişmedi.
-  Service worker: HTML için stale-while-revalidate, statikler için cache-first.
-  KURULUM: tüm dosyalar aynı klasörde (index.html ile yan yana) HTTPS'te yayınlanmalı
-  (GitHub Pages ve hosting HTTPS sağlar). file:// veya Live Server'da SW atlanır,
-  uygulama yine tam çalışır. Göreli yollar kullanıldığından alt-dizinde de sorunsuzdur.
-  Güncelleme: SWR sayesinde yeni sürüm bir sonraki açılışta yüklenir; istenirse
-  sw.js içindeki  CACHE='ye-divan-v1'  sürümü (v2…) artırılarak önbellek tazelenebilir.
