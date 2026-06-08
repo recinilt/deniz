@@ -1,0 +1,161 @@
+YÛNUS EMRE DÎVÂNI — İNŞA RAPORU
+==================================================
+
+KAYNAK
+  Yûnus Emre Dîvânı — Yrd. Doç. Dr. Mustafa Tatcı
+  T.C. Kültür ve Turizm Bakanlığı
+  Tatcı neşri tıpkıbasım PDF (437 sayfa, metin katmanlı).
+
+İÇERİK (bu ciltte yalnızca Dîvân + Sözlük vardır)
+  Giriş denemesi   : 50 paragraf
+  Şiir (ilahi)     : 417 adet  (1–417, eksik/tekrar yok)
+  Kafiye bölümü    : 18 adet  ->  ELİF, BE, PE, TE, ÇE, RA, ZA, SİN, ŞIN, GAYIN, KÂF, KEF, LAM, MİM, NUN, VÂV, HE, YA
+  Sözlük maddesi   : 2245 adet
+  Not: Risâletü'n-Nushiyye (mesnevi) bu PDF'te yer almaz; hiçbir yerde anılmamıştır.
+  Matla' (ilk mısra) indeksi şiir GÖVDESİNDEN üretilmiştir (kitabın modernize
+  indeksinden değil); böylece metinle birebir tutarlıdır.
+
+METİN SADAKATİ
+  Şiir ve sözlük metni pdftotext -layout ile birebir alınmış, harf değiştirilmemiştir.
+  Giriş yazısı (fontu bozuk çıkıyordu) iki bağımsız kaynak uzlaştırılarak kurtarıldı:
+   1) bozuk metnin tutarlı çözümü (şapkalar â/î/û doğru),
+   2) 300 DPI sayfa görüntülerinden Türkçe OCR (ı/ş/ğ/İ doğru).
+  İki kaynağın hataları birbirini tamamladığı için sonuç yüksek doğruluktadır.
+
+SÖZLÜK KELİMESİ EŞLEŞTİRME (vurgulama özelliği)
+  Benzersiz anlamlı kelime : 11887
+  Sözlükte karşılığı bulunan: 3163  (%26.6)
+  Tüm kelime örneklerinde vurgu: 11759/45962  (%25.6)
+  Yöntem: birebir kök -> sonek soyma -> sesli geri-yükleme (gönlüm->Gönül) ->
+          öbek eşleşmesi (Âb-ı Hayât) -> kısıtlı ön-ek (≥4 harf) -> alias. Şapka korunur.
+          Çok sık işlev kelimeleri (ben, bu, ile, gibi…) bilerek dışlanır.
+  Eşleşmeyenlerin çoğu sözlükte TANIMLANMAYAN sık kelimelerdir (dost, kişi, söz, yol,
+  hoş, haber, âşık…) — sözlük arkaik/teknik kelimeleri tanımladığından bu normaldir.
+
+  En sık eşleşmeyen 100 kelime (alias genişletmek istenirse aday liste):
+    yûnus                x350
+    dost                 x215
+    gerek                x206
+    durur                x175
+    hak                  x150
+    bin                  x144
+    âşık                 x142
+    kişi                 x99
+    yüz                  x98
+    gelür                x89
+    hîç                  x86
+    dünyâ                x84
+    söz                  x76
+    iki                  x66
+    haber                x65
+    hoş                  x63
+    yola                 x59
+    nedür                x59
+    senden               x58
+    dosta                x56
+    yol                  x56
+    dört                 x54
+    olup                 x54
+    diyü                 x51
+    sözi                 x50
+    kimse                x48
+    hakdan               x45
+    olsun                x45
+    ider                 x44
+    cihân                x44
+    âlem                 x44
+    ışkıla               x43
+    sultân               x43
+    yolda                x43
+    dîn                  x41
+    gök                  x40
+    yidi                 x39
+    kul                  x39
+    elinden              x39
+    bilmez               x39
+    aceb                 x39
+    gözi                 x38
+    allah                x38
+    âdem                 x38
+    vardur               x38
+    yüzin                x37
+    îmân                 x37
+    âşıklar              x36
+    yolına               x36
+    elüm                 x36
+    zamân                x36
+    kıldı                x35
+    oldur                x35
+    mısın                x34
+    işi                  x34
+    yokdur               x33
+    dostıla              x33
+    olmaz                x32
+    birgün               x32
+    içerü                x31
+    gerekmez             x31
+    gül                  x30
+    gözüm                x30
+    ulu                  x30
+    söyle                x30
+    üstine               x30
+    varısa               x29
+    söyler               x29
+    dermân               x29
+    bâkî                 x29
+    oda                  x29
+    geçer                x29
+    meger                x29
+    olasın               x29
+    sensin               x28
+    gören                x28
+    dile                 x28
+    yûnusun              x28
+    âşıklara             x28
+    dostı                x28
+    muhammed             x28
+    diyen                x28
+    buldum               x28
+    olmış                x28
+    bulasın              x28
+    yitmiş               x27
+    göz                  x27
+    elden                x27
+    dostdan              x26
+    dil                  x26
+    odı                  x26
+    yûnusa               x26
+    bunca                x26
+    âşıklarun            x25
+    nûr                  x25
+    gördi                x25
+    budur                x25
+    gele                 x25
+    gelen                x25
+    odına                x25
+
+TEKNİK
+  Tek dosya index.html — JSON gömülü, SIFIR harici kütüphane/CDN.
+  GitHub Pages, paylaşımlı hosting (vr-sinema.online) ve Oculus tarayıcıda çalışır.
+  Özellikler: hash derin-link (#siir-152), tam-metin arama, matla' indeksi,
+  yazı boyutu, açık/koyu tema, vurgu aç/kapa, şiir kopyala, baskı stili,
+  katlanır vezin+künye, dokun/üzerine-gel sözlük baloncuğu (WCAG uyumlu).
+PWA (mobil "ana ekrana ekle" + çevrimdışı)
+  Eklenen dosyalar: manifest.json, sw.js, icon-192.png, icon-512.png,
+  icon-512-maskable.png, apple-touch-icon.png, favicon-32.png
+  index.html'e YALNIZCA eklendi: manifest linki, theme-color, apple meta etiketleri,
+  ikon linkleri ve service worker kaydı. Uygulama mantığı değişmedi.
+  Service worker: HTML için stale-while-revalidate, statikler için cache-first.
+  KURULUM: tüm dosyalar aynı klasörde (index.html ile yan yana) HTTPS'te yayınlanmalı
+  (GitHub Pages ve hosting HTTPS sağlar). file:// veya Live Server'da SW atlanır,
+  uygulama yine tam çalışır. Göreli yollar kullanıldığından alt-dizinde de sorunsuzdur.
+  Güncelleme: SWR sayesinde yeni sürüm bir sonraki açılışta yüklenir; istenirse
+  sw.js içindeki  CACHE='ye-divan-v1'  sürümü (v2…) artırılarak önbellek tazelenebilir.
+
+FAVORİLER (yıldızlama)
+  Şiir görünümünde "☆ Yıldızla" düğmesi; "★ Yıldızlılar" sekmesi yıldızlıları (sıralı) listeler.
+  Dîvân ve İlk Mısralar listelerinde yıldızlı şiirlerin yanında ★ görünür.
+  Kayıt: tarayıcı/cihaz yerel deposunda (localStorage) tutulur; çevrimdışı ve yeniden
+  açılışta korunur. Cihaza özeldir, cihazlar arası eşitlenmez; tarayıcı verisi silinirse gider.
+  Yalnızca index.html değişti (yalnızca ekleme); değişken/fonksiyon adları korunmuştur.
+  sw.js önbellek sürümü v2'ye yükseltildi (güncel sürümün temiz yüklenmesi için).

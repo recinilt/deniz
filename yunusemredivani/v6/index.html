@@ -171,15 +171,6 @@ body.nohl .gl{color:inherit;background:none;border-bottom:0;cursor:text;padding:
 #tip i{color:var(--gold);font-style:italic;font-size:.8rem}
 #tip .bkz{color:var(--crimson);cursor:pointer;text-decoration:underline}
 
-/* PWA kurulum ipucu (iOS Safari) */
-#instios{position:fixed;left:50%;bottom:1rem;transform:translateX(-50%);max-width:min(23rem,92vw);
-  background:var(--panel);color:var(--ink);border:1px solid var(--gold);border-radius:12px;
-  box-shadow:var(--shadow);padding:.7rem .9rem;font-size:.9rem;line-height:1.55;z-index:70;display:none}
-#instios.show{display:block;animation:pop .14s ease both}
-#instios b{color:var(--crimson);font-weight:600}
-#instios .x{float:right;margin:-.15rem -.25rem 0 .5rem;background:none;border:0;color:var(--faint);
-  font-size:1.15rem;line-height:1;cursor:pointer;padding:.1rem .3rem}
-
 .empty{color:var(--faint);text-align:center;padding:2.5rem 0;font-style:italic}
 footer{border-top:1px solid var(--rule);color:var(--faint);font-size:.78rem;text-align:center;padding:1.6rem 1rem;line-height:1.8}
 
@@ -192,7 +183,7 @@ footer{border-top:1px solid var(--rule);color:var(--faint);font-size:.78rem;text
 
 /* print */
 @media print{
-  header,.tabs,.pnav,.pfoot,.szbar,#tip,#instios,footer,.ctrls,.search{display:none!important}
+  header,.tabs,.pnav,.pfoot,.szbar,#tip,footer,.ctrls,.search{display:none!important}
   body{background:#fff;color:#000}
   .panel{display:none!important}.panel.on{display:block!important}
   #view-siir,.poem{display:block!important;max-width:none}
@@ -216,7 +207,6 @@ footer{border-top:1px solid var(--rule);color:var(--faint);font-size:.78rem;text
       <button class="btn icon" id="fsu" title="Yazıyı büyüt" aria-label="Yazıyı büyüt">A+</button>
       <button class="btn" id="hl" aria-pressed="true" title="Sözlük kelimelerini vurgula">Vurgu</button>
       <button class="btn" id="theme" title="Açık/Koyu tema">Tema</button>
-      <button class="btn" id="installb" title="Uygulamayı ana ekrana / masaüstüne yükle" hidden>Yükle</button>
     </div>
   </div>
 </header>
@@ -262,12 +252,6 @@ footer{border-top:1px solid var(--rule);color:var(--faint);font-size:.78rem;text
 
 <div id="tip" role="tooltip" aria-live="polite"></div>
 
-<div id="instios" role="dialog" aria-label="Uygulamayı yükle">
-  <button class="x" id="instiosx" aria-label="Kapat" title="Kapat">×</button>
-  <b>Ana ekrana ekle</b><br>
-  iPhone/iPad'de Safari ile: alttaki <b>Paylaş</b> düğmesine (kare ve yukarı ok) dokunun, açılan menüden <b>“Ana Ekrana Ekle”</b>yi seçin.
-</div>
-
 <footer>
   Metin: <b>Yûnus Emre Dîvânı</b>, hzl. Yrd. Doç. Dr. Mustafa Tatcı — T.C. Kültür ve Turizm Bakanlığı.<br>
   Bu dijital neşir metni birebir korur. Sözlük kelimeleri vurgulanır; üzerine gelince/dokununca anlamı görünür.
@@ -287,12 +271,6 @@ const esc = s => s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))
 const SZMAP = new Map();
 for(const e of DATA.sozluk){ if(!SZMAP.has(e.kelime)) SZMAP.set(e.kelime, e); }
 
-/* ---------- ayarlar (yerel kayıt; başarısızsa sorun değil) ---------- */
-const store = {
-  get(k,d){ try{const v=localStorage.getItem('ye_'+k);return v===null?d:v;}catch(e){return d;} },
-  set(k,v){ try{localStorage.setItem('ye_'+k,v);}catch(e){} }
-};
-
 /* ---------- favoriler (yıldız) ---------- */
 let FAV;
 try{ FAV = new Set(JSON.parse(store.get('fav','[]'))); }catch(e){ FAV = new Set(); }
@@ -302,6 +280,12 @@ function toggleFav(no){ if(FAV.has(no)) FAV.delete(no); else FAV.add(no); saveFa
 function refreshStars(){
   $$('.plist li[data-no]').forEach(li=>{ li.classList.toggle('faved', FAV.has(parseInt(li.dataset.no,10))); });
 }
+
+/* ---------- ayarlar (yerel kayıt; başarısızsa sorun değil) ---------- */
+const store = {
+  get(k,d){ try{const v=localStorage.getItem('ye_'+k);return v===null?d:v;}catch(e){return d;} },
+  set(k,v){ try{localStorage.setItem('ye_'+k,v);}catch(e){} }
+};
 let fs = parseFloat(store.get('fs','1'))||1;
 function applyFs(){ document.documentElement.style.setProperty('--fs', fs.toFixed(2)); store.set('fs',fs.toFixed(2)); }
 $('#fsu').onclick=()=>{ fs=Math.min(1.7,fs+0.1); applyFs(); };
@@ -656,51 +640,6 @@ route();
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
   addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
 }
-
-/* PWA: "Yükle" düğmesi — Chromium'da beforeinstallprompt, iOS Safari'de elle ekleme ipucu */
-(function(){
-  const installBtn = document.getElementById('installb');
-  if(!installBtn) return;
-  const iosHint = document.getElementById('instios');
-  const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
-  const ua = navigator.userAgent || '';
-  const isIOS = /iphone|ipad|ipod/i.test(ua) || (/macintosh/i.test(ua) && 'ontouchend' in document);
-  const isSafari = /safari/i.test(ua) && !/chrome|crios|fxios|edgios|android/i.test(ua);
-  let deferredPrompt = null;
-
-  function hideIos(){ if(iosHint){ iosHint.classList.remove('show'); iosHint.style.display='none'; } }
-
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();          // tarayıcının kendi mini çubuğunu engelle
-    deferredPrompt = e;          // sonra kullanmak için sakla
-    if(!standalone) installBtn.hidden = false;
-  });
-
-  window.addEventListener('appinstalled', () => { deferredPrompt = null; installBtn.hidden = true; hideIos(); });
-
-  if(isIOS && isSafari && !standalone){ installBtn.hidden = false; }  // iOS: beforeinstallprompt yok → ipucu sun
-  if(standalone){ installBtn.hidden = true; }                        // zaten kuruluysa gizle
-
-  installBtn.addEventListener('click', async () => {
-    if(deferredPrompt){
-      installBtn.hidden = true;        // yerel kurulum penceresi devralır
-      deferredPrompt.prompt();
-      try{ await deferredPrompt.userChoice; }catch(e){}
-      deferredPrompt = null;
-    } else if(iosHint){
-      const willShow = !iosHint.classList.contains('show');
-      hideIos();
-      if(willShow){ iosHint.style.display='block'; iosHint.classList.add('show'); }
-    }
-  });
-
-  if(iosHint){
-    const xb = document.getElementById('instiosx');
-    if(xb) xb.addEventListener('click', hideIos);
-    document.addEventListener('click', (e) => { if(!e.target.closest('#instios') && e.target.id !== 'installb') hideIos(); });
-    document.addEventListener('keydown', (e) => { if(e.key === 'Escape') hideIos(); });
-  }
-})();
 </script>
 </body>
 </html>
