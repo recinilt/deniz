@@ -213,7 +213,7 @@ footer{border-top:1px solid var(--rule);color:var(--faint);font-size:.78rem;text
       <b>Yûnus Emre Dîvânı</b><small>Tatcı Neşri · Dijital</small>
     </div>
     <div class="search">
-      <input id="q" type="search" placeholder="Şiirlerde ara… (dîvân + günümüz; örn. ‘ışk, gönül, dost)" aria-label="Şiirlerde ara" autocomplete="off">
+      <input id="q" type="search" placeholder="Şiirlerde ara… (örn. ‘ışk, gönül, dost)" aria-label="Şiirlerde ara" autocomplete="off">
     </div>
     <div class="ctrls">
       <button class="btn icon" id="fsd" title="Yazıyı küçült" aria-label="Yazıyı küçült">A−</button>
@@ -622,49 +622,23 @@ const SIDX = DATA.siirler.map(p=>{
   const t = p.kitalar.map(k=>k.misralar.join(' ')).join(' ');
   return {no:p.no, bolum:p.bolum, ilk:p.ilk, raw:t, f:fold(t)};
 });
-const MIDX = [];
-for(const noStr of Object.keys(MODERN)){
-  const no = parseInt(noStr,10);
-  const kt = MODERN[no];
-  if(!kt || !no) continue;
-  const t = kt.map(k=>k.join(' ')).join(' ');
-  MIDX.push({no, raw:t, f:fold(t)});
-}
-MIDX.sort((a,b)=>a.no-b.no);
-function searchIdx(idx, f){
-  const res=[];
-  for(const it of idx){
-    const i=it.f.indexOf(f);
-    if(i>=0){ res.push({it,i}); if(res.length>=200) break; }
-  }
-  return res;
-}
-function searchSnipHTML(res, q, g){
-  let h='<ul class="plist" style="grid-template-columns:1fr">';
-  for(const {it,i} of res){
-    const s=Math.max(0,i-26), snip=(s>0?'…':'')+it.raw.slice(s, i+q.length+40)+'…';
-    h+=`<li data-no="${it.no}"><a href="#siir-${it.no}${g?'-g':''}"><span class="no">${it.no}</span><span class="ln">${esc(snip)}</span></a></li>`;
-  }
-  h+='</ul>';
-  return h;
-}
 function runSearch(q){
   const f=fold(q.trim());
   if(f.length<2){ showTab('divan',true); return; }
-  const resD = searchIdx(SIDX, f);
-  const resM = searchIdx(MIDX, f);
-  const nD = resD.length+(resD.length>=200?'+':''), nM = resM.length+(resM.length>=200?'+':'');
-  let h=`<div class="orn"><span>✦</span></div><p class="lead">“${esc(q)}” için dîvân metninde ${nD}, günümüz Türkçesinde ${nM} sonuç.</p>`;
-  if(!resD.length && !resM.length) h+='<p class="empty">Eşleşen şiir yok.</p>';
+  const res=[];
+  for(const it of SIDX){
+    const i=it.f.indexOf(f);
+    if(i>=0){ res.push({it,i}); if(res.length>=200) break; }
+  }
+  let h=`<div class="orn"><span>✦</span></div><p class="lead">“${esc(q)}” için ${res.length} sonuç${res.length>=200?'+':''}.</p>`;
+  if(!res.length) h+='<p class="empty">Eşleşen şiir yok.</p>';
   else{
-    if(resD.length){
-      h+=`<div class="sec-h"><span class="lt" style="font-size:1.05rem;letter-spacing:.06em">Dîvân metni</span><span class="cnt">${nD} sonuç</span><span class="rl"></span></div>`;
-      h+=searchSnipHTML(resD, q, false);
+    h+='<ul class="plist" style="grid-template-columns:1fr">';
+    for(const {it,i} of res){
+      const s=Math.max(0,i-26), snip=(s>0?'…':'')+it.raw.slice(s, i+q.length+40)+'…';
+      h+=`<li data-no="${it.no}"><a href="#siir-${it.no}"><span class="no">${it.no}</span><span class="ln">${esc(snip)}</span></a></li>`;
     }
-    if(resM.length){
-      h+=`<div class="sec-h"><span class="lt" style="font-size:1.05rem;letter-spacing:.06em">Günümüz Türkçesi</span><span class="cnt">${nM} sonuç</span><span class="rl"></span></div>`;
-      h+=searchSnipHTML(resM, q, true);
-    }
+    h+='</ul>';
   }
   // arama sonucu divan paneline çiz
   showIndex(); selectTab('divan');

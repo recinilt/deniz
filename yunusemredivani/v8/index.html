@@ -154,10 +154,6 @@ details.meta[open] summary::before{transform:rotate(90deg)}
 .fav-row .unfav:hover{background:var(--hl-bg)}
 .favhead{display:flex;align-items:center;justify-content:space-between;gap:.6rem;margin:.4rem 0 .5rem;flex-wrap:wrap}
 
-/* son okunanlar */
-.rec-row>a{flex:1 1 auto;min-width:0}
-.rec-when{flex:0 0 auto;color:var(--faint);font-size:.74rem;font-style:italic;white-space:nowrap;padding-right:.35rem}
-
 /* glossary word highlight */
 .gl{font:inherit;color:var(--hl);background:var(--hl-bg);border:0;border-bottom:1px dotted var(--hl-line);
   border-radius:3px;padding:0 .05em;margin:0;cursor:help;transition:background .15s}
@@ -213,7 +209,7 @@ footer{border-top:1px solid var(--rule);color:var(--faint);font-size:.78rem;text
       <b>Yûnus Emre Dîvânı</b><small>Tatcı Neşri · Dijital</small>
     </div>
     <div class="search">
-      <input id="q" type="search" placeholder="Şiirlerde ara… (dîvân + günümüz; örn. ‘ışk, gönül, dost)" aria-label="Şiirlerde ara" autocomplete="off">
+      <input id="q" type="search" placeholder="Şiirlerde ara… (örn. ‘ışk, gönül, dost)" aria-label="Şiirlerde ara" autocomplete="off">
     </div>
     <div class="ctrls">
       <button class="btn icon" id="fsd" title="Yazıyı küçült" aria-label="Yazıyı küçült">A−</button>
@@ -231,7 +227,6 @@ footer{border-top:1px solid var(--rule);color:var(--faint);font-size:.78rem;text
       <button class="tab" role="tab" data-tab="divan" aria-selected="true">Dîvân</button>
       <button class="tab" role="tab" data-tab="modern">Günümüz Türkçesi</button>
       <button class="tab" role="tab" data-tab="yildiz">★ Yıldızlılar</button>
-      <button class="tab" role="tab" data-tab="okunan">↻ Son Okunanlar</button>
       <button class="tab" role="tab" data-tab="matla">İlk Mısralar</button>
       <button class="tab" role="tab" data-tab="sozluk">Sözlük</button>
       <button class="tab" role="tab" data-tab="giris">Giriş</button>
@@ -242,8 +237,6 @@ footer{border-top:1px solid var(--rule);color:var(--faint);font-size:.78rem;text
     <div class="panel" id="p-modern" role="tabpanel"></div>
 
     <div class="panel" id="p-yildiz" role="tabpanel"></div>
-
-    <div class="panel" id="p-okunan" role="tabpanel"></div>
 
     <div class="panel" id="p-matla" role="tabpanel">
       <div class="orn"><span>✦</span></div>
@@ -411,48 +404,6 @@ $('#p-yildiz').addEventListener('click',e=>{
   if(e.target.id==='favclear'){ if(confirm('Tüm yıldızlı şiirler kaldırılsın mı?')){ FAV.clear(); saveFav(); refreshStars(); buildFav(); } }
 });
 
-/* ---------- son okunanlar ---------- */
-let RECENT;
-try{ RECENT = JSON.parse(store.get('recent','[]')); if(!Array.isArray(RECENT)) RECENT=[]; }catch(e){ RECENT = []; }
-function saveRecent(){ store.set('recent', JSON.stringify(RECENT)); }
-function addRecent(no, g){
-  RECENT = RECENT.filter(r => r && r.no !== no);
-  RECENT.unshift({no, g:!!g, t:Date.now()});
-  if(RECENT.length > 10) RECENT.length = 10;
-  saveRecent();
-}
-function recWhen(t){
-  if(!t) return '';
-  const dayIdx = ms => { const d=new Date(ms); return Math.floor((ms - d.getTimezoneOffset()*60000)/86400000); };
-  const diff = dayIdx(Date.now()) - dayIdx(t);
-  if(diff <= 0) return 'bugün';
-  if(diff === 1) return 'dün';
-  if(diff < 30) return diff + ' gün önce';
-  return Math.floor(diff/30) + ' ay önce';
-}
-function buildRecent(){
-  const rows = RECENT.filter(r => r && r.no>=1 && r.no<=DATA.siirler.length);
-  let h='<div class="orn"><span>↻</span></div>';
-  if(!rows.length){
-    h+='<p class="empty">Henüz şiir okunmadı.<br>Açtığınız son 10 şiir burada, en yeniden eskiye doğru listelenir.</p>';
-    $('#p-okunan').innerHTML=h; return;
-  }
-  h+=`<div class="favhead"><span class="lead" style="margin:0">Son okunan ${rows.length} şiir — en yeniden eskiye</span>`
-   + `<button class="btn" id="recclear" title="Okuma geçmişini temizle">Geçmişi temizle</button></div>`;
-  h+='<ul class="plist" style="grid-template-columns:1fr">';
-  for(const r of rows){
-    const p=DATA.siirler[r.no-1];
-    h+=`<li class="fav-row rec-row" data-no="${r.no}"><a href="#siir-${r.no}${r.g?'-g':''}"><span class="no">${r.no}</span><span class="ln">${esc(p.ilk)}${r.g?' · Günümüz':''}</span></a>`
-     + `<span class="rec-when">${recWhen(r.t)}</span></li>`;
-  }
-  h+='</ul>';
-  $('#p-okunan').innerHTML=h;
-  refreshStars();
-}
-$('#p-okunan').addEventListener('click',e=>{
-  if(e.target.id==='recclear'){ if(confirm('Okuma geçmişi temizlensin mi?')){ RECENT=[]; saveRecent(); buildRecent(); } }
-});
-
 /* ---------- SÖZLÜK ---------- */
 const szItems=[];
 (function buildSozluk(){
@@ -579,7 +530,6 @@ function renderPoem(no, g){
       $('#copyp').textContent='Kopyalandı ✓'; setTimeout(()=>$('#copyp').textContent='Kopyala',1500);
     }).catch(()=>{});
   };
-  addRecent(no, g);
   window.scrollTo(0,0);
 }
 
@@ -622,49 +572,23 @@ const SIDX = DATA.siirler.map(p=>{
   const t = p.kitalar.map(k=>k.misralar.join(' ')).join(' ');
   return {no:p.no, bolum:p.bolum, ilk:p.ilk, raw:t, f:fold(t)};
 });
-const MIDX = [];
-for(const noStr of Object.keys(MODERN)){
-  const no = parseInt(noStr,10);
-  const kt = MODERN[no];
-  if(!kt || !no) continue;
-  const t = kt.map(k=>k.join(' ')).join(' ');
-  MIDX.push({no, raw:t, f:fold(t)});
-}
-MIDX.sort((a,b)=>a.no-b.no);
-function searchIdx(idx, f){
-  const res=[];
-  for(const it of idx){
-    const i=it.f.indexOf(f);
-    if(i>=0){ res.push({it,i}); if(res.length>=200) break; }
-  }
-  return res;
-}
-function searchSnipHTML(res, q, g){
-  let h='<ul class="plist" style="grid-template-columns:1fr">';
-  for(const {it,i} of res){
-    const s=Math.max(0,i-26), snip=(s>0?'…':'')+it.raw.slice(s, i+q.length+40)+'…';
-    h+=`<li data-no="${it.no}"><a href="#siir-${it.no}${g?'-g':''}"><span class="no">${it.no}</span><span class="ln">${esc(snip)}</span></a></li>`;
-  }
-  h+='</ul>';
-  return h;
-}
 function runSearch(q){
   const f=fold(q.trim());
   if(f.length<2){ showTab('divan',true); return; }
-  const resD = searchIdx(SIDX, f);
-  const resM = searchIdx(MIDX, f);
-  const nD = resD.length+(resD.length>=200?'+':''), nM = resM.length+(resM.length>=200?'+':'');
-  let h=`<div class="orn"><span>✦</span></div><p class="lead">“${esc(q)}” için dîvân metninde ${nD}, günümüz Türkçesinde ${nM} sonuç.</p>`;
-  if(!resD.length && !resM.length) h+='<p class="empty">Eşleşen şiir yok.</p>';
+  const res=[];
+  for(const it of SIDX){
+    const i=it.f.indexOf(f);
+    if(i>=0){ res.push({it,i}); if(res.length>=200) break; }
+  }
+  let h=`<div class="orn"><span>✦</span></div><p class="lead">“${esc(q)}” için ${res.length} sonuç${res.length>=200?'+':''}.</p>`;
+  if(!res.length) h+='<p class="empty">Eşleşen şiir yok.</p>';
   else{
-    if(resD.length){
-      h+=`<div class="sec-h"><span class="lt" style="font-size:1.05rem;letter-spacing:.06em">Dîvân metni</span><span class="cnt">${nD} sonuç</span><span class="rl"></span></div>`;
-      h+=searchSnipHTML(resD, q, false);
+    h+='<ul class="plist" style="grid-template-columns:1fr">';
+    for(const {it,i} of res){
+      const s=Math.max(0,i-26), snip=(s>0?'…':'')+it.raw.slice(s, i+q.length+40)+'…';
+      h+=`<li data-no="${it.no}"><a href="#siir-${it.no}"><span class="no">${it.no}</span><span class="ln">${esc(snip)}</span></a></li>`;
     }
-    if(resM.length){
-      h+=`<div class="sec-h"><span class="lt" style="font-size:1.05rem;letter-spacing:.06em">Günümüz Türkçesi</span><span class="cnt">${nM} sonuç</span><span class="rl"></span></div>`;
-      h+=searchSnipHTML(resM, q, true);
-    }
+    h+='</ul>';
   }
   // arama sonucu divan paneline çiz
   showIndex(); selectTab('divan');
@@ -715,10 +639,9 @@ function route(){
   const m=h.match(/^siir-(\d+)(-g)?$/);
   if(m){ showPoemView(); renderPoem(parseInt(m[1],10), !!m[2]); return; }
   showIndex();
-  if(['giris','sozluk','matla','divan','modern','yildiz','okunan'].includes(h)){
+  if(['giris','sozluk','matla','divan','modern','yildiz'].includes(h)){
     if(h==='divan' && searchMode){ searchMode=false; buildDivanRefresh(); }
     if(h==='yildiz') buildFav();
-    if(h==='okunan') buildRecent();
     selectTab(h);
   } else {
     selectTab('divan');

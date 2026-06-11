@@ -1,5 +1,5 @@
 /* Yûnus Emre Dîvânı — çevrimdışı service worker */
-const CACHE = 'ye-divan-v8';
+const CACHE = 'ye-divan-v7';
 const ASSETS = [
   './', './index.html', './divan-data.js', './divan-modern.js', './manifest.json',
   './icon-192.png', './icon-512.png', './icon-512-maskable.png',
