@@ -284,9 +284,10 @@ function tablarKur(){
   const t=$('#tabs');
   let h='';
   h+=`<button class="tab" role="tab" data-tab="tum">Tümü</button>`;
-  for(const d of SIRA) h+=`<button class="tab" role="tab" data-tab="${esc(d)}">${esc(d)}</button>`;
+  
   h+=`<button class="tab" role="tab" data-tab="fav">★ Yıldızlılar</button>`;
   h+=`<button class="tab" role="tab" data-tab="son">↻ Son Okunanlar</button>`;
+  for(const d of SIRA) h+=`<button class="tab" role="tab" data-tab="${esc(d)}">${esc(d)}</button>`;
   t.innerHTML=h;
   $$('.tab',t).forEach(b=>{
     b.onclick=()=>{ TAB=b.dataset.tab; anaSayfa(); };
