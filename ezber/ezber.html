@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ezber — Metin Ezberleme</title>
+<style>
+:root{
+  --bg:#171410; --bg2:#1f1b15; --surface:#26211a; --surface2:#2f2920;
+  --line:#3a332a; --line2:#4a4234;
+  --text:#efe9dd; --muted:#a59a89; --faint:#80766580;
+  --accent:#e0a44a; --accent-d:#c98e34; --accent-bg:#e0a44a1a;
+  --green:#5fae74; --green-bg:#5fae741f; --green-line:#5fae7455;
+  --orange:#e3863a; --orange-bg:#e3863a26; --orange-line:#e3863a66;
+  --blue:#6c9bd2; --blue-bg:#6c9bd21f; --blue-line:#6c9bd255;
+  --red:#d76b62; --red-bg:#d76b6226;
+  --r:14px; --rs:10px;
+  --serif:Georgia,"Times New Roman","Noto Serif",serif;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--text); font-family:var(--sans);
+  line-height:1.5; -webkit-font-smoothing:antialiased;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+#app{max-width:720px;margin:0 auto;padding:18px 16px 64px;min-height:100vh}
+h1,h2,h3{font-family:var(--serif);font-weight:600;margin:0}
+button{font-family:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{
+  outline:2px solid var(--accent);outline-offset:2px;border-radius:6px;
+}
+.muted{color:var(--muted)}
+.faint{color:var(--faint)}
+.center{text-align:center}
+
+/* top bar */
+.topbar{display:flex;align-items:center;gap:12px;margin-bottom:22px}
+.brand{display:flex;flex-direction:column;line-height:1.15}
+.brand .name{font-family:var(--serif);font-size:26px;letter-spacing:.5px}
+.brand .sub{font-size:12px;color:var(--muted);letter-spacing:.3px}
+.spacer{flex:1}
+.icon-btn{
+  background:var(--surface);border:1px solid var(--line);color:var(--text);
+  width:40px;height:40px;border-radius:50%;font-size:18px;display:grid;place-items:center;
+}
+.icon-btn:hover{background:var(--surface2);border-color:var(--line2)}
+
+/* buttons */
+.btn{
+  background:var(--surface);border:1px solid var(--line);color:var(--text);
+  padding:11px 16px;border-radius:var(--rs);font-size:15px;font-weight:500;
+  display:inline-flex;align-items:center;gap:8px;transition:.12s;
+}
+.btn:hover{background:var(--surface2);border-color:var(--line2)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#231a0a;font-weight:600}
+.btn.primary:hover{background:var(--accent-d)}
+.btn.ghost{background:transparent}
+.btn.sm{padding:8px 12px;font-size:13px}
+.btn.block{width:100%;justify-content:center}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap}
+
+/* cards */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px}
+.deck{
+  background:var(--surface);border:1px solid var(--line);border-left:5px solid var(--line2);
+  border-radius:var(--r);padding:15px 16px;margin-bottom:12px;
+  display:flex;align-items:center;gap:14px;text-align:left;width:100%;color:inherit;
+}
+.deck:hover{background:var(--surface2)}
+.deck.is-green{border-left-color:var(--green)}
+.deck.is-orange{border-left-color:var(--orange)}
+.deck.is-blue{border-left-color:var(--blue)}
+.deck .dtitle{font-family:var(--serif);font-size:18px;margin-bottom:3px}
+.deck .dmeta{font-size:13px}
+.deck .dbody{flex:1;min-width:0}
+.deck .dtitle{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pill{font-size:12px;font-weight:600;padding:5px 10px;border-radius:999px;white-space:nowrap}
+.pill.green{background:var(--green-bg);color:var(--green);border:1px solid var(--green-line)}
+.pill.orange{background:var(--orange-bg);color:var(--orange);border:1px solid var(--orange-line)}
+.pill.blue{background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-line)}
+
+/* empty */
+.empty{text-align:center;padding:48px 20px;color:var(--muted)}
+.empty .big{font-size:40px;margin-bottom:14px;opacity:.7}
+
+/* form */
+label.field{display:block;margin:16px 0 6px;font-size:13px;color:var(--muted);font-weight:600;letter-spacing:.2px}
+textarea,input[type=text],select{
+  width:100%;background:var(--bg2);border:1px solid var(--line);color:var(--text);
+  border-radius:var(--rs);padding:12px;font-size:15px;font-family:inherit;
+}
+textarea{resize:vertical;line-height:1.55}
+.reading-input{font-family:var(--serif);font-size:18px;line-height:1.7}
+.seg-controls{display:flex;gap:18px;flex-wrap:wrap;align-items:center;margin-top:6px}
+.radio-row{display:inline-flex;gap:6px;background:var(--bg2);border:1px solid var(--line);border-radius:var(--rs);padding:4px}
+.radio-row button{background:transparent;border:none;color:var(--muted);padding:7px 14px;border-radius:7px;font-size:14px}
+.radio-row button.on{background:var(--accent);color:#231a0a;font-weight:600}
+.range-wrap{display:flex;align-items:center;gap:10px}
+input[type=range]{accent-color:var(--accent)}
+.checkbox{display:inline-flex;align-items:center;gap:8px;color:var(--text);font-size:14px;cursor:pointer}
+
+/* preview */
+.preview-group{border:1px solid var(--line);border-radius:var(--rs);margin:10px 0;overflow:hidden}
+.preview-group .pg-head{background:var(--bg2);padding:7px 12px;font-size:12px;color:var(--accent);font-weight:600;letter-spacing:.4px}
+.preview-group .pg-line{padding:8px 12px;border-top:1px solid var(--line);font-family:var(--serif);font-size:16px;line-height:1.55}
+.preview-group .pg-line:first-of-type{border-top:none}
+
+/* memorize */
+.mz-head{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.mz-progress{height:6px;background:var(--bg2);border-radius:999px;overflow:hidden;margin:10px 0 18px}
+.mz-progress span{display:block;height:100%;background:var(--accent);transition:width .3s}
+.steps{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap}
+.step-chip{
+  font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid var(--line);
+  background:var(--surface);color:var(--muted);
+}
+.step-chip.done{border-color:var(--green-line);color:var(--green);background:var(--green-bg)}
+.step-chip.active{border-color:var(--accent);color:var(--accent);background:var(--accent-bg);font-weight:600}
+.step-chip.clickable{cursor:pointer}
+.reading{
+  font-family:var(--serif);font-size:22px;line-height:1.85;
+  background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);
+  padding:22px;margin:6px 0 18px;white-space:pre-wrap;
+}
+.reading.hidden-text{filter:blur(7px);user-select:none;opacity:.55}
+.counter{display:flex;align-items:center;gap:14px;margin:6px 0 16px}
+.counter .num{font-family:var(--serif);font-size:34px;color:var(--accent);min-width:80px}
+.counter .num small{font-size:18px;color:var(--muted)}
+.hint{font-size:13px;color:var(--muted);margin:4px 0 14px}
+.toggle-eye{margin-bottom:14px}
+
+/* blank fill */
+.blank-text{font-family:var(--serif);font-size:19px;line-height:2.2;background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);padding:20px;margin:6px 0 14px}
+.blank-text input{
+  display:inline-block;width:auto;background:var(--surface2);border:none;border-bottom:2px solid var(--accent);
+  color:var(--text);font-family:var(--serif);font-size:18px;padding:2px 6px;margin:0 2px;border-radius:4px 4px 0 0;
+  min-width:60px;text-align:center;
+}
+.blank-text input.ok{border-bottom-color:var(--green);color:var(--green)}
+.blank-text input.bad{border-bottom-color:var(--red);color:var(--red)}
+.level-dots{display:flex;gap:8px;margin:0 0 12px;align-items:center;font-size:13px;color:var(--muted)}
+.level-dots .d{width:22px;height:6px;border-radius:3px;background:var(--line)}
+.level-dots .d.on{background:var(--accent)}
+.level-dots .d.done{background:var(--green)}
+
+/* write check */
+.diff{font-family:var(--serif);font-size:18px;line-height:1.9;background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);padding:18px;margin:12px 0}
+.diff .w-ok{color:var(--text)}
+.diff .w-bad{color:var(--red);text-decoration:underline wavy var(--red);text-underline-offset:4px}
+.score{font-family:var(--serif);font-size:15px;margin:10px 0;color:var(--muted)}
+.score b{color:var(--accent);font-size:22px}
+
+/* result banner */
+.banner{border-radius:var(--rs);padding:12px 14px;margin:12px 0;font-size:14px;border:1px solid}
+.banner.ok{background:var(--green-bg);border-color:var(--green-line);color:var(--green)}
+.banner.warn{background:var(--orange-bg);border-color:var(--orange-line);color:var(--orange)}
+.banner.bad{background:var(--red-bg);border-color:var(--red);color:var(--red)}
+
+/* review / done */
+.celebrate{text-align:center;padding:30px 16px}
+.celebrate .big{font-size:54px;margin-bottom:10px}
+
+/* nav bottom */
+.navbar{display:flex;gap:10px;margin-top:22px}
+.navbar .spacer{flex:1}
+
+/* settings modal */
+.modal-bg{position:fixed;inset:0;background:#000a;display:grid;place-items:center;padding:18px;z-index:50}
+.modal{background:var(--surface);border:1px solid var(--line2);border-radius:var(--r);padding:22px;max-width:440px;width:100%}
+.modal h2{margin-bottom:8px}
+.row-between{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:14px 0}
+.switch{position:relative;width:48px;height:28px;flex:none}
+.switch input{opacity:0;width:0;height:0}
+.switch .sl{position:absolute;inset:0;background:var(--line2);border-radius:999px;transition:.2s}
+.switch .sl:before{content:"";position:absolute;width:22px;height:22px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}
+.switch input:checked + .sl{background:var(--accent)}
+.switch input:checked + .sl:before{transform:translateX(20px)}
+
+/* toast */
+#toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);
+  background:var(--surface2);border:1px solid var(--line2);color:var(--text);
+  padding:11px 18px;border-radius:999px;font-size:14px;opacity:0;transition:.25s;z-index:60;pointer-events:none;max-width:90vw;text-align:center}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+.mic-live{font-size:13px;color:var(--blue);background:var(--blue-bg);border:1px solid var(--blue-line);border-radius:var(--rs);padding:8px 12px;margin:8px 0;min-height:20px}
+.listening{animation:pulse 1.1s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@media (max-width:480px){
+  #app{padding:14px 12px 60px}
+  .reading{font-size:20px;padding:18px}
+  .deck{flex-wrap:wrap}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toast"></div>
+
+<script>
+"use strict";
+/* ============================================================
+   EZBER — tek dosya metin ezberleme uygulaması
+   - Tüm veri localStorage'da (anahtar: ezberApp_v1)
+   - Leitner aralıklı tekrar (1-3-7-14-30-60 gün)
+   - Progressive blanking + yaz-kontrol
+   - Opsiyonel mikrofon (Web Speech API) + sesli okuma (TTS)
+   - JSON dışa/içe aktarma
+   ============================================================ */
+
+const LS_KEY = "ezberApp_v1";
+const BOX_DAYS = {1:1, 2:3, 3:7, 4:14, 5:30, 6:60};
+const STEP_NAMES = ["Sesli oku","Akıcı oku","Boşluk doldur","Yaz","Birleştir"];
+const BLANK_LEVELS = [0.30, 0.55, 0.80]; // her seviyede gizlenecek kelime oranı
+
+/* ---------- durum (state) ---------- */
+let STATE = load();
+let UI = { hideText:true, blankLevel:0, micActive:false, recog:null };
+
+function load(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if(raw){ const s = JSON.parse(raw); if(s && s.decks) return migrate(s); }
+  }catch(e){ console.warn("Yükleme hatası:", e); }
+  return { v:1, settings:{ micEnabled:false, lang:"tr-TR", rate:0.9 }, activeDeckId:null, view:"dashboard", decks:{} };
+}
+function migrate(s){
+  if(!s.settings) s.settings = { micEnabled:false, lang:"tr-TR", rate:0.9 };
+  if(!s.view) s.view = "dashboard";
+  return s;
+}
+function save(){
+  try{ localStorage.setItem(LS_KEY, JSON.stringify(STATE)); }
+  catch(e){ toast("Kayıt başarısız (depolama dolu olabilir)"); console.error(e); }
+}
+
+/* ---------- yardımcılar ---------- */
+function uid(){ return "d" + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+function todayStr(){ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function addDays(str, n){ const d=new Date(str+"T00:00:00"); d.setDate(d.getDate()+n); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function dayDiff(a,b){ return Math.round((new Date(a+"T00:00:00") - new Date(b+"T00:00:00"))/86400000); }
+function fmtDate(str){ const d=new Date(str+"T00:00:00"); const ay=["Oca","Şub","Mar","Nis","May","Haz","Tem","Ağu","Eyl","Eki","Kas","Ara"]; return d.getDate()+" "+ay[d.getMonth()]; }
+function esc(s){ return String(s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+/* Türkçe + Arapça duyarlı normalizasyon (karşılaştırma için) */
+function normalize(s){
+  if(!s) return "";
+  s = s.toLocaleLowerCase("tr-TR");
+  s = s.replace(/[\u064B-\u0652\u0670\u0640]/g, ""); // Arapça harekeler + tatweel
+  s = s.replace(/[âÂ]/g,"a").replace(/[îÎ]/g,"i").replace(/[ûÛ]/g,"u").replace(/[ôÔ]/g,"o").replace(/[êÊ]/g,"e");
+  s = s.replace(/[^\p{L}\p{N}\s]/gu, " ");          // noktalama/sembol → boşluk
+  s = s.replace(/\s+/g, " ").trim();
+  return s;
+}
+/* metni kelime jetonlarına ayır (orijinal + normalize), boş normalleri at */
+function wordTokens(str){
+  const out = [];
+  const re = /[\p{L}\p{N}][\p{L}\p{N}'’]*/gu;
+  let m;
+  while((m = re.exec(str))){
+    const norm = normalize(m[0]);
+    if(norm) out.push({ orig:m[0], norm, idx:m.index });
+  }
+  return out;
+}
+function normWords(str){ return wordTokens(str).map(t=>t.norm); }
+
+/* LCS — eşleşen kelimeleri işaretle */
+function lcsFlags(exp, act){
+  const n=exp.length, m=act.length;
+  const dp = Array.from({length:n+1}, ()=> new Int32Array(m+1));
+  for(let i=n-1;i>=0;i--) for(let j=m-1;j>=0;j--)
+    dp[i][j] = exp[i]===act[j] ? dp[i+1][j+1]+1 : Math.max(dp[i+1][j], dp[i][j+1]);
+  const flags = new Array(n).fill(false);
+  let i=0,j=0;
+  while(i<n && j<m){
+    if(exp[i]===act[j]){ flags[i]=true; i++; j++; }
+    else if(dp[i+1][j] >= dp[i][j+1]) i++; else j++;
+  }
+  return { flags, lcs: dp[0][0] };
+}
+function similarity(a, b){
+  const wa=normWords(a), wb=normWords(b);
+  if(!wa.length || !wb.length) return 0;
+  const { lcs } = lcsFlags(wa, wb);
+  return (2*lcs) / (wa.length + wb.length);
+}
+
+/* ---------- metin bölme / gruplama ---------- */
+function buildSegments(rawText, mode){
+  if(mode === "sentence"){
+    return rawText.split(/(?<=[.!?…])\s+/).map(x=>x.trim()).filter(Boolean);
+  }
+  // satır modu: boş satırları at, baştaki "1." / "1)" liste numarasını temizle
+  return rawText.split(/\r?\n/).map(x=> x.trim().replace(/^\s*\d+[\.\)]\s+/, "")).filter(Boolean);
+}
+function buildGroups(segments, size){
+  const groups = [];
+  for(let i=0;i<segments.length;i+=size){
+    const idxs = [];
+    for(let j=i;j<Math.min(i+size, segments.length);j++) idxs.push(j);
+    groups.push({ id:"g"+i, idxs, text: idxs.map(k=>segments[k]).join("\n") });
+  }
+  return groups;
+}
+function combinedText(deck, uptoGroupIndex){
+  let parts = [];
+  for(let i=0;i<=uptoGroupIndex;i++) parts.push(deck.groups[i].text);
+  return parts.join("\n");
+}
+
+/* ---------- grup durumu ---------- */
+function blankGS(){ return { read:0, fluent:false, blank:0, write:false, merge:false, done:false }; }
+function gsOf(deck, gid){ if(!deck.gs[gid]) deck.gs[gid]=blankGS(); return deck.gs[gid]; }
+function requiredSteps(deck, gi){ return gi===0 ? [0,1,2,3] : [0,1,2,3,4]; }
+function stepDone(deck, gi, step){
+  const gs = gsOf(deck, deck.groups[gi].id);
+  switch(step){
+    case 0: return gs.read >= 10;
+    case 1: return gs.fluent;
+    case 2: return gs.blank >= 3;
+    case 3: return gs.write;
+    case 4: return gs.merge;
+  }
+  return false;
+}
+function groupDone(deck, gi){ return requiredSteps(deck, gi).every(s=> stepDone(deck, gi, s)); }
+function recomputeGroupDone(deck, gi){ gsOf(deck, deck.groups[gi].id).done = groupDone(deck, gi); }
+function completedGroups(deck){ let c=0; deck.groups.forEach((g,i)=>{ if(groupDone(deck,i)) c++; }); return c; }
+
+/* ---------- SRS / renk ---------- */
+function initSrs(deck){
+  deck.srs = { box:1, due: addDays(todayStr(),1), last:null, started: todayStr(), hist:[] };
+}
+function deckStatus(deck){
+  if(deck.phase !== "done"){
+    const pct = deck.groups.length ? Math.round(100*completedGroups(deck)/deck.groups.length) : 0;
+    return { kind:"blue", pill: deck.phase==="setup" ? "Hazırlanıyor" : ("Ezberleniyor · %"+pct), pct };
+  }
+  const s = deck.srs;
+  const diff = dayDiff(s.due, todayStr()); // pozitif = gelecekte
+  if(diff <= 0){
+    const overdue = -diff;
+    return { kind:"orange", pill: overdue===0 ? "Bugün tekrar" : (overdue+" gün gecikti"), due:s.due };
+  }
+  return { kind:"green", pill: "Sonraki: "+fmtDate(s.due), due:s.due };
+}
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+const $app = document.getElementById("app");
+
+function render(){
+  save();
+  const v = STATE.view;
+  if(v==="setup") renderSetup();
+  else if(v==="memorize") renderMemorize();
+  else if(v==="review") renderReview();
+  else renderDashboard();
+  window.scrollTo(0,0);
+}
+
+function topbar(showSettings){
+  return `<div class="topbar">
+    <div class="brand"><span class="name">Ezber</span><span class="sub">metin ezberleme · aralıklı tekrar</span></div>
+    <div class="spacer"></div>
+    ${showSettings ? `<button class="icon-btn" data-act="settings" title="Ayarlar">⚙</button>` : `<button class="icon-btn" data-act="home" title="Pano">◀</button>`}
+  </div>`;
+}
+
+/* ---------- PANO ---------- */
+function renderDashboard(){
+  const decks = Object.values(STATE.decks).sort((a,b)=>{
+    // önce tekrarı gelenler, sonra ezberlenenler, sonra yeşiller
+    const rank = d=>{ const s=deckStatus(d); return s.kind==="orange"?0:(s.kind==="blue"?1:2); };
+    const r = rank(a)-rank(b); if(r) return r;
+    return (b.updatedAt||0)-(a.updatedAt||0);
+  });
+
+  let list;
+  if(!decks.length){
+    list = `<div class="empty"><div class="big">📖</div>
+      <p>Henüz metin yok.<br>İlk metnini ekleyip ezberlemeye başla.</p></div>`;
+  }else{
+    list = decks.map(d=>{
+      const s = deckStatus(d);
+      return `<button class="deck is-${s.kind}" data-act="open" data-id="${d.id}">
+        <div class="dbody">
+          <div class="dtitle">${esc(d.title)}</div>
+          <div class="dmeta muted">${d.groups.length} grup · ${d.segments.length} satır</div>
+        </div>
+        <span class="pill ${s.kind}">${s.pill}</span>
+      </button>`;
+    }).join("");
+  }
+
+  $app.innerHTML = topbar(true) + `
+    <div class="btn-row" style="margin-bottom:18px">
+      <button class="btn primary" data-act="new">+ Yeni metin</button>
+    </div>
+    ${list}
+    <div class="navbar">
+      <button class="btn ghost sm" data-act="export">⬇ Dışa aktar (JSON)</button>
+      <button class="btn ghost sm" data-act="import">⬆ İçe aktar</button>
+      <div class="spacer"></div>
+    </div>
+    <input type="file" id="importFile" accept="application/json,.json" hidden>
+  `;
+  const f = document.getElementById("importFile");
+  if(f) f.addEventListener("change", onImportFile);
+}
+
+/* ---------- HAZIRLIK ---------- */
+function renderSetup(){
+  const d = STATE.decks[STATE.activeDeckId];
+  $app.innerHTML = topbar(false) + `
+    <h2 style="margin-bottom:4px">Metni hazırla</h2>
+    <p class="hint">Metni yapıştır, nasıl bölüneceğini seç, önizlemeyi onayla.</p>
+
+    <label class="field">Başlık</label>
+    <input type="text" id="title" value="${esc(d.title)}" placeholder="Örn. Zilzâl Suresi (meal)">
+
+    <label class="field">Metin</label>
+    <textarea id="raw" rows="8" class="reading-input" placeholder="Ezberlemek istediğin metni buraya yapıştır…">${esc(d.rawText)}</textarea>
+
+    <div class="seg-controls">
+      <div>
+        <label class="field" style="margin:0 0 6px">Bölme</label>
+        <div class="radio-row" id="modeRow">
+          <button data-mode="line" class="${d.splitMode==='line'?'on':''}">Satıra göre</button>
+          <button data-mode="sentence" class="${d.splitMode==='sentence'?'on':''}">Cümleye göre</button>
+        </div>
+      </div>
+      <div>
+        <label class="field" style="margin:0 0 6px">Grup boyutu: <span id="gsLabel">${d.groupSize}</span></label>
+        <div class="range-wrap"><input type="range" id="gsize" min="1" max="6" value="${d.groupSize}"></div>
+      </div>
+    </div>
+
+    <label class="field">Önizleme</label>
+    <div id="preview"></div>
+
+    <div class="navbar">
+      <button class="btn ghost" data-act="home">İptal</button>
+      <div class="spacer"></div>
+      <button class="btn primary" data-act="confirm-setup">Onayla, ezbere başla →</button>
+    </div>
+  `;
+
+  const raw = document.getElementById("raw");
+  const gs = document.getElementById("gsize");
+  const gsLabel = document.getElementById("gsLabel");
+  const modeRow = document.getElementById("modeRow");
+
+  const refresh = ()=>{
+    d.rawText = raw.value;
+    d.groupSize = parseInt(gs.value,10);
+    gsLabel.textContent = d.groupSize;
+    d.segments = buildSegments(d.rawText, d.splitMode);
+    d.groups = buildGroups(d.segments, d.groupSize);
+    drawPreview();
+  };
+  const drawPreview = ()=>{
+    const pv = document.getElementById("preview");
+    if(!d.segments.length){ pv.innerHTML = `<p class="faint">Metin girince gruplar burada görünecek.</p>`; return; }
+    pv.innerHTML = d.groups.map((g,i)=>`
+      <div class="preview-group">
+        <div class="pg-head">GRUP ${i+1}</div>
+        ${g.idxs.map(k=>`<div class="pg-line">${esc(d.segments[k])}</div>`).join("")}
+      </div>`).join("");
+  };
+
+  raw.addEventListener("input", refresh);
+  gs.addEventListener("input", refresh);
+  modeRow.querySelectorAll("button").forEach(b=> b.addEventListener("click", ()=>{
+    d.splitMode = b.dataset.mode;
+    modeRow.querySelectorAll("button").forEach(x=>x.classList.toggle("on", x===b));
+    refresh();
+  }));
+  document.getElementById("title").addEventListener("input", e=>{ d.title = e.target.value || "Adsız metin"; });
+
+  // ilk çizim
+  d.segments = buildSegments(d.rawText, d.splitMode);
+  d.groups = buildGroups(d.segments, d.groupSize);
+  drawPreview();
+}
+
+/* ---------- EZBER ---------- */
+function renderMemorize(){
+  const d = STATE.decks[STATE.activeDeckId];
+  const gi = d.cur;
+  const g = d.groups[gi];
+  const gs = gsOf(d, g.id);
+  const steps = requiredSteps(d, gi);
+  if(!steps.includes(d.step)) d.step = steps[0];
+  const step = d.step;
+
+  const totalDone = completedGroups(d);
+  const pct = Math.round(100 * totalDone / d.groups.length);
+
+  // adım çipleri
+  const chips = steps.map(s=>{
+    const done = stepDone(d, gi, s);
+    const active = s===step;
+    const cls = "step-chip" + (done?" done":"") + (active?" active":"") + ((done||s<step)?" clickable":"");
+    return `<span class="${cls}" ${(done||s<step)?`data-act="goto-step" data-step="${s}"`:""}>${done?"✓ ":""}${STEP_NAMES[s]}</span>`;
+  }).join("");
+
+  let body = "";
+  if(step===0) body = stepRead(d, gi, g, gs);
+  else if(step===1) body = stepFluent(d, gi, g, gs);
+  else if(step===2) body = stepBlank(d, gi, g, gs);
+  else if(step===3) body = stepWrite(d, gi, g, gs);
+  else if(step===4) body = stepMerge(d, gi, g, gs);
+
+  $app.innerHTML = topbar(false) + `
+    <div class="mz-head">
+      <h2>${esc(d.title)}</h2>
+      <div class="spacer"></div>
+      <span class="pill blue">Grup ${gi+1}/${d.groups.length}</span>
+    </div>
+    <div class="mz-progress"><span style="width:${pct}%"></span></div>
+    <div class="steps">${chips}</div>
+    ${body}
+  `;
+  attachStepHandlers(d, gi, g, gs, step);
+}
+
+function eyeToggle(){
+  return `<button class="btn sm ghost toggle-eye" data-act="toggle-eye">${UI.hideText?"👁 Metni göster":"🙈 Metni gizle"}</button>`;
+}
+function micBlock(label){
+  if(!STATE.settings.micEnabled) return "";
+  if(!micSupported()) return `<div class="banner warn">Mikrofon bu tarayıcıda desteklenmiyor. Chrome, Edge veya Safari öneririz. Manuel düğmeleri kullanabilirsin.</div>`;
+  return `<button class="btn sm ${UI.micActive?'listening':''}" data-act="mic" data-mode="${label}">🎤 ${UI.micActive?"Dinleniyor… (durdur)":"Mikrofonla oku"}</button>
+    <div class="mic-live" id="micLive"></div>`;
+}
+
+function stepRead(d, gi, g, gs){
+  return `
+    <div class="reading">${esc(g.text)}</div>
+    <p class="hint">Metni yüksek sesle, bakarak oku. Her okumada sayacı artır (hedef 10).</p>
+    <div class="btn-row" style="margin-bottom:12px">
+      <button class="btn sm" data-act="listen" data-text="grp">🔊 Dinle</button>
+      ${micBlock("read")}
+    </div>
+    <div class="counter">
+      <div class="num">${gs.read}<small>/10</small></div>
+      <button class="btn" data-act="read-inc">+1 okudum</button>
+      ${gs.read>0?`<button class="btn ghost sm" data-act="read-dec">−1</button>`:""}
+    </div>
+    <div class="navbar">
+      <button class="btn ghost" data-act="prev-step">← Geri</button>
+      <div class="spacer"></div>
+      <button class="btn primary" data-act="next-step" ${gs.read>=10?"":"disabled"}>Devam →</button>
+    </div>`;
+}
+
+function stepFluent(d, gi, g, gs){
+  return `
+    <p class="hint">Metni kapat, ezberden akıcı şekilde oku. Takılmadan söyleyebiliyorsan onayla.</p>
+    ${eyeToggle()}
+    <div class="reading ${UI.hideText?'hidden-text':''}">${esc(g.text)}</div>
+    ${micBlock("fluent")}
+    <div class="navbar">
+      <button class="btn ghost" data-act="prev-step">← Geri</button>
+      <div class="spacer"></div>
+      <button class="btn primary" data-act="fluent-ok">Akıcı okudum ✓</button>
+    </div>`;
+}
+
+function stepBlank(d, gi, g, gs){
+  const level = Math.min(gs.blank, 2);
+  const dots = BLANK_LEVELS.map((_,i)=>`<span class="d ${i<gs.blank?'done':(i===gs.blank?'on':'')}"></span>`).join("");
+  const html = buildBlankHTML(g.text, level);
+  return `
+    <p class="hint">Boşluktaki kelimeleri ezberden doldur. Her seviyede daha çok kelime gizlenir.</p>
+    <div class="level-dots">Seviye ${Math.min(gs.blank+1,3)}/3 ${dots}</div>
+    <div class="blank-text" id="blankText">${html}</div>
+    <div id="blankResult"></div>
+    <div class="navbar">
+      <button class="btn ghost" data-act="prev-step">← Geri</button>
+      <button class="btn sm ghost" data-act="blank-check">Kontrol et</button>
+      <div class="spacer"></div>
+      <button class="btn primary" data-act="next-step" ${gs.blank>=3?"":"disabled"}>Devam →</button>
+    </div>`;
+}
+function buildBlankHTML(text, level){
+  // jetonları sırayla işle; kelimelerin bir kısmını input'a çevir (deterministik)
+  const ratio = BLANK_LEVELS[level];
+  const tokens = [];
+  const re = /([\p{L}\p{N}][\p{L}\p{N}'’]*)|([^\p{L}\p{N}]+)/gu;
+  let m, wordIndex=0;
+  const words=[];
+  while((m=re.exec(text))){
+    if(m[1]){ tokens.push({w:true, s:m[1], wi:wordIndex}); words.push(m[1]); wordIndex++; }
+    else tokens.push({w:false, s:m[2]});
+  }
+  // gizlenecek kelime indekslerini seç (eşit aralıklı)
+  const total = words.length;
+  const blankCount = Math.max(1, Math.round(total*ratio));
+  const step = total/blankCount;
+  const hide = new Set();
+  for(let i=0;i<blankCount;i++) hide.add(Math.min(total-1, Math.floor(i*step + step/2)));
+  let bi=0;
+  return tokens.map(t=>{
+    if(!t.w) return esc(t.s).replace(/\n/g,"<br>");
+    if(hide.has(t.wi)){
+      const w = Math.max(4, t.s.length+1);
+      const id = "bl"+(bi++);
+      return `<input data-expect="${esc(t.s)}" id="${id}" size="${w}" autocomplete="off" autocapitalize="off" spellcheck="false">`;
+    }
+    return esc(t.s);
+  }).join("");
+}
+
+function stepWrite(d, gi, g, gs){
+  return `
+    <p class="hint">Metni tamamen ezberden yaz. Noktalama ve şapka (â, î, û) farkları göz ardı edilir.</p>
+    <textarea id="writeBox" rows="6" class="reading-input" placeholder="Ezberden buraya yaz…"></textarea>
+    <div id="writeResult"></div>
+    <div class="navbar">
+      <button class="btn ghost" data-act="prev-step">← Geri</button>
+      <button class="btn sm ghost" data-act="write-check">Kontrol et</button>
+      <div class="spacer"></div>
+      <button class="btn primary" data-act="next-step" ${gs.write?"":"disabled"}>${gi<d.groups.length-1 ? "Devam →" : (gi>0?"Devam →":"Bitir →")}</button>
+    </div>`;
+}
+
+function stepMerge(d, gi, g, gs){
+  const text = combinedText(d, gi);
+  return `
+    <p class="hint">Şimdiye kadar ezberlediğin grupları birleştir. Önce bakarak, sonra kapatıp akıcı oku.</p>
+    ${eyeToggle()}
+    <div class="reading ${UI.hideText?'hidden-text':''}">${esc(text)}</div>
+    <div class="btn-row" style="margin-bottom:12px">
+      <button class="btn sm" data-act="listen" data-text="merge">🔊 Dinle</button>
+      ${micBlock("merge")}
+    </div>
+    <div class="navbar">
+      <button class="btn ghost" data-act="prev-step">← Geri</button>
+      <div class="spacer"></div>
+      <button class="btn primary" data-act="merge-ok">Akıcı bağladım ✓ ${gi<d.groups.length-1?"":"(bitir)"}</button>
+    </div>`;
+}
+
+function attachStepHandlers(d, gi, g, gs, step){
+  if(step===2){
+    const box = document.getElementById("blankText");
+    if(box) box.querySelectorAll("input").forEach(inp=>{
+      inp.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); doBlankCheck(); }});
+    });
+  }
+  if(step===3){
+    const wb = document.getElementById("writeBox");
+    if(wb) wb.focus();
+  }
+}
+
+/* ---------- TEKRAR (review) ---------- */
+function renderReview(){
+  const d = STATE.decks[STATE.activeDeckId];
+  const s = d.srs;
+  const overdue = -dayDiff(s.due, todayStr());
+  $app.innerHTML = topbar(false) + `
+    <div class="mz-head"><h2>${esc(d.title)}</h2><div class="spacer"></div>
+      <span class="pill orange">Kutu ${s.box} · ${overdue<=0?"bugün":overdue+" gün gecikti"}</span></div>
+    <p class="hint">Tüm metni ezberden oku. Sonra kendini değerlendir.</p>
+    ${eyeToggle()}
+    <div class="reading ${UI.hideText?'hidden-text':''}">${esc(d.groups.map(x=>x.text).join("\n"))}</div>
+    <div class="btn-row" style="margin-bottom:12px">
+      <button class="btn sm" data-act="listen" data-text="all">🔊 Dinle</button>
+      ${micBlock("review")}
+    </div>
+    <div class="card" style="margin-top:8px">
+      <p style="margin:0 0 12px">Akıcı hatırlayabildin mi?</p>
+      <div class="btn-row">
+        <button class="btn primary" data-act="srs-good">Hatırladım ✓</button>
+        <button class="btn" data-act="srs-bad">Unuttum ✗</button>
+      </div>
+      <p class="hint" style="margin:12px 0 0">Hatırladım → tekrar aralığı uzar (sonraki kutu). Unuttum → 1. kutuya döner, yarın tekrar.</p>
+    </div>
+    <div class="navbar"><button class="btn ghost" data-act="home">← Pano</button></div>
+  `;
+}
+
+/* ============================================================
+   OLAYLAR (event delegation)
+   ============================================================ */
+$app.addEventListener("click", e=>{
+  const b = e.target.closest("[data-act]");
+  if(!b) return;
+  const act = b.dataset.act;
+  const d = STATE.decks[STATE.activeDeckId];
+
+  switch(act){
+    case "home": stopMic(); STATE.view="dashboard"; STATE.activeDeckId=null; render(); break;
+    case "settings": openSettings(); break;
+    case "new": createDeck(); break;
+    case "open": openDeck(b.dataset.id); break;
+    case "export": exportJSON(); break;
+    case "import": document.getElementById("importFile").click(); break;
+
+    case "confirm-setup": confirmSetup(); break;
+
+    case "goto-step": d.step = parseInt(b.dataset.step,10); UI.hideText=true; render(); break;
+    case "prev-step": prevStep(d); break;
+    case "next-step": nextStep(d); break;
+    case "toggle-eye": UI.hideText=!UI.hideText; render(); break;
+
+    case "read-inc": { const gs=gsOf(d,d.groups[d.cur].id); gs.read=Math.min(10,gs.read+1); touch(d); render(); break; }
+    case "read-dec": { const gs=gsOf(d,d.groups[d.cur].id); gs.read=Math.max(0,gs.read-1); touch(d); render(); break; }
+    case "fluent-ok": { gsOf(d,d.groups[d.cur].id).fluent=true; touch(d); advance(d); break; }
+    case "blank-check": doBlankCheck(); break;
+    case "write-check": doWriteCheck(); break;
+    case "merge-ok": { gsOf(d,d.groups[d.cur].id).merge=true; touch(d); advance(d); break; }
+
+    case "listen": speakText(b.dataset.text); break;
+    case "mic": toggleMic(b.dataset.mode); break;
+
+    case "srs-good": srsReview(true); break;
+    case "srs-bad": srsReview(false); break;
+  }
+});
+
+function touch(d){ d.updatedAt = Date.now(); }
+
+/* ---------- deck işlemleri ---------- */
+function createDeck(){
+  const d = { id:uid(), title:"Yeni metin", createdAt:Date.now(), updatedAt:Date.now(),
+    rawText:"", splitMode:"line", groupSize:3, segments:[], groups:[],
+    phase:"setup", cur:0, step:0, gs:{}, srs:null };
+  STATE.decks[d.id]=d; STATE.activeDeckId=d.id; STATE.view="setup"; render();
+}
+function openDeck(id){
+  const d = STATE.decks[id]; if(!d) return;
+  STATE.activeDeckId = id; UI.hideText=true; UI.blankLevel=0;
+  if(d.phase==="setup") STATE.view="setup";
+  else if(d.phase==="memorize") STATE.view="memorize";
+  else { // done → tekrar günü ise review, değilse yine review ekranı (göz at / erken tekrar)
+    STATE.view="review";
+  }
+  render();
+}
+function confirmSetup(){
+  const d = STATE.decks[STATE.activeDeckId];
+  d.segments = buildSegments(d.rawText, d.splitMode);
+  d.groups = buildGroups(d.segments, d.groupSize);
+  if(!d.groups.length){ toast("Önce metin gir"); return; }
+  // grup id'leri değiştiyse gs'yi koru ama yoksa oluştur
+  d.gs = d.gs || {};
+  d.phase="memorize"; d.cur=0; d.step=0; UI.hideText=true; touch(d);
+  STATE.view="memorize"; render();
+}
+
+/* ---------- adım geçişleri ---------- */
+function prevStep(d){
+  const steps = requiredSteps(d, d.cur);
+  const i = steps.indexOf(d.step);
+  if(i>0){ d.step = steps[i-1]; }
+  else if(d.cur>0){ d.cur--; const ps=requiredSteps(d,d.cur); d.step=ps[ps.length-1]; }
+  UI.hideText=true; render();
+}
+function nextStep(d){
+  if(!stepDone(d, d.cur, d.step)){ toast("Bu adımı tamamla"); return; }
+  advance(d);
+}
+function advance(d){
+  recomputeGroupDone(d, d.cur);
+  const steps = requiredSteps(d, d.cur);
+  const i = steps.indexOf(d.step);
+  if(i < steps.length-1){ d.step = steps[i+1]; UI.hideText=true; touch(d); render(); return; }
+  // grup bitti
+  if(d.cur < d.groups.length-1){ d.cur++; d.step=0; UI.hideText=true; touch(d); render(); return; }
+  // tüm metin bitti
+  finishDeck(d);
+}
+function finishDeck(d){
+  d.phase="done"; initSrs(d); touch(d); stopMic();
+  STATE.view="dashboard"; STATE.activeDeckId=null; save();
+  $app.innerHTML = topbar(true) + `
+    <div class="celebrate">
+      <div class="big">🌟</div>
+      <h2>Ezber tamamlandı</h2>
+      <p class="muted">“${esc(d.title)}” ezberlendi. Aralıklı tekrar başladı.<br>İlk tekrar: <b>${fmtDate(d.srs.due)}</b> (yarın).</p>
+      <div class="btn-row" style="justify-content:center;margin-top:20px">
+        <button class="btn primary" data-act="home">Panoya dön</button>
+      </div>
+    </div>`;
+}
+
+/* ---------- boşluk doldurma kontrolü ---------- */
+function doBlankCheck(){
+  const d = STATE.decks[STATE.activeDeckId];
+  const gs = gsOf(d, d.groups[d.cur].id);
+  const box = document.getElementById("blankText");
+  const inputs = [...box.querySelectorAll("input")];
+  let wrong = 0;
+  inputs.forEach(inp=>{
+    const ok = normalize(inp.value) === normalize(inp.dataset.expect);
+    inp.classList.toggle("ok", ok);
+    inp.classList.toggle("bad", !ok && inp.value.length>0);
+    if(!ok) wrong++;
+  });
+  const res = document.getElementById("blankResult");
+  if(wrong===0){
+    gs.blank = Math.min(3, gs.blank+1); touch(d);
+    if(gs.blank>=3){ res.innerHTML = `<div class="banner ok">Tüm seviyeler tamam! Bir sonraki adıma geçebilirsin.</div>`; }
+    else { res.innerHTML = `<div class="banner ok">Seviye geçildi ✓ Daha fazla kelime gizleniyor…</div>`; }
+    setTimeout(()=>render(), 700);
+  }else{
+    res.innerHTML = `<div class="banner bad">${wrong} kelime hatalı. Kırmızıları düzeltip tekrar dene.</div>`;
+  }
+}
+
+/* ---------- yaz kontrolü ---------- */
+function doWriteCheck(){
+  const d = STATE.decks[STATE.activeDeckId];
+  const g = d.groups[d.cur];
+  const gs = gsOf(d, g.id);
+  const typed = document.getElementById("writeBox").value;
+  const expTok = wordTokens(g.text);
+  const actW = normWords(typed);
+  const { flags, lcs } = lcsFlags(expTok.map(t=>t.norm), actW);
+  const pct = expTok.length ? Math.round(100*lcs/expTok.length) : 0;
+
+  const diffHTML = expTok.map((t,i)=> `<span class="${flags[i]?'w-ok':'w-bad'}">${esc(t.orig)}</span>`).join(" ");
+  const res = document.getElementById("writeResult");
+  const pass = pct===100 && actW.length>0;
+  res.innerHTML = `
+    <div class="score">Eşleşme: <b>%${pct}</b></div>
+    <div class="diff">${diffHTML}</div>
+    ${pass
+      ? `<div class="banner ok">Tam doğru! Devam edebilirsin.</div>`
+      : `<div class="banner ${pct>=70?'warn':'bad'}">Kırmızı kelimeler eksik/yanlış. Düzeltip tekrar dene (geçmek için %100 gerekir).</div>`}`;
+  if(pass){ gs.write=true; touch(d); save(); /* Devam düğmesini aç */ const btn=document.querySelector('[data-act="next-step"]'); if(btn) btn.disabled=false; }
+}
+
+/* ---------- SRS tekrar ---------- */
+function srsReview(good){
+  const d = STATE.decks[STATE.activeDeckId];
+  const s = d.srs;
+  s.hist.push({ date:todayStr(), result: good?"good":"bad", boxBefore:s.box });
+  if(good) s.box = Math.min(6, s.box+1);
+  else s.box = 1;
+  s.last = todayStr();
+  s.due = addDays(todayStr(), BOX_DAYS[s.box]);
+  touch(d); stopMic();
+  toast(good ? ("Aferin! Sonraki tekrar: "+fmtDate(s.due)) : ("Tekrar yarın: "+fmtDate(s.due)));
+  STATE.view="dashboard"; STATE.activeDeckId=null; render();
+}
+
+/* ============================================================
+   SES — TTS (dinle) ve mikrofon (tanıma)
+   ============================================================ */
+function speakText(which){
+  if(!("speechSynthesis" in window)){ toast("Tarayıcı sesli okumayı desteklemiyor"); return; }
+  const d = STATE.decks[STATE.activeDeckId];
+  let text = "";
+  if(which==="grp") text = d.groups[d.cur].text;
+  else if(which==="merge") text = combinedText(d, d.cur);
+  else if(which==="all") text = d.groups.map(x=>x.text).join("\n");
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text.replace(/\n/g, ". "));
+  u.lang = STATE.settings.lang; u.rate = STATE.settings.rate;
+  const voices = speechSynthesis.getVoices();
+  const v = voices.find(x=> x.lang && x.lang.toLowerCase().startsWith(STATE.settings.lang.slice(0,2).toLowerCase()));
+  if(v) u.voice = v;
+  speechSynthesis.speak(u);
+}
+
+function micSupported(){ return !!(window.SpeechRecognition || window.webkitSpeechRecognition); }
+function stopMic(){
+  UI.micActive=false;
+  if(UI.recog){ try{ UI.recog.onend=null; UI.recog.stop(); }catch(e){} UI.recog=null; }
+}
+function toggleMic(mode){
+  if(UI.micActive){ stopMic(); render(); return; }
+  if(!micSupported()){ toast("Mikrofon desteklenmiyor"); return; }
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const r = new SR();
+  r.lang = STATE.settings.lang;
+  r.continuous = false; r.interimResults = true; r.maxAlternatives = 1;
+  UI.recog = r; UI.micActive=true;
+  const d = STATE.decks[STATE.activeDeckId];
+
+  let expected = "";
+  if(mode==="read"||mode==="fluent") expected = d.groups[d.cur].text;
+  else if(mode==="merge") expected = combinedText(d, d.cur);
+  else if(mode==="review") expected = d.groups.map(x=>x.text).join("\n");
+
+  const live = ()=> document.getElementById("micLive");
+  r.onresult = (ev)=>{
+    let interim="", final="";
+    for(let i=ev.resultIndex;i<ev.results.length;i++){
+      const t = ev.results[i][0].transcript;
+      if(ev.results[i].isFinal) final += t; else interim += t;
+    }
+    const el = live(); if(el) el.textContent = "Duyulan: " + (final||interim);
+    if(final){
+      const sim = similarity(expected, final);
+      handleMicFinal(mode, sim, final);
+    }
+  };
+  r.onerror = (ev)=>{
+    const el=live(); if(el) el.textContent = "Mikrofon hatası: "+ev.error;
+    if(ev.error==="not-allowed"||ev.error==="service-not-allowed") toast("Mikrofon izni gerekli (HTTPS + izin)");
+    UI.micActive=false;
+  };
+  r.onend = ()=>{ if(UI.micActive){ try{ r.start(); }catch(e){ UI.micActive=false; render(); } } };
+  try{ r.start(); }catch(e){ toast("Mikrofon başlatılamadı"); UI.micActive=false; }
+  render();
+}
+function handleMicFinal(mode, sim, heard){
+  const d = STATE.decks[STATE.activeDeckId];
+  const gs = gsOf(d, d.groups[d.cur].id);
+  const el = document.getElementById("micLive");
+  if(mode==="read"){
+    if(sim>=0.6){ gs.read=Math.min(10,gs.read+1); touch(d); save(); toast("Okuma sayıldı ("+gs.read+"/10)"); render(); }
+    else if(el){ el.textContent = "Eşleşme düşük (%"+Math.round(sim*100)+"). Tekrar dene."; }
+  }else if(mode==="fluent"||mode==="merge"||mode==="review"){
+    if(sim>=0.85){
+      if(mode==="fluent"){ gs.fluent=true; touch(d); save(); stopMic(); toast("Akıcı okudun ✓"); advance(d); }
+      else if(mode==="merge"){ gs.merge=true; touch(d); save(); stopMic(); toast("Bağlantı tamam ✓"); advance(d); }
+      else { stopMic(); toast("Akıcı! Hatırladım diyebilirsin."); }
+    }else{
+      // takıldı → metni 3 sn göster
+      if(UI.hideText){ UI.hideText=false; render();
+        setTimeout(()=>{ UI.hideText=true; if(STATE.view==="memorize"||STATE.view==="review") render(); }, 3000); }
+      if(el) el.textContent = "Takıldın gibi (%"+Math.round(sim*100)+"). Metin 3 sn gösterildi.";
+    }
+  }
+}
+
+/* ============================================================
+   AYARLAR + JSON dışa/içe aktarma
+   ============================================================ */
+function openSettings(){
+  const s = STATE.settings;
+  const wrap = document.createElement("div");
+  wrap.className="modal-bg"; wrap.id="settingsModal";
+  wrap.innerHTML = `<div class="modal">
+    <h2>Ayarlar</h2>
+    <div class="row-between">
+      <div><div style="font-weight:600">Mikrofon (sesli okuma tanıma)</div>
+        <div class="hint" style="margin:2px 0 0">İnternet + Chrome/Edge/Safari gerekir. Varsayılan kapalı.</div></div>
+      <label class="switch"><input type="checkbox" id="setMic" ${s.micEnabled?"checked":""}><span class="sl"></span></label>
+    </div>
+    <div class="row-between">
+      <div><div style="font-weight:600">Dil (mikrofon + dinle)</div></div>
+      <select id="setLang" style="width:auto">
+        <option value="tr-TR" ${s.lang==="tr-TR"?"selected":""}>Türkçe (tr-TR)</option>
+        <option value="ar-SA" ${s.lang==="ar-SA"?"selected":""}>Arapça (ar-SA)</option>
+        <option value="en-US" ${s.lang==="en-US"?"selected":""}>İngilizce (en-US)</option>
+      </select>
+    </div>
+    <div class="row-between">
+      <div><div style="font-weight:600">Dinleme hızı</div></div>
+      <input type="range" id="setRate" min="0.5" max="1.2" step="0.1" value="${s.rate}" style="width:140px">
+    </div>
+    <hr style="border-color:var(--line);margin:18px 0">
+    <div class="btn-row">
+      <button class="btn sm" data-set="export">⬇ Yedek al (JSON)</button>
+      <button class="btn sm" data-set="import">⬆ Yedek yükle</button>
+    </div>
+    <div class="navbar"><div class="spacer"></div><button class="btn primary" data-set="close">Kapat</button></div>
+  </div>`;
+  document.body.appendChild(wrap);
+  wrap.addEventListener("click", e=>{
+    if(e.target===wrap){ closeSettings(); return; }
+    const t = e.target.closest("[data-set]"); if(!t) return;
+    if(t.dataset.set==="close") closeSettings();
+    if(t.dataset.set==="export"){ exportJSON(); }
+    if(t.dataset.set==="import"){ document.getElementById("importFile2").click(); }
+  });
+  document.getElementById("setMic").addEventListener("change", e=>{ STATE.settings.micEnabled=e.target.checked; save(); });
+  document.getElementById("setLang").addEventListener("change", e=>{ STATE.settings.lang=e.target.value; save(); });
+  document.getElementById("setRate").addEventListener("input", e=>{ STATE.settings.rate=parseFloat(e.target.value); save(); });
+  if(!document.getElementById("importFile2")){
+    const f = document.createElement("input"); f.type="file"; f.id="importFile2"; f.accept="application/json,.json"; f.hidden=true;
+    f.addEventListener("change", onImportFile); document.body.appendChild(f);
+  }
+}
+function closeSettings(){ const m=document.getElementById("settingsModal"); if(m) m.remove(); }
+
+function exportJSON(){
+  const data = JSON.stringify(STATE, null, 2);
+  const blob = new Blob([data], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  const stamp = todayStr().replace(/-/g,"");
+  a.href=url; a.download="ezber-yedek-"+stamp+".json";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+  toast("Yedek indirildi");
+}
+function onImportFile(e){
+  const file = e.target.files && e.target.files[0];
+  e.target.value=""; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try{
+      const obj = JSON.parse(reader.result);
+      if(!obj || !obj.decks) throw new Error("Geçersiz dosya");
+      if(!confirm("Mevcut tüm veriler bu yedekle DEĞİŞTİRİLECEK. Devam edilsin mi?")) return;
+      STATE = migrate(obj); STATE.view="dashboard"; STATE.activeDeckId=null;
+      save(); closeSettings(); render(); toast("Yedek yüklendi");
+    }catch(err){ toast("Dosya okunamadı: "+err.message); }
+  };
+  reader.readAsText(file);
+}
+
+/* ---------- toast ---------- */
+let toastT=null;
+function toast(msg){
+  const el=document.getElementById("toast");
+  el.textContent=msg; el.classList.add("show");
+  clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove("show"), 2400);
+}
+
+/* ---------- başlat ---------- */
+if("speechSynthesis" in window){ speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged=()=>{}; }
+render();
+</script>
+</body>
+</html>
