@@ -81,9 +81,6 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .pill.green{background:var(--green-bg);color:var(--green);border:1px solid var(--green-line)}
 .pill.orange{background:var(--orange-bg);color:var(--orange);border:1px solid var(--orange-line)}
 .pill.blue{background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-line)}
-.deck .dopen{flex:1;min-width:0;background:transparent;border:none;color:inherit;padding:0;text-align:left;cursor:pointer;font:inherit}
-.deck-del{flex:none;background:transparent;border:1px solid var(--line);color:var(--muted);width:36px;height:36px;border-radius:50%;font-size:15px;display:grid;place-items:center}
-.deck-del:hover{border-color:var(--red);color:var(--red);background:var(--red-bg)}
 
 /* empty */
 .empty{text-align:center;padding:48px 20px;color:var(--muted)}
@@ -392,16 +389,13 @@ function renderDashboard(){
   }else{
     list = decks.map(d=>{
       const s = deckStatus(d);
-      return `<div class="deck is-${s.kind}">
-        <button class="dopen" data-act="open" data-id="${d.id}">
-          <div class="dbody">
-            <div class="dtitle">${esc(d.title)}</div>
-            <div class="dmeta muted">${d.groups.length} grup · ${d.segments.length} satır</div>
-          </div>
-        </button>
+      return `<button class="deck is-${s.kind}" data-act="open" data-id="${d.id}">
+        <div class="dbody">
+          <div class="dtitle">${esc(d.title)}</div>
+          <div class="dmeta muted">${d.groups.length} grup · ${d.segments.length} satır</div>
+        </div>
         <span class="pill ${s.kind}">${s.pill}</span>
-        <button class="deck-del" data-act="del" data-id="${d.id}" title="Sil" aria-label="Sil">🗑</button>
-      </div>`;
+      </button>`;
     }).join("");
   }
 
@@ -709,7 +703,6 @@ $app.addEventListener("click", e=>{
     case "settings": openSettings(); break;
     case "new": createDeck(); break;
     case "open": openDeck(b.dataset.id); break;
-    case "del": deleteDeck(b.dataset.id); break;
     case "export": exportJSON(); break;
     case "import": document.getElementById("importFile").click(); break;
 
@@ -743,13 +736,6 @@ function createDeck(){
     rawText:"", splitMode:"line", groupSize:3, segments:[], groups:[],
     phase:"setup", cur:0, step:0, gs:{}, srs:null };
   STATE.decks[d.id]=d; STATE.activeDeckId=d.id; STATE.view="setup"; render();
-}
-function deleteDeck(id){
-  const d = STATE.decks[id]; if(!d) return;
-  if(!confirm(`"${d.title}" silinsin mi? Bu işlem geri alınamaz.`)) return;
-  delete STATE.decks[id];
-  if(STATE.activeDeckId===id) STATE.activeDeckId=null;
-  STATE.view="dashboard"; save(); render(); toast("Silindi");
 }
 function openDeck(id){
   const d = STATE.decks[id]; if(!d) return;
