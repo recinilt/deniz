@@ -931,7 +931,7 @@ function handleMicFinal(mode, sim, heard){
     }else{
       // takıldı → metni 3 sn göster
       if(UI.hideText){ UI.hideText=false; render();
-        setTimeout(()=>{ UI.hideText=true; if(STATE.view==="memorize"||STATE.view==="review") render(); }, 3000); }
+        setTimeout(()=>{ UI.hideText=true; if(STATE.view==="memorize"||STATE.view==="review") render(); }, 2000); }
       if(el) el.textContent = "Takıldın gibi (%"+Math.round(sim*100)+"). Metin 3 sn gösterildi.";
     }
   }
