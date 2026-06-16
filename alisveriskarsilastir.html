@@ -194,25 +194,12 @@ footer{margin-top:40px;padding-top:18px;border-top:2px dashed #0a0a0a26;font-siz
 .panel{display:none}
 .panel.on{display:block}
 
-/* ---- SONUÇ EK: en ucuz market özeti ---- */
-.summary{
-  background:#E639460a;border:1.5px solid var(--red);border-radius:11px;padding:10px 13px;margin-bottom:16px;
-  font-size:13px;display:flex;align-items:center;gap:8px;flex-wrap:wrap
-}
-.summary b{font-family:'Space Grotesk',sans-serif}
-.summary .badge-best{background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:5px;font-family:'JetBrains Mono',monospace}
-
-/* en ucuz birim fiyat başlıkta */
-.p-unitbest{font-size:11.5px;color:var(--green);font-weight:600;font-family:'JetBrains Mono',monospace;margin-top:3px;display:flex;align-items:center;gap:5px}
-.p-unitbest .dot{width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block}
-
 /* depot ek bilgileri */
 .d-unit.best{color:var(--green);font-weight:700}
 .d-cheapunit{color:var(--green)}
 .d-disc2{font-size:10px;color:#fff;background:var(--green);padding:1px 5px;border-radius:4px;font-weight:700;font-family:'JetBrains Mono',monospace}
 .d-drop{font-size:10.5px;color:var(--green);font-weight:600;font-family:'JetBrains Mono',monospace}
 .d-rise{font-size:10.5px;color:var(--amber);font-weight:600;font-family:'JetBrains Mono',monospace}
-.p-warn{padding:8px 16px;font-size:11.5px;color:#9a6a1f;background:#F4A2611a;border-top:1px dashed #0a0a0a1a;display:flex;align-items:center;gap:6px}
 .btn-add{
   background:var(--green);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;
   padding:6px 11px;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;transition:transform .1s
@@ -681,11 +668,21 @@ function render(){
     content=content.filter(function(p){return p.brand===state.brandFilter;});
   }
 
-  // --- En ucuz market özeti (3): tüm ürünlerde en sık/en ucuz market ---
-  var globalMin=null, globalMarket="";
-  state.lastResults.forEach(function(prod){
+  // --- GLOBAL birim fiyat: aynı birim tipinde (Kg/Lt/Adet) en düşük unitPriceValue ---
+  // birim tipi = unitPrice metninin "/" sonrası ("Kg","Lt","Adet")
+  function unitType(up){
+    if(!up || up.indexOf("/")<0) return "";
+    return up.split("/").pop().trim().toLowerCase();
+  }
+  var globalMinUnit={};  // { "kg": 90.66, "lt": 347.15, ... } görünür kartlardaki en düşük
+  content.forEach(function(prod){
     (prod.productDepotInfoList||[]).forEach(function(d){
-      if(globalMin===null||d.price<globalMin){globalMin=d.price; globalMarket=d.marketAdi;}
+      // market/favori filtresi render içinde tekrar uygulanıyor; burada ham en düşüğü alıyoruz
+      if(typeof d.unitPriceValue==="number" && d.unitPriceValue>0){
+        var t=unitType(d.unitPrice);
+        if(!t) return;
+        if(globalMinUnit[t]===undefined || d.unitPriceValue<globalMinUnit[t]) globalMinUnit[t]=d.unitPriceValue;
+      }
     });
   });
 
@@ -707,13 +704,6 @@ function render(){
     depots.sort(function(a,b){return a.price-b.price;});
     var min=depots[0].price, max=depots[depots.length-1].price;
 
-    // birim fiyat: en düşük unitPriceValue (1)
-    var unitVals=depots.filter(function(d){return typeof d.unitPriceValue==="number"&&d.unitPriceValue>0;});
-    var minUnit=null, minUnitTxt="";
-    unitVals.forEach(function(d){
-      if(minUnit===null||d.unitPriceValue<minUnit){minUnit=d.unitPriceValue; minUnitTxt=d.unitPrice||"";}
-    });
-
     var prodFav=state.favProducts.indexOf(prod.title)>-1;
     var inBasket=state.basket.some(function(b){return b.id===prod.id;});
 
@@ -723,7 +713,11 @@ function render(){
       var fav=!!state.favMarkets[key];
       var info=MARKETS[d.marketAdi]||{ad:d.marketAdi,renk:"#0A0A0A"};
       var cheapest=(d.price===min);
-      var cheapUnit=(minUnit!==null && d.unitPriceValue===minUnit); // birim fiyatta en ucuz (1)
+      // GLOBAL birim fiyatta en ucuz mu: kendi birim tipinin global en düşüğüne eşitse
+      var ut=unitType(d.unitPrice);
+      var cheapUnit=(ut && typeof d.unitPriceValue==="number" &&
+                     globalMinUnit[ut]!==undefined &&
+                     Math.abs(d.unitPriceValue-globalMinUnit[ut])<0.005);
       var cls="depot"+(fav?" fav":"")+(cheapest?" cheapest":"");
       // indirim oranı (6)
       var discHtml="";
@@ -748,27 +742,6 @@ function render(){
         '</li>';
     });
 
-    // shrinkflation uyarısı (4): en ucuz toplam fiyatlı şube, birim fiyatta en ucuz değilse
-    var warnHtml="";
-    if(minUnit!==null){
-      var cheapestDepot=depots[0];
-      if(typeof cheapestDepot.unitPriceValue==="number" && cheapestDepot.unitPriceValue>minUnit){
-        var bestUnitDepot=unitVals.filter(function(d){return d.unitPriceValue===minUnit;})[0];
-        if(bestUnitDepot){
-          var bm=MARKETS[bestUnitDepot.marketAdi]||{ad:bestUnitDepot.marketAdi};
-          warnHtml='<div class="p-warn">⚠ Toplamda en ucuz '+esc((MARKETS[cheapestDepot.marketAdi]||{}).ad||cheapestDepot.marketAdi)+
-            ', ama birim fiyatta '+esc(bm.ad)+' daha hesaplı ('+esc(minUnitTxt)+')</div>';
-        }
-      }
-    }
-
-    // fiyat düşüş notu (7)
-    var dropHtml="";
-    var prev=prevBest(elQ.value);
-    if(prev!==null && state.lastResults.length){
-      // sadece arama başlığıyla aynıysa anlamlı; basitçe genel min ile karşılaştır
-    }
-
     var saving=(max-min);
     var foot='<span>'+depots.length+' şube</span>'+
       (saving>0?'<span class="save">en pahalıdan ₺'+fmt(saving)+' tasarruf</span>':'');
@@ -780,7 +753,6 @@ function render(){
           '<div class="p-meta">'+
             '<div class="p-title">'+esc(prod.title)+'</div>'+
             (prod.refinedVolumeOrWeight?'<div class="p-vol">'+esc(prod.refinedVolumeOrWeight)+'</div>':'')+
-            (minUnit!==null?'<div class="p-unitbest"><span class="dot"></span>En ucuz birim: '+esc(minUnitTxt)+'</div>':'')+
           '</div>'+
           '<div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">'+
             '<button class="star '+(prodFav?"on":"")+'" title="Ürünü favorile" data-pf="'+esc(prod.title)+'">'+(prodFav?"★":"☆")+'</button>'+
@@ -788,7 +760,6 @@ function render(){
           '</div>'+
         '</div>'+
         '<ul class="depots">'+depotsHtml+'</ul>'+
-        warnHtml+
         '<div class="p-foot">'+foot+'</div>'+
       '</article>';
   });
@@ -799,22 +770,7 @@ function render(){
     return;
   }
 
-  // en ucuz market özeti başlığı (3) + fiyat düşüş notu (7)
-  var summaryHtml="";
-  if(globalMarket){
-    var gm=MARKETS[globalMarket]||{ad:globalMarket,renk:"#0A0A0A"};
-    var dropNote="";
-    var pv=prevBest(elQ.value);
-    if(pv!==null && globalMin!==null){
-      var diff=pv-globalMin;
-      if(diff>0.01) dropNote=' · <span style="color:var(--green);font-weight:700">↓ geçen aramaya göre ₺'+fmt(diff)+' ucuzladı</span>';
-      else if(diff<-0.01) dropNote=' · <span style="color:var(--amber);font-weight:700">↑ ₺'+fmt(-diff)+' zamlandı</span>';
-    }
-    summaryHtml='<div class="summary"><span class="badge-best">EN UCUZ</span>'+
-      '<span>Bu aramada en hesaplı market: <b style="color:'+gm.renk+'">'+esc(gm.ad)+'</b> (₺'+fmt(globalMin)+')'+dropNote+'</span></div>';
-  }
-
-  setState(summaryHtml+cardsHtml);
+  setState(cardsHtml);
   bindStars();
   bindBasketButtons();
 }
