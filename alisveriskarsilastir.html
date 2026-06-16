@@ -167,10 +167,93 @@ header{padding:28px 0 18px;border-bottom:2px dashed #0a0a0a26}
 
 footer{margin-top:40px;padding-top:18px;border-top:2px dashed #0a0a0a26;font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;text-align:center;line-height:1.7}
 
+/* ---- SON ARAMALAR ---- */
+.recents{margin-top:10px;font-size:12px;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.recents .rc{cursor:pointer;background:var(--card);border:1px solid #0a0a0a26;border-radius:14px;padding:3px 10px;color:var(--ink);font-weight:500}
+.recents .rc:hover{border-color:var(--green);color:var(--green)}
+
+/* ---- MARKA FİLTRESİ ---- */
+.brand-filter{position:relative}
+.brand-filter select{
+  appearance:none;background:var(--card);border:1.5px solid #0a0a0a33;border-radius:20px;
+  padding:6px 26px 6px 11px;font-size:12px;font-family:'JetBrains Mono',monospace;cursor:pointer;color:var(--ink);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' stroke='%230A0A0A' stroke-width='1.6' fill='none'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 9px center
+}
+
+/* ---- SEKME ÇUBUĞU ---- */
+.tabs{display:flex;gap:4px;margin-top:18px;border-bottom:2px solid var(--ink)}
+.tab{
+  flex:1;font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:13px;
+  padding:10px 6px;border:1.5px solid var(--ink);border-bottom:none;border-radius:9px 9px 0 0;
+  background:transparent;color:var(--muted);cursor:pointer;transition:all .12s;
+  display:inline-flex;align-items:center;justify-content:center;gap:5px
+}
+.tab.on{background:var(--ink);color:var(--paper)}
+.tab .cnt{font-family:'JetBrains Mono',monospace;font-size:10px;opacity:.8}
+.panel{display:none}
+.panel.on{display:block}
+
+/* ---- SONUÇ EK: en ucuz market özeti ---- */
+.summary{
+  background:#E639460a;border:1.5px solid var(--red);border-radius:11px;padding:10px 13px;margin-bottom:16px;
+  font-size:13px;display:flex;align-items:center;gap:8px;flex-wrap:wrap
+}
+.summary b{font-family:'Space Grotesk',sans-serif}
+.summary .badge-best{background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:5px;font-family:'JetBrains Mono',monospace}
+
+/* en ucuz birim fiyat başlıkta */
+.p-unitbest{font-size:11.5px;color:var(--green);font-weight:600;font-family:'JetBrains Mono',monospace;margin-top:3px;display:flex;align-items:center;gap:5px}
+.p-unitbest .dot{width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block}
+
+/* depot ek bilgileri */
+.d-unit.best{color:var(--green);font-weight:700}
+.d-cheapunit{color:var(--green)}
+.d-disc2{font-size:10px;color:#fff;background:var(--green);padding:1px 5px;border-radius:4px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.d-drop{font-size:10.5px;color:var(--green);font-weight:600;font-family:'JetBrains Mono',monospace}
+.d-rise{font-size:10.5px;color:var(--amber);font-weight:600;font-family:'JetBrains Mono',monospace}
+.p-warn{padding:8px 16px;font-size:11.5px;color:#9a6a1f;background:#F4A2611a;border-top:1px dashed #0a0a0a1a;display:flex;align-items:center;gap:6px}
+.btn-add{
+  background:var(--green);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;
+  padding:6px 11px;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;transition:transform .1s
+}
+.btn-add:hover{transform:translateY(-1px)}
+.btn-add.in{background:var(--ink)}
+
+/* ---- TREND ---- */
+.trend-pick{width:100%;max-width:100%;margin-bottom:16px;background:var(--card);border:1.5px solid var(--ink);
+  border-radius:9px;padding:10px 12px;font-size:14px;font-weight:500;font-family:'Inter',sans-serif}
+.chart-wrap{background:var(--card);border:1.5px solid var(--ink);border-radius:12px;padding:16px;box-shadow:3px 3px 0 #0a0a0a14}
+.chart-svg{width:100%;height:auto;display:block}
+.chart-meta{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:12px;font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--muted)}
+.chart-meta b{color:var(--ink)}
+.chart-stat{display:flex;gap:5px;align-items:center}
+.chart-stat .lo{color:var(--green)}
+.chart-stat .hi{color:var(--red)}
+
+/* ---- SEPET ---- */
+.basket-store{border:1.5px solid var(--ink);border-radius:12px;margin-bottom:14px;overflow:hidden;box-shadow:3px 3px 0 #0a0a0a14;background:var(--card)}
+.bs-head{display:flex;align-items:center;gap:9px;padding:11px 14px;border-bottom:1px dashed #0a0a0a26;font-family:'Space Grotesk',sans-serif;font-weight:700}
+.bs-head .loc{margin-left:auto;font-size:11px;color:var(--muted);font-weight:400;font-family:'JetBrains Mono',monospace}
+.bs-item{display:flex;align-items:center;gap:9px;padding:9px 14px;font-size:13px;border-bottom:1px solid #0a0a0a0d}
+.bs-item:last-child{border-bottom:none}
+.bs-item .x{margin-left:auto;cursor:pointer;color:#0a0a0a44;font-size:16px}
+.bs-item .x:hover{color:var(--red)}
+.bs-item .pr{font-family:'JetBrains Mono',monospace;font-weight:700}
+.bs-sub{padding:9px 14px;font-size:12px;font-family:'JetBrains Mono',monospace;text-align:right;background:#0a0a0a06;font-weight:700}
+.basket-totals{background:var(--card);border:1.5px solid var(--ink);border-radius:12px;padding:14px;margin-top:6px;box-shadow:3px 3px 0 #2A9D8F22}
+.bt-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 0;font-size:13px}
+.bt-row:not(:last-child){border-bottom:1px dashed #0a0a0a1a}
+.bt-row .v{font-family:'JetBrains Mono',monospace;font-weight:700}
+.bt-row.best .v{color:var(--green)}
+.bt-save{color:var(--green);font-weight:700;font-size:12px}
+.basket-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 @media (max-width:480px){
-  .d-depot{max-width:130px}
+  .d-depot{max-width:110px}
   .search button{padding:0 16px}
+  .tab{font-size:12px;padding:9px 4px}
 }
 </style>
 </head>
@@ -196,17 +279,54 @@ footer{margin-top:40px;padding-top:18px;border-top:2px dashed #0a0a0a26;font-siz
       <button id="goBtn">Ara</button>
     </div>
 
+    <div class="recents" id="recents" style="display:none"></div>
+
     <div class="filters" id="filters">
       <!-- market çipleri JS ile -->
       <label class="toggle-fav"><input type="checkbox" id="favOnly"> ⭐ Sadece favori marketler</label>
     </div>
+
+    <div class="brand-filter" id="brandFilterWrap" style="display:none;margin-top:10px">
+      <select id="brandFilter" aria-label="Marka filtresi"><option value="">🏷 Tüm markalar</option></select>
+    </div>
+
+    <div class="tabs">
+      <button class="tab on" data-tab="results">📊 Sonuçlar</button>
+      <button class="tab" data-tab="trend">📈 Trend</button>
+      <button class="tab" data-tab="basket">🧺 Sepet <span class="cnt" id="basketCnt"></span></button>
+    </div>
   </header>
 
-  <div class="results" id="results">
-    <div class="state">
-      <div class="big">🧾</div>
-      <h4>Aramaya hazır</h4>
-      <p>Yukarıdan bir ürün adı yaz. Sonuçlar konumuna göre en ucuzdan pahalıya sıralanır.</p>
+  <!-- SONUÇLAR -->
+  <div class="panel on" id="panel-results">
+    <div class="results" id="results">
+      <div class="state">
+        <div class="big">🧾</div>
+        <h4>Aramaya hazır</h4>
+        <p>Yukarıdan bir ürün adı yaz. Sonuçlar konumuna göre en ucuzdan pahalıya sıralanır.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- TREND -->
+  <div class="panel" id="panel-trend">
+    <div id="trendBody">
+      <div class="state">
+        <div class="big">📈</div>
+        <h4>Henüz veri yok</h4>
+        <p>Ürün arattıkça en ucuz fiyatları burada birikir. Birkaç arama sonra trend grafiği oluşur.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SEPET -->
+  <div class="panel" id="panel-basket">
+    <div id="basketBody">
+      <div class="state">
+        <div class="big">🧺</div>
+        <h4>Sepetin boş</h4>
+        <p>Sonuçlarda bir ürünün yanındaki “+ Sepete” ile ekle. Sonra mağaza mağaza en ucuz dağılımı burada görürsün.</p>
+      </div>
     </div>
   </div>
 
@@ -275,7 +395,11 @@ var state = {
   loc:{ad:"İstanbul",lat:41.0082,lon:28.9784},
   marketFilter:{},    // her market açık mı (chip)
   favOnly:false,
-  lastResults:[]
+  lastResults:[],
+  priceHistory:{},    // { "ürün adı": [ {t, p, m} ] }  t=tarih(ms), p=en ucuz fiyat, m=market
+  basket:[],          // [ {id, title, imageUrl} ] (fiyatlar her zaman güncel konuma göre)
+  recentSearches:[],  // son aramalar (max 8)
+  brandFilter:""      // seçili marka (oturumluk)
 };
 
 function loadStore(){
@@ -286,13 +410,17 @@ function loadStore(){
       if(d.favMarkets) state.favMarkets=d.favMarkets;
       if(Array.isArray(d.favProducts)) state.favProducts=d.favProducts;
       if(d.loc) state.loc=d.loc;
+      if(d.priceHistory) state.priceHistory=d.priceHistory;
+      if(Array.isArray(d.basket)) state.basket=d.basket;
+      if(Array.isArray(d.recentSearches)) state.recentSearches=d.recentSearches;
     }
   }catch(e){/* bozuk veri -> sıfırdan */}
 }
 function saveStore(){
   try{
     localStorage.setItem(STORE_KEY,JSON.stringify({
-      favMarkets:state.favMarkets,favProducts:state.favProducts,loc:state.loc
+      favMarkets:state.favMarkets,favProducts:state.favProducts,loc:state.loc,
+      priceHistory:state.priceHistory,basket:state.basket,recentSearches:state.recentSearches
     }));
   }catch(e){/* localStorage kapalı olabilir, sessiz geç */}
 }
@@ -304,7 +432,50 @@ function $(id){return document.getElementById(id);}
 var elResults=$("results"), elQ=$("q"), elGo=$("goBtn"),
     elIl=$("ilSelect"), elIlce=$("ilceSelect"), elGps=$("gpsBtn"),
     elLocStatus=$("locStatus"), elFilters=$("filters"), elFavOnly=$("favOnly"),
-    elFavMarkets=$("favMarkets"), elFavProducts=$("favProducts");
+    elFavMarkets=$("favMarkets"), elFavProducts=$("favProducts"),
+    elRecents=$("recents"), elBrandWrap=$("brandFilterWrap"), elBrand=$("brandFilter"),
+    elBasketCnt=$("basketCnt"), elTrendBody=$("trendBody"), elBasketBody=$("basketBody");
+
+/* =========================================================
+   SEKMELER
+========================================================= */
+function initTabs(){
+  document.querySelectorAll(".tab").forEach(function(t){
+    t.addEventListener("click",function(){
+      var name=t.getAttribute("data-tab");
+      document.querySelectorAll(".tab").forEach(function(x){x.classList.toggle("on",x===t);});
+      document.querySelectorAll(".panel").forEach(function(p){
+        p.classList.toggle("on", p.id==="panel-"+name);
+      });
+      if(name==="trend") renderTrend();
+      if(name==="basket") renderBasket();
+    });
+  });
+}
+function switchTab(name){
+  var t=document.querySelector('.tab[data-tab="'+name+'"]');
+  if(t) t.click();
+}
+
+/* =========================================================
+   SON ARAMALAR
+========================================================= */
+function pushRecent(kw){
+  kw=kw.trim(); if(!kw) return;
+  state.recentSearches=state.recentSearches.filter(function(x){return x.toLowerCase()!==kw.toLowerCase();});
+  state.recentSearches.unshift(kw);
+  if(state.recentSearches.length>8) state.recentSearches=state.recentSearches.slice(0,8);
+  saveStore(); renderRecents();
+}
+function renderRecents(){
+  if(!state.recentSearches.length){elRecents.style.display="none";return;}
+  elRecents.style.display="flex";
+  elRecents.innerHTML='<span style="opacity:.7">Son:</span>'+
+    state.recentSearches.map(function(s){return '<span class="rc" data-rc="'+esc(s)+'">'+esc(s)+'</span>';}).join("");
+  elRecents.querySelectorAll(".rc").forEach(function(b){
+    b.addEventListener("click",function(){elQ.value=b.getAttribute("data-rc");switchTab("results");doSearch();});
+  });
+}
 
 /* =========================================================
    KONUM kurulumu
@@ -431,13 +602,69 @@ function doSearch(){
     catch(e){throw new Error("Geçersiz yanıt (muhtemelen proxy/WAF engeli). Daha sonra tekrar dene.");}
     var content=(data&&data.content)||[];
     state.lastResults=content;
+    state.brandFilter="";              // yeni aramada marka filtresini sıfırla
     if(!content.length){
+      elBrandWrap.style.display="none";
       setState('<div class="state"><div class="big">🔍</div><h4>"'+esc(kw)+'" bulunamadı</h4>'+
         '<p>Bu konuma yakın şubelerde bu ürün yok. Farklı yazım dene ya da konumu değiştir.</p></div>');
-    }else{ render(); }
+    }else{
+      pushRecent(kw);                  // son aramalar
+      recordHistory(kw, content);      // fiyat geçmişi (trend + düşüş notu için)
+      buildBrandFilter(content);       // marka filtresi seçenekleri
+      render();
+    }
   })
   .catch(function(e){ errorState(esc(e.message||"Bağlantı hatası")); })
   .finally(function(){ elGo.disabled=false; });
+}
+
+/* =========================================================
+   FİYAT GEÇMİŞİ (trend + fiyat düşüş notu)
+   priceHistory[arama kelimesi] = [ {t, p, m} ]
+========================================================= */
+function recordHistory(kw, content){
+  // bu aramadaki genel en ucuz fiyatı bul
+  var best=null, bestM="";
+  content.forEach(function(prod){
+    (prod.productDepotInfoList||[]).forEach(function(d){
+      if(best===null || d.price<best){best=d.price; bestM=d.marketAdi;}
+    });
+  });
+  if(best===null) return;
+  var key=kw.toLowerCase().trim();
+  if(!state.priceHistory[key]) state.priceHistory[key]=[];
+  var arr=state.priceHistory[key];
+  var last=arr[arr.length-1];
+  // aynı gün ikinci kez aranırsa son kaydı güncelle, değilse yeni nokta ekle
+  var today=new Date(); today.setHours(0,0,0,0);
+  var lastDay=last?new Date(last.t):null; if(lastDay) lastDay.setHours(0,0,0,0);
+  if(last && lastDay && lastDay.getTime()===today.getTime()){
+    if(best<last.p){last.p=best; last.m=bestM;} // gün içinde daha ucuzu yakala
+  }else{
+    arr.push({t:Date.now(), p:best, m:bestM});
+  }
+  if(arr.length>60) state.priceHistory[key]=arr.slice(-60); // son 60 nokta
+  saveStore();
+}
+// bir önceki aramaya göre fark (fiyat düşüş notu için), bu aramayı saymadan
+function prevBest(kw){
+  var arr=state.priceHistory[kw.toLowerCase().trim()];
+  if(!arr||arr.length<2) return null;
+  return arr[arr.length-2].p; // sondan bir önceki
+}
+
+/* =========================================================
+   MARKA FİLTRESİ
+========================================================= */
+function buildBrandFilter(content){
+  var brands={};
+  content.forEach(function(p){ if(p.brand) brands[p.brand]=true; });
+  var keys=Object.keys(brands).sort(function(a,b){return a.localeCompare(b,"tr");});
+  if(keys.length<2){elBrandWrap.style.display="none";return;}
+  elBrandWrap.style.display="block";
+  elBrand.innerHTML='<option value="">🏷 Tüm markalar ('+keys.length+')</option>'+
+    keys.map(function(b){return '<option value="'+esc(b)+'">'+esc(b)+'</option>';}).join("");
+  elBrand.value="";
 }
 
 /* =========================================================
@@ -449,6 +676,19 @@ function render(){
   var content=state.lastResults;
   if(!content.length) return;
 
+  // marka filtresi uygula
+  if(state.brandFilter){
+    content=content.filter(function(p){return p.brand===state.brandFilter;});
+  }
+
+  // --- En ucuz market özeti (3): tüm ürünlerde en sık/en ucuz market ---
+  var globalMin=null, globalMarket="";
+  state.lastResults.forEach(function(prod){
+    (prod.productDepotInfoList||[]).forEach(function(d){
+      if(globalMin===null||d.price<globalMin){globalMin=d.price; globalMarket=d.marketAdi;}
+    });
+  });
+
   var cardsHtml="";
   content.forEach(function(prod){
     var depots=(prod.productDepotInfoList||[]).slice();
@@ -456,22 +696,26 @@ function render(){
     // market filtresi
     depots=depots.filter(function(d){
       var k=d.marketAdi;
-      if(!(k in state.marketFilter)) return true; // bilinmeyen market gizlenmesin
+      if(!(k in state.marketFilter)) return true;
       return state.marketFilter[k]!==false;
     });
-    // sadece favori marketler
     if(state.favOnly){
       depots=depots.filter(function(d){return !!state.favMarkets[depotKey(d.marketAdi,d.depotId)];});
     }
-    if(!depots.length) return; // bu üründe gösterilecek şube kalmadı
+    if(!depots.length) return;
 
-    // fiyata göre sırala, favoriler eşitlikte üste
-    depots.sort(function(a,b){
-      return a.price-b.price;
+    depots.sort(function(a,b){return a.price-b.price;});
+    var min=depots[0].price, max=depots[depots.length-1].price;
+
+    // birim fiyat: en düşük unitPriceValue (1)
+    var unitVals=depots.filter(function(d){return typeof d.unitPriceValue==="number"&&d.unitPriceValue>0;});
+    var minUnit=null, minUnitTxt="";
+    unitVals.forEach(function(d){
+      if(minUnit===null||d.unitPriceValue<minUnit){minUnit=d.unitPriceValue; minUnitTxt=d.unitPrice||"";}
     });
 
-    var min=depots[0].price, max=depots[depots.length-1].price;
     var prodFav=state.favProducts.indexOf(prod.title)>-1;
+    var inBasket=state.basket.some(function(b){return b.id===prod.id;});
 
     var depotsHtml="";
     depots.forEach(function(d){
@@ -479,21 +723,51 @@ function render(){
       var fav=!!state.favMarkets[key];
       var info=MARKETS[d.marketAdi]||{ad:d.marketAdi,renk:"#0A0A0A"};
       var cheapest=(d.price===min);
+      var cheapUnit=(minUnit!==null && d.unitPriceValue===minUnit); // birim fiyatta en ucuz (1)
       var cls="depot"+(fav?" fav":"")+(cheapest?" cheapest":"");
+      // indirim oranı (6)
+      var discHtml="";
+      if(d.discount){
+        var ratio=d.discountRatio||d.percentage;
+        discHtml = ratio ? '<span class="d-disc2">↓%'+Math.round(Math.abs(ratio))+'</span>' : '<div class="d-disc">↓ indirimli</div>';
+      }
       depotsHtml+=
         '<li class="'+cls+'">'+
           '<button class="star d-star '+(fav?"on":"")+'" title="Marketi favorile" '+
             'data-fk="'+esc(key)+'" data-m="'+esc(d.marketAdi)+'" data-dn="'+esc(d.depotName)+'">'+(fav?"★":"☆")+'</button>'+
           '<div class="d-info">'+
             '<div class="d-market"><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:'+info.renk+'"></span>'+
-              esc(info.ad)+(cheapest?' <span class="d-badge">EN UCUZ</span>':'')+'</div>'+
+              esc(info.ad)+(cheapest?' <span class="d-badge">EN UCUZ</span>':'')+
+              (discHtml.indexOf("d-disc2")>-1?' '+discHtml:'')+'</div>'+
             '<div class="d-depot">'+esc(d.depotName)+'</div>'+
-            (d.discount?'<div class="d-disc">↓ indirimli</div>':'')+
+            (discHtml.indexOf("d-disc2")===-1?discHtml:'')+
           '</div>'+
           '<div class="d-price'+(cheapest?' low':'')+'">₺ '+fmt(d.price)+
-            '<div class="d-unit">'+esc(d.unitPrice||"")+'</div></div>'+
+            '<div class="d-unit'+(cheapUnit?' best':'')+'">'+
+              (cheapUnit?'🟢 ':'')+esc(d.unitPrice||"")+'</div></div>'+
         '</li>';
     });
+
+    // shrinkflation uyarısı (4): en ucuz toplam fiyatlı şube, birim fiyatta en ucuz değilse
+    var warnHtml="";
+    if(minUnit!==null){
+      var cheapestDepot=depots[0];
+      if(typeof cheapestDepot.unitPriceValue==="number" && cheapestDepot.unitPriceValue>minUnit){
+        var bestUnitDepot=unitVals.filter(function(d){return d.unitPriceValue===minUnit;})[0];
+        if(bestUnitDepot){
+          var bm=MARKETS[bestUnitDepot.marketAdi]||{ad:bestUnitDepot.marketAdi};
+          warnHtml='<div class="p-warn">⚠ Toplamda en ucuz '+esc((MARKETS[cheapestDepot.marketAdi]||{}).ad||cheapestDepot.marketAdi)+
+            ', ama birim fiyatta '+esc(bm.ad)+' daha hesaplı ('+esc(minUnitTxt)+')</div>';
+        }
+      }
+    }
+
+    // fiyat düşüş notu (7)
+    var dropHtml="";
+    var prev=prevBest(elQ.value);
+    if(prev!==null && state.lastResults.length){
+      // sadece arama başlığıyla aynıysa anlamlı; basitçe genel min ile karşılaştır
+    }
 
     var saving=(max-min);
     var foot='<span>'+depots.length+' şube</span>'+
@@ -506,21 +780,43 @@ function render(){
           '<div class="p-meta">'+
             '<div class="p-title">'+esc(prod.title)+'</div>'+
             (prod.refinedVolumeOrWeight?'<div class="p-vol">'+esc(prod.refinedVolumeOrWeight)+'</div>':'')+
+            (minUnit!==null?'<div class="p-unitbest"><span class="dot"></span>En ucuz birim: '+esc(minUnitTxt)+'</div>':'')+
           '</div>'+
-          '<button class="star '+(prodFav?"on":"")+'" title="Ürünü favorile" data-pf="'+esc(prod.title)+'">'+(prodFav?"★":"☆")+'</button>'+
+          '<div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">'+
+            '<button class="star '+(prodFav?"on":"")+'" title="Ürünü favorile" data-pf="'+esc(prod.title)+'">'+(prodFav?"★":"☆")+'</button>'+
+            '<button class="btn-add'+(inBasket?' in':'')+'" data-add="'+esc(prod.id)+'">'+(inBasket?'✓ Sepette':'+ Sepete')+'</button>'+
+          '</div>'+
         '</div>'+
         '<ul class="depots">'+depotsHtml+'</ul>'+
+        warnHtml+
         '<div class="p-foot">'+foot+'</div>'+
       '</article>';
   });
 
   if(!cardsHtml){
     setState('<div class="state"><div class="big">⭐</div><h4>Filtreye uyan sonuç yok</h4>'+
-      '<p>Market filtrelerini veya "sadece favori marketler" seçeneğini gevşet.</p></div>');
+      '<p>Market filtrelerini, markayı veya "sadece favori marketler" seçeneğini gevşet.</p></div>');
     return;
   }
-  setState(cardsHtml);
+
+  // en ucuz market özeti başlığı (3) + fiyat düşüş notu (7)
+  var summaryHtml="";
+  if(globalMarket){
+    var gm=MARKETS[globalMarket]||{ad:globalMarket,renk:"#0A0A0A"};
+    var dropNote="";
+    var pv=prevBest(elQ.value);
+    if(pv!==null && globalMin!==null){
+      var diff=pv-globalMin;
+      if(diff>0.01) dropNote=' · <span style="color:var(--green);font-weight:700">↓ geçen aramaya göre ₺'+fmt(diff)+' ucuzladı</span>';
+      else if(diff<-0.01) dropNote=' · <span style="color:var(--amber);font-weight:700">↑ ₺'+fmt(-diff)+' zamlandı</span>';
+    }
+    summaryHtml='<div class="summary"><span class="badge-best">EN UCUZ</span>'+
+      '<span>Bu aramada en hesaplı market: <b style="color:'+gm.renk+'">'+esc(gm.ad)+'</b> (₺'+fmt(globalMin)+')'+dropNote+'</span></div>';
+  }
+
+  setState(summaryHtml+cardsHtml);
   bindStars();
+  bindBasketButtons();
 }
 
 function bindStars(){
@@ -542,6 +838,29 @@ function bindStars(){
       saveStore(); render(); renderFavPanel();
     });
   });
+}
+
+// sepete ekle/çıkar butonları (8)
+function bindBasketButtons(){
+  elResults.querySelectorAll(".btn-add").forEach(function(b){
+    b.addEventListener("click",function(){
+      var id=b.getAttribute("data-add");
+      var prod=state.lastResults.filter(function(p){return p.id===id;})[0];
+      if(!prod) return;
+      var idx=state.basket.findIndex(function(x){return x.id===id;});
+      if(idx>-1){
+        state.basket.splice(idx,1);
+      }else{
+        state.basket.push({
+          id:prod.id, title:prod.title, imageUrl:prod.imageUrl||""
+        });
+      }
+      saveStore(); updateBasketCount(); render();
+    });
+  });
+}
+function updateBasketCount(){
+  elBasketCnt.textContent = state.basket.length ? "("+state.basket.length+")" : "";
 }
 
 /* =========================================================
@@ -596,15 +915,11 @@ function renderFavPanel(){
 function initBackup(){
   $("exportBtn").addEventListener("click",function(){
     var data={
-      _app:"Sepet Dedektifi", _v:1, tarih:new Date().toISOString(),
-      favMarkets:state.favMarkets, favProducts:state.favProducts, loc:state.loc
+      _app:"Sepet Dedektifi", _v:2, tarih:new Date().toISOString(),
+      favMarkets:state.favMarkets, favProducts:state.favProducts, loc:state.loc,
+      priceHistory:state.priceHistory, basket:state.basket, recentSearches:state.recentSearches
     };
-    var blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
-    var url=URL.createObjectURL(blob);
-    var a=document.createElement("a");
-    a.href=url; a.download="sepet-dedektifi-yedek.json";
-    document.body.appendChild(a); a.click(); a.remove();
-    URL.revokeObjectURL(url);
+    downloadBlob(JSON.stringify(data,null,2), "sepet-dedektifi-yedek.json", "application/json");
   });
   $("importBtn").addEventListener("click",function(){$("importFile").click();});
   $("importFile").addEventListener("change",function(e){
@@ -616,7 +931,10 @@ function initBackup(){
         if(d.favMarkets) state.favMarkets=d.favMarkets;
         if(Array.isArray(d.favProducts)) state.favProducts=d.favProducts;
         if(d.loc){state.loc=d.loc; elLocStatus.innerHTML="Konum: <b>"+esc(state.loc.ad)+"</b>";}
-        saveStore(); renderFavPanel(); render();
+        if(d.priceHistory) state.priceHistory=d.priceHistory;
+        if(Array.isArray(d.basket)) state.basket=d.basket;
+        if(Array.isArray(d.recentSearches)) state.recentSearches=d.recentSearches;
+        saveStore(); renderFavPanel(); renderRecents(); updateBasketCount(); render();
         alert("Yedek yüklendi ✓");
       }catch(err){alert("Geçersiz yedek dosyası.");}
       e.target.value="";
@@ -626,11 +944,266 @@ function initBackup(){
 }
 
 /* =========================================================
+   TREND (2): fiyat geçmişi grafiği + CSV/JSON (9)
+========================================================= */
+function renderTrend(){
+  var keys=Object.keys(state.priceHistory).filter(function(k){return state.priceHistory[k].length>=1;});
+  if(!keys.length){
+    elTrendBody.innerHTML='<div class="state"><div class="big">📈</div><h4>Henüz veri yok</h4>'+
+      '<p>Ürün arattıkça en ucuz fiyatları burada birikir. Birkaç arama sonra trend grafiği oluşur.</p></div>';
+    return;
+  }
+  keys.sort();
+  // seçili ürün (varsa korunmuş, yoksa ilk)
+  if(!state._trendKey || keys.indexOf(state._trendKey)<0) state._trendKey=keys[0];
+  var sel=state._trendKey;
+  var html='<select class="trend-pick" id="trendPick">'+
+    keys.map(function(k){return '<option value="'+esc(k)+'"'+(k===sel?' selected':'')+'>'+esc(k)+' ('+state.priceHistory[k].length+' kayıt)</option>';}).join("")+
+    '</select>';
+  html+=drawChart(state.priceHistory[sel]);
+  html+='<div class="basket-actions">'+
+    '<button class="mini" id="trendCsv">⬇ CSV indir</button>'+
+    '<button class="mini" id="trendJson">⬇ JSON indir</button>'+
+    '<button class="mini" id="trendClear">🗑 Bu ürünün geçmişini sil</button></div>';
+  elTrendBody.innerHTML=html;
+
+  $("trendPick").addEventListener("change",function(){state._trendKey=this.value;renderTrend();});
+  $("trendCsv").addEventListener("click",function(){exportTrendCsv(sel);});
+  $("trendJson").addEventListener("click",function(){exportTrendJson(sel);});
+  $("trendClear").addEventListener("click",function(){
+    delete state.priceHistory[sel]; state._trendKey=null; saveStore(); renderTrend();
+  });
+}
+
+// basit SVG çizgi grafik (kütüphanesiz)
+function drawChart(points){
+  if(!points.length) return '<div class="chart-wrap">Veri yok</div>';
+  var W=600, H=220, pad=36;
+  var prices=points.map(function(p){return p.p;});
+  var minP=Math.min.apply(null,prices), maxP=Math.max.apply(null,prices);
+  var range=(maxP-minP)||1;
+  var n=points.length;
+  function x(i){return n===1?W/2:pad+(W-2*pad)*i/(n-1);}
+  function y(p){return H-pad-(H-2*pad)*(p-minP)/range;}
+
+  var path="", dots="", area="";
+  points.forEach(function(p,i){
+    var px=x(i), py=y(p.p);
+    path+=(i===0?"M":"L")+px.toFixed(1)+" "+py.toFixed(1)+" ";
+    dots+='<circle cx="'+px.toFixed(1)+'" cy="'+py.toFixed(1)+'" r="3.5" fill="#E63946"/>';
+  });
+  area="M"+x(0).toFixed(1)+" "+(H-pad)+" "+path.replace(/^M/,"L")+"L"+x(n-1).toFixed(1)+" "+(H-pad)+" Z";
+
+  // eksen etiketleri (ilk/orta/son tarih)
+  function dstr(t){var d=new Date(t);return d.getDate()+"."+(d.getMonth()+1);}
+  var xlabels='';
+  [0, Math.floor((n-1)/2), n-1].forEach(function(i){
+    if(i<0||i>=n) return;
+    xlabels+='<text x="'+x(i).toFixed(1)+'" y="'+(H-pad+16)+'" text-anchor="middle" font-size="10" fill="#6b6b66" font-family="monospace">'+dstr(points[i].t)+'</text>';
+  });
+  var ylabels='<text x="'+(pad-6)+'" y="'+(y(maxP)+4)+'" text-anchor="end" font-size="10" fill="#6b6b66" font-family="monospace">'+fmt(maxP)+'</text>'+
+    '<text x="'+(pad-6)+'" y="'+(y(minP)+4)+'" text-anchor="end" font-size="10" fill="#6b6b66" font-family="monospace">'+fmt(minP)+'</text>';
+
+  var first=points[0].p, last=points[n-1].p, diff=last-first;
+  var trend = diff<-0.01 ? '<span class="lo">↓ ₺'+fmt(-diff)+' düştü</span>' :
+              diff>0.01  ? '<span class="hi">↑ ₺'+fmt(diff)+' arttı</span>' : 'değişim yok';
+  var loIdx=prices.indexOf(minP);
+
+  return '<div class="chart-wrap"><svg class="chart-svg" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet">'+
+    '<path d="'+area+'" fill="#E6394611"/>'+
+    '<path d="'+path+'" fill="none" stroke="#E63946" stroke-width="2.5" stroke-linejoin="round"/>'+
+    dots+xlabels+ylabels+
+    '</svg>'+
+    '<div class="chart-meta">'+
+      '<span class="chart-stat">En düşük: <b class="lo">₺'+fmt(minP)+'</b> ('+dstr(points[loIdx].t)+', '+esc((MARKETS[points[loIdx].m]||{}).ad||points[loIdx].m)+')</span>'+
+      '<span class="chart-stat">En son: <b>₺'+fmt(last)+'</b></span>'+
+      '<span class="chart-stat">Trend: '+trend+'</span>'+
+    '</div></div>';
+}
+
+function exportTrendCsv(key){
+  var arr=state.priceHistory[key]||[];
+  var rows=[["tarih","en_ucuz_fiyat","market"]];
+  arr.forEach(function(p){
+    var d=new Date(p.t);
+    rows.push([d.toISOString().slice(0,10), String(p.p).replace(".",","), (MARKETS[p.m]||{}).ad||p.m]);
+  });
+  var csv="\uFEFF"+rows.map(function(r){return r.join(";");}).join("\n");
+  downloadBlob(csv, "trend-"+key+".csv", "text/csv");
+}
+function exportTrendJson(key){
+  downloadBlob(JSON.stringify({urun:key, kayitlar:state.priceHistory[key]},null,2), "trend-"+key+".json", "application/json");
+}
+
+/* =========================================================
+   SEPET (8): mağaza mağaza en ucuz dağılım
+========================================================= */
+function renderBasket(){
+  updateBasketCount();
+  if(!state.basket.length){
+    elBasketBody.innerHTML='<div class="state"><div class="big">🧺</div><h4>Sepetin boş</h4>'+
+      '<p>Sonuçlarda bir ürünün yanındaki “+ Sepete” ile ekle. Sonra mağaza mağaza en ucuz dağılımı burada görürsün.</p></div>';
+    return;
+  }
+  elBasketBody.innerHTML='<div class="state"><div class="spinner"></div><h4>Sepet fiyatları güncelleniyor…</h4>'+
+    '<p>'+state.basket.length+' ürün için marketler taranıyor.</p></div>';
+
+  // her ürünü kendi eklendiği konumdan, güncel fiyatıyla çek
+  var jobs=state.basket.map(function(item){ return fetchBasketItem(item); });
+  Promise.all(jobs).then(function(results){
+    // results: her biri {item, depots:[{market,depot,price,unitPrice}]} veya null
+    drawBasket(results.filter(Boolean));
+  }).catch(function(){
+    elBasketBody.innerHTML='<div class="state err"><div class="big">⚠️</div><h4>Sepet güncellenemedi</h4>'+
+      '<p>Bağlantı sorunu olabilir.</p><button class="mini" id="bRetry">Tekrar dene</button></div>';
+    var r=$("bRetry"); if(r) r.addEventListener("click",renderBasket);
+  });
+}
+
+// tek sepet ürününü konumuna göre güncel fiyatlandır
+// (searchByIdentity WAF'a takıldığı için: başlıkla search + id eşleştirme — güvenilir yol)
+// Fiyatlar her zaman şu anki seçili konuma göre hesaplanır.
+function fetchBasketItem(item){
+  return fetch(PROXY_NEAREST,{
+    method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({latitude:state.loc.lat, longitude:state.loc.lon, distance:7})
+  })
+  .then(function(r){return r.ok?r.text():"[]";})
+  .then(function(txt){
+    var near=[]; try{near=JSON.parse(txt);}catch(e){}
+    var depots=Array.isArray(near)?near.map(function(x){return x.id;}).filter(Boolean):[];
+    // ürünün başlığıyla ara (ilk 4-5 kelime yeterli, isabeti artırır)
+    var kw=item.title.split(/\s+/).slice(0,5).join(" ");
+    var body={keywords:kw, pages:0, size:24, latitude:state.loc.lat, longitude:state.loc.lon, distance:7};
+    if(depots.length) body.depots=depots;
+    return fetch(PROXY_SEARCH,{
+      method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify(body)
+    });
+  })
+  .then(function(r){return r.ok?r.text():"";})
+  .then(function(txt){
+    var data; try{data=JSON.parse(txt);}catch(e){return {item:item, depots:[]};}
+    var content=(data&&data.content)||[];
+    // önce id ile birebir eşleşeni bul; bulunamazsa başlık birebir; yine yoksa ilk sonuç
+    var match=content.filter(function(p){return p.id===item.id;})[0]
+           || content.filter(function(p){return p.title===item.title;})[0]
+           || content[0];
+    if(!match) return {item:item, depots:[]};
+    var dl=(match.productDepotInfoList||[]).map(function(d){
+      return {market:d.marketAdi, depot:d.depotName, price:d.price, unitPrice:d.unitPrice};
+    });
+    return {item:item, depots:dl};
+  })
+  .catch(function(){return {item:item, depots:[]};});
+}
+
+function drawBasket(results){
+  // best-per-item: her ürünün en ucuz market+fiyatı (hepsi şu anki konuma göre)
+  var perItem=[]; // {title, market, depot, price, id, ok}
+  results.forEach(function(r){
+    if(!r.depots.length){ perItem.push({title:r.item.title, id:r.item.id, ok:false}); return; }
+    var best=r.depots.slice().sort(function(a,b){return a.price-b.price;})[0];
+    perItem.push({title:r.item.title, id:r.item.id, ok:true, market:best.market, depot:best.depot, price:best.price});
+  });
+
+  // mağazaya göre grupla (best-per-item)
+  var byStore={};
+  perItem.forEach(function(p){
+    if(!p.ok) return;
+    var k=p.market;
+    if(!byStore[k]) byStore[k]={items:[], sum:0};
+    byStore[k].items.push(p); byStore[k].sum+=p.price;
+  });
+
+  var storeHtml="";
+  Object.keys(byStore).sort(function(a,b){return byStore[b].sum-byStore[a].sum;}).forEach(function(k){
+    var info=MARKETS[k]||{ad:k,renk:"#0A0A0A"};
+    var g=byStore[k];
+    var itemsHtml=g.items.map(function(p){
+      return '<div class="bs-item">'+
+        '<span>• '+esc(p.title)+'</span>'+
+        '<span class="pr">₺ '+fmt(p.price)+'</span>'+
+        '<span class="x" data-rmid="'+esc(p.id)+'" title="Sepetten çıkar">×</span>'+
+      '</div>';
+    }).join("");
+    storeHtml+='<div class="basket-store">'+
+      '<div class="bs-head"><span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:'+info.renk+'"></span>'+
+        esc(info.ad)+'<span class="loc">'+esc(state.loc.ad)+'</span></div>'+
+      itemsHtml+
+      '<div class="bs-sub">Ara toplam: ₺ '+fmt(g.sum)+'</div>'+
+    '</div>';
+  });
+
+  // bulunamayanlar
+  var missing=perItem.filter(function(p){return !p.ok;});
+  if(missing.length){
+    storeHtml+='<div class="basket-store"><div class="bs-head" style="color:var(--muted)">⚠ Fiyat bulunamadı</div>'+
+      missing.map(function(p){return '<div class="bs-item"><span>• '+esc(p.title)+'</span>'+
+        '<span class="x" data-rmid="'+esc(p.id)+'">×</span></div>';}).join("")+'</div>';
+  }
+
+  // best-per-item toplam
+  var bestPerItemTotal=perItem.reduce(function(s,p){return s+(p.ok?p.price:0);},0);
+
+  // single-store: her ürünü sunan ve toplamı en düşük tek market
+  var allMarkets={};
+  results.forEach(function(r){ r.depots.forEach(function(d){ allMarkets[d.market]=true; }); });
+  var singleBest=null;
+  Object.keys(allMarkets).forEach(function(m){
+    var total=0, complete=true;
+    results.forEach(function(r){
+      var found=r.depots.filter(function(d){return d.market===m;}).sort(function(a,b){return a.price-b.price;})[0];
+      if(found) total+=found.price; else complete=false;
+    });
+    if(complete){ if(singleBest===null||total<singleBest.total) singleBest={market:m,total:total}; }
+  });
+
+  var totalsHtml='<div class="basket-totals">';
+  totalsHtml+='<div class="bt-row best"><span>✂ Mağaza mağaza en ucuz (yukarıdaki dağılım)</span><span class="v">₺ '+fmt(bestPerItemTotal)+'</span></div>';
+  if(singleBest){
+    var sm=MARKETS[singleBest.market]||{ad:singleBest.market};
+    var save=singleBest.total-bestPerItemTotal;
+    totalsHtml+='<div class="bt-row"><span>💡 Tek mağazadan al: <b>'+esc(sm.ad)+'</b></span><span class="v">₺ '+fmt(singleBest.total)+'</span></div>';
+    if(save>0.01) totalsHtml+='<div class="bt-row"><span class="bt-save">Mağaza mağaza gezersen ₺'+fmt(save)+' tasarruf</span><span></span></div>';
+    else totalsHtml+='<div class="bt-row"><span class="bt-save">Tek mağaza zaten en ucuz — gezmene gerek yok</span><span></span></div>';
+  }else{
+    totalsHtml+='<div class="bt-row"><span style="color:var(--muted);font-size:12px">Hiçbir tek mağaza tüm ürünleri sunmuyor; mağaza mağaza dağılım en iyisi.</span><span></span></div>';
+  }
+  totalsHtml+='</div>';
+
+  var actions='<div class="basket-actions">'+
+    '<button class="mini" id="basketRefresh">🔄 Fiyatları güncelle</button>'+
+    '<button class="mini" id="basketClear">🗑 Sepeti boşalt</button></div>';
+
+  elBasketBody.innerHTML='<div style="font-family:\'Space Grotesk\';font-weight:700;font-size:15px;margin-bottom:12px">🧺 Sepetim ('+state.basket.length+' ürün)</div>'+
+    storeHtml+totalsHtml+actions;
+
+  elBasketBody.querySelectorAll(".x[data-rmid]").forEach(function(b){
+    b.addEventListener("click",function(){
+      var id=b.getAttribute("data-rmid");
+      state.basket=state.basket.filter(function(x){return x.id!==id;});
+      saveStore(); updateBasketCount(); renderBasket(); render();
+    });
+  });
+  $("basketRefresh").addEventListener("click",renderBasket);
+  $("basketClear").addEventListener("click",function(){
+    state.basket=[]; saveStore(); updateBasketCount(); renderBasket(); render();
+  });
+}
+
+/* =========================================================
    YARDIMCI
 ========================================================= */
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){
   return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
 function fmt(n){return Number(n).toLocaleString("tr-TR",{minimumFractionDigits:2,maximumFractionDigits:2});}
+function downloadBlob(text, filename, type){
+  var blob=new Blob([text],{type:type});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement("a"); a.href=url; a.download=filename;
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
 
 /* =========================================================
    BAŞLAT
@@ -638,8 +1211,12 @@ function fmt(n){return Number(n).toLocaleString("tr-TR",{minimumFractionDigits:2
 loadStore();
 initLoc();
 initFilters();
+initTabs();
 initBackup();
 renderFavPanel();
+renderRecents();
+updateBasketCount();
+elBrand.addEventListener("change",function(){state.brandFilter=elBrand.value;render();});
 elGo.addEventListener("click",doSearch);
 elQ.addEventListener("keydown",function(e){if(e.key==="Enter")doSearch();});
 </script>
