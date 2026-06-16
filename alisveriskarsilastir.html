@@ -239,8 +239,9 @@ footer{margin-top:40px;padding-top:18px;border-top:2px dashed #0a0a0a26;font-siz
 /* =========================================================
    AYARLAR
 ========================================================= */
-var CORS_PROXY = "https://mycors.recepyeni.workers.dev/?url=";
-var API_URL    = "https://api.marketfiyati.org.tr/api/v2/search";
+// marketfiyati API'sinin WAF'ı doğrudan/Cloudflare erişimini engelliyor.
+// Bu yüzden Deno Deploy üzerindeki özel proxy kullanılıyor (doğru header'ları o ekler).
+var PROXY_SEARCH = "https://wide-kiwi-2894.recinilt.deno.net/search";
 
 // Market kimlik -> görünen ad + renk (logo yerine renkli rozet)
 var MARKETS = {
@@ -417,13 +418,10 @@ function doSearch(){
     latitude:state.loc.lat, longitude:state.loc.lon, distance:7
   });
 
-  fetch(CORS_PROXY+encodeURIComponent(API_URL),{
+  fetch(PROXY_SEARCH,{
     method:"POST",
     headers:{
-      "Content-Type":"application/json",
-      "X-Requested-With":"XMLHttpRequest",
-      "Origin":"https://marketfiyati.org.tr",
-      "Referer":"https://marketfiyati.org.tr/"
+      "Content-Type":"application/json"
     },
     body:body
   })
