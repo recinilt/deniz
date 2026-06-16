@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sepet Dedektifi — Market Fiyat Karşılaştırma</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0A0A0A;
+  --paper:#FAF8F3;
+  --red:#E63946;
+  --green:#2A9D8F;
+  --amber:#F4A261;
+  --line:#1f1f1f1a;
+  --muted:#6b6b66;
+  --card:#fffefb;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:'Inter',system-ui,sans-serif;
+  background:var(--paper);
+  color:var(--ink);
+  line-height:1.5;
+  /* fiş kağıdı ince doku */
+  background-image:repeating-linear-gradient(0deg,#0000 0 27px,#0a0a0a06 27px 28px);
+}
+.wrap{max-width:760px;margin:0 auto;padding:0 16px 80px}
+
+/* ---- ÜST BAŞLIK ---- */
+header{padding:28px 0 18px;border-bottom:2px dashed #0a0a0a26}
+.brand{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand h1{
+  font-family:'Space Grotesk',sans-serif;font-weight:700;
+  font-size:clamp(26px,6vw,40px);letter-spacing:-.02em;line-height:1
+}
+.brand .tag{font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:.02em}
+.sub{margin-top:6px;font-size:13px;color:var(--muted)}
+
+/* ---- KONUM ---- */
+.loc{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:18px}
+.loc select,.loc button,.search input,.search button{font-family:'Inter',sans-serif}
+.loc select{
+  appearance:none;background:var(--card);border:1.5px solid var(--ink);
+  padding:9px 30px 9px 12px;border-radius:9px;font-size:14px;font-weight:500;cursor:pointer;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' stroke='%230A0A0A' stroke-width='1.6' fill='none'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 10px center
+}
+.btn-gps{
+  background:var(--ink);color:var(--paper);border:1.5px solid var(--ink);
+  padding:9px 14px;border-radius:9px;font-size:14px;font-weight:600;cursor:pointer;
+  display:inline-flex;align-items:center;gap:6px;transition:transform .1s
+}
+.btn-gps:hover{transform:translateY(-1px)}
+.btn-gps:active{transform:translateY(0)}
+.loc-status{font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace;width:100%}
+.loc-status b{color:var(--green)}
+
+/* ---- ARAMA ---- */
+.search{display:flex;gap:8px;margin-top:16px}
+.search input{
+  flex:1;background:var(--card);border:1.5px solid var(--ink);border-radius:11px;
+  padding:14px 16px;font-size:16px;font-weight:500
+}
+.search input:focus{outline:3px solid #2A9D8F44;border-color:var(--green)}
+.search button{
+  background:var(--red);color:#fff;border:1.5px solid var(--red);border-radius:11px;
+  padding:0 22px;font-size:16px;font-weight:700;cursor:pointer;transition:transform .1s
+}
+.search button:hover{transform:translateY(-1px)}
+.search button:disabled{opacity:.5;cursor:wait;transform:none}
+
+/* ---- FİLTRELER ---- */
+.filters{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px;align-items:center}
+.chip{
+  font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;
+  padding:6px 11px;border-radius:20px;border:1.5px solid #0a0a0a33;
+  background:transparent;color:var(--muted);cursor:pointer;user-select:none;transition:all .12s
+}
+.chip.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.toggle-fav{
+  margin-left:auto;font-size:13px;display:inline-flex;align-items:center;gap:6px;cursor:pointer;
+  color:var(--muted);font-weight:500;user-select:none
+}
+.toggle-fav input{accent-color:var(--green);width:16px;height:16px}
+
+/* ---- SONUÇLAR ---- */
+.results{margin-top:26px;display:flex;flex-direction:column;gap:20px}
+.product{
+  background:var(--card);border:1.5px solid var(--ink);border-radius:14px;overflow:hidden;
+  box-shadow:3px 3px 0 #0a0a0a14
+}
+.p-head{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border-bottom:1px dashed #0a0a0a26}
+.p-img{width:48px;height:48px;border-radius:8px;object-fit:contain;background:#fff;border:1px solid var(--line);flex-shrink:0}
+.p-meta{flex:1;min-width:0}
+.p-title{font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:15px;line-height:1.3}
+.p-vol{font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-top:2px}
+.star{
+  background:none;border:none;cursor:pointer;font-size:20px;line-height:1;color:#0a0a0a33;
+  padding:2px;flex-shrink:0;transition:transform .12s,color .12s
+}
+.star:hover{transform:scale(1.2)}
+.star.on{color:var(--green)}
+
+.depots{list-style:none}
+.depot{
+  display:flex;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid #0a0a0a0f;
+  position:relative
+}
+.depot:last-child{border-bottom:none}
+.depot.fav{background:#2A9D8F0d}
+.depot.cheapest{background:#E639460a}
+.d-star{font-size:17px}
+.d-info{flex:1;min-width:0}
+.d-market{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:14px;display:flex;align-items:center;gap:7px}
+.d-badge{
+  font-family:'JetBrains Mono',monospace;font-size:9.5px;font-weight:700;letter-spacing:.04em;
+  background:var(--red);color:#fff;padding:2px 6px;border-radius:4px;transform:rotate(-3deg)
+}
+.d-depot{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.d-price{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:16px;text-align:right;white-space:nowrap}
+.d-price.low{color:var(--red)}
+.d-unit{font-size:10px;color:var(--muted);font-weight:400}
+.d-disc{font-size:10px;color:var(--green);font-weight:600;font-family:'JetBrains Mono',monospace}
+.p-foot{padding:10px 16px;font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}
+.p-foot .save{color:var(--green);font-weight:600}
+
+/* ---- FAVORİLER PANELİ ---- */
+.fav-panel{
+  margin-top:30px;background:#fff;border:1.5px solid var(--ink);border-radius:14px;padding:16px;
+  box-shadow:3px 3px 0 #2A9D8F22
+}
+.fav-panel h3{font-family:'Space Grotesk',sans-serif;font-size:15px;display:flex;align-items:center;gap:7px;margin-bottom:12px}
+.fav-row{margin-bottom:12px}
+.fav-row:last-child{margin-bottom:0}
+.fav-row .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600;margin-bottom:6px}
+.fav-tags{display:flex;flex-wrap:wrap;gap:6px}
+.fav-tag{
+  font-size:13px;background:var(--paper);border:1.5px solid #0a0a0a26;border-radius:8px;
+  padding:5px 9px;display:inline-flex;align-items:center;gap:7px
+}
+.fav-tag .go{cursor:pointer;font-weight:600;color:var(--ink)}
+.fav-tag .go:hover{color:var(--green)}
+.fav-tag .rm{cursor:pointer;color:#0a0a0a55;font-size:15px;line-height:1}
+.fav-tag .rm:hover{color:var(--red)}
+.fav-empty{font-size:12px;color:var(--muted);font-style:italic}
+.fav-actions{margin-top:14px;padding-top:12px;border-top:1px dashed #0a0a0a26;display:flex;gap:8px;flex-wrap:wrap}
+.mini{
+  font-size:12px;font-weight:600;padding:7px 12px;border-radius:8px;cursor:pointer;
+  background:transparent;border:1.5px solid var(--ink);color:var(--ink);font-family:'Inter',sans-serif
+}
+.mini:hover{background:var(--ink);color:var(--paper)}
+
+/* ---- DURUMLAR ---- */
+.state{text-align:center;padding:48px 20px;color:var(--muted)}
+.state .big{font-size:40px;margin-bottom:10px}
+.state h4{font-family:'Space Grotesk',sans-serif;color:var(--ink);font-size:17px;margin-bottom:6px;font-weight:500}
+.state p{font-size:14px;max-width:380px;margin:0 auto}
+.spinner{width:34px;height:34px;border:3px solid #0a0a0a1a;border-top-color:var(--red);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 14px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.err{color:var(--red)}
+.err .mini{margin-top:14px;border-color:var(--red);color:var(--red)}
+.err .mini:hover{background:var(--red);color:#fff}
+
+footer{margin-top:40px;padding-top:18px;border-top:2px dashed #0a0a0a26;font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;text-align:center;line-height:1.7}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media (max-width:480px){
+  .d-depot{max-width:130px}
+  .search button{padding:0 16px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand">
+      <h1>Sepet Dedektifi</h1>
+      <span class="tag">v1 · TÜBİTAK verisi</span>
+    </div>
+    <p class="sub">Bir ürünü ara, konumuna en yakın marketlerde kim daha ucuz gör. Favori market ve ürünlerini ⭐ ile sabitle.</p>
+
+    <div class="loc">
+      <select id="ilSelect" aria-label="İl seçin"></select>
+      <select id="ilceSelect" aria-label="İlçe seçin" style="display:none"></select>
+      <button class="btn-gps" id="gpsBtn">📍 Konumumu kullan</button>
+      <span class="loc-status" id="locStatus">Konum: İstanbul (varsayılan)</span>
+    </div>
+
+    <div class="search">
+      <input id="q" type="text" placeholder='Ürün ara… örn: clear şampuan, süt, kahve' autocomplete="off" enterkeyhint="search">
+      <button id="goBtn">Ara</button>
+    </div>
+
+    <div class="filters" id="filters">
+      <!-- market çipleri JS ile -->
+      <label class="toggle-fav"><input type="checkbox" id="favOnly"> ⭐ Sadece favori marketler</label>
+    </div>
+  </header>
+
+  <div class="results" id="results">
+    <div class="state">
+      <div class="big">🧾</div>
+      <h4>Aramaya hazır</h4>
+      <p>Yukarıdan bir ürün adı yaz. Sonuçlar konumuna göre en ucuzdan pahalıya sıralanır.</p>
+    </div>
+  </div>
+
+  <section class="fav-panel" id="favPanel">
+    <h3>⭐ Favorilerim</h3>
+    <div class="fav-row">
+      <div class="lbl">Marketler / Şubeler</div>
+      <div class="fav-tags" id="favMarkets"><span class="fav-empty">Henüz favori market yok. Sonuçlarda ☆ simgesine dokun.</span></div>
+    </div>
+    <div class="fav-row">
+      <div class="lbl">Ürünler</div>
+      <div class="fav-tags" id="favProducts"><span class="fav-empty">Henüz favori ürün yok. Ürün başlığındaki ☆ ile ekle.</span></div>
+    </div>
+    <div class="fav-actions">
+      <button class="mini" id="exportBtn">⬇ Yedek indir (JSON)</button>
+      <button class="mini" id="importBtn">⬆ Yedek yükle</button>
+      <input type="file" id="importFile" accept="application/json" style="display:none">
+    </div>
+  </section>
+
+  <footer>
+    Veri kaynağı: marketfiyati.org.tr (TÜBİTAK BİLGEM) · 7 zincir: BİM, A101, ŞOK, Migros, CarrefourSA, Hakmar, Tarım Kredi<br>
+    Fiyatlar günlük güncellenir, şube rafıyla farklılık gösterebilir · Bu araç satış yapmaz, yalnızca kıyaslar
+  </footer>
+</div>
+
+<script>
+"use strict";
+
+/* =========================================================
+   AYARLAR
+========================================================= */
+var CORS_PROXY = "https://mycors.recepyeni.workers.dev/?url=";
+var API_URL    = "https://api.marketfiyati.org.tr/api/v2/search";
+
+// Market kimlik -> görünen ad + renk (logo yerine renkli rozet)
+var MARKETS = {
+  bim:         {ad:"BİM",         renk:"#ED1C24"},
+  a101:        {ad:"A101",        renk:"#003C8F"},
+  sok:         {ad:"ŞOK",         renk:"#F9A01B"},
+  migros:      {ad:"Migros",      renk:"#F37021"},
+  carrefour:   {ad:"CarrefourSA", renk:"#004B93"},
+  hakmar:      {ad:"Hakmar",      renk:"#E2001A"},
+  tarim_kredi: {ad:"Tarım Kredi", renk:"#1B7A3D"}
+};
+
+// İl + ilçe merkez koordinatları (yaygın iller; ilçe seçilince hassaslaşır)
+var KONUMLAR = {
+  "İstanbul":{lat:41.0082,lon:28.9784,ilceler:{
+    "Kadıköy":[40.9901,29.0276],"Beşiktaş":[41.0430,29.0094],"Üsküdar":[41.0226,29.0150],
+    "Bakırköy":[40.9819,28.8772],"Şişli":[41.0602,28.9877],"Beyoğlu":[41.0370,28.9770],
+    "Ataşehir":[40.9923,29.1244],"Maltepe":[40.9351,29.1300],"Bağcılar":[41.0394,28.8567],
+    "Pendik":[40.8776,29.2588],"Esenyurt":[41.0344,28.6800],"Ümraniye":[41.0166,29.1244]}},
+  "Ankara":{lat:39.9334,lon:32.8597,ilceler:{
+    "Çankaya":[39.9208,32.8541],"Keçiören":[39.9870,32.8696],"Yenimahalle":[39.9700,32.7800],
+    "Mamak":[39.9400,32.9100],"Etimesgut":[39.9450,32.6500],"Sincan":[39.9700,32.5800]}},
+  "İzmir":{lat:38.4237,lon:27.1428,ilceler:{
+    "Konak":[38.4189,27.1287],"Karşıyaka":[38.4600,27.1100],"Bornova":[38.4700,27.2200],
+    "Buca":[38.3800,27.1700],"Bayraklı":[38.4620,27.1700],"Çiğli":[38.4950,27.0700]}},
+  "Bursa":{lat:40.1885,lon:29.0610,ilceler:{
+    "Osmangazi":[40.1900,29.0600],"Nilüfer":[40.2150,28.9700],"Yıldırım":[40.1850,29.1000]}},
+  "Antalya":{lat:36.8969,lon:30.7133,ilceler:{
+    "Muratpaşa":[36.8850,30.7100],"Kepez":[36.9200,30.7000],"Konyaaltı":[36.8700,30.6300]}},
+  "Adana":{lat:37.0000,lon:35.3213,ilceler:{
+    "Seyhan":[37.0000,35.3200],"Çukurova":[37.0500,35.2800],"Yüreğir":[36.9900,35.3700]}},
+  "Konya":{lat:37.8714,lon:32.4847,ilceler:{
+    "Selçuklu":[37.8900,32.4900],"Meram":[37.8500,32.4500],"Karatay":[37.8800,32.5200]}},
+  "Gaziantep":{lat:37.0662,lon:37.3833,ilceler:{
+    "Şahinbey":[37.0600,37.3800],"Şehitkamil":[37.0900,37.3600]}},
+  "Kocaeli":{lat:40.8533,lon:29.8815,ilceler:{
+    "İzmit":[40.7650,29.9400],"Gebze":[40.8000,29.4300],"Darıca":[40.7600,29.3800]}},
+  "Mersin":{lat:36.8121,lon:34.6415,ilceler:{
+    "Yenişehir":[36.8000,34.6200],"Mezitli":[36.7400,34.5300],"Toroslar":[36.8300,34.6300]}}
+};
+
+/* =========================================================
+   DURUM (favoriler)
+   favMarkets: { "marketKey|depotId": {market, depot} }
+   favProducts: [ "ürün adı" ]
+========================================================= */
+var STORE_KEY = "sepet_dedektifi_v1";
+var state = {
+  favMarkets:{},      // anahtar: market key + "|" + depotId
+  favProducts:[],     // ürün başlıkları
+  loc:{ad:"İstanbul",lat:41.0082,lon:28.9784},
+  marketFilter:{},    // her market açık mı (chip)
+  favOnly:false,
+  lastResults:[]
+};
+
+function loadStore(){
+  try{
+    var raw=localStorage.getItem(STORE_KEY);
+    if(raw){
+      var d=JSON.parse(raw);
+      if(d.favMarkets) state.favMarkets=d.favMarkets;
+      if(Array.isArray(d.favProducts)) state.favProducts=d.favProducts;
+      if(d.loc) state.loc=d.loc;
+    }
+  }catch(e){/* bozuk veri -> sıfırdan */}
+}
+function saveStore(){
+  try{
+    localStorage.setItem(STORE_KEY,JSON.stringify({
+      favMarkets:state.favMarkets,favProducts:state.favProducts,loc:state.loc
+    }));
+  }catch(e){/* localStorage kapalı olabilir, sessiz geç */}
+}
+
+/* =========================================================
+   DOM kısayolları
+========================================================= */
+function $(id){return document.getElementById(id);}
+var elResults=$("results"), elQ=$("q"), elGo=$("goBtn"),
+    elIl=$("ilSelect"), elIlce=$("ilceSelect"), elGps=$("gpsBtn"),
+    elLocStatus=$("locStatus"), elFilters=$("filters"), elFavOnly=$("favOnly"),
+    elFavMarkets=$("favMarkets"), elFavProducts=$("favProducts");
+
+/* =========================================================
+   KONUM kurulumu
+========================================================= */
+function initLoc(){
+  var iller=Object.keys(KONUMLAR);
+  elIl.innerHTML=iller.map(function(i){return '<option value="'+i+'">'+i+'</option>';}).join("");
+  elIl.value = KONUMLAR[state.loc.ad] ? state.loc.ad : "İstanbul";
+  fillIlce(elIl.value);
+  applyIlIlce();
+
+  elIl.addEventListener("change",function(){fillIlce(elIl.value);applyIlIlce();});
+  elIlce.addEventListener("change",applyIlIlce);
+  elGps.addEventListener("click",useGps);
+}
+function fillIlce(il){
+  var ilceler=KONUMLAR[il].ilceler||{};
+  var keys=Object.keys(ilceler);
+  if(keys.length){
+    elIlce.style.display="";
+    elIlce.innerHTML='<option value="">Tüm il (merkez)</option>'+
+      keys.map(function(k){return '<option value="'+k+'">'+k+'</option>';}).join("");
+  }else{elIlce.style.display="none";elIlce.innerHTML="";}
+}
+function applyIlIlce(){
+  var il=elIl.value, ilce=elIlce.value;
+  var c=KONUMLAR[il];
+  if(ilce && c.ilceler[ilce]){
+    state.loc={ad:il+" / "+ilce,lat:c.ilceler[ilce][0],lon:c.ilceler[ilce][1]};
+  }else{
+    state.loc={ad:il,lat:c.lat,lon:c.lon};
+  }
+  elLocStatus.innerHTML="Konum: <b>"+state.loc.ad+"</b>";
+  saveStore();
+}
+function useGps(){
+  if(!navigator.geolocation){elLocStatus.textContent="Bu tarayıcı konum desteklemiyor.";return;}
+  elLocStatus.textContent="Konum alınıyor…";
+  navigator.geolocation.getCurrentPosition(function(p){
+    state.loc={ad:"Konumum (GPS)",lat:p.coords.latitude,lon:p.coords.longitude};
+    elLocStatus.innerHTML="Konum: <b>GPS ("+state.loc.lat.toFixed(3)+", "+state.loc.lon.toFixed(3)+")</b>";
+    saveStore();
+  },function(){
+    elLocStatus.textContent="Konum izni verilmedi. İl/ilçe seçebilirsin.";
+  },{timeout:10000,enableHighAccuracy:true});
+}
+
+/* =========================================================
+   MARKET FİLTRE çipleri
+========================================================= */
+function initFilters(){
+  var html="";
+  Object.keys(MARKETS).forEach(function(k){
+    state.marketFilter[k]=true;
+    html+='<button class="chip on" data-m="'+k+'">'+MARKETS[k].ad+'</button>';
+  });
+  // çipleri favOnly toggle'dan ÖNCE ekle
+  elFilters.insertAdjacentHTML("afterbegin",html);
+  elFilters.querySelectorAll(".chip").forEach(function(ch){
+    ch.addEventListener("click",function(){
+      var k=ch.getAttribute("data-m");
+      state.marketFilter[k]=!state.marketFilter[k];
+      ch.classList.toggle("on",state.marketFilter[k]);
+      render();
+    });
+  });
+  elFavOnly.addEventListener("change",function(){state.favOnly=elFavOnly.checked;render();});
+}
+
+/* =========================================================
+   ARAMA / API
+========================================================= */
+function setState(html){elResults.innerHTML=html;}
+function loading(){
+  setState('<div class="state"><div class="spinner"></div><h4>Aranıyor…</h4><p>'+
+    state.loc.ad+' çevresindeki marketler taranıyor.</p></div>');
+}
+function errorState(msg){
+  setState('<div class="state err"><div class="big">⚠️</div><h4>Sonuç alınamadı</h4><p>'+msg+
+    '</p><button class="mini" id="retry">Tekrar dene</button></div>');
+  var r=$("retry"); if(r) r.addEventListener("click",doSearch);
+}
+
+function doSearch(){
+  var kw=elQ.value.trim();
+  if(!kw){elQ.focus();return;}
+  loading(); elGo.disabled=true;
+
+  var body=JSON.stringify({
+    keywords:kw, pages:0, size:24,
+    latitude:state.loc.lat, longitude:state.loc.lon, distance:7
+  });
+
+  fetch(CORS_PROXY+encodeURIComponent(API_URL),{
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json",
+      "X-Requested-With":"XMLHttpRequest",
+      "Origin":"https://marketfiyati.org.tr",
+      "Referer":"https://marketfiyati.org.tr/"
+    },
+    body:body
+  })
+  .then(function(r){
+    if(!r.ok) throw new Error("Sunucu "+r.status+" döndü");
+    return r.text();
+  })
+  .then(function(txt){
+    var data;
+    try{data=JSON.parse(txt);}
+    catch(e){throw new Error("Geçersiz yanıt (muhtemelen proxy/WAF engeli). Daha sonra tekrar dene.");}
+    var content=(data&&data.content)||[];
+    state.lastResults=content;
+    if(!content.length){
+      setState('<div class="state"><div class="big">🔍</div><h4>"'+esc(kw)+'" bulunamadı</h4>'+
+        '<p>Farklı bir yazım dene ya da mesafeyi etkileyen konumu değiştir.</p></div>');
+    }else{ render(); }
+  })
+  .catch(function(e){ errorState(esc(e.message||"Bağlantı hatası")); })
+  .finally(function(){ elGo.disabled=false; });
+}
+
+/* =========================================================
+   RENDER (filtre + favori + sıralama uygulanır)
+========================================================= */
+function depotKey(marketKey,depotId){return marketKey+"|"+depotId;}
+
+function render(){
+  var content=state.lastResults;
+  if(!content.length) return;
+
+  var cardsHtml="";
+  content.forEach(function(prod){
+    var depots=(prod.productDepotInfoList||[]).slice();
+
+    // market filtresi
+    depots=depots.filter(function(d){
+      var k=d.marketAdi;
+      if(!(k in state.marketFilter)) return true; // bilinmeyen market gizlenmesin
+      return state.marketFilter[k]!==false;
+    });
+    // sadece favori marketler
+    if(state.favOnly){
+      depots=depots.filter(function(d){return !!state.favMarkets[depotKey(d.marketAdi,d.depotId)];});
+    }
+    if(!depots.length) return; // bu üründe gösterilecek şube kalmadı
+
+    // fiyata göre sırala, favoriler eşitlikte üste
+    depots.sort(function(a,b){
+      return a.price-b.price;
+    });
+
+    var min=depots[0].price, max=depots[depots.length-1].price;
+    var prodFav=state.favProducts.indexOf(prod.title)>-1;
+
+    var depotsHtml="";
+    depots.forEach(function(d){
+      var key=depotKey(d.marketAdi,d.depotId);
+      var fav=!!state.favMarkets[key];
+      var info=MARKETS[d.marketAdi]||{ad:d.marketAdi,renk:"#0A0A0A"};
+      var cheapest=(d.price===min);
+      var cls="depot"+(fav?" fav":"")+(cheapest?" cheapest":"");
+      depotsHtml+=
+        '<li class="'+cls+'">'+
+          '<button class="star d-star '+(fav?"on":"")+'" title="Marketi favorile" '+
+            'data-fk="'+esc(key)+'" data-m="'+esc(d.marketAdi)+'" data-dn="'+esc(d.depotName)+'">'+(fav?"★":"☆")+'</button>'+
+          '<div class="d-info">'+
+            '<div class="d-market"><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:'+info.renk+'"></span>'+
+              esc(info.ad)+(cheapest?' <span class="d-badge">EN UCUZ</span>':'')+'</div>'+
+            '<div class="d-depot">'+esc(d.depotName)+'</div>'+
+            (d.discount?'<div class="d-disc">↓ indirimli</div>':'')+
+          '</div>'+
+          '<div class="d-price'+(cheapest?' low':'')+'">₺ '+fmt(d.price)+
+            '<div class="d-unit">'+esc(d.unitPrice||"")+'</div></div>'+
+        '</li>';
+    });
+
+    var saving=(max-min);
+    var foot='<span>'+depots.length+' şube</span>'+
+      (saving>0?'<span class="save">en pahalıdan ₺'+fmt(saving)+' tasarruf</span>':'');
+
+    cardsHtml+=
+      '<article class="product">'+
+        '<div class="p-head">'+
+          (prod.imageUrl?'<img class="p-img" src="'+esc(prod.imageUrl)+'" alt="" loading="lazy" onerror="this.style.display=\'none\'">':'')+
+          '<div class="p-meta">'+
+            '<div class="p-title">'+esc(prod.title)+'</div>'+
+            (prod.refinedVolumeOrWeight?'<div class="p-vol">'+esc(prod.refinedVolumeOrWeight)+'</div>':'')+
+          '</div>'+
+          '<button class="star '+(prodFav?"on":"")+'" title="Ürünü favorile" data-pf="'+esc(prod.title)+'">'+(prodFav?"★":"☆")+'</button>'+
+        '</div>'+
+        '<ul class="depots">'+depotsHtml+'</ul>'+
+        '<div class="p-foot">'+foot+'</div>'+
+      '</article>';
+  });
+
+  if(!cardsHtml){
+    setState('<div class="state"><div class="big">⭐</div><h4>Filtreye uyan sonuç yok</h4>'+
+      '<p>Market filtrelerini veya "sadece favori marketler" seçeneğini gevşet.</p></div>');
+    return;
+  }
+  setState(cardsHtml);
+  bindStars();
+}
+
+function bindStars(){
+  // market yıldızları
+  elResults.querySelectorAll(".d-star").forEach(function(b){
+    b.addEventListener("click",function(){
+      var key=b.getAttribute("data-fk");
+      if(state.favMarkets[key]){delete state.favMarkets[key];}
+      else{state.favMarkets[key]={market:b.getAttribute("data-m"),depot:b.getAttribute("data-dn")};}
+      saveStore(); render(); renderFavPanel();
+    });
+  });
+  // ürün yıldızları
+  elResults.querySelectorAll(".star[data-pf]").forEach(function(b){
+    b.addEventListener("click",function(){
+      var t=b.getAttribute("data-pf");
+      var i=state.favProducts.indexOf(t);
+      if(i>-1) state.favProducts.splice(i,1); else state.favProducts.push(t);
+      saveStore(); render(); renderFavPanel();
+    });
+  });
+}
+
+/* =========================================================
+   FAVORİLER paneli
+========================================================= */
+function renderFavPanel(){
+  // marketler
+  var mKeys=Object.keys(state.favMarkets);
+  if(!mKeys.length){
+    elFavMarkets.innerHTML='<span class="fav-empty">Henüz favori market yok. Sonuçlarda ☆ simgesine dokun.</span>';
+  }else{
+    elFavMarkets.innerHTML=mKeys.map(function(k){
+      var f=state.favMarkets[k];
+      var info=MARKETS[f.market]||{ad:f.market};
+      return '<span class="fav-tag">★ '+esc(info.ad)+' · '+esc(f.depot)+
+        ' <span class="rm" data-rmm="'+esc(k)+'" title="Kaldır">×</span></span>';
+    }).join("");
+    elFavMarkets.querySelectorAll(".rm").forEach(function(x){
+      x.addEventListener("click",function(){
+        delete state.favMarkets[x.getAttribute("data-rmm")];
+        saveStore(); renderFavPanel(); render();
+      });
+    });
+  }
+  // ürünler
+  if(!state.favProducts.length){
+    elFavProducts.innerHTML='<span class="fav-empty">Henüz favori ürün yok. Ürün başlığındaki ☆ ile ekle.</span>';
+  }else{
+    elFavProducts.innerHTML=state.favProducts.map(function(t){
+      return '<span class="fav-tag"><span class="go" data-go="'+esc(t)+'">★ '+esc(t)+'</span>'+
+        ' <span class="rm" data-rmp="'+esc(t)+'" title="Kaldır">×</span></span>';
+    }).join("");
+    elFavProducts.querySelectorAll(".go").forEach(function(g){
+      g.addEventListener("click",function(){
+        elQ.value=g.getAttribute("data-go"); doSearch();
+        window.scrollTo({top:0,behavior:"smooth"});
+      });
+    });
+    elFavProducts.querySelectorAll(".rm").forEach(function(x){
+      x.addEventListener("click",function(){
+        var t=x.getAttribute("data-rmp");
+        var i=state.favProducts.indexOf(t); if(i>-1) state.favProducts.splice(i,1);
+        saveStore(); renderFavPanel(); render();
+      });
+    });
+  }
+}
+
+/* =========================================================
+   YEDEK (export / import)
+========================================================= */
+function initBackup(){
+  $("exportBtn").addEventListener("click",function(){
+    var data={
+      _app:"Sepet Dedektifi", _v:1, tarih:new Date().toISOString(),
+      favMarkets:state.favMarkets, favProducts:state.favProducts, loc:state.loc
+    };
+    var blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement("a");
+    a.href=url; a.download="sepet-dedektifi-yedek.json";
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+  });
+  $("importBtn").addEventListener("click",function(){$("importFile").click();});
+  $("importFile").addEventListener("change",function(e){
+    var f=e.target.files[0]; if(!f) return;
+    var rd=new FileReader();
+    rd.onload=function(){
+      try{
+        var d=JSON.parse(rd.result);
+        if(d.favMarkets) state.favMarkets=d.favMarkets;
+        if(Array.isArray(d.favProducts)) state.favProducts=d.favProducts;
+        if(d.loc){state.loc=d.loc; elLocStatus.innerHTML="Konum: <b>"+esc(state.loc.ad)+"</b>";}
+        saveStore(); renderFavPanel(); render();
+        alert("Yedek yüklendi ✓");
+      }catch(err){alert("Geçersiz yedek dosyası.");}
+      e.target.value="";
+    };
+    rd.readAsText(f);
+  });
+}
+
+/* =========================================================
+   YARDIMCI
+========================================================= */
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function fmt(n){return Number(n).toLocaleString("tr-TR",{minimumFractionDigits:2,maximumFractionDigits:2});}
+
+/* =========================================================
+   BAŞLAT
+========================================================= */
+loadStore();
+initLoc();
+initFilters();
+initBackup();
+renderFavPanel();
+elGo.addEventListener("click",doSearch);
+elQ.addEventListener("keydown",function(e){if(e.key==="Enter")doSearch();});
+</script>
+</body>
+</html>
