@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cihaz Bilgisi</title>
+<style>
+  :root{
+    --bg:#0a0e17;
+    --panel:#121826;
+    --line:#1f2a3d;
+    --ink:#e8edf5;
+    --dim:#7c8aa3;
+    --accent:#3dd6c4;
+    --accent2:#ff7a59;
+    --mono:'SF Mono',ui-monospace,'Cascadia Code',Consolas,monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:radial-gradient(120% 80% at 50% -10%,#16203a 0%,var(--bg) 55%);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+  }
+  .card{
+    width:100%;
+    max-width:480px;
+    background:linear-gradient(180deg,var(--panel),#0e1421);
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:32px 28px 28px;
+    box-shadow:0 24px 60px -20px rgba(0,0,0,.7);
+  }
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    color:var(--accent);
+    margin-bottom:18px;
+  }
+  .device{
+    font-size:30px;
+    font-weight:700;
+    line-height:1.15;
+    letter-spacing:-.02em;
+    margin-bottom:6px;
+    word-break:break-word;
+  }
+  .brand{
+    font-size:14px;
+    color:var(--dim);
+    margin-bottom:26px;
+    min-height:18px;
+  }
+  .grid{
+    display:grid;
+    gap:1px;
+    background:var(--line);
+    border:1px solid var(--line);
+    border-radius:12px;
+    overflow:hidden;
+  }
+  .row{
+    background:var(--panel);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:14px;
+    padding:13px 16px;
+  }
+  .row .k{
+    font-size:12px;
+    letter-spacing:.04em;
+    color:var(--dim);
+    text-transform:uppercase;
+    flex:0 0 auto;
+  }
+  .row .v{
+    font-family:var(--mono);
+    font-size:13px;
+    text-align:right;
+    word-break:break-word;
+    color:var(--ink);
+  }
+  .note{
+    margin-top:20px;
+    font-size:12px;
+    line-height:1.6;
+    color:var(--dim);
+    border-left:2px solid var(--accent2);
+    padding-left:12px;
+  }
+  .pill{
+    display:inline-block;
+    font-family:var(--mono);
+    font-size:11px;
+    padding:2px 8px;
+    border-radius:999px;
+    border:1px solid var(--line);
+    color:var(--accent);
+  }
+  .pill.warn{color:var(--accent2)}
+</style>
+</head>
+<body>
+  <main class="card">
+    <div class="eyebrow">Cihaz Tespiti</div>
+    <h1 class="device" id="model">Tespit ediliyor…</h1>
+    <div class="brand" id="brand">&nbsp;</div>
+
+    <div class="grid" id="grid"></div>
+
+    <p class="note" id="note">
+      Model, Google Play resmi cihaz listesinden (her gün güncellenir) çözümlenir.
+      En doğru sonuç Android + Chrome/Edge gibi Chromium tabanlı tarayıcılarda alınır.
+    </p>
+  </main>
+
+<script>
+"use strict";
+
+/* ============================================================
+   VERİ KAYNAĞI: Google Play resmi "supported devices" listesi.
+   Model kodu → marka + pazarlama ismi (42.000+ cihaz).
+   Her gün otomatik güncellenir, jsDelivr CDN ile CORS'suz sunulur.
+   ============================================================ */
+const CDN_LIST = [
+  "https://cdn.jsdelivr.net/gh/bsthen/device-models/devices.json",
+  "https://cdn.statically.io/gh/bsthen/device-models/main/devices.json",
+  "https://raw.githubusercontent.com/bsthen/device-models/main/devices.json"
+];
+
+/* Çevrimdışı / listede bulunamayan durumlar için küçük yedek tablo */
+const YEDEK_TABLO = {
+  "21091116UG":{brand:"Redmi", name:"Redmi Note 11 Pro+ 5G"},
+  "2201116TG":{brand:"Redmi", name:"Redmi Note 11 Pro+ 5G"},
+  "SM-S918B":{brand:"Samsung", name:"Galaxy S23 Ultra"},
+  "SM-S928B":{brand:"Samsung", name:"Galaxy S24 Ultra"}
+};
+
+let DEVICE_MAP = null;
+
+function ekleSatir(k, v){
+  const grid = document.getElementById("grid");
+  const row = document.createElement("div");
+  row.className = "row";
+  const kEl = document.createElement("span"); kEl.className="k"; kEl.textContent=k;
+  const vEl = document.createElement("span"); vEl.className="v"; vEl.textContent=v;
+  row.appendChild(kEl); row.appendChild(vEl);
+  grid.appendChild(row);
+}
+
+async function listeyiYukle(){
+  for(const url of CDN_LIST){
+    try{
+      const r = await fetch(url, {cache:"force-cache"});
+      if(r.ok){
+        const j = await r.json();
+        if(j && typeof j === "object") return j;
+      }
+    }catch(e){ /* sıradaki CDN'i dene */ }
+  }
+  return null;
+}
+
+function uaModelKodu(){
+  const ua = navigator.userAgent || "";
+  const m = ua.match(/Android[^;]*;\s*([^;)]+?)\s*(?:Build|;|\))/i);
+  if(m && m[1]){
+    const kod = m[1].trim();
+    if(kod && kod.toUpperCase() !== "K") return kod;
+  }
+  return null;
+}
+
+/* Model kodunu listede ara: birebir, büyük/küçük harf duyarsız ve boşluk toleranslı */
+/* Alt/üst marka düzeltme: Google listesinde "Redmi" geçer ama kullanıcı
+   "Xiaomi" bekler. Liste isimlerini ana markaya bağlar. */
+const UST_MARKA = {
+  "redmi":"Xiaomi", "poco":"Xiaomi", "xiaomi":"Xiaomi",
+  "lge":"LG",
+  "tct (alcatel)":"Alcatel", "tct":"Alcatel",
+  "honor":"Honor",
+  "galaxy":"Samsung"
+};
+
+/* Marka + model ismini, başında marka tekrarını önleyerek birleştirir.
+   Örn: marka "Xiaomi", isim "Redmi Note 11 Pro+ 5G" -> "Xiaomi Redmi Note 11 Pro+ 5G"
+        marka "Samsung", isim "Galaxy S23" -> "Samsung Galaxy S23"
+        marka "Google", isim "Pixel 8" -> "Google Pixel 8" */
+function tamIsim(eslesme){
+  if(!eslesme) return null;
+  const ham = (eslesme.brand || "").trim();
+  const ana = UST_MARKA[ham.toLowerCase()] || ham;
+  let isim = (eslesme.name || "").trim();
+  // İsim zaten ana marka ile başlıyorsa tekrar ekleme
+  if(ana && isim.toLowerCase().indexOf(ana.toLowerCase()) !== 0){
+    isim = ana + " " + isim;
+  }
+  return {marka: ana || ham, isim: isim};
+}
+
+function listedeBul(kod){
+  if(!kod) return null;
+  if(YEDEK_TABLO[kod]) {/* yedek varsa bile önce canlı listeye bakılır */}
+  if(DEVICE_MAP){
+    if(DEVICE_MAP[kod]) return DEVICE_MAP[kod];
+    const alt = kod.toUpperCase();
+    for(const key in DEVICE_MAP){
+      if(key.toUpperCase() === alt) return DEVICE_MAP[key];
+    }
+  }
+  if(YEDEK_TABLO[kod]) return YEDEK_TABLO[kod];
+  return null;
+}
+
+async function tespitEt(){
+  let modelKodu = null;
+  let platform = navigator.platform || "—";
+  let mobil = "—";
+  let kaynak = "userAgent";
+
+  // 1) En güvenilir: Client Hints (Chromium)
+  if(navigator.userAgentData){
+    mobil = navigator.userAgentData.mobile ? "Evet" : "Hayır";
+    platform = navigator.userAgentData.platform || platform;
+    try{
+      const hi = await navigator.userAgentData.getHighEntropyValues(["model"]);
+      if(hi && hi.model){
+        modelKodu = hi.model;
+        kaynak = "userAgentData (Client Hints)";
+      }
+    }catch(e){}
+  }
+
+  // 2) Fallback: userAgent string
+  if(!modelKodu){
+    modelKodu = uaModelKodu();
+  }
+
+  // 3) Canlı listeyi yükle ve eşleştir
+  DEVICE_MAP = await listeyiYukle();
+  const eslesme = listedeBul(modelKodu);
+
+  const ua = navigator.userAgent.toLowerCase();
+  const modelEl = document.getElementById("model");
+  const brandEl = document.getElementById("brand");
+  const noteEl  = document.getElementById("note");
+
+  const tam = tamIsim(eslesme);
+  let marka = tam ? tam.marka : "";
+  let kaynakEtiket = DEVICE_MAP ? "Google Play listesi" : "yedek tablo";
+
+  if(eslesme){
+    modelEl.textContent = tam.isim || eslesme.name || modelKodu;
+    brandEl.innerHTML = (marka ? marka + " · " : "") +
+      '<span class="pill">' + (DEVICE_MAP ? "canlı eşleşme" : "yedek eşleşme") + '</span>';
+  }else if(/iphone|ipad|ipod/.test(ua)){
+    modelEl.textContent = /ipad/.test(ua) ? "iPad" : (/ipod/.test(ua) ? "iPod" : "iPhone");
+    marka = "Apple";
+    brandEl.innerHTML = 'Apple · <span class="pill warn">model gizli</span>';
+    noteEl.textContent = "Apple/Safari cihaz modelini paylaşmaz; yalnızca cihaz türü alınabilir. Kesin model tespiti iOS'ta mümkün değildir.";
+  }else if(modelKodu){
+    modelEl.textContent = modelKodu;
+    brandEl.innerHTML = 'Bilinmeyen · <span class="pill warn">ham kod</span>';
+    noteEl.textContent = "Model kodu alındı ancak Google Play listesinde bulunamadı (çok yeni veya Play servissiz cihaz olabilir).";
+  }else{
+    modelEl.textContent = "Model gizli";
+    brandEl.innerHTML = '<span class="pill warn">tespit edilemedi</span>';
+    noteEl.textContent = "Bu tarayıcı cihaz modelini paylaşmıyor (Safari/Firefox veya gizlilik kısıtı). Android + Chrome ile deneyin.";
+  }
+
+  ekleSatir("Marka", marka || "—");
+  ekleSatir("Model kodu", modelKodu || "—");
+  ekleSatir("Platform", platform);
+  ekleSatir("Mobil mi", mobil);
+  ekleSatir("Veri kaynağı", kaynakEtiket);
+  ekleSatir("Tespit yöntemi", kaynak);
+}
+
+tespitEt();
+</script>
+</body>
+</html>
