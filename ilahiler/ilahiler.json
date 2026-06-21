@@ -1,0 +1,462 @@
+{
+  "ilahiler": [
+    {
+      "id": "i01",
+      "baslik": "Sordum Sarı Çiçeğe",
+      "sair": "Yunus Emre",
+      "makam": "Hüseyni",
+      "tema": ["Vahdet", "İlâhî aşk"],
+      "kaynak": "Yunus Emre Divanı",
+      "referans": "",
+      "nakarat": [],
+      "kitalar": [
+        ["Sordum sarı çiçeğe", "Annen baban var mıdır", "Çiçek eydür ey derviş", "Annem babam topraktır"],
+        ["Sordum sarı çiçeğe", "Sen Hakk'ı sever misin", "Çiçek eydür ey derviş", "Hak'tan ayrı yer mi var"],
+        ["Sordum sarı çiçeğe", "Kardeşlerin var mıdır", "Çiçek eydür ey derviş", "Kardeşlerim yapraktır"],
+        ["Sordum sarı çiçeğe", "Sen beni anar mısın", "Çiçek eydür ey derviş", "Ben Hakk'ı zikrederim"]
+      ],
+      "notlar": "Yunus'a atfedilen söyleşme (diyalog) ilahisi; varyantları çoktur."
+    },
+    {
+      "id": "i02",
+      "baslik": "Şol Cennetin Irmakları",
+      "sair": "Yunus Emre",
+      "makam": "Uşşak",
+      "tema": ["Vahdet", "Zikir"],
+      "kaynak": "Yunus Emre Divanı",
+      "referans": "",
+      "nakarat": [],
+      "kitalar": [
+        ["Şol cennetin ırmakları", "Akar Allah deyu deyu", "Çıkmış İslâm bülbülleri", "Öter Allah deyu deyu"],
+        ["Salınır tûbâ dalları", "Kur'ân okur hem dilleri", "Cennet bağının gülleri", "Kokar Allah deyu deyu"],
+        ["Aydan arıdır yüzleri", "Misk ü amberdir sözleri", "Cennette hûrî kızları", "Gezer Allah deyu deyu"]
+      ],
+      "notlar": ""
+    },
+    {
+      "id": "i03",
+      "baslik": "Aşkın Aldı Benden Beni",
+      "sair": "Yunus Emre",
+      "makam": "Hüzzam",
+      "tema": ["Vahdet", "İlâhî aşk"],
+      "kaynak": "Yunus Emre Divanı",
+      "referans": "",
+      "nakarat": ["Aşkın aldı benden beni", "Bana seni gerek seni", "Ben yanarım dün ü günü", "Bana seni gerek seni"],
+      "kitalar": [
+        ["Ne varlığa sevinirim", "Ne yokluğa yerinirim", "Aşkın ile avunurum", "Bana seni gerek seni"],
+        ["Sûfîlere sohbet gerek", "Ahîlere âhret gerek", "Mecnûnlara Leylâ gerek", "Bana seni gerek seni"],
+        ["Yûnus durur benim adım", "Gün geçtikçe artar odum", "İki cihânda maksûdum", "Bana seni gerek seni"]
+      ],
+      "notlar": "“Bana Seni Gerek Seni” adıyla da bilinir."
+    },
+    {
+      "id": "i04",
+      "baslik": "Gel Gör Beni Aşk Neyledi",
+      "sair": "Yunus Emre",
+      "makam": "Sabâ",
+      "tema": ["Vahdet", "İlâhî aşk"],
+      "kaynak": "Yunus Emre Divanı",
+      "referans": "",
+      "nakarat": ["Ben yürürüm yâne yâne", "Aşk boyadı beni kâne", "Ne âkilem ne dîvâne", "Gel gör beni aşk neyledi"],
+      "kitalar": [
+        ["Gâh eserim yeller gibi", "Gâh tozarım yollar gibi", "Gâh akarım seller gibi", "Gel gör beni aşk neyledi"],
+        ["Mecnûn oluban yürürüm", "O yâri düşte görürüm", "Uyanıp melûl olurum", "Gel gör beni aşk neyledi"],
+        ["Ben Yûnus-ı bîçâreyim", "Baştan ayağa yâreyim", "Dost ilinde âvâreyim", "Gel gör beni aşk neyledi"]
+      ],
+      "notlar": "“Ben Yürürüm Yâne Yâne” adıyla da bilinir."
+    },
+    {
+      "id": "i05",
+      "baslik": "Hak Cihana Doludur",
+      "sair": "Yunus Emre",
+      "makam": "",
+      "tema": ["Vahdet"],
+      "kaynak": "Yunus Emre Divanı",
+      "referans": "",
+      "nakarat": [],
+      "kitalar": [
+        ["Hak cihâna doludur", "Kimseler Hak'kı bilmez", "Onu sen senden iste", "O senden ayrı olmaz"],
+        ["Dünyâya inanırsın", "Rızka benimdir dersin", "Niçin yalan söylersin", "Çün sen dediğin olmaz"]
+      ],
+      "notlar": "Vahdet-i vücûd temalı; sözler kısmen, tamamlanabilir."
+    },
+    {
+      "id": "i06",
+      "baslik": "Dağlar ile Taşlar ile",
+      "sair": "Yunus Emre",
+      "makam": "Hicaz",
+      "tema": ["Vahdet", "Zikir"],
+      "kaynak": "Yunus Emre Divanı",
+      "referans": "",
+      "nakarat": ["Dağlar ile taşlar ile", "Çağırayım Mevlâm seni", "Seherlerde kuşlar ile", "Çağırayım Mevlâm seni"],
+      "kitalar": [
+        ["Sular dibinde mâhî ile", "Sahrâlarda âhû ile", "Abdal olup yâ Hû ile", "Çağırayım Mevlâm seni"],
+        ["Gökyüzünde Îsâ ile", "Tûr dağında Mûsâ ile", "Elindeki asâ ile", "Çağırayım Mevlâm seni"],
+        ["Yûnus okur diller ile", "Ol kumru bülbüller ile", "Hakk'ı seven kullar ile", "Çağırayım Mevlâm seni"]
+      ],
+      "notlar": ""
+    },
+    {
+      "id": "i07",
+      "baslik": "Severim Ben Seni Candan İçeri",
+      "sair": "Yunus Emre",
+      "makam": "Uşşak",
+      "tema": ["Vahdet", "İlâhî aşk"],
+      "kaynak": "Yunus Emre Divanı",
+      "referans": "",
+      "nakarat": [],
+      "kitalar": [
+        ["Severim ben seni cândan içeri", "Yolum vardır bu erkândan içeri"],
+        ["Beni bende demen bende değilim", "Bir ben vardır bende benden içeri"],
+        ["Nereye bakar isem dolusun sen", "Cihâna sığmazsın handan içeri"],
+        ["Senin aşkın denizine dalandan", "Haber sorma bu cândan içeri"]
+      ],
+      "notlar": "Gazel biçimindedir; beyitler hâlinde."
+    },
+    {
+      "id": "i08",
+      "baslik": "Çıktım Erik Dalına",
+      "sair": "Yunus Emre",
+      "makam": "",
+      "tema": ["Şathiye", "Tasavvuf"],
+      "kaynak": "Yunus Emre Divanı",
+      "referans": "",
+      "nakarat": [],
+      "kitalar": [
+        ["Çıktım erik dalına", "Anda yedim üzümü", "Bostan ıssı kakıyıp", "Der ne yersin kozumu"],
+        ["Kerpiç koydum kazana", "Poyraz ile kaynattım", "Nedir diye sorana", "Bandım verdim özünü"],
+        ["İplik verdim çulhaya", "Sarıp yumak etmemiş", "Becid becid ısmarlar", "Gelsin alsın bezini"]
+      ],
+      "notlar": "Şathiye: zâhirde tuhaf, bâtında remizli söyleyiş."
+    },
+    {
+      "id": "i09",
+      "baslik": "Bir Kez Gönül Yıktın İse",
+      "sair": "Yunus Emre",
+      "makam": "",
+      "tema": ["Tasavvuf", "Ahlâk"],
+      "kaynak": "Yunus Emre Divanı",
+      "referans": "",
+      "nakarat": [],
+      "kitalar": [
+        ["Bir kez gönül yıktın ise", "Bu kıldığın namaz değil", "Yetmiş iki millet dahi", "Elin yüzün yumaz değil"],
+        ["Bir gönülü yaptın ise", "Er eteğin tuttun ise", "Bir kez hayır ettin ise", "Binde bir ise az değil"],
+        ["Yol odur ki doğru vara", "Göz odur ki Hakk'ı göre", "Er odur ki alçakta dura", "Yüceden bakan göz değil"]
+      ],
+      "notlar": ""
+    },
+    {
+      "id": "i10",
+      "baslik": "İlim İlim Bilmektir",
+      "sair": "Yunus Emre",
+      "makam": "",
+      "tema": ["Tasavvuf", "Mârifet"],
+      "kaynak": "Yunus Emre Divanı",
+      "referans": "",
+      "nakarat": [],
+      "kitalar": [
+        ["İlim ilim bilmektir", "İlim kendin bilmektir", "Sen kendini bilmezsin", "Ya nice okumaktır"],
+        ["Okumaktan murâd ne", "Kişi Hak'kı bilmektir", "Çün okudun bilmezsin", "Ha bir kuru emektir"],
+        ["Dört kitabın mânâsı", "Bellidir bir elifte", "Sen elifi bilmezsin", "Bu nice okumaktır"]
+      ],
+      "notlar": ""
+    },
+    {
+      "id": "i11",
+      "baslik": "Cennet Cennet Dedikleri",
+      "sair": "Yunus Emre",
+      "makam": "",
+      "tema": ["Vahdet", "İlâhî aşk"],
+      "kaynak": "Yunus Emre Divanı",
+      "referans": "",
+      "nakarat": [],
+      "kitalar": [
+        ["Cennet cennet dedikleri", "Birkaç köşkle birkaç hûri", "İsteyene ver sen anı", "Bana seni gerek seni"],
+        ["Aşkın âşıkları öldürür", "Aşk denizine daldırır", "Tecellî ile doldurur", "Bana seni gerek seni"]
+      ],
+      "notlar": "“Bana seni gerek seni” redifli ilahinin bir bölümü olarak da okunur."
+    },
+    {
+      "id": "i12",
+      "baslik": "Cânâ Cefâ Kıl ya Vefâ",
+      "sair": "Eşrefoğlu Rûmî",
+      "makam": "",
+      "tema": ["Vahdet", "Teslîmiyet"],
+      "kaynak": "Eşrefoğlu Divanı",
+      "referans": "",
+      "nakarat": ["Cânâ cefâ kıl ya vefâ", "Kahrın da hoş lütfun da hoş", "Yâ cismimi yak yâ yıka", "Kahrın da hoş lütfun da hoş"],
+      "kitalar": [
+        ["Ger bağ u ger bostan ola", "Ger bend ü ger zindan ola", "Ger vasl u ger hicran ola", "Kahrın da hoş lütfun da hoş"],
+        ["Aşkın şarâbın sun bana", "Kıl bin parça bağrım kana", "Çün geldi cânım cânâna", "Kahrın da hoş lütfun da hoş"]
+      ],
+      "notlar": "Bazı kaynaklarda Aziz Mahmud Hüdâyî'ye de atfedilir."
+    },
+    {
+      "id": "i13",
+      "baslik": "Derman Arardım Derdime",
+      "sair": "Niyazi Mısrî",
+      "makam": "Hüseyni",
+      "tema": ["Vahdet", "Mârifet"],
+      "kaynak": "Niyazî-i Mısrî Divanı",
+      "referans": "",
+      "nakarat": [],
+      "kitalar": [
+        ["Dermân arardım derdime", "Derdim bana dermân imiş", "Bürhân arardım aslıma", "Aslım bana bürhân imiş"],
+        ["Sağ u solum gözler idim", "Dost yüzünü görsem deyu", "Ben taşrada arar idim", "Ol cân içinde cân imiş"],
+        ["Savm u salât u hac ile", "Sanma biter zâhid işin", "İnsân-ı kâmil olmaya", "Lâzım olan irfân imiş"]
+      ],
+      "notlar": ""
+    },
+    {
+      "id": "i14",
+      "baslik": "Mevlâ Görelim Neyler",
+      "sair": "Erzurumlu İbrahim Hakkı",
+      "makam": "",
+      "tema": ["Vahdet", "Tevekkül"],
+      "kaynak": "Tefvîznâme",
+      "referans": "",
+      "nakarat": ["Mevlâ görelim neyler", "Neylerse güzel eyler"],
+      "kitalar": [
+        ["Hak şerleri hayreyler", "Zannetme ki gayreyler", "Ârif anı seyreyler", "Mevlâ görelim neyler", "Neylerse güzel eyler"],
+        ["Sen Hakk'a tevekkül kıl", "Tefvîz et ve râhat bul", "Sabreyle ve râzı ol", "Mevlâ görelim neyler", "Neylerse güzel eyler"],
+        ["Deme şu niçin şöyle", "Yerincedir ol öyle", "Bak sonuna sabreyle", "Mevlâ görelim neyler", "Neylerse güzel eyler"]
+      ],
+      "notlar": ""
+    },
+    {
+      "id": "i15",
+      "baslik": "Uyan Ey Gözlerim Gafletten",
+      "sair": "Sultan Murâdî (III. Murad)",
+      "makam": "",
+      "tema": ["Tasavvuf", "Uyanış"],
+      "kaynak": "Murâdî Divanı",
+      "referans": "",
+      "nakarat": ["Uyan ey gözlerim gafletten uyan", "Uyan uykusu çok gözlerim uyan", "Azrâil'in kasdı cânadır inan", "Uyan ey gözlerim gafletten uyan"],
+      "kitalar": [
+        ["Bu dünyâ fânidir sakın aldanma", "Mağrûr olup tâc u tahta dayanma", "Yedi iklîme şâh olsan güvenme", "Uyan ey gözlerim gafletten uyan"],
+        ["Benî âdem oluptur dünyâda hayrân", "Düşüptür ışk oduna nâr-ı sûzân", "Murâdî'nin budur dâim figânı", "Uyan ey gözlerim gafletten uyan"]
+      ],
+      "notlar": ""
+    },
+    {
+      "id": "i16",
+      "baslik": "Ey Gönül Gel Gayrıdan Geç",
+      "sair": "Aziz Mahmud Hüdâyî",
+      "makam": "",
+      "tema": ["Vahdet", "İlâhî aşk"],
+      "kaynak": "Aziz Mahmud Hüdâyî Divanı",
+      "referans": "",
+      "nakarat": [],
+      "kitalar": [
+        ["Ey gönül gel gayrıdan geç", "Aşka eyle iktidâ", "Zümre-i ehl-i hakîkat", "Aşk ile bulmuş safâ"],
+        ["Cümle mevcûdât u eşyâ", "Zikr eder Mevlâ'sını", "Sen dahi gel zikre meşgûl ol", "Bula gör Mevlâ'yı tâ"]
+      ],
+      "notlar": "Sözler kısmen; tamamlanabilir."
+    },
+    {
+      "id": "i17",
+      "baslik": "Çalabım Bir Şâr Yaratmış",
+      "sair": "Hacı Bayram-ı Velî",
+      "makam": "",
+      "tema": ["Vahdet", "Devriye"],
+      "kaynak": "Hacı Bayram Velî ilahileri",
+      "referans": "",
+      "nakarat": [],
+      "kitalar": [
+        ["Çalabım bir şâr yaratmış", "İki cihân âresinde", "Bakıcak dîdâr görünür", "Ol şârın kenâresinde"],
+        ["Nâgehân ol şâra vardım", "Ol şârı yapılır gördüm", "Ben dahi bile yapıldım", "Taş u toprak âresinde"],
+        ["Ol şârdan oklar atılır", "Gelir ciğere batılır", "Ârifler sözü satılır", "Ol şârın bâzâresinde"]
+      ],
+      "notlar": ""
+    },
+    {
+      "id": "i18",
+      "baslik": "Bilmek İstersen Seni",
+      "sair": "Hacı Bayram-ı Velî",
+      "makam": "",
+      "tema": ["Vahdet", "Mârifet"],
+      "kaynak": "Hacı Bayram Velî ilahileri",
+      "referans": "",
+      "nakarat": [],
+      "kitalar": [
+        ["Bilmek istersen seni", "Cân içre ara cânı", "Geç cânından bul ânı", "Sen seni bil sen seni"],
+        ["İş bu vücûd şehrine", "Bir dem giresin gönül", "Tâ ki ne işler içre", "Sen seni bil sen seni"]
+      ],
+      "notlar": "Sözler kısmen; tamamlanabilir."
+    },
+    {
+      "id": "i19",
+      "baslik": "Zahid Bizi Tan Eyleme",
+      "sair": "Eşrefoğlu Rûmî",
+      "makam": "",
+      "tema": ["Vahdet", "İlâhî aşk"],
+      "kaynak": "Eşrefoğlu Divanı",
+      "referans": "",
+      "nakarat": [],
+      "kitalar": [
+        ["Zâhid bizi tan eyleme", "Hak ismin okur dilimiz", "Sakın efsâne söyleme", "Hazret'e varır yolumuz"],
+        ["Sayru değiliz sağ olduk", "Toprak idik biz bağ olduk", "Cümlemiz bir çırâğ olduk", "Hak'tan yanadır külümüz"],
+        ["Erenler oldu rehberim", "Andan kalmadı kederim", "Anların izin izlerim", "Hak'ka çıkar bu yolumuz"]
+      ],
+      "notlar": ""
+    },
+    {
+      "id": "i20",
+      "baslik": "Cânım Kurban Olsun Senin Yoluna",
+      "sair": "Eşrefoğlu Rûmî",
+      "makam": "",
+      "tema": ["Vahdet", "İlâhî aşk"],
+      "kaynak": "Eşrefoğlu Divanı",
+      "referans": "",
+      "nakarat": [],
+      "kitalar": [
+        ["Cânım kurbân olsun senin yoluna", "Adı güzel kendi güzel Muhammed", "Şefâat eyle bu kemter kuluna", "Adı güzel kendi güzel Muhammed"],
+        ["Mü'min olanların çoktur cefâsı", "Âhirette olur zevk u safâsı", "On sekiz bin âlemin Mustafâsı", "Adı güzel kendi güzel Muhammed"]
+      ],
+      "notlar": "Na't-ı şerîf olarak da bilinir."
+    },
+    {
+      "id": "i21",
+      "baslik": "Bu Aşk Bir Bahr-i Ummandır",
+      "sair": "Seyyid Nizamoğlu",
+      "makam": "Nihâvend",
+      "tema": ["Vahdet", "İlâhî aşk"],
+      "kaynak": "Seyyid Seyfullah (Nizamoğlu) Divanı",
+      "referans": "",
+      "nakarat": [],
+      "kitalar": [
+        ["Bu aşk bir bahr-i ummandır", "Buna hadd ü kenâr olmaz", "Delîlim sırr-ı Kur'ân'dır", "Bunu bilende âr olmaz"],
+        ["Eğer âşık isen yâre", "Sakın aldanma ağyâre", "Düş İbrâhim gibi nâre", "Bu gülşende karâr olmaz"]
+      ],
+      "notlar": "Sözler kısmen; tamamlanabilir."
+    },
+    {
+      "id": "i22",
+      "baslik": "Gelin Gidelim Allah Yoluna",
+      "sair": "Geleneksel",
+      "makam": "",
+      "tema": ["Vahdet", "Zikir"],
+      "kaynak": "Tekke ilahileri",
+      "referans": "",
+      "nakarat": [],
+      "kitalar": [
+        ["Gelin gidelim Allah yoluna", "Boyun eğelim Allah yoluna", "Tevhîd edelim cümle bir olup", "Aşk ile yanıp Allah yoluna"]
+      ],
+      "notlar": "Geleneksel; sözler kısmen, tamamlanabilir."
+    },
+    {
+      "id": "i23",
+      "baslik": "Buyruğun Tut Rahmân'ın",
+      "sair": "Geleneksel",
+      "makam": "",
+      "tema": ["Tasavvuf", "Ahlâk"],
+      "kaynak": "Tekke ilahileri",
+      "referans": "",
+      "nakarat": [],
+      "kitalar": [
+        ["Buyruğun tut Rahmân'ın", "Tâ ki âsân ola yolun", "Tevhîd ile meşgûl ol kim", "Nûr ile dola gönlün"]
+      ],
+      "notlar": "Geleneksel; sözler kısmen, tamamlanabilir."
+    },
+    {
+      "id": "i24",
+      "baslik": "Seyreyle Güzel Kudret-i Mevlâ Neler Eyler",
+      "sair": "Geleneksel",
+      "makam": "",
+      "tema": ["Vahdet", "Hikmet"],
+      "kaynak": "Tekke ilahileri",
+      "referans": "",
+      "nakarat": [],
+      "kitalar": [
+        ["Seyreyle güzel kudret-i Mevlâ neler eyler", "Vakti gelicek lutfunu ihsân ile söyler"]
+      ],
+      "notlar": "Geleneksel; matla mevcut, tamamlanabilir."
+    },
+    {
+      "id": "i25",
+      "baslik": "Yine Aşkın Sırrı Düştü Serime",
+      "sair": "Geleneksel",
+      "makam": "",
+      "tema": ["Vahdet", "İlâhî aşk"],
+      "kaynak": "Tekke ilahileri",
+      "referans": "",
+      "nakarat": [],
+      "kitalar": [
+        ["Yine aşkın sırrı düştü serime", "Yandı bu cân-ı dilim nâra yine", "Düşeli aşkın oduna gönlüm", "Yandı pervâne gibi yâra yine"]
+      ],
+      "notlar": "Geleneksel; sözler kısmen, tamamlanabilir."
+    },
+    {
+      "id": "i26",
+      "baslik": "Yâ İlâhî Cümle Sensin Cümle Sen",
+      "sair": "Geleneksel",
+      "makam": "",
+      "tema": ["Vahdet", "Münâcât"],
+      "kaynak": "Tekke ilahileri",
+      "referans": "",
+      "nakarat": [],
+      "kitalar": [
+        ["Yâ ilâhî cümle sensin cümle sen", "Cânımız cânânı sensin cümle sen", "Hem dahi derdimize dermân olan", "Hem tabîbi cânımızsın cümle sen"]
+      ],
+      "notlar": "Geleneksel münâcât; sözler kısmen, tamamlanabilir."
+    },
+    {
+      "id": "i27",
+      "baslik": "Ah Nice Bir Uyursun",
+      "sair": "Geleneksel",
+      "makam": "",
+      "tema": ["Tasavvuf", "Uyanış"],
+      "kaynak": "Tekke ilahileri",
+      "referans": "",
+      "nakarat": [],
+      "kitalar": [
+        ["Ah nice bir uyursun uyanmaz mısın", "Göçtü kervan kaldık dağlar başında", "Çağrışır tellâllar inanmaz mısın", "Göçtü kervan kaldık dağlar başında"]
+      ],
+      "notlar": "Geleneksel; sözler kısmen, tamamlanabilir."
+    },
+    {
+      "id": "i28",
+      "baslik": "Tövbe Yâ Rabbi",
+      "sair": "Geleneksel",
+      "makam": "",
+      "tema": ["Tövbe", "Münâcât"],
+      "kaynak": "Tekke ilahileri",
+      "referans": "",
+      "nakarat": ["Tövbe yâ Rabbi tövbe estağfirullah", "Tövbe estağfirullah el-azîm"],
+      "kitalar": [
+        ["Bizim günâhımız çoktur sayılmaz", "Senin rahmetine hadd ü pâyân yok", "Affeyle suçumuz yâ Rabbenâ", "Tövbe yâ Rabbi tövbe estağfirullah"]
+      ],
+      "notlar": "Geleneksel; sözler kısmen, tamamlanabilir."
+    },
+    {
+      "id": "i29",
+      "baslik": "Lâ İlâhe İllallah (Tevhid)",
+      "sair": "Geleneksel",
+      "makam": "",
+      "tema": ["Tevhid", "Zikir"],
+      "kaynak": "Tevhid ilahileri",
+      "referans": "",
+      "nakarat": ["Lâ ilâhe illallah", "Lâ ilâhe illallah"],
+      "kitalar": [
+        ["Her nefeste söyleyelim", "Lâ ilâhe illallah", "Gönülleri eyleyelim", "Lâ ilâhe illallah"],
+        ["Bu kelâmın mânâsı", "Cümle âlem sevdâsı", "Hak'tan gelen nidâsı", "Lâ ilâhe illallah"]
+      ],
+      "notlar": "Tevhid zikri; topluca tekrarlanır."
+    },
+    {
+      "id": "i30",
+      "baslik": "Hoşça Bak Zâtına",
+      "sair": "Şeyh Galib",
+      "makam": "",
+      "tema": ["Vahdet", "İnsân-ı kâmil"],
+      "kaynak": "Şeyh Galib Divanı",
+      "referans": "",
+      "nakarat": [],
+      "kitalar": [
+        ["Hoşça bak zâtına kim zübde-i âlemsin sen", "Merdüm-i dîde-i ekvân olan âdemsin sen"],
+        ["Bî-sebeb cevr-i felekten dahi nâlende misin", "Yine bir şûlesin amma ki bir âlemsin sen"]
+      ],
+      "notlar": "Terkîb-i bend'den; matla beyti meşhurdur, tamamlanabilir."
+    }
+  ]
+}
