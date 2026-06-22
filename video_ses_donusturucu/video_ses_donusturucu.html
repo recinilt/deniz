@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎬 Video Ses Dönüştürücü</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #0d0d14;
+            color: #e2e8f0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+            padding: 16px;
+        }
+
+        .container { max-width: 580px; margin: 0 auto; }
+
+        header {
+            text-align: center;
+            padding: 28px 0 24px;
+        }
+        header h1 {
+            font-size: clamp(1.4rem, 5vw, 2rem);
+            font-weight: 800;
+            background: linear-gradient(135deg, #c084fc, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        header p { color: #4b5563; font-size: 0.88rem; margin-top: 6px; }
+
+        .card {
+            background: #13132a;
+            border: 1px solid #1e1e3f;
+            border-radius: 16px;
+            padding: 22px;
+            margin-bottom: 14px;
+        }
+
+        .step-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: #c084fc;
+            margin-bottom: 14px;
+        }
+
+        /* ── Dropzone ── */
+        .dropzone {
+            border: 2px dashed #2a2a52;
+            border-radius: 12px;
+            padding: 36px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+        .dropzone:hover, .dropzone.drag-over {
+            border-color: #c084fc;
+            background: rgba(192, 132, 252, 0.04);
+        }
+        .dropzone input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+        .dz-icon { font-size: 2.4rem; margin-bottom: 10px; }
+        .dz-text { color: #6b7280; font-size: 0.9rem; }
+        .dz-text strong { color: #c084fc; }
+        .dz-sub { color: #374151; font-size: 0.77rem; margin-top: 5px; }
+
+        .file-info {
+            display: none;
+            align-items: center;
+            gap: 12px;
+            background: rgba(192, 132, 252, 0.07);
+            border: 1px solid rgba(192, 132, 252, 0.22);
+            border-radius: 10px;
+            padding: 12px 14px;
+            margin-top: 12px;
+        }
+        .file-info.show { display: flex; }
+        .fi-name {
+            font-size: 0.88rem;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .fi-size { font-size: 0.78rem; color: #6b7280; margin-top: 2px; }
+
+        .warn-box {
+            background: rgba(251, 191, 36, 0.07);
+            border: 1px solid rgba(251, 191, 36, 0.22);
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 0.8rem;
+            color: #fbbf24;
+            margin-top: 10px;
+            display: none;
+        }
+        .warn-box.show { display: block; }
+
+        /* ── Volume ── */
+        .vol-big { text-align: center; margin-bottom: 20px; }
+        .vol-num {
+            font-size: 4.2rem;
+            font-weight: 900;
+            line-height: 1;
+            background: linear-gradient(135deg, #c084fc, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .vol-pct { font-size: 1.5rem; font-weight: 500; }
+        .vol-desc { font-size: 0.82rem; color: #6b7280; margin-top: 7px; min-height: 18px; }
+
+        .slider-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 6px;
+        }
+        .slider-row span { font-size: 1.2rem; flex-shrink: 0; }
+
+        input[type="range"] {
+            flex: 1;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 7px;
+            border-radius: 99px;
+            background: linear-gradient(
+                to right,
+                #c084fc calc(var(--p, 33.33) * 1%),
+                #252550 calc(var(--p, 33.33) * 1%)
+            );
+            outline: none;
+            cursor: pointer;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 26px; height: 26px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #c084fc, #818cf8);
+            box-shadow: 0 0 12px rgba(192,132,252,0.55);
+            border: 3px solid #0d0d14;
+            cursor: pointer;
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 26px; height: 26px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #c084fc, #818cf8);
+            box-shadow: 0 0 12px rgba(192,132,252,0.55);
+            border: 3px solid #0d0d14;
+            cursor: pointer;
+        }
+        .slider-marks {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.68rem;
+            color: #374151;
+            padding: 0 4px;
+            margin-bottom: 18px;
+        }
+
+        .presets {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+        .preset-btn {
+            padding: 11px 6px;
+            border: 1px solid #252550;
+            border-radius: 9px;
+            background: transparent;
+            color: #6b7280;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.18s;
+            text-align: center;
+            font-family: inherit;
+        }
+        .preset-btn:hover {
+            border-color: #c084fc;
+            color: #c084fc;
+            background: rgba(192, 132, 252, 0.07);
+        }
+        .preset-btn.active {
+            border-color: #c084fc;
+            color: #c084fc;
+            background: rgba(192, 132, 252, 0.14);
+            font-weight: 700;
+        }
+
+        /* ── Process ── */
+        .process-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #7c3aed, #4338ca);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+            letter-spacing: 0.01em;
+        }
+        .process-btn:hover:not(:disabled) {
+            background: linear-gradient(135deg, #9333ea, #4f46e5);
+            box-shadow: 0 6px 22px rgba(124, 58, 237, 0.45);
+            transform: translateY(-1px);
+        }
+        .process-btn:active:not(:disabled) { transform: translateY(0); }
+        .process-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+
+        .progress-wrap { margin-top: 18px; display: none; }
+        .progress-wrap.show { display: block; }
+
+        .progress-bg {
+            background: #1e1e3f;
+            border-radius: 99px;
+            height: 9px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        .progress-fill {
+            height: 100%;
+            border-radius: 99px;
+            background: linear-gradient(90deg, #7c3aed, #c084fc);
+            width: 0%;
+            transition: width 0.35s ease;
+        }
+
+        .status-msg {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            text-align: center;
+            min-height: 20px;
+        }
+        .status-msg.ok  { color: #4ade80; font-weight: 600; }
+        .status-msg.err { color: #f87171; }
+
+        footer {
+            text-align: center;
+            color: #1e293b;
+            font-size: 0.77rem;
+            padding: 22px 0 10px;
+        }
+
+        @media (max-width: 460px) {
+            .card { padding: 16px; }
+            .vol-num { font-size: 3.2rem; }
+            .presets { grid-template-columns: repeat(2, 1fr); }
+            .process-btn { font-size: 0.95rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <header>
+        <h1>🎬 Video Ses Dönüştürücü</h1>
+        <p>Ses seviyesini ayarla  ·  yeni MP4 olarak indir  ·  sunucu yok</p>
+    </header>
+
+    <!-- ── Adım 1 ── -->
+    <div class="card">
+        <div class="step-label">📂 Adım 1 — Video Seç</div>
+        <div class="dropzone" id="dropzone">
+            <input type="file" id="fileInput" accept="video/*">
+            <div class="dz-icon">🎬</div>
+            <div class="dz-text"><strong>Tıkla</strong> veya sürükle & bırak</div>
+            <div class="dz-sub">MP4 · MKV · AVI · MOV · WebM · vb.</div>
+        </div>
+        <div class="file-info" id="fileInfo">
+            <span style="font-size:1.9rem;flex-shrink:0">🎞️</span>
+            <div style="flex:1;overflow:hidden">
+                <div class="fi-name" id="fileName">—</div>
+                <div class="fi-size" id="fileSize">—</div>
+            </div>
+        </div>
+        <div class="warn-box" id="sizeWarn">
+            ⚠️ Dosya 500MB üzeri. İşlem uzun sürebilir, tarayıcı yavaşlayabilir.
+        </div>
+    </div>
+
+    <!-- ── Adım 2 ── -->
+    <div class="card">
+        <div class="step-label">🔊 Adım 2 — Ses Seviyesi Ayarla</div>
+        <div class="vol-big">
+            <div class="vol-num" id="volNum">100<span class="vol-pct">%</span></div>
+            <div class="vol-desc" id="volDesc">✅ Orijinal ses seviyesi</div>
+        </div>
+        <div class="slider-row">
+            <span>🔇</span>
+            <input type="range" id="volSlider" min="0" max="300" value="100" step="1">
+            <span>🔊</span>
+        </div>
+        <div class="slider-marks">
+            <span>0%</span><span>75%</span><span>150%</span><span>225%</span><span>300%</span>
+        </div>
+        <div class="presets">
+            <button class="preset-btn" onclick="setVol(0)">🔇 Sessiz</button>
+            <button class="preset-btn" onclick="setVol(50)">🔉 %50</button>
+            <button class="preset-btn active" onclick="setVol(100)">✅ Orijinal</button>
+            <button class="preset-btn" onclick="setVol(150)">🔊 %150</button>
+            <button class="preset-btn" onclick="setVol(200)">⚡ 2x</button>
+            <button class="preset-btn" onclick="setVol(300)">🚀 3x</button>
+        </div>
+    </div>
+
+    <!-- ── Adım 3 ── -->
+    <div class="card">
+        <div class="step-label">🚀 Adım 3 — İşle ve İndir</div>
+        <button class="process-btn" id="processBtn" onclick="processVideo()" disabled>
+            🚀 Ses Uygula ve İndir
+        </button>
+        <div class="progress-wrap" id="progressWrap">
+            <div class="progress-bg">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="status-msg" id="statusMsg">Hazırlanıyor...</div>
+        </div>
+    </div>
+
+    <footer>🔒 Dosyalar yalnızca cihazınızda işlenir — FFmpeg.wasm · Sunucu yok</footer>
+
+</div>
+
+<!-- FFmpeg.wasm v0.12.x (single-thread, her yerde çalışır) -->
+<script src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.15/dist/umd/ffmpeg.js"></script>
+<script src="https://unpkg.com/@ffmpeg/util@0.12.1/dist/umd/index.js"></script>
+
+<script>
+'use strict';
+
+// ─── STATE ───────────────────────────────────────
+let selectedFile  = null;
+let ffmpegInst    = null;
+let ffmpegReady   = false;
+let currentVol    = 100;
+let isProcessing  = false;
+
+// ─── PRESET MAP ──────────────────────────────────
+const PRESET_VALS = [0, 50, 100, 150, 200, 300];
+const presetBtns  = document.querySelectorAll('.preset-btn');
+const slider      = document.getElementById('volSlider');
+
+// ─── SLIDER ──────────────────────────────────────
+function updateSlider(val) {
+    currentVol  = val;
+    slider.value = val;
+
+    const pct = (val / 300) * 100;
+    slider.style.setProperty('--p', pct.toFixed(3));
+
+    document.getElementById('volNum').innerHTML =
+        `${val}<span class="vol-pct">%</span>`;
+
+    let desc;
+    if      (val === 0)   desc = '🔇 Tamamen sessiz';
+    else if (val < 50)    desc = '🔈 Çok düşük ses';
+    else if (val < 100)   desc = '🔉 Orijinalden düşük';
+    else if (val === 100) desc = '✅ Orijinal ses seviyesi';
+    else if (val <= 150)  desc = '🔊 Biraz yükseltilmiş';
+    else if (val <= 200)  desc = '⚡ 2x — güçlü ses';
+    else                  desc = `🚀 ${(val/100).toFixed(2)}x — çok yüksek!`;
+    document.getElementById('volDesc').textContent = desc;
+
+    // Active preset
+    presetBtns.forEach((b, i) => {
+        b.classList.toggle('active', PRESET_VALS[i] === val);
+    });
+}
+
+function setVol(v) { updateSlider(v); }
+
+slider.addEventListener('input', () => updateSlider(parseInt(slider.value, 10)));
+updateSlider(100);   // başlangıç
+
+// ─── DOSYA SEÇ ────────────────────────────────────
+const dropzone = document.getElementById('dropzone');
+const fileInput = document.getElementById('fileInput');
+
+fileInput.addEventListener('change', e => {
+    if (e.target.files && e.target.files[0]) handleFile(e.target.files[0]);
+});
+
+dropzone.addEventListener('dragover', e => {
+    e.preventDefault();
+    dropzone.classList.add('drag-over');
+});
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
+dropzone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropzone.classList.remove('drag-over');
+    const f = e.dataTransfer.files && e.dataTransfer.files[0];
+    if (f && f.type.startsWith('video/')) handleFile(f);
+});
+
+function handleFile(file) {
+    selectedFile = file;
+    document.getElementById('fileName').textContent = file.name;
+    document.getElementById('fileSize').textContent = fmtSize(file.size);
+    document.getElementById('fileInfo').classList.add('show');
+    document.getElementById('processBtn').disabled = false;
+    document.getElementById('sizeWarn').classList.toggle(
+        'show', file.size > 500 * 1024 * 1024
+    );
+    // Progress alanını sıfırla
+    document.getElementById('progressWrap').classList.remove('show');
+    setProgress(0);
+}
+
+function fmtSize(b) {
+    if (b < 1048576)    return (b / 1024).toFixed(1) + ' KB';
+    if (b < 1073741824) return (b / 1048576).toFixed(1) + ' MB';
+    return (b / 1073741824).toFixed(2) + ' GB';
+}
+
+// ─── FFMPEG YÜKLEYİCİ ────────────────────────────
+async function loadFFmpeg() {
+    if (ffmpegReady) return;
+
+    const { FFmpeg } = FFmpegWASM;
+    const { toBlobURL } = FFmpegUtil;
+
+    ffmpegInst = new FFmpeg();
+
+    // Progress callback
+    ffmpegInst.on('progress', ({ progress }) => {
+        const p = Math.max(0, Math.min(Math.round(progress * 100), 99));
+        setProgress(12 + p * 0.85);   // 12 → 97 arası
+        setStatus(`⚙️ İşleniyor... %${p}`);
+    });
+
+    const base = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
+    await ffmpegInst.load({
+        coreURL: await toBlobURL(`${base}/ffmpeg-core.js`,   'text/javascript'),
+        wasmURL: await toBlobURL(`${base}/ffmpeg-core.wasm`, 'application/wasm'),
+    });
+
+    ffmpegReady = true;
+}
+
+// ─── ANA İŞLEM ───────────────────────────────────
+async function processVideo() {
+    if (!selectedFile || isProcessing) return;
+    isProcessing = true;
+
+    const btn = document.getElementById('processBtn');
+    btn.disabled = true;
+
+    const wrap = document.getElementById('progressWrap');
+    wrap.classList.add('show');
+    setProgress(0);
+    setStatus('⏳ FFmpeg WASM yükleniyor (~31 MB)...');
+
+    try {
+        const { fetchFile } = FFmpegUtil;
+        await loadFFmpeg();
+
+        setStatus('📥 Video dosyası okunuyor...');
+        setProgress(8);
+
+        const ext     = (selectedFile.name.split('.').pop() || 'mp4').toLowerCase();
+        const inFile  = `input.${ext}`;
+        const outFile = 'output.mp4';
+
+        await ffmpegInst.writeFile(inFile, await fetchFile(selectedFile));
+
+        setStatus('⚙️ Ses seviyesi uygulanıyor...');
+        setProgress(12);
+
+        const volVal = (currentVol / 100).toFixed(6);   // 0.000000 – 3.000000
+
+        await ffmpegInst.exec([
+            '-i',      inFile,
+            '-af',     `volume=${volVal}`,
+            '-c:v',    'copy',          // video yeniden kodlanmaz → hızlı + kalitesiz
+            '-c:a',    'aac',           // ses AAC olarak çıkar
+            '-b:a',    '192k',
+            '-movflags', '+faststart',  // web uyumlu MP4
+            '-y',
+            outFile
+        ]);
+
+        setStatus('📦 Çıktı dosyası okunuyor...');
+        setProgress(97);
+
+        const data = await ffmpegInst.readFile(outFile);
+        const blob = new Blob([data.buffer], { type: 'video/mp4' });
+
+        // Dosya adı: [orijinalAd]_ses[%].mp4
+        const baseName = selectedFile.name.replace(/\.[^.]+$/, '');
+        const dlName   = `${baseName}_ses${currentVol}.mp4`;
+
+        const url = URL.createObjectURL(blob);
+        const a   = document.createElement('a');
+        a.href     = url;
+        a.download = dlName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 15000);
+
+        // Belleği temizle
+        await ffmpegInst.deleteFile(inFile).catch(() => {});
+        await ffmpegInst.deleteFile(outFile).catch(() => {});
+
+        setProgress(100);
+        setStatus(`✅ "${dlName}" başarıyla indirildi!`, 'ok');
+
+    } catch (err) {
+        console.error('[FFmpeg Hatası]', err);
+        setStatus(`❌ Hata: ${err.message || 'Bilinmeyen hata'}`, 'err');
+        setProgress(0);
+    } finally {
+        isProcessing = false;
+        btn.disabled = false;
+    }
+}
+
+// ─── YARDIMCI FONKSİYONLAR ───────────────────────
+function setProgress(p) {
+    document.getElementById('progressFill').style.width =
+        Math.min(Math.max(p, 0), 100).toFixed(1) + '%';
+}
+
+function setStatus(msg, cls = '') {
+    const el = document.getElementById('statusMsg');
+    el.textContent = msg;
+    el.className   = 'status-msg' + (cls ? ' ' + cls : '');
+}
+</script>
+</body>
+</html>
