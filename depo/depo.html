@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Depo</title>
+<script src="https://cdn.jsdelivr.net/npm/fflate@0.8.3/umd/index.js"></script>
+<style>
+  :root{
+    --indigo:#4f46e5; --violet:#7c3aed; --amber:#f59e0b; --amber-d:#d97706;
+    --green:#10b981; --red:#ef4444; --red-d:#dc2626;
+    --ink:#1f2937; --muted:#6b7280; --line:#e5e7eb; --surface:#f5f5f7;
+    --card:#ffffff; --mono:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
+    background:var(--surface); color:var(--ink); min-height:100vh; line-height:1.5;
+  }
+  .topbar{
+    background:linear-gradient(120deg,var(--indigo),var(--violet));
+    color:#fff; padding:18px 24px; display:flex; align-items:center; justify-content:space-between;
+    flex-wrap:wrap; gap:10px;
+  }
+  .brand{display:flex;align-items:baseline;gap:12px}
+  .brand b{font-size:1.7em;font-weight:800;letter-spacing:.14em}
+  .brand span{opacity:.85;font-size:.85em}
+  .repo-pill{
+    font-family:var(--mono); font-size:.8em; background:rgba(255,255,255,.18);
+    padding:6px 12px; border-radius:999px; display:flex; align-items:center; gap:8px;
+  }
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px rgba(16,185,129,.25)}
+
+  .wrap{max-width:1180px;margin:0 auto;padding:24px;display:grid;grid-template-columns:380px 1fr;gap:24px;align-items:start}
+  @media(max-width:880px){.wrap{grid-template-columns:1fr}}
+
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+  .panel h2{font-size:1.05em;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+  .panel h2 small{font-weight:400;color:var(--muted);font-size:.78em}
+
+  .drop{
+    border:2px dashed var(--line); border-radius:12px; padding:26px 16px; text-align:center;
+    cursor:pointer; transition:.18s; color:var(--muted); background:#fafafb;
+  }
+  .drop:hover,.drop.over{border-color:var(--violet);background:#f5f3ff;color:var(--violet)}
+  .drop strong{display:block;color:var(--ink);margin-bottom:4px}
+  .drop.over strong{color:var(--violet)}
+  #dosyaInput{display:none}
+
+  .secilenler{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
+  .bos-ipucu{color:var(--muted);font-size:.85em}
+  .cip{display:inline-flex;align-items:center;gap:6px;background:#eef2ff;color:#3730a3;border-radius:999px;padding:4px 6px 4px 10px;font-size:.8em}
+  .cip small{color:#6366f1;font-family:var(--mono);font-size:.9em}
+  .cip-x{border:none;background:#c7d2fe;color:#3730a3;width:18px;height:18px;border-radius:50%;cursor:pointer;font-size:.9em;line-height:1}
+  .cip-x:hover{background:#a5b4fc}
+
+  label.fld{display:block;font-size:.82em;color:var(--muted);margin:10px 0 4px}
+  input[type=text],textarea{
+    width:100%;border:1px solid var(--line);border-radius:9px;padding:10px;font:inherit;font-size:.92em;
+    background:#fff;transition:.15s;
+  }
+  input[type=text]:focus,textarea:focus{outline:none;border-color:var(--violet);box-shadow:0 0 0 3px rgba(124,58,237,.12)}
+  textarea{resize:vertical;min-height:64px}
+
+  .ozet{font-family:var(--mono);font-size:.78em;color:var(--muted);margin:10px 0 14px;min-height:1.2em}
+
+  .btn{border:none;border-radius:10px;padding:11px 16px;font:inherit;font-weight:600;cursor:pointer;transition:.15s}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .btn-primary{background:var(--amber);color:#3b2a06;width:100%}
+  .btn-primary:hover:not(:disabled){background:var(--amber-d);color:#fff}
+
+  .ilerleme{margin-top:12px;font-size:.84em;color:var(--violet);display:none;align-items:center;gap:8px}
+  .ilerleme.acik{display:flex}
+  .spin{width:14px;height:14px;border:2px solid #ddd6fe;border-top-color:var(--violet);border-radius:50%;animation:dn .7s linear infinite}
+  @keyframes dn{to{transform:rotate(360deg)}}
+  @media(prefers-reduced-motion:reduce){.spin{animation:none}}
+
+  .liste-bas{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+  .liste-bas h2{font-size:1.15em}
+  .sayac{background:#eef2ff;color:#4338ca;font-family:var(--mono);font-size:.8em;padding:3px 10px;border-radius:999px}
+
+  .liste{display:flex;flex-direction:column;gap:14px}
+  .empty{background:var(--card);border:1px dashed var(--line);border-radius:14px;padding:40px 20px;text-align:center;color:var(--muted)}
+
+  .kart{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+  .kart header{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  .kart h3{font-size:1.05em}
+  .kart time{font-family:var(--mono);font-size:.72em;color:var(--muted)}
+  .ozel{color:#374151;font-size:.9em;margin:6px 0;white-space:pre-wrap}
+  .dosyalar{display:flex;flex-wrap:wrap;gap:5px;margin:10px 0}
+  .dosya{font-family:var(--mono);font-size:.74em;background:#f3f4f6;color:#374151;border:1px solid var(--line);border-radius:6px;padding:2px 7px}
+  .dosya.more{background:#eef2ff;color:#4338ca;border-color:#e0e7ff}
+
+  /* imza öğesi: parça boyut çubuğu */
+  .butce{margin:12px 0 6px}
+  .bar{display:flex;gap:3px;height:30px;border-radius:7px;overflow:hidden;background:#f3f4f6}
+  .seg{display:flex;align-items:center;justify-content:center;min-width:0;background:linear-gradient(180deg,var(--indigo),var(--violet));position:relative}
+  .seg:nth-child(even){background:linear-gradient(180deg,#6366f1,#8b5cf6)}
+  .seg i{font-family:var(--mono);font-size:.66em;color:#fff;font-style:normal;padding:0 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .butce-alt{font-family:var(--mono);font-size:.74em;color:var(--muted);margin-top:6px}
+
+  .kart footer{display:flex;gap:8px;margin-top:12px}
+  .btn.indir{background:#eef2ff;color:#4338ca}
+  .btn.indir:hover{background:#e0e7ff}
+  .btn.sil{background:#fef2f2;color:var(--red-d)}
+  .btn.sil:hover{background:#fee2e2}
+
+  .footer{max-width:1180px;margin:8px auto 28px;padding:0 24px;font-family:var(--mono);font-size:.74em;color:var(--muted)}
+
+  #bildirim{
+    position:fixed;left:50%;bottom:26px;transform:translate(-50%,140%);
+    background:var(--ink);color:#fff;padding:12px 20px;border-radius:10px;font-size:.9em;
+    box-shadow:0 10px 30px rgba(0,0,0,.25);transition:transform .3s;z-index:50;max-width:90vw;
+  }
+  #bildirim.goster{transform:translate(-50%,0)}
+  #bildirim.basari{background:#065f46}
+  #bildirim.hata{background:#7f1d1d}
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="brand"><b>DEPO</b><span>parçalı arşiv → GitHub</span></div>
+    <div class="repo-pill"><span class="dot"></span> <span id="repoEtiket"></span></div>
+  </div>
+
+  <div class="wrap">
+    <!-- SOL: Depoya ekle -->
+    <section class="panel">
+      <h2>Depoya ekle <small>zip + 15 MB parça</small></h2>
+
+      <div class="drop" id="drop">
+        <strong>Dosyaları sürükle</strong>
+        veya tıklayıp seç
+      </div>
+      <input type="file" id="dosyaInput" multiple>
+
+      <div class="secilenler" id="secilenler"><span class="bos-ipucu">Henüz dosya seçilmedi.</span></div>
+
+      <label class="fld" for="ad">Kayıt adı</label>
+      <input type="text" id="ad" placeholder="ör. Proje Yedeği — v3" maxlength="80">
+
+      <label class="fld" for="ozellikler">Özellikler / not</label>
+      <textarea id="ozellikler" placeholder="Bu arşivde ne var, hangi sürüm, ne işe yarar…"></textarea>
+
+      <div class="ozet" id="ozet"></div>
+
+      <button class="btn btn-primary" id="ekleBtn">Zipleyip depoya yükle</button>
+
+      <div class="ilerleme" id="ilerleme"><span class="spin"></span><span id="ilerlemeMetin"></span></div>
+    </section>
+
+    <!-- SAĞ: Depo listesi -->
+    <section>
+      <div class="liste-bas">
+        <h2>Depodaki kayıtlar <span class="sayac" id="sayac">0</span></h2>
+      </div>
+      <div class="liste" id="liste"></div>
+    </section>
+  </div>
+
+  <div class="footer" id="footer"></div>
+
+  <div id="bildirim"></div>
+
+<script>
+/* ===================== AYARLAR (DOKUNULMAZ) ===================== */
+const WORKER_URL   = 'https://gh-reci-senkron.recepyeni.workers.dev';
+const REPO         = 'senkronKayitDeposu';
+const MANIFEST     = 'depo-manifest.json';
+const DEPO_KLASOR  = 'depo';
+const PARCA_LIMIT  = 15 * 1024 * 1024;          // kullanıcı isteği: 15 MB güvenli parça sınırı
+const CACHE_KEY    = 'depo-manifest-cache';
+/* =============================================================== */
+
+let depoKayitlari = [];
+let secilenDosyalar = [];
+let yukleniyor = false;
+
+const $ = s => document.querySelector(s);
+const bekle = ms => new Promise(r => setTimeout(r, ms));
+
+/* ---------- yardımcılar ---------- */
+function formatBoyut(b){
+  if(b < 1024) return b + ' B';
+  if(b < 1024*1024) return (b/1024).toFixed(1) + ' KB';
+  return (b/1024/1024).toFixed(2) + ' MB';
+}
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function slugla(s){
+  const map={'ç':'c','ğ':'g','ı':'i','İ':'I','ö':'o','ş':'s','ü':'u','Ç':'C','Ğ':'G','Ö':'O','Ş':'S','Ü':'U'};
+  return (s||'').replace(/[çğıİöşüÇĞÖŞÜ]/g, m => map[m]||m)
+    .replace(/[^a-zA-Z0-9._-]+/g,'_').replace(/^_+|_+$/g,'').slice(0,60) || 'depo';
+}
+function bytesToBase64(bytes){
+  let bin = '';
+  const adim = 0x8000;
+  for(let i=0; i<bytes.length; i+=adim){
+    bin += String.fromCharCode.apply(null, bytes.subarray(i, i+adim));
+  }
+  return btoa(bin);
+}
+function base64ToBytes(b64){
+  const bin = atob(b64.replace(/\n/g,''));
+  const out = new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+function indirBlob(bytes, adi){
+  const blob = new Blob([bytes], {type:'application/zip'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = adi; document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 1000);
+}
+function dosyaOku(file){
+  return new Promise((resolve, reject)=>{
+    const r = new FileReader();
+    r.onload = () => resolve(new Uint8Array(r.result));
+    r.onerror = () => reject(r.error || new Error('Dosya okunamadı'));
+    r.readAsArrayBuffer(file);
+  });
+}
+
+/* ---------- Worker çağrıları ---------- */
+async function workerPost(payload){
+  const res = await fetch(WORKER_URL, {
+    method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)
+  });
+  const data = await res.json().catch(()=>({}));
+  if(!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
+  return data;
+}
+async function workerRead(dosyaAdi){
+  const res = await fetch(WORKER_URL, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({action:'read', dosyaAdi, repoAdi:REPO})
+  });
+  const data = await res.json().catch(()=>({}));
+  if(res.status === 404) return null;
+  if(!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
+  return data; // {content, sha}
+}
+const workerWriteText   = (dosyaAdi, content, message) => workerPost({action:'write',       dosyaAdi, repoAdi:REPO, content, message});
+const workerWriteBinary = (dosyaAdi, content, message) => workerPost({action:'writeBinary', dosyaAdi, repoAdi:REPO, content, message});
+const workerDelete      = (dosyaAdi, sha,     message) => workerPost({action:'delete',      dosyaAdi, repoAdi:REPO, sha, message});
+async function workerReadBinary(sha){
+  const d = await workerPost({action:'readBinary', dosyaAdi:'_', repoAdi:REPO, sha});
+  return d.content;
+}
+
+/* ---------- manifest ---------- */
+async function manifestYukle(){
+  try{
+    const d = await workerRead(MANIFEST);
+    depoKayitlari = (d && d.content) ? (JSON.parse(d.content).kayitlar || []) : [];
+    localStorage.setItem(CACHE_KEY, JSON.stringify(depoKayitlari));
+  }catch(e){
+    console.error('Manifest yüklenemedi:', e);
+    const c = localStorage.getItem(CACHE_KEY);
+    depoKayitlari = c ? JSON.parse(c) : [];
+    bildir("Liste GitHub'dan alınamadı, yerel önbellek gösteriliyor.", 'hata');
+  }
+}
+async function manifestKaydet(){
+  const json = JSON.stringify({surum:1, guncelleme:new Date().toISOString(), kayitlar:depoKayitlari}, null, 2);
+  await workerWriteText(MANIFEST, json, 'Depo manifest güncellendi');
+  localStorage.setItem(CACHE_KEY, JSON.stringify(depoKayitlari));
+}
+
+/* ---------- arşivleme + parçalama (mod: single / multizip / raw) ---------- */
+function binPaketle(dosyalar, limit){
+  const hedef = Math.floor(limit * 0.9); // zip ek yükü için pay
+  const sirali = [...dosyalar].sort((a,b)=> b.bytes.length - a.bytes.length);
+  const kovalar = [];
+  for(const d of sirali){
+    let kova = kovalar.find(k => k.boyut + d.bytes.length <= hedef);
+    if(!kova){ kova = {boyut:0, items:[]}; kovalar.push(kova); }
+    kova.items.push(d); kova.boyut += d.bytes.length;
+  }
+  return kovalar.map(k => k.items);
+}
+async function arsivOlustur(fileList){
+  const dosyalar = [];
+  for(const f of fileList) dosyalar.push({name:f.name, bytes: await dosyaOku(f)});
+  const dosyaListesi = dosyalar.map(d => d.name);
+
+  const harita = {};
+  for(const d of dosyalar) harita[d.name] = d.bytes;
+  const tamZip = fflate.zipSync(harita, {level:6});
+
+  // tek parça
+  if(tamZip.length <= PARCA_LIMIT){
+    return {mod:'single', dosyaListesi, toplamBoyut:tamZip.length, parcalar:[{ek:'zip', bytes:tamZip}]};
+  }
+
+  // çoklu bağımsız zip (her parça tek başına açılır) — tek dosya bile limitten büyükse atla
+  const tekBuyukVar = dosyalar.some(d => d.bytes.length > PARCA_LIMIT);
+  if(!tekBuyukVar){
+    const kovalar = binPaketle(dosyalar, PARCA_LIMIT);
+    const zipler = []; let olur = true;
+    for(const kova of kovalar){
+      const h = {}; for(const d of kova) h[d.name] = d.bytes;
+      const z = fflate.zipSync(h, {level:6});
+      if(z.length > PARCA_LIMIT){ olur = false; break; }
+      zipler.push(z);
+    }
+    if(olur && zipler.length >= 1){
+      return {mod:'multizip', dosyaListesi, toplamBoyut:tamZip.length,
+        parcalar: zipler.map((z,i)=>({ek:`part${i+1}.zip`, bytes:z}))};
+    }
+  }
+
+  // ham parçalama (her durumda çalışır; indirince tarayıcıda birleşir)
+  const parcalar = []; let idx = 1;
+  for(let o=0; o<tamZip.length; o+=PARCA_LIMIT){
+    parcalar.push({ek:`zip.${String(idx).padStart(3,'0')}`, bytes:tamZip.subarray(o, Math.min(o+PARCA_LIMIT, tamZip.length))});
+    idx++;
+  }
+  return {mod:'raw', dosyaListesi, toplamBoyut:tamZip.length, parcalar};
+}
+
+/* ---------- yükle ---------- */
+async function depoyaEkle(){
+  if(yukleniyor) return;
+  const ad = $('#ad').value.trim();
+  const ozellikler = $('#ozellikler').value.trim();
+  if(secilenDosyalar.length === 0){ bildir('Önce dosya seç.', 'hata'); return; }
+  if(!ad){ bildir('Kayıt adı gir.', 'hata'); $('#ad').focus(); return; }
+
+  yukleniyor = true; ilerlemeAc('Arşiv hazırlanıyor…');
+  try{
+    const arsiv = await arsivOlustur(secilenDosyalar);
+    const id = String(Date.now());
+    const slug = slugla(ad);
+    const parcaMeta = [];
+
+    for(let i=0; i<arsiv.parcalar.length; i++){
+      const p = arsiv.parcalar[i];
+      const yol = `${DEPO_KLASOR}/${slug}__${id}.${p.ek}`;
+      ilerleme(`Yükleniyor ${i+1}/${arsiv.parcalar.length} — ${formatBoyut(p.bytes.length)}`);
+      const b64 = bytesToBase64(p.bytes);
+      const r = await workerWriteBinary(yol, b64, `Depo: ${ad} (${i+1}/${arsiv.parcalar.length})`);
+      parcaMeta.push({yol, sha:r.sha, boyut:p.bytes.length});
+      if(i < arsiv.parcalar.length-1) await bekle(350); // ikincil rate limit koruması
+    }
+
+    ilerleme('Liste güncelleniyor…');
+    depoKayitlari.unshift({
+      id, ad, ozellikler, olusturma:new Date().toISOString(),
+      toplamBoyut:arsiv.toplamBoyut, mod:arsiv.mod, dosyaListesi:arsiv.dosyaListesi, parcalar:parcaMeta
+    });
+    await manifestKaydet();
+
+    formuTemizle();
+    renderDepo();
+    bildir(`"${ad}" depoya eklendi (${arsiv.parcalar.length} parça).`, 'basari');
+  }catch(e){
+    console.error(e);
+    bildir('Yükleme hatası: ' + (e.message || e), 'hata');
+  }finally{
+    yukleniyor = false; ilerlemeKapat();
+  }
+}
+
+/* ---------- indir ---------- */
+async function kaydiIndir(id){
+  const k = depoKayitlari.find(x => x.id === id);
+  if(!k) return;
+  bildir('İndiriliyor…');
+  try{
+    const parcaBytes = [];
+    for(const p of k.parcalar){
+      const b64 = await workerReadBinary(p.sha);
+      parcaBytes.push(base64ToBytes(b64));
+    }
+    let tam;
+    if(k.mod === 'single'){
+      tam = parcaBytes[0];
+    }else if(k.mod === 'raw'){
+      const top = parcaBytes.reduce((a,b)=>a+b.length, 0);
+      tam = new Uint8Array(top); let o = 0;
+      for(const b of parcaBytes){ tam.set(b, o); o += b.length; }
+    }else{ // multizip → birleştirip tek zip
+      const birlesik = {};
+      for(const b of parcaBytes) Object.assign(birlesik, fflate.unzipSync(b));
+      tam = fflate.zipSync(birlesik, {level:6});
+    }
+    indirBlob(tam, `${slugla(k.ad)}.zip`);
+    bildir(`"${k.ad}" indirildi.`, 'basari');
+  }catch(e){
+    console.error(e);
+    bildir('İndirme hatası: ' + (e.message || e), 'hata');
+  }
+}
+
+/* ---------- sil ---------- */
+async function kaydiSil(id){
+  const k = depoKayitlari.find(x => x.id === id);
+  if(!k) return;
+  if(!confirm(`"${k.ad}" silinsin mi?\nGitHub'daki ${k.parcalar.length} dosya da silinecek.`)) return;
+  bildir('Siliniyor…');
+  try{
+    for(const p of k.parcalar){
+      await workerDelete(p.yol, p.sha, `Depo sil: ${k.ad}`);
+      await bekle(250);
+    }
+    depoKayitlari = depoKayitlari.filter(x => x.id !== id);
+    await manifestKaydet();
+    renderDepo();
+    bildir(`"${k.ad}" silindi.`, 'basari');
+  }catch(e){
+    console.error(e);
+    bildir('Silme hatası: ' + (e.message || e), 'hata');
+  }
+}
+
+/* ---------- arayüz ---------- */
+function secilenleriGoster(){
+  const wrap = $('#secilenler');
+  if(secilenDosyalar.length === 0){
+    wrap.innerHTML = '<span class="bos-ipucu">Henüz dosya seçilmedi.</span>';
+    $('#ozet').textContent = '';
+    return;
+  }
+  wrap.innerHTML = secilenDosyalar.map((f,i)=>
+    `<span class="cip">${escapeHtml(f.name)} <small>${formatBoyut(f.size)}</small><button class="cip-x" data-i="${i}" title="Çıkar">×</button></span>`
+  ).join('');
+  const toplam = secilenDosyalar.reduce((a,f)=>a+f.size, 0);
+  const tahmin = Math.max(1, Math.ceil(toplam / PARCA_LIMIT));
+  $('#ozet').textContent = `${secilenDosyalar.length} dosya · ${formatBoyut(toplam)} · tahmini ≥ ${tahmin} parça (sınır ${formatBoyut(PARCA_LIMIT)})`;
+}
+function dosyaEkle(list){
+  for(const f of list) secilenDosyalar.push(f);
+  secilenleriGoster();
+}
+function formuTemizle(){
+  secilenDosyalar = [];
+  $('#ad').value = '';
+  $('#ozellikler').value = '';
+  $('#dosyaInput').value = '';
+  secilenleriGoster();
+}
+function renderDepo(){
+  $('#sayac').textContent = depoKayitlari.length;
+  const liste = $('#liste');
+  if(depoKayitlari.length === 0){
+    liste.innerHTML = '<div class="empty">Depo boş. Soldan dosya ekleyerek başla.</div>';
+    return;
+  }
+  const modEtiket = {single:'tek parça', multizip:'çoklu zip', raw:'bölünmüş'};
+  liste.innerHTML = depoKayitlari.map(k=>{
+    const segler = k.parcalar.map(p=>{
+      const ad = escapeHtml(p.yol.split('/').pop());
+      return `<span class="seg" style="flex:${Math.max(1,p.boyut)}" title="${ad} · ${formatBoyut(p.boyut)}"><i>${formatBoyut(p.boyut)}</i></span>`;
+    }).join('');
+    const dosyalar = k.dosyaListesi.slice(0,8).map(d=>`<span class="dosya">${escapeHtml(d)}</span>`).join('')
+      + (k.dosyaListesi.length>8 ? `<span class="dosya more">+${k.dosyaListesi.length-8}</span>` : '');
+    return `<article class="kart">
+      <header><h3>${escapeHtml(k.ad)}</h3><time>${new Date(k.olusturma).toLocaleString('tr-TR')}</time></header>
+      ${k.ozellikler ? `<p class="ozel">${escapeHtml(k.ozellikler)}</p>` : ''}
+      <div class="dosyalar">${dosyalar}</div>
+      <div class="butce">
+        <div class="bar">${segler}</div>
+        <div class="butce-alt">${formatBoyut(k.toplamBoyut)} · ${k.parcalar.length} parça · ${modEtiket[k.mod]||k.mod}</div>
+      </div>
+      <footer>
+        <button class="btn indir" data-id="${k.id}">İndir .zip</button>
+        <button class="btn sil" data-id="${k.id}">Sil</button>
+      </footer>
+    </article>`;
+  }).join('');
+}
+
+/* ---------- ilerleme + bildirim ---------- */
+function ilerlemeAc(m){ $('#ilerleme').classList.add('acik'); ilerleme(m); $('#ekleBtn').disabled = true; }
+function ilerleme(m){ $('#ilerlemeMetin').textContent = m; }
+function ilerlemeKapat(){ $('#ilerleme').classList.remove('acik'); $('#ekleBtn').disabled = false; }
+let bildirimT = null;
+function bildir(mesaj, tip=''){
+  const b = $('#bildirim');
+  b.textContent = mesaj;
+  b.className = 'goster' + (tip ? ' ' + tip : '');
+  clearTimeout(bildirimT);
+  bildirimT = setTimeout(()=> b.classList.remove('goster'), 3200);
+}
+
+/* ---------- bağlama ---------- */
+function baglantilariKur(){
+  const drop = $('#drop'), input = $('#dosyaInput');
+  drop.addEventListener('click', ()=> input.click());
+  input.addEventListener('change', e => dosyaEkle(e.target.files));
+  ['dragenter','dragover'].forEach(ev => drop.addEventListener(ev, e=>{ e.preventDefault(); drop.classList.add('over'); }));
+  ['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e=>{ e.preventDefault(); drop.classList.remove('over'); }));
+  drop.addEventListener('drop', e => { if(e.dataTransfer?.files) dosyaEkle(e.dataTransfer.files); });
+
+  $('#secilenler').addEventListener('click', e=>{
+    const btn = e.target.closest('.cip-x');
+    if(!btn) return;
+    secilenDosyalar.splice(Number(btn.dataset.i), 1);
+    secilenleriGoster();
+  });
+
+  $('#ekleBtn').addEventListener('click', depoyaEkle);
+
+  $('#liste').addEventListener('click', e=>{
+    const t = e.target.closest('button[data-id]');
+    if(!t) return;
+    if(t.classList.contains('indir')) kaydiIndir(t.dataset.id);
+    else if(t.classList.contains('sil')) kaydiSil(t.dataset.id);
+  });
+}
+
+/* ---------- başlat ---------- */
+window.addEventListener('load', async ()=>{
+  if(typeof fflate === 'undefined'){ bildir('fflate yüklenemedi — internet/CDN kontrol et.', 'hata'); }
+  $('#repoEtiket').textContent = `${REPO} · private`;
+  $('#footer').textContent = `Worker proxy üzerinden GitHub (token tarayıcıda tutulmaz) · parça sınırı ${formatBoyut(PARCA_LIMIT)} · kütüphane fflate 0.8.3`;
+  secilenleriGoster();
+  baglantilariKur();
+  await manifestYukle();
+  renderDepo();
+});
+</script>
+</body>
+</html>
