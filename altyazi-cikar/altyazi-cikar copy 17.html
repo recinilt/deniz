@@ -232,7 +232,10 @@
         <option value="zh">Çince (中文)</option>
       </select>
     </div>
-    <div class="hint">Hiçbir veri dışarı çıkmaz, anahtar gerekmez. Model ilk kullanımda indirilir (base ~120 MB, small ~400 MB, turbo ~500 MB) ve tarayıcıda saklanır. Encoder/decoder hassasiyeti modele göre ayarlanır: base/small'da encoder tam hassasiyetli (fp32), decoder sıkıştırılmış (q4) — en iyi denge. <b>turbo</b>'da encoder boyutu large-v3 ile aynı olduğundan (tarayıcının dosya boyutu sınırını aşmaması için) encoder de q4'tür. <b>WebGPU varsa hızlı; yoksa (WASM) 3 saat çok yavaş olur</b> — o durumda Bulut modu önerilir. GitHub Pages dahil her yerde header gerektirmeden çalışır.</div>
+    <div class="field">
+      <label class="chk"><input type="checkbox" id="br-diarize"> Konuşmacı ayrımı yap (diarizasyon) — kimin ne zaman konuştuğunu da işaretler (deneysel — kelime zamanlamaları bazen hatalı olabilir)</label>
+    </div>
+    <div class="hint">Hiçbir veri dışarı çıkmaz, anahtar gerekmez. Model ilk kullanımda indirilir (base ~120 MB, small ~400 MB, turbo ~500 MB) ve tarayıcıda saklanır. Encoder/decoder hassasiyeti modele göre ayarlanır: base/small'da encoder tam hassasiyetli (fp32), decoder sıkıştırılmış (q4) — en iyi denge. <b>turbo</b>'da encoder boyutu large-v3 ile aynı olduğundan (tarayıcının dosya boyutu sınırını aşmaması için) encoder de q4'tür. <b>WebGPU varsa hızlı; yoksa (WASM) 3 saat çok yavaş olur</b> — o durumda Bulut modu önerilir. Konuşmacı ayrımı işaretlenirse, kelime zamanlamasını destekleyen farklı bir model varyantı ("_timestamped") + ek olarak ~6 MB'lık küçük bir model (pyannote-segmentation-3.0) indirilir. GitHub Pages dahil her yerde header gerektirmeden çalışır.</div>
   </section>
   <section class="card">
     <h2 class="card__h">Dosya</h2>
@@ -276,6 +279,39 @@
 </div>
 <script id="worker-src" type="text/plain">
 let _pipeline=null, _env=null, transcriber=null, curKey=null;
+// Diarizasyon (konuşmacı ayrımı) — opsiyonel, sadece istenirse yüklenir. Whisper akışından
+// tamamen ayrı, küçük (~6MB) bir model. Whisper akışına hiçbir şekilde dokunmaz.
+let _diarProcessor=null, _diarModel=null, _diarLoaded=false;
+async function ensureDiarizationModel(){
+  if(_diarLoaded) return;
+  const mod = await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.2.0');
+  const { AutoProcessor, AutoModelForAudioFrameClassification } = mod;
+  const model_id = 'onnx-community/pyannote-segmentation-3.0';
+  _diarProcessor = await AutoProcessor.from_pretrained(model_id);
+  _diarModel = await AutoModelForAudioFrameClassification.from_pretrained(model_id);
+  _diarLoaded = true;
+}
+async function runDiarization(pcm16k){
+  await ensureDiarizationModel();
+  const inputs = await _diarProcessor(pcm16k);
+  const { logits } = await _diarModel(inputs);
+  // post_process_speaker_diarization -> [[{id,start,end,confidence}, ...]]
+  const result = _diarProcessor.post_process_speaker_diarization(logits, pcm16k.length);
+  return result[0] || [];
+}
+function speakerAt(diarSegs, t){
+  for(const s of diarSegs){ if(t>=s.start && t<s.end) return s.id; }
+  return null;
+}
+// Kelime-seviyeli zaman damgaları (return_timestamps:'word') cross-attention analiziyle
+// hesaplanır; bu, modelin output_attentions=True ile export edilmiş olmasını gerektirir.
+// Normal whisper-base/small/large-v3-turbo bunu desteklemez — sadece "_timestamped" son
+// ekli özel varyantlar destekler. Bu eşleme SADECE diarizasyon açıkken kullanılır;
+// diarizasyon kapalıyken model adı hiç değişmez.
+function toTimestampedModel(model){
+  if(model.endsWith('_timestamped')) return model;
+  return model+'_timestamped';
+}
 async function clearStaleModelCacheOnce(shouldClear){
   if(!shouldClear){ console.log('[worker] clearCache=false, eski cache temizliği atlanıyor.'); return; }
   try{
@@ -298,19 +334,50 @@ self.onmessage = async (e)=>{
         _env.allowLocalModels = false;
         _env.useBrowserCache = true;
       }
-      const key = m.model+'|'+m.device+'|'+JSON.stringify(m.dtype);
+      const effModel = m.diarize ? toTimestampedModel(m.model) : m.model;
+      const key = effModel+'|'+m.device+'|'+JSON.stringify(m.dtype)+'|'+(m.diarize?'diar':'plain');
       if(transcriber && curKey===key){ self.postMessage({type:'ready'}); return; }
-      transcriber = await _pipeline('automatic-speech-recognition', m.model, {
+      transcriber = await _pipeline('automatic-speech-recognition', effModel, {
         device: m.device, dtype: m.dtype,
         progress_callback: (p)=> self.postMessage({type:'progress', data:p})
       });
       curKey = key;
+      if(m.diarize){
+        self.postMessage({type:'progress', data:{status:'progress', file:'pyannote-segmentation-3.0', progress:0}});
+        await ensureDiarizationModel();
+      }
       self.postMessage({type:'ready'});
     } else if(m.type==='transcribe'){
-      const opts = { task:'transcribe', return_timestamps:true };
+      const opts = { task:'transcribe', return_timestamps: m.diarize?'word':true };
+      if(m.diarize){ opts.chunk_length_s=30; opts.stride_length_s=5; }
       if(m.language) opts.language = m.language;
       const out = await transcriber(m.pcm, opts);
-      self.postMessage({type:'done', id:m.id, chunks: out.chunks||[], text: out.text||''});
+      let chunks = out.chunks||[];
+      if(m.diarize){
+        try{
+          const diarSegs = await runDiarization(m.pcm);
+          // Kelime-seviyeli chunk'ları konuşmacı segmentleriyle eşleştirip art arda
+          // gelen aynı konuşmacının kelimelerini tek bir cue'da birleştiriyoruz.
+          const merged=[];
+          for(const c of chunks){
+            const ts=c.timestamp||[0,0];
+            const mid=(ts[0]+ts[1])/2;
+            const spk=speakerAt(diarSegs, mid);
+            const last=merged[merged.length-1];
+            if(last && last.speaker===spk && (ts[0]-last.end)<1.5){
+              last.text+=(c.text||'');
+              last.end=ts[1];
+            } else {
+              merged.push({start:ts[0], end:ts[1], text:c.text||'', speaker:spk});
+            }
+          }
+          chunks = merged;
+        }catch(diarErr){
+          console.log('[worker] diarizasyon hatası, etiketsiz devam ediliyor:', diarErr);
+          // Diarizasyon başarısız olsa da transkripti kaybetmeyelim — etiketsiz devam.
+        }
+      }
+      self.postMessage({type:'done', id:m.id, chunks, text: out.text||''});
     }
   }catch(err){
     const msg=String((err&&err.message)||err);
@@ -339,7 +406,7 @@ const tabGroq=$('tab-groq'), tabBrowser=$('tab-browser');
 const panelGroq=$('panel-groq'), panelBrowser=$('panel-browser');
 const groqKey=$('groq-key'), groqKeyShow=$('groq-key-show'), groqModel=$('groq-model'), groqLang=$('groq-lang');
 const proxyOn=$('proxy-on'), proxyField=$('proxy-field'), proxyUrl=$('proxy-url');
-const brModel=$('br-model'), brLang=$('br-lang'), gpuDot=$('gpu-dot'), gpuText=$('gpu-text');
+const brModel=$('br-model'), brLang=$('br-lang'), brDiarize=$('br-diarize'), gpuDot=$('gpu-dot'), gpuText=$('gpu-text');
 const drop=$('drop'), fileInput=$('file'), fileMeta=$('file-meta');
 const goBtn=$('go'), stopBtn=$('stop'), recDot=$('rec'), statusEl=$('status');
 const bar=$('bar'), barTime=$('bar-time'), barPct=$('bar-pct');
@@ -393,11 +460,16 @@ function modelProgress(p){
   if(p&&p.status==='progress'&&p.file){ const pct=p.total?Math.round((p.loaded/p.total)*100):0;
     setStatus('Model indiriliyor: '+p.file.split('/').pop()+' %'+pct); }
 }
-function addCue(start,end,text){
+function addCue(start,end,text,speaker){
   emptyEl.style.display='none';
   const row=document.createElement('div'); row.className='cue new';
   const tc=document.createElement('span'); tc.className='cue__tc'; tc.textContent=fmtClock(start);
-  const tx=document.createElement('span'); tx.className='cue__text'; tx.textContent=text;
+  const tx=document.createElement('span'); tx.className='cue__text';
+  if(speaker!=null && speaker!==''){
+    const sp=document.createElement('b'); sp.textContent='Konuşmacı '+(Number(speaker)+1)+': '; sp.style.color='var(--accent)';
+    tx.appendChild(sp);
+  }
+  tx.appendChild(document.createTextNode(text));
   row.append(tc,tx); logEl.appendChild(row);
   logEl.scrollTop=logEl.scrollHeight;
   setTimeout(()=>row.classList.remove('new'),400);
@@ -520,7 +592,7 @@ function dtypeFor(model, device){
     return {encoder_model:'q4', decoder_model_merged:'q4'};
   return {encoder_model:'fp32', decoder_model_merged:'q4'};
 }
-const MODEL_CACHE_FIX_VERSION = 'v6-turbo-encoder-q4';
+const MODEL_CACHE_FIX_VERSION = 'v7-timestamped-diarize';
 function needsModelCacheClear(){
   const done = store.get('modelCacheFixVersion','');
   const need = done!==MODEL_CACHE_FIX_VERSION;
@@ -537,7 +609,7 @@ function loadModel(model, device){
       else if(m.type==='error'){ w.removeEventListener('message',onMsg); reject(new Error(m.message)); }
     };
     w.addEventListener('message',onMsg);
-    w.postMessage({type:'load', model, device, dtype:dtypeFor(model,device), clearCache:needsModelCacheClear()});
+    w.postMessage({type:'load', model, device, dtype:dtypeFor(model,device), clearCache:needsModelCacheClear(), diarize:brDiarize.checked});
   });
 }
 function workerTranscribe(pcm, id){
@@ -554,7 +626,7 @@ function workerTranscribe(pcm, id){
     };
     w.addEventListener('message',onMsg);
     const bl=brLang.value.trim();
-    w.postMessage({type:'transcribe', id, pcm, language: bl||null}, [pcm.buffer]);
+    w.postMessage({type:'transcribe', id, pcm, language: bl||null, diarize:brDiarize.checked}, [pcm.buffer]);
   });
 }
 async function run(){
@@ -606,7 +678,7 @@ async function run(){
         let en=rawEnd!=null?rawEnd+seg.start:null;
         const text=(c.text||'').trim();
         if(en==null||en<=st) en=st+Math.max(1.2,text.length*0.06);
-        if(text){ cues.push({start:st,end:en,text}); addCue(st,en,text); }
+        if(text){ cues.push({start:st,end:en,text,speaker:c.speaker}); addCue(st,en,text,c.speaker); }
       };
       if(mode==='groq'){
         const segCues=await groqTranscribe(encodeWav(seg.pcm,16000), idx);
@@ -659,9 +731,10 @@ function stop(){
   try{ if(abortCtrl) abortCtrl.abort(); }catch(e){}
   setStatus('Durduruluyor…','warn');
 }
-function buildSRT(){ return cues.map((c,i)=>(i+1)+'\n'+fmtTime(c.start,true)+' --> '+fmtTime(c.end,true)+'\n'+c.text).join('\n\n')+'\n'; }
-function buildVTT(){ return 'WEBVTT\n\n'+cues.map(c=>fmtTime(c.start,false)+' --> '+fmtTime(c.end,false)+'\n'+c.text).join('\n\n')+'\n'; }
-function buildTXT(){ return cues.map(c=>c.text).join(' '); }
+function cueLabel(c){ return (c.speaker!=null && c.speaker!=='') ? ('Konuşmacı '+(Number(c.speaker)+1)+': ') : ''; }
+function buildSRT(){ return cues.map((c,i)=>(i+1)+'\n'+fmtTime(c.start,true)+' --> '+fmtTime(c.end,true)+'\n'+cueLabel(c)+c.text).join('\n\n')+'\n'; }
+function buildVTT(){ return 'WEBVTT\n\n'+cues.map(c=>fmtTime(c.start,false)+' --> '+fmtTime(c.end,false)+'\n'+cueLabel(c)+c.text).join('\n\n')+'\n'; }
+function buildTXT(){ return cues.map(c=>cueLabel(c)+c.text).join(cues.some(c=>c.speaker!=null)?'\n':' '); }
 function baseName(){ const n=selectedFile?selectedFile.name.replace(/\.[^.]+$/,''):'altyazi'; return n||'altyazi'; }
 function download(name, text){
   const a=document.createElement('a');
@@ -703,6 +776,7 @@ groqModel.onchange=()=>store.set('groqModel',groqModel.value);
 groqLang.onchange=()=>store.set('groqLang',groqLang.value);
 brModel.onchange=()=>store.set('brModel',brModel.value);
 brLang.onchange=()=>store.set('brLang',brLang.value);
+brDiarize.onchange=()=>store.set('brDiarize',brDiarize.checked?'1':'0');
 drop.onclick=()=>fileInput.click();
 drop.onkeydown=(e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); fileInput.click(); } };
 fileInput.onchange=(e)=>handleFile(e.target.files[0]);
@@ -728,6 +802,7 @@ expCopy.onclick=async()=>{ try{ await navigator.clipboard.writeText(buildTXT());
   proxyField.style.opacity=proxyOn.checked?'1':'.5';
   const gql=store.get('groqLang',null); if(gql!==null) groqLang.value=gql;
   const bql=store.get('brLang',null); if(bql!==null) brLang.value=bql;
+  brDiarize.checked = store.get('brDiarize','0')==='1';
   if(navigator.storage?.persist){ try{ navigator.storage.persist(); }catch(e){} }
   setMode(store.get('mode','groq'));
 })();
