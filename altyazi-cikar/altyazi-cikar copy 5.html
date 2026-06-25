@@ -271,19 +271,20 @@
 let _pipeline=null, _env=null, transcriber=null, curKey=null;
 
 // Önceki sürümlerde bazı modeller hatalı/eksik-scale'li bir quantize varyantıyla
-// indirilip tarayıcının Cache Storage'ına yazılmış olabilir. Bu eski dosyaları bir
-// DEFAYA MAHSUS temizlemek gerekir — ama worker'ın kendi bellek değişkenleri her
-// sayfa yenilemesinde sıfırlandığı için, "temizlendi mi" bilgisi worker İÇİNDE
-// tutulamaz (tutulursa her sayfa açılışında tekrar temizler ve model sürekli
-// yeniden iner). Bu yüzden bu bilgi ana thread'den (localStorage, kalıcı) gelir.
-async function clearStaleModelCacheOnce(shouldClear){
-  if(!shouldClear) return;
+// indirilip tarayıcının Cache Storage'ına yazılmış olabilir. transformers.js aynı
+// dosya URL'sini Cache'te bulunca tekrar indirmediği için, dtype düzeltmesi
+// kod tarafında yapılsa da eski bozuk dosya kullanılmaya devam edebilir.
+// CACHE_FIX_VERSION değiştiğinde, bir defaya mahsus eski cache silinir.
+const CACHE_FIX_VERSION = 'v3-fp32-explicit';
+async function clearStaleModelCacheOnce(){
   try{
-    if(!('caches' in self)) return;
+    if(self.__cacheFixDone===CACHE_FIX_VERSION) return;
+    if(!('caches' in self)) { self.__cacheFixDone=CACHE_FIX_VERSION; return; }
     const names = await caches.keys();
     for(const n of names){
       if(/transformers|onnx/i.test(n)){ await caches.delete(n); }
     }
+    self.__cacheFixDone = CACHE_FIX_VERSION;
   }catch(e){ /* sessiz geç, kritik değil */ }
 }
 
@@ -291,7 +292,7 @@ self.onmessage = async (e)=>{
   const m=e.data;
   try{
     if(m.type==='load'){
-      await clearStaleModelCacheOnce(m.clearCache);
+      await clearStaleModelCacheOnce();
       if(!_pipeline){
         const mod = await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.2.0');
         _pipeline = mod.pipeline; _env = mod.env;
@@ -519,16 +520,6 @@ function dtypeFor(model, device){
     return device==='webgpu' ? {encoder_model:'fp32',decoder_model_merged:'q4'} : {encoder_model:'fp32',decoder_model_merged:'fp32'};
   return {encoder_model:'fp32',decoder_model_merged:'fp32'};
 }
-// Eski sürümlerde indirilmiş olabilecek bozuk/uyumsuz model dosyalarını bir DEFAYA
-// MAHSUS temizlemek için kalıcı bir bayrak. localStorage (worker'ın aksine) sayfa
-// yenilemelerinde silinmediği için, temizlik gerçekten yalnızca bir kez çalışır.
-const MODEL_CACHE_FIX_VERSION = 'v3-fp32-explicit';
-function needsModelCacheClear(){
-  const done = store.get('modelCacheFixVersion','');
-  if(done===MODEL_CACHE_FIX_VERSION) return false;
-  store.set('modelCacheFixVersion', MODEL_CACHE_FIX_VERSION);
-  return true;
-}
 function loadModel(model, device){
   return new Promise((resolve,reject)=>{
     const w=getWorker();
@@ -538,7 +529,7 @@ function loadModel(model, device){
       else if(m.type==='error'){ w.removeEventListener('message',onMsg); reject(new Error(m.message)); }
     };
     w.addEventListener('message',onMsg);
-    w.postMessage({type:'load', model, device, dtype:dtypeFor(model,device), clearCache:needsModelCacheClear()});
+    w.postMessage({type:'load', model, device, dtype:dtypeFor(model,device)});
   });
 }
 function workerTranscribe(pcm, id){
