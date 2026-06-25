@@ -313,21 +313,7 @@ self.onmessage = async (e)=>{
       self.postMessage({type:'done', id:m.id, chunks: out.chunks||[], text: out.text||''});
     }
   }catch(err){
-    const msg=String((err&&err.message)||err);
-    // Windows TDR (Timeout Detection and Recovery): 2 saniyeden uzun süren bir GPU
-    // compute işlemi olduğunda işletim sistemi GPU sürücüsünü zorla resetler. Bu bir
-    // donanım arızası değil — WebGPU/Dawn/onnxruntime tarafında "device lost/removed"
-    // olarak görünür. Zayıf/entegre/sanallaştırılmış GPU'larda (Intel HD serisi, Chrome
-    // Portable gibi sandbox'lı ortamlar) sık görülür. Bu tip hatalarda transcriber'ı
-    // (artık geçersiz GPU session'ına bağlı) sıfırlayıp ana thread'e özel bir hata tipi
-    // bildiriyoruz; ana thread WASM ile yeniden yükleyip aynı segmenti tekrar dener.
-    const isDeviceLost = /device.?(lost|removed|hung)|dxgi|webgpu compute pipeline|getdeviceremovedreason/i.test(msg);
-    if(isDeviceLost){
-      transcriber=null; curKey=null;
-      self.postMessage({type:'error', id:m.id, message:msg, deviceLost:true});
-    } else {
-      self.postMessage({type:'error', id:m.id, message:msg});
-    }
+    self.postMessage({type:'error', id:m.id, message:String((err&&err.message)||err)});
   }
 };
 </script>
@@ -525,12 +511,7 @@ function workerTranscribe(pcm, id){
     const w=getWorker();
     const onMsg=(e)=>{ const m=e.data;
       if(m.type==='done' && m.id===id){ w.removeEventListener('message',onMsg); resolve(m.chunks||[]); }
-      else if(m.type==='error'){
-        w.removeEventListener('message',onMsg);
-        const err=new Error(m.message);
-        if(m.deviceLost) err.deviceLost=true;
-        reject(err);
-      }
+      else if(m.type==='error'){ w.removeEventListener('message',onMsg); reject(new Error(m.message)); }
     };
     w.addEventListener('message',onMsg);
     const bl=brLang.value.trim();
@@ -555,12 +536,10 @@ async function run(){
     totalDuration=duration||0;
     const SEG = mode==='groq' ? 90 : 30;
     const N = Math.max(1, Math.ceil((duration||SEG)/SEG));
-    let idx=0;
-    let activeBrowserDevice=null;
     if(mode==='browser'){
       setStatus('Donanım kontrol ediliyor…');
       const gpuReal = await detectWebGPU();
-      let dev = gpuReal ? 'webgpu' : 'wasm';
+      const dev = gpuReal ? 'webgpu' : 'wasm';
       if(!gpuReal && brModel.value!=='onnx-community/whisper-base'){
         setStatus('GPU adaptörü bulunamadı — bu makinede WASM ile büyük modeller çok yavaş/riskli olabilir. Bulut modu önerilir.','warn');
         await sleep(1800);
@@ -569,12 +548,12 @@ async function run(){
       try{ await loadModel(brModel.value, dev); }
       catch(e){
         if(dev==='webgpu'){ setStatus('WebGPU başarısız — WASM ile deneniyor (yavaş)…','warn');
-          webgpuOK=false; dev='wasm';
+          webgpuOK=false;
           await loadModel(brModel.value,'wasm'); }
         else throw e;
       }
-      activeBrowserDevice=dev;
     }
+    let idx=0;
     for await(const seg of segmentPcm(selectedFile, SEG)){
       if(cancelled) break;
       idx++;
@@ -592,23 +571,7 @@ async function run(){
         const segCues=await groqTranscribe(encodeWav(seg.pcm,16000), idx);
         for(const c of segCues) addSegCue(c);
       } else {
-        // WebGPU, Windows TDR (Timeout Detection and Recovery) nedeniyle herhangi bir
-        // segmentte cihazı kaybedebilir — bu donanım arızası değil, 2sn'den uzun süren
-        // bir GPU işleminde işletim sisteminin sürücüyü zorla resetlemesi. Zayıf/entegre
-        // GPU'larda (Intel HD serisi, Chrome Portable gibi sandbox'lı ortamlar) görülür.
-        // Oluşursa kullanıcıyı kesintiye uğratmadan WASM'a geçip aynı segmenti bir kez
-        // daha deniyoruz.
-        let chunks;
-        try{
-          chunks = await workerTranscribe(seg.pcm, idx);
-        }catch(e){
-          if(e.deviceLost && activeBrowserDevice==='webgpu'){
-            setStatus('GPU cihazı kayboldu (Windows TDR) — WASM\'a geçilip segment '+idx+' tekrar deneniyor…','warn');
-            activeBrowserDevice='wasm'; webgpuOK=false;
-            await loadModel(brModel.value, 'wasm');
-            chunks = await workerTranscribe(seg.pcm, idx);
-          } else { throw e; }
-        }
+        const chunks=await workerTranscribe(seg.pcm, idx);
         for(const c of chunks) addSegCue(c);
       }
       setProgress(Math.min(1, (seg.end||0)/(duration||1)));
