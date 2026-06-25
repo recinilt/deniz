@@ -325,20 +325,7 @@ let running=false, cancelled=false;
 let cues=[];
 let totalDuration=0;
 let abortCtrl=null;
-let webgpuOK=null; // null=henüz test edilmedi, true/false=gerçek adaptör testi sonucu
-
-// 'gpu' in navigator yalnızca API'nin var olduğunu gösterir, çalışan bir GPU adaptörü
-// olduğunu göstermez (paylaşımlı/eski Intel grafik kartlarında sık görülür). Gerçek
-// testi yalnızca requestAdapter() verir.
-async function detectWebGPU(){
-  if(webgpuOK!==null) return webgpuOK;
-  try{
-    if(!('gpu' in navigator)){ webgpuOK=false; return false; }
-    const adapter=await navigator.gpu.requestAdapter();
-    webgpuOK = !!adapter;
-  }catch(e){ webgpuOK=false; }
-  return webgpuOK;
-}
+const hasWebGPU = ('gpu' in navigator);
 
 // ---- Whisper worker ----
 let worker=null;
@@ -544,18 +531,11 @@ async function run(){
     const N = Math.max(1, Math.ceil((duration||SEG)/SEG));
 
     if(mode==='browser'){
-      setStatus('Donanım kontrol ediliyor…');
-      const gpuReal = await detectWebGPU();
-      const dev = gpuReal ? 'webgpu' : 'wasm';
-      if(!gpuReal && brModel.value!=='onnx-community/whisper-base'){
-        setStatus('GPU adaptörü bulunamadı — bu makinede WASM ile büyük modeller çok yavaş/riskli olabilir. Bulut modu önerilir.','warn');
-        await sleep(1800);
-      }
+      const dev = hasWebGPU ? 'webgpu' : 'wasm';
       setStatus('Model hazırlanıyor ('+brModel.value.split('/').pop()+' · '+dev+')…');
       try{ await loadModel(brModel.value, dev); }
       catch(e){
         if(dev==='webgpu'){ setStatus('WebGPU başarısız — WASM ile deneniyor (yavaş)…','warn');
-          webgpuOK=false;
           await loadModel(brModel.value,'wasm'); }
         else throw e;
       }
@@ -663,12 +643,10 @@ expTxt.onclick=()=>download(baseName()+'.txt', buildTXT());
 expCopy.onclick=async()=>{ try{ await navigator.clipboard.writeText(buildTXT()); expCopy.textContent='Kopyalandı ✓'; setTimeout(()=>expCopy.textContent='Metni kopyala',1500);}catch(e){ setStatus('Kopyalanamadı.','err'); } };
 
 // ---- Başlangıç ----
-(async function init(){
-  // WebGPU rozeti — gerçek adaptör testi (sadece API varlığı değil)
-  gpuText.textContent='WebGPU kontrol…';
-  const ok = await detectWebGPU();
-  if(ok){ gpuDot.className='dot on'; gpuText.textContent='WebGPU var (hızlı)'; }
-  else { gpuDot.className='dot off'; gpuText.textContent='GPU adaptörü yok → WASM (bu makinede yavaş olabilir)'; }
+(function init(){
+  // WebGPU rozeti
+  if(hasWebGPU){ gpuDot.className='dot on'; gpuText.textContent='WebGPU var (hızlı)'; }
+  else { gpuDot.className='dot off'; gpuText.textContent='WebGPU yok → WASM (yavaş)'; }
   // kayıtlı ayarlar
   const sk=store.get('groqKey',''); if(sk) groqKey.value=sk;
   const gm=store.get('groqModel',''); if(gm) groqModel.value=gm;
