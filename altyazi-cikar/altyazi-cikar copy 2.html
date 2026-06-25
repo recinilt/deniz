@@ -491,14 +491,10 @@ async function groqTranscribe(wavBlob, id){
 }
 
 // ---- Tarayıcı transkripsiyon (worker) ----
-// NOT: Tek bir genel "q8" string'i bazı whisper depolarında (örn. base/small) encoder ve
-// decoder dosyalarına güvenilmez şekilde eşleşip bozuk/uyumsuz bir quantize varyant
-// seçilmesine yol açabiliyor (eksik scale tensörü hatası). Bunun için her modelde
-// encoder_model ve decoder_model_merged dtype'ları açıkça ve ayrı ayrı belirtiliyor.
 function dtypeFor(model, device){
   if(model.includes('large-v3-turbo'))
-    return device==='webgpu' ? {encoder_model:'fp32',decoder_model_merged:'q4'} : {encoder_model:'uint8',decoder_model_merged:'uint8'};
-  return device==='webgpu' ? {encoder_model:'fp32',decoder_model_merged:'fp32'} : {encoder_model:'uint8',decoder_model_merged:'uint8'};
+    return device==='webgpu' ? {encoder_model:'fp32',decoder_model_merged:'q4'} : {encoder_model:'q8',decoder_model_merged:'q8'};
+  return device==='webgpu' ? 'fp32' : 'q8';
 }
 function loadModel(model, device){
   return new Promise((resolve,reject)=>{
