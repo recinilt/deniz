@@ -232,7 +232,7 @@
         <option value="zh">Çince (中文)</option>
       </select>
     </div>
-    <div class="hint">Hiçbir veri dışarı çıkmaz, anahtar gerekmez. Model ilk kullanımda indirilir (base ~150 MB, small ~500 MB, turbo ~850 MB) ve tarayıcıda saklanır. Encoder tam hassasiyetli (fp32, Whisper'ın buna hassas olması nedeniyle), decoder sıkıştırılmış (uint8) — hem güvenilir çalışır hem daha az bellek/disk kullanır, zayıf donanımlarda "bellek yetersiz" hatasını önler. <b>WebGPU varsa hızlı; yoksa (WASM) 3 saat çok yavaş olur</b> — o durumda Bulut modu önerilir. GitHub Pages dahil her yerde header gerektirmeden çalışır.</div>
+    <div class="hint">Hiçbir veri dışarı çıkmaz, anahtar gerekmez. Model ilk kullanımda indirilir (base ~290 MB, small ~970 MB, turbo ~1.6 GB) ve tarayıcıda saklanır. Bazı modellerin sıkıştırılmış (quantized) sürümleri bu tarayıcı motorunda hatalı yüklendiği için tam hassasiyetli (fp32) dosyalar kullanılıyor — daha büyük indirme ama garantili çalışır. <b>WebGPU varsa hızlı; yoksa (WASM) 3 saat çok yavaş olur</b> — o durumda Bulut modu önerilir. GitHub Pages dahil her yerde header gerektirmeden çalışır.</div>
   </section>
   <section class="card">
     <h2 class="card__h">Dosya</h2>
@@ -501,16 +501,10 @@ async function groqTranscribe(wavBlob, id){
 }
 function dtypeFor(model, device){
   if(model.includes('large-v3-turbo'))
-    return device==='webgpu' ? {encoder_model:'fp32',decoder_model_merged:'q4'} : {encoder_model:'fp32',decoder_model_merged:'uint8'};
-  // Whisper'ın encoder'ı kuantizasyona aşırı hassas (resmi transformers.js notu) — fp32'de
-  // bırakılıyor. decoder_model_merged ise generate() döngüsünde tekrar tekrar çalışır ve
-  // ağırlıkça daha büyüktür; uint8 (basit skaler kuantizasyon, q4'ten farklı bir mekanizma
-  // — önceki "missing scale" hatasıyla ilişkili değil) ile belleği önemli ölçüde düşürür.
-  // Bu, düşük RAM'li makinelerde WASM session oluşturmanın std::bad_alloc ile başarısız
-  // olmasını önler.
-  return {encoder_model:'fp32',decoder_model_merged:'uint8'};
+    return device==='webgpu' ? {encoder_model:'fp32',decoder_model_merged:'q4'} : {encoder_model:'fp32',decoder_model_merged:'fp32'};
+  return {encoder_model:'fp32',decoder_model_merged:'fp32'};
 }
-const MODEL_CACHE_FIX_VERSION = 'v4-decoder-uint8';
+const MODEL_CACHE_FIX_VERSION = 'v3-fp32-explicit';
 function needsModelCacheClear(){
   const done = store.get('modelCacheFixVersion','');
   const need = done!==MODEL_CACHE_FIX_VERSION;
@@ -629,14 +623,10 @@ async function run(){
     else { setProgress(1); setStatus('Bitti — '+cues.length+' altyazı satırı.','ok'); }
   }catch(err){
     const m=err.message||String(err);
-    const looksLikeMemory = /bad_alloc|out of memory|oom/i.test(m);
     const looksLikeStaleModel = /session|scale|MatMul|backend|adapter/i.test(m);
-    let hint='';
-    if(mode==='browser' && looksLikeMemory){
-      hint=' — Bu makinede bellek yetersiz kaldı. Daha küçük bir model (base) deneyin veya Bulut modunu kullanın.';
-    } else if(mode==='browser' && looksLikeStaleModel){
-      hint=' — Ctrl+Shift+R ile sayfayı sıfırdan yükleyip tekrar dene (eski model dosyası önbellekte kalmış olabilir).';
-    }
+    const hint = (mode==='browser' && looksLikeStaleModel)
+      ? ' — Ctrl+Shift+R ile sayfayı sıfırdan yükleyip tekrar dene (eski model dosyası önbellekte kalmış olabilir).'
+      : '';
     setStatus('Hata: '+m+hint,'err');
   }finally{
     finalizeOutput();
