@@ -269,37 +269,17 @@
 <!-- ===== Whisper worker kaynağı (tarayıcı modu) ===== -->
 <script id="worker-src" type="text/plain">
 let _pipeline=null, _env=null, transcriber=null, curKey=null;
-
-// Önceki sürümlerde bazı modeller hatalı/eksik-scale'li bir quantize varyantıyla
-// indirilip tarayıcının Cache Storage'ına yazılmış olabilir. transformers.js aynı
-// dosya URL'sini Cache'te bulunca tekrar indirmediği için, dtype düzeltmesi
-// kod tarafında yapılsa da eski bozuk dosya kullanılmaya devam edebilir.
-// CACHE_FIX_VERSION değiştiğinde, bir defaya mahsus eski cache silinir.
-const CACHE_FIX_VERSION = 'v2-uint8-explicit';
-async function clearStaleModelCacheOnce(){
-  try{
-    if(self.__cacheFixDone===CACHE_FIX_VERSION) return;
-    if(!('caches' in self)) { self.__cacheFixDone=CACHE_FIX_VERSION; return; }
-    const names = await caches.keys();
-    for(const n of names){
-      if(/transformers|onnx/i.test(n)){ await caches.delete(n); }
-    }
-    self.__cacheFixDone = CACHE_FIX_VERSION;
-  }catch(e){ /* sessiz geç, kritik değil */ }
-}
-
 self.onmessage = async (e)=>{
   const m=e.data;
   try{
     if(m.type==='load'){
-      await clearStaleModelCacheOnce();
       if(!_pipeline){
         const mod = await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.2.0');
         _pipeline = mod.pipeline; _env = mod.env;
         _env.allowLocalModels = false;
         _env.useBrowserCache = true;
       }
-      const key = m.model+'|'+m.device+'|'+JSON.stringify(m.dtype);
+      const key = m.model+'|'+m.device;
       if(transcriber && curKey===key){ self.postMessage({type:'ready'}); return; }
       transcriber = await _pipeline('automatic-speech-recognition', m.model, {
         device: m.device, dtype: m.dtype,
@@ -608,12 +588,7 @@ async function run(){
     if(cancelled) setStatus('Durduruldu — '+cues.length+' satır çıkarıldı.','warn');
     else { setProgress(1); setStatus('Bitti — '+cues.length+' altyazı satırı.','ok'); }
   }catch(err){
-    const m=err.message||String(err);
-    const looksLikeStaleModel = /session|scale|MatMul|backend|adapter/i.test(m);
-    const hint = (mode==='browser' && looksLikeStaleModel)
-      ? ' — Ctrl+Shift+R ile sayfayı sıfırdan yükleyip tekrar dene (eski model dosyası önbellekte kalmış olabilir).'
-      : '';
-    setStatus('Hata: '+m+hint,'err');
+    setStatus('Hata: '+err.message,'err');
   }finally{
     finalizeOutput();
     running=false; goBtn.disabled=false; stopBtn.hidden=true; recDot.classList.remove('live');
