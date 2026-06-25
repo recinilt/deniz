@@ -215,7 +215,7 @@
         </div>
       </div>
     </div>
-    <div class="hint">Hiçbir veri dışarı çıkmaz, anahtar gerekmez. Model ilk kullanımda indirilir (base ~290 MB, small ~970 MB, turbo ~1.6 GB) ve tarayıcıda saklanır. Bazı modellerin sıkıştırılmış (quantized) sürümleri bu tarayıcı motorunda hatalı yüklendiği için tam hassasiyetli (fp32) dosyalar kullanılıyor — daha büyük indirme ama garantili çalışır. <b>WebGPU varsa hızlı; yoksa (WASM) 3 saat çok yavaş olur</b> — o durumda Bulut modu önerilir. GitHub Pages dahil her yerde header gerektirmeden çalışır.</div>
+    <div class="hint">Hiçbir veri dışarı çıkmaz, anahtar gerekmez. Model ilk kullanımda indirilir (base ~75 MB, small ~250 MB, turbo ~800 MB+) ve tarayıcıda saklanır. <b>WebGPU varsa hızlı; yoksa (WASM) 3 saat çok yavaş olur</b> — o durumda Bulut modu önerilir. GitHub Pages dahil her yerde header gerektirmeden çalışır.</div>
   </section>
 
   <!-- FILE -->
@@ -275,7 +275,7 @@ let _pipeline=null, _env=null, transcriber=null, curKey=null;
 // dosya URL'sini Cache'te bulunca tekrar indirmediği için, dtype düzeltmesi
 // kod tarafında yapılsa da eski bozuk dosya kullanılmaya devam edebilir.
 // CACHE_FIX_VERSION değiştiğinde, bir defaya mahsus eski cache silinir.
-const CACHE_FIX_VERSION = 'v3-fp32-explicit';
+const CACHE_FIX_VERSION = 'v2-uint8-explicit';
 async function clearStaleModelCacheOnce(){
   try{
     if(self.__cacheFixDone===CACHE_FIX_VERSION) return;
@@ -511,14 +511,14 @@ async function groqTranscribe(wavBlob, id){
 }
 
 // ---- Tarayıcı transkripsiyon (worker) ----
-// NOT: uint8/q8 etiketli decoder_model_merged dosyası bu onnxruntime-web sürümünde
-// "Missing required scale" hatası veriyor (blok-kuantize formatla uyumsuzluk).
-// fp32 kuantizasyon scale'i gerektirmediği için kategorik olarak bu hatayı önler;
-// dosya biraz daha büyük ama base/small modellerde bu donanımda sorun olmaz.
+// NOT: Tek bir genel "q8" string'i bazı whisper depolarında (örn. base/small) encoder ve
+// decoder dosyalarına güvenilmez şekilde eşleşip bozuk/uyumsuz bir quantize varyant
+// seçilmesine yol açabiliyor (eksik scale tensörü hatası). Bunun için her modelde
+// encoder_model ve decoder_model_merged dtype'ları açıkça ve ayrı ayrı belirtiliyor.
 function dtypeFor(model, device){
   if(model.includes('large-v3-turbo'))
-    return device==='webgpu' ? {encoder_model:'fp32',decoder_model_merged:'q4'} : {encoder_model:'fp32',decoder_model_merged:'fp32'};
-  return {encoder_model:'fp32',decoder_model_merged:'fp32'};
+    return device==='webgpu' ? {encoder_model:'fp32',decoder_model_merged:'q4'} : {encoder_model:'uint8',decoder_model_merged:'uint8'};
+  return device==='webgpu' ? {encoder_model:'fp32',decoder_model_merged:'fp32'} : {encoder_model:'uint8',decoder_model_merged:'uint8'};
 }
 function loadModel(model, device){
   return new Promise((resolve,reject)=>{
