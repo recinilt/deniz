@@ -321,7 +321,7 @@ self.onmessage = async (e)=>{
     // Portable gibi sandbox'lı ortamlar) sık görülür. Bu tip hatalarda transcriber'ı
     // (artık geçersiz GPU session'ına bağlı) sıfırlayıp ana thread'e özel bir hata tipi
     // bildiriyoruz; ana thread WASM ile yeniden yükleyip aynı segmenti tekrar dener.
-    const isDeviceLost = /\[device\]\s*is\s*lost|device\s*(removed|hung|lost)|devicelost|dxgi|webgpu compute pipeline|getdeviceremovedreason|mapasync/i.test(msg);
+    const isDeviceLost = /device.?(lost|removed|hung)|dxgi|webgpu compute pipeline|getdeviceremovedreason/i.test(msg);
     if(isDeviceLost){
       transcriber=null; curKey=null;
       self.postMessage({type:'error', id:m.id, message:msg, deviceLost:true});
@@ -353,10 +353,6 @@ let totalDuration=0;
 let abortCtrl=null;
 let webgpuOK=null;
 async function detectWebGPU(){
-  // Bu makinede önceden gerçek bir GPU cihaz kaybı (Windows TDR) yaşandıysa, bunu
-  // kalıcı olarak hatırla — aksi halde her yeni dosyada/sayfa açılışında WebGPU
-  // tekrar denenir ve aynı çöküş tekrarlanır.
-  if(store.get('webgpuDeviceLostOnce','')==='1'){ webgpuOK=false; return false; }
   if(webgpuOK!==null) return webgpuOK;
   try{
     if(!('gpu' in navigator)){ webgpuOK=false; return false; }
@@ -609,7 +605,6 @@ async function run(){
           if(e.deviceLost && activeBrowserDevice==='webgpu'){
             setStatus('GPU cihazı kayboldu (Windows TDR) — WASM\'a geçilip segment '+idx+' tekrar deneniyor…','warn');
             activeBrowserDevice='wasm'; webgpuOK=false;
-            store.set('webgpuDeviceLostOnce','1');
             await loadModel(brModel.value, 'wasm');
             chunks = await workerTranscribe(seg.pcm, idx);
           } else { throw e; }
