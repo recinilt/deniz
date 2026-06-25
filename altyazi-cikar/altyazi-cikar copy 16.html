@@ -233,9 +233,9 @@
       </select>
     </div>
     <div class="field">
-      <label class="chk"><input type="checkbox" id="br-diarize"> Konuşmacı ayrımı yap (diarizasyon) — kimin ne zaman konuştuğunu da işaretler (deneysel — kelime zamanlamaları bazen hatalı olabilir)</label>
+      <label class="chk"><input type="checkbox" id="br-diarize"> Konuşmacı ayrımı yap (diarizasyon) — kimin ne zaman konuştuğunu da işaretler</label>
     </div>
-    <div class="hint">Hiçbir veri dışarı çıkmaz, anahtar gerekmez. Model ilk kullanımda indirilir (base ~120 MB, small ~400 MB, turbo ~500 MB) ve tarayıcıda saklanır. Encoder/decoder hassasiyeti modele göre ayarlanır: base/small'da encoder tam hassasiyetli (fp32), decoder sıkıştırılmış (q4) — en iyi denge. <b>turbo</b>'da encoder boyutu large-v3 ile aynı olduğundan (tarayıcının dosya boyutu sınırını aşmaması için) encoder de q4'tür. <b>WebGPU varsa hızlı; yoksa (WASM) 3 saat çok yavaş olur</b> — o durumda Bulut modu önerilir. Konuşmacı ayrımı işaretlenirse, kelime zamanlamasını destekleyen farklı bir model varyantı ("_timestamped") + ek olarak ~6 MB'lık küçük bir model (pyannote-segmentation-3.0) indirilir. GitHub Pages dahil her yerde header gerektirmeden çalışır.</div>
+    <div class="hint">Hiçbir veri dışarı çıkmaz, anahtar gerekmez. Model ilk kullanımda indirilir (base ~120 MB, small ~400 MB, turbo ~500 MB) ve tarayıcıda saklanır. Encoder/decoder hassasiyeti modele göre ayarlanır: base/small'da encoder tam hassasiyetli (fp32), decoder sıkıştırılmış (q4) — en iyi denge. <b>turbo</b>'da encoder boyutu large-v3 ile aynı olduğundan (tarayıcının dosya boyutu sınırını aşmaması için) encoder de q4'tür. <b>WebGPU varsa hızlı; yoksa (WASM) 3 saat çok yavaş olur</b> — o durumda Bulut modu önerilir. Konuşmacı ayrımı işaretlenirse ek olarak ~6 MB'lık küçük bir model (pyannote-segmentation-3.0) daha indirilir. GitHub Pages dahil her yerde header gerektirmeden çalışır.</div>
   </section>
   <section class="card">
     <h2 class="card__h">Dosya</h2>
@@ -303,15 +303,6 @@ function speakerAt(diarSegs, t){
   for(const s of diarSegs){ if(t>=s.start && t<s.end) return s.id; }
   return null;
 }
-// Kelime-seviyeli zaman damgaları (return_timestamps:'word') cross-attention analiziyle
-// hesaplanır; bu, modelin output_attentions=True ile export edilmiş olmasını gerektirir.
-// Normal whisper-base/small/large-v3-turbo bunu desteklemez — sadece "_timestamped" son
-// ekli özel varyantlar destekler. Bu eşleme SADECE diarizasyon açıkken kullanılır;
-// diarizasyon kapalıyken model adı hiç değişmez.
-function toTimestampedModel(model){
-  if(model.endsWith('_timestamped')) return model;
-  return model+'_timestamped';
-}
 async function clearStaleModelCacheOnce(shouldClear){
   if(!shouldClear){ console.log('[worker] clearCache=false, eski cache temizliği atlanıyor.'); return; }
   try{
@@ -334,10 +325,9 @@ self.onmessage = async (e)=>{
         _env.allowLocalModels = false;
         _env.useBrowserCache = true;
       }
-      const effModel = m.diarize ? toTimestampedModel(m.model) : m.model;
-      const key = effModel+'|'+m.device+'|'+JSON.stringify(m.dtype)+'|'+(m.diarize?'diar':'plain');
+      const key = m.model+'|'+m.device+'|'+JSON.stringify(m.dtype);
       if(transcriber && curKey===key){ self.postMessage({type:'ready'}); return; }
-      transcriber = await _pipeline('automatic-speech-recognition', effModel, {
+      transcriber = await _pipeline('automatic-speech-recognition', m.model, {
         device: m.device, dtype: m.dtype,
         progress_callback: (p)=> self.postMessage({type:'progress', data:p})
       });
@@ -349,7 +339,6 @@ self.onmessage = async (e)=>{
       self.postMessage({type:'ready'});
     } else if(m.type==='transcribe'){
       const opts = { task:'transcribe', return_timestamps: m.diarize?'word':true };
-      if(m.diarize){ opts.chunk_length_s=30; opts.stride_length_s=5; }
       if(m.language) opts.language = m.language;
       const out = await transcriber(m.pcm, opts);
       let chunks = out.chunks||[];
@@ -592,7 +581,7 @@ function dtypeFor(model, device){
     return {encoder_model:'q4', decoder_model_merged:'q4'};
   return {encoder_model:'fp32', decoder_model_merged:'q4'};
 }
-const MODEL_CACHE_FIX_VERSION = 'v7-timestamped-diarize';
+const MODEL_CACHE_FIX_VERSION = 'v6-turbo-encoder-q4';
 function needsModelCacheClear(){
   const done = store.get('modelCacheFixVersion','');
   const need = done!==MODEL_CACHE_FIX_VERSION;
