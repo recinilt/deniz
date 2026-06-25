@@ -232,7 +232,7 @@
         <option value="zh">Çince (中文)</option>
       </select>
     </div>
-    <div class="hint">Hiçbir veri dışarı çıkmaz, anahtar gerekmez. Model ilk kullanımda indirilir (base ~120 MB, small ~400 MB, turbo ~500 MB) ve tarayıcıda saklanır. Encoder/decoder hassasiyeti modele göre ayarlanır: base/small'da encoder tam hassasiyetli (fp32), decoder sıkıştırılmış (q4) — en iyi denge. <b>turbo</b>'da encoder boyutu large-v3 ile aynı olduğundan (tarayıcının dosya boyutu sınırını aşmaması için) encoder de q4'tür. <b>WebGPU varsa hızlı; yoksa (WASM) 3 saat çok yavaş olur</b> — o durumda Bulut modu önerilir. GitHub Pages dahil her yerde header gerektirmeden çalışır.</div>
+    <div class="hint">Hiçbir veri dışarı çıkmaz, anahtar gerekmez. Model ilk kullanımda indirilir (base ~120 MB, small ~400 MB, turbo ~700 MB) ve tarayıcıda saklanır. Encoder tam hassasiyetli (fp32, Whisper'ın buna hassas olması nedeniyle), decoder sıkıştırılmış (q4, resmi olarak test edilmiş kombinasyon) — hem güvenilir çalışır hem daha az bellek/disk kullanır, zayıf donanımlarda "bellek yetersiz" hatasını önler. <b>WebGPU varsa hızlı; yoksa (WASM) 3 saat çok yavaş olur</b> — o durumda Bulut modu önerilir. GitHub Pages dahil her yerde header gerektirmeden çalışır.</div>
   </section>
   <section class="card">
     <h2 class="card__h">Dosya</h2>
@@ -508,19 +508,9 @@ function dtypeFor(model, device){
   // belirtildiğinde doğru blok-kuantize dosyası ve onunla eşleşen scale verisi birlikte
   // gelir; önceki hata aslında 'q8' istenip kütüphanenin yanlışlıkla bir q4 dosyasına
   // düşmesinden kaynaklanıyordu. q4 ile bu belirsizlik ortadan kalkar.
-  //
-  // ÖZEL DURUM — large-v3-turbo: bu modelin encoder'ı large-v3 ile birebir aynı boyutta
-  // (turbo sadece decoder'ı 32->4 katmana indiriyor, encoder'a dokunmuyor). large-v3
-  // encoder'ı fp32'de ~2.8GB — bu, tarayıcının indirilen dosyayı tek bir Uint8Array'e
-  // ayırırken karşılaştığı pratik tahsis sınırını aşıyor ("RangeError: Invalid typed
-  // array length"). Bu yüzden SADECE bu modelde encoder da q4'e düşürülüyor; base/small
-  // gibi diğer tüm modeller bu satırın dışında kalıp aynen fp32 encoder kullanmaya
-  // devam ediyor (onlar zaten sorunsuz çalışıyor, dokunulmuyor).
-  if(model.includes('large-v3-turbo'))
-    return {encoder_model:'q4', decoder_model_merged:'q4'};
   return {encoder_model:'fp32', decoder_model_merged:'q4'};
 }
-const MODEL_CACHE_FIX_VERSION = 'v6-turbo-encoder-q4';
+const MODEL_CACHE_FIX_VERSION = 'v5-decoder-q4';
 function needsModelCacheClear(){
   const done = store.get('modelCacheFixVersion','');
   const need = done!==MODEL_CACHE_FIX_VERSION;
