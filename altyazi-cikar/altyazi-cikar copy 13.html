@@ -232,7 +232,7 @@
         <option value="zh">Çince (中文)</option>
       </select>
     </div>
-    <div class="hint">Hiçbir veri dışarı çıkmaz, anahtar gerekmez. Model ilk kullanımda indirilir (base ~120 MB, small ~400 MB, turbo ~700 MB) ve tarayıcıda saklanır. Encoder tam hassasiyetli (fp32, Whisper'ın buna hassas olması nedeniyle), decoder sıkıştırılmış (q4, resmi olarak test edilmiş kombinasyon) — hem güvenilir çalışır hem daha az bellek/disk kullanır, zayıf donanımlarda "bellek yetersiz" hatasını önler. <b>WebGPU varsa hızlı; yoksa (WASM) 3 saat çok yavaş olur</b> — o durumda Bulut modu önerilir. GitHub Pages dahil her yerde header gerektirmeden çalışır.</div>
+    <div class="hint">Hiçbir veri dışarı çıkmaz, anahtar gerekmez. Model ilk kullanımda indirilir (base ~150 MB, small ~500 MB, turbo ~850 MB) ve tarayıcıda saklanır. Encoder tam hassasiyetli (fp32, Whisper'ın buna hassas olması nedeniyle), decoder sıkıştırılmış (uint8) — hem güvenilir çalışır hem daha az bellek/disk kullanır, zayıf donanımlarda "bellek yetersiz" hatasını önler. <b>WebGPU varsa hızlı; yoksa (WASM) 3 saat çok yavaş olur</b> — o durumda Bulut modu önerilir. GitHub Pages dahil her yerde header gerektirmeden çalışır.</div>
   </section>
   <section class="card">
     <h2 class="card__h">Dosya</h2>
@@ -500,17 +500,17 @@ async function groqTranscribe(wavBlob, id){
   }
 }
 function dtypeFor(model, device){
+  if(model.includes('large-v3-turbo'))
+    return device==='webgpu' ? {encoder_model:'fp32',decoder_model_merged:'q4'} : {encoder_model:'fp32',decoder_model_merged:'uint8'};
   // Whisper'ın encoder'ı kuantizasyona aşırı hassas (resmi transformers.js notu) — fp32'de
-  // bırakılıyor. decoder_model_merged için resmi örneklerde (whisper-webgpu, whisper-web
-  // demoları) HEM WASM HEM WebGPU'da yalnızca 'fp32' veya 'q4' test edilmiş/doğrulanmış
-  // durumda; 'uint8'/'q8' decoder için desteklenmiyor (WebGPU'da "gibberish" çıktı,
-  // WASM'da "missing scale" hatası — GitHub issue #1317 ve #1006). 'q4' açıkça
-  // belirtildiğinde doğru blok-kuantize dosyası ve onunla eşleşen scale verisi birlikte
-  // gelir; önceki hata aslında 'q8' istenip kütüphanenin yanlışlıkla bir q4 dosyasına
-  // düşmesinden kaynaklanıyordu. q4 ile bu belirsizlik ortadan kalkar.
-  return {encoder_model:'fp32', decoder_model_merged:'q4'};
+  // bırakılıyor. decoder_model_merged ise generate() döngüsünde tekrar tekrar çalışır ve
+  // ağırlıkça daha büyüktür; uint8 (basit skaler kuantizasyon, q4'ten farklı bir mekanizma
+  // — önceki "missing scale" hatasıyla ilişkili değil) ile belleği önemli ölçüde düşürür.
+  // Bu, düşük RAM'li makinelerde WASM session oluşturmanın std::bad_alloc ile başarısız
+  // olmasını önler.
+  return {encoder_model:'fp32',decoder_model_merged:'uint8'};
 }
-const MODEL_CACHE_FIX_VERSION = 'v5-decoder-q4';
+const MODEL_CACHE_FIX_VERSION = 'v4-decoder-uint8';
 function needsModelCacheClear(){
   const done = store.get('modelCacheFixVersion','');
   const need = done!==MODEL_CACHE_FIX_VERSION;
