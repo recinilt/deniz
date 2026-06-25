@@ -266,7 +266,7 @@
 
 </div>
 
-<!-- ==== Whisper worker kaynağı (tarayıcı modu) ==== -->
+<!-- ===== Whisper worker kaynağı (tarayıcı modu) ===== -->
 <script id="worker-src" type="text/plain">
 let _pipeline=null, _env=null, transcriber=null, curKey=null;
 
@@ -308,24 +308,11 @@ self.onmessage = async (e)=>{
       curKey = key;
       self.postMessage({type:'ready'});
     } else if(m.type==='transcribe'){
-      let sentCount = 0;
       const out = await transcriber(m.pcm, {
         language: m.language||'tr', task:'transcribe',
-        return_timestamps:true, chunk_length_s:30, stride_length_s:5,
-        on_chunk_end: (x) => {
-          if(!x) return;
-          // x: {chunks:[...], text} (birikimli) veya {timestamp:[s,e], text} (tek chunk) olabilir
-          let arr = [];
-          if(Array.isArray(x)) arr = x;
-          else if(Array.isArray(x.chunks)) arr = x.chunks;
-          else if(x.timestamp !== undefined || x.text !== undefined) arr = [x];
-          const newOnes = arr.slice(sentCount);
-          sentCount = arr.length;
-          if(newOnes.length > 0)
-            self.postMessage({type:'partial', id:m.id, chunks: newOnes});
-        }
+        return_timestamps:true, chunk_length_s:30, stride_length_s:5
       });
-      self.postMessage({type:'done', id:m.id, chunks: out.chunks||[], text: out.text||'', partialSentCount: sentCount});
+      self.postMessage({type:'done', id:m.id, chunks: out.chunks||[], text: out.text||''});
     }
   }catch(err){
     self.postMessage({type:'error', id:m.id, message:String((err&&err.message)||err)});
@@ -333,7 +320,7 @@ self.onmessage = async (e)=>{
 };
 </script>
 
-<!-- ==== Uygulama ==== -->
+<!-- ===== Uygulama ===== -->
 <script type="module">
 import { Input, ALL_FORMATS, BlobSource, AudioBufferSink }
   from 'https://cdn.jsdelivr.net/npm/mediabunny@1.46.0/+esm';
@@ -556,12 +543,11 @@ function loadModel(model, device){
     w.postMessage({type:'load', model, device, dtype:dtypeFor(model,device), clearCache:needsModelCacheClear()});
   });
 }
-function workerTranscribe(pcm, id, onPartial){
+function workerTranscribe(pcm, id){
   return new Promise((resolve,reject)=>{
     const w=getWorker();
     const onMsg=(e)=>{ const m=e.data;
-      if(m.type==='partial' && m.id===id){ try{ if(onPartial) onPartial(m.chunks||[]); }catch(e){} }
-      else if(m.type==='done' && m.id===id){ w.removeEventListener('message',onMsg); resolve({chunks:m.chunks||[], partialSentCount:m.partialSentCount||0}); }
+      if(m.type==='done' && m.id===id){ w.removeEventListener('message',onMsg); resolve(m.chunks); }
       else if(m.type==='error'){ w.removeEventListener('message',onMsg); reject(new Error(m.message)); }
     };
     w.addEventListener('message',onMsg);
@@ -589,7 +575,7 @@ async function run(){
     if(!track) throw new Error('Bu dosyada ses parçası bulunamadı.');
     totalDuration=duration||0;
 
-    const SEG = mode==='groq' ? 90 : 300;
+    const SEG = mode==='groq' ? 600 : 300;
     const N = Math.max(1, Math.ceil((duration||SEG)/SEG));
 
     if(mode==='browser'){
@@ -615,27 +601,16 @@ async function run(){
       if(cancelled) break;
       idx++;
       setStatus('Segment '+idx+'/'+N+' işleniyor… ('+fmtClock(seg.start)+' → '+fmtClock(seg.end)+')');
-      // {start,end} veya {timestamp:[s,e]} formatlarını normalleştirir
-      const addSegCue=(c)=>{
-        const rawStart=c.start!=null?c.start:(c.timestamp?.[0]??0);
-        const rawEnd=c.end!=null?c.end:(c.timestamp?.[1]??null);
-        const st=rawStart+seg.start;
-        let en=rawEnd!=null?rawEnd+seg.start:null;
+      let segCues;
+      if(mode==='groq') segCues=await groqTranscribe(encodeWav(seg.pcm,16000), idx);
+      else segCues=await workerTranscribe(seg.pcm, idx);
+
+      for(const c of segCues){
+        const st=(c.start??0)+seg.start;
+        let en=(c.end==null? null : c.end+seg.start);
         const text=(c.text||'').trim();
-        if(en==null||en<=st) en=st+Math.max(1.2,text.length*0.06);
+        if(en==null || en<=st) en=st+Math.max(1.2,text.length*0.06);
         if(text){ cues.push({start:st,end:en,text}); addCue(st,en,text); }
-      };
-      if(mode==='groq'){
-        const segCues=await groqTranscribe(encodeWav(seg.pcm,16000), idx);
-        for(const c of segCues) addSegCue(c);
-      } else {
-        // on_chunk_end her ~30sn'de partial gönderir → anlık gösterim
-        const result=await workerTranscribe(seg.pcm, idx, (partialChunks)=>{
-          for(const c of partialChunks) addSegCue(c);
-        });
-        // on_chunk_end hiç tetiklenmediyse (bazı ortamlar) final sonucu kullan
-        if((result.partialSentCount||0)===0)
-          for(const c of result.chunks) addSegCue(c);
       }
       setProgress(Math.min(1, (seg.end||0)/(duration||1)));
       await tick();
