@@ -66,7 +66,7 @@
 
   /* ---- settings drawer ---- */
   .settings{padding:0 20px;max-height:0;overflow:hidden;transition:max-height .3s ease;border-bottom:1px solid transparent}
-  .settings.open{max-height:1200px;overflow-y:auto;border-bottom-color:var(--border);padding-top:6px;padding-bottom:18px}
+  .settings.open{max-height:420px;border-bottom-color:var(--border);padding-top:6px;padding-bottom:18px}
   .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px 26px}
   .field{display:flex;flex-direction:column;gap:7px}
   .field .row{display:flex;justify-content:space-between;align-items:baseline}
@@ -141,8 +141,8 @@
     <div class="field">
       <div class="row"><label for="model">Whisper modeli</label></div>
       <select id="model">
-        <option value="onnx-community/whisper-base">whisper-base (hızlı)</option>
-        <option value="onnx-community/whisper-small" selected>whisper-small (daha doğru, yavaş)</option>
+        <option value="onnx-community/whisper-base" selected>whisper-base (hızlı)</option>
+        <option value="onnx-community/whisper-small">whisper-small (daha doğru, yavaş)</option>
         <option value="onnx-community/whisper-tiny">whisper-tiny (en hızlı, zayıf)</option>
       </select>
       <div class="hint">Model değişirse Başlat'ta yeniden iner. base çoğu durum için iyi denge.</div>
@@ -156,8 +156,8 @@
       <div class="hint">Chrome'un yerel çevirisi yoksa otomatik Google'a düşer.</div>
     </div>
     <div class="field">
-      <div class="row"><label for="speed">Dublaj hızı</label><span class="val" id="speedVal">1.80×</span></div>
-      <input type="range" id="speed" min="0.6" max="2" step="0.05" value="1.8">
+      <div class="row"><label for="speed">Dublaj hızı</label><span class="val" id="speedVal">1.10×</span></div>
+      <input type="range" id="speed" min="0.6" max="2" step="0.05" value="1.1">
       <div class="hint">Yüksek = hızlı okur, gecikmeyi (drift) azaltır.</div>
     </div>
     <div class="field">
@@ -166,8 +166,8 @@
       <div class="hint">Videonun sesini kıstıysan bunu yükselt; Whisper sessiz sesi de duysun.</div>
     </div>
     <div class="field">
-      <div class="row"><label for="redemption">Sessizlik süresi (sn)</label><span class="val" id="redemptionVal">0.3 sn</span></div>
-      <input type="range" id="redemption" min="0.3" max="2.5" step="0.1" value="0.3">
+      <div class="row"><label for="redemption">Sessizlik süresi (sn)</label><span class="val" id="redemptionVal">1.0 sn</span></div>
+      <input type="range" id="redemption" min="0.3" max="2.5" step="0.1" value="1.0">
       <div class="hint">Konuşma bitti sayılması için gereken sessizlik. Düşük = kısa parça (cümle); yüksek = uzun parça (paragraf). Değişiklik Başlat'ta geçerli olur.</div>
     </div>
     <div class="field">
@@ -223,30 +223,16 @@ const S = {
 };
 
 /* ---------- UI kurulum ---------- */
-const PERSIST = ['targetLang','srcLang','model','engine','speed','gain','redemption','posThresh'];
-function saveSettings(){
-  try{ const o={}; for(const id of PERSIST){ const el=$(id); if(el) o[id]=el.value; }
-    localStorage.setItem('sekmeDublajAyar', JSON.stringify(o)); }catch(e){}
-}
-function loadSettings(){
-  try{ const raw=localStorage.getItem('sekmeDublajAyar'); if(!raw) return;
-    const o=JSON.parse(raw);
-    for(const id of PERSIST){ if(o[id]!=null){ const el=$(id); if(el) el.value=o[id]; } } }catch(e){}
-}
-
 (function initUI(){
-  const tl=$('targetLang'); for(const [k,v] of Object.entries(DILLER)){const o=document.createElement('option');o.value=k;o.textContent=v;if(k==='tr')o.selected=true;tl.appendChild(o);}
-  const sl=$('srcLang');
-  const a=document.createElement('option');a.value="auto";a.textContent="Otomatik";sl.appendChild(a);
-  for(const [k,v] of Object.entries(DILLER)){const o=document.createElement('option');o.value=k;o.textContent=v;if(k==='en')o.selected=true;sl.appendChild(o);}
-  loadSettings();                          // localStorage'da kayıt varsa değerleri uygula
+  const tl=$('targetLang'); for(const [k,v] of Object.entries(DILLER)){const o=document.createElement('option');o.value=k;o.textContent=`${v}`;if(k==='tr')o.selected=true;tl.appendChild(o);}
+  const sl=$('srcLang'); const a=document.createElement('option');a.value="auto";a.textContent="Otomatik";a.selected=true;sl.appendChild(a);
+  for(const [k,v] of Object.entries(DILLER)){const o=document.createElement('option');o.value=k;o.textContent=v;sl.appendChild(o);}
   $('settingsBtn').onclick=()=>$('settings').classList.toggle('open');
   const bind=(id,valId,fmt)=>{const e=$(id);const f=$(valId);const u=()=>f.textContent=fmt(parseFloat(e.value));e.addEventListener('input',u);u();};
   bind('speed','speedVal',v=>v.toFixed(2)+'×');
   bind('gain','gainVal',v=>v.toFixed(1)+'×');
   bind('redemption','redemptionVal',v=>v.toFixed(1)+' sn');
   bind('posThresh','posThreshVal',v=>v.toFixed(2));
-  for(const id of PERSIST){ const el=$(id); if(el) el.addEventListener('change', saveSettings); }
   $('startBtn').onclick=start; $('stopBtn').onclick=stop;
 })();
 
@@ -375,9 +361,7 @@ async function handleSegment(audio){
   const askLang = srcSel==='auto' ? null : srcSel;
   let text='';
   try{
-    const opt = askLang ? {language:askLang,task:'transcribe'} : {task:'transcribe'};
-    opt.chunk_length_s=30; opt.stride_length_s=5;   // 30 sn'yi aşan parçayı da işleyebil
-    const r=await S.transcriber(audio, opt);
+    const r=await S.transcriber(audio, askLang ? {language:askLang,task:'transcribe'} : {task:'transcribe'});
     text=(r && r.text || '').trim();
   }catch(e){ console.error('whisper',e); return; }
 
