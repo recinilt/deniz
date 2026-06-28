@@ -66,7 +66,7 @@
 
   /* ---- settings drawer ---- */
   .settings{padding:0 20px;max-height:0;overflow:hidden;transition:max-height .3s ease;border-bottom:1px solid transparent}
-  .settings.open{max-height:420px;border-bottom-color:var(--border);padding-top:6px;padding-bottom:18px}
+  .settings.open{max-height:620px;border-bottom-color:var(--border);padding-top:6px;padding-bottom:18px}
   .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px 26px}
   .field{display:flex;flex-direction:column;gap:7px}
   .field .row{display:flex;justify-content:space-between;align-items:baseline}
@@ -171,8 +171,8 @@
       <div class="hint">Konuşmacı durmasa bile bu sürede böler. Düşük = kısa parça.</div>
     </div>
     <div class="field">
-      <div class="row"><label for="sil">Sessizlik eşiği</label><span class="val" id="silVal">0.010</span></div>
-      <input type="range" id="sil" min="0.002" max="0.05" step="0.002" value="0.01">
+      <div class="row"><label for="sil">Sessizlik eşiği</label><span class="val" id="silVal">0.10</span></div>
+      <input type="range" id="sil" min="0.02" max="1" step="0.02" value="0.10">
       <div class="hint">Yüksek = daha kolay "sessiz" sayar (cümleyi erken keser).</div>
     </div>
   </div>
