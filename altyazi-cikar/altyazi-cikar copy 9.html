@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Altyazı Çıkar · Türkçe Video Transkripsiyon</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0E1116; --surface:#161A21; --surface-2:#1E232C; --line:#2A313C;
+    --text:#E7ECF3; --muted:#8B95A3; --faint:#5C6573;
+    --accent:#F5B53D; --accent-dim:rgba(245,181,61,.14); --accent-line:rgba(245,181,61,.4);
+    --ok:#46C9A0; --err:#F2616B; --warn:#E6A23C;
+    --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+    --sans:'Space Grotesk',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    --r:12px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);
+    -webkit-font-smoothing:antialiased;line-height:1.5}
+  body{padding:28px 18px 64px}
+  .wrap{max-width:880px;margin:0 auto}
+
+  /* Header */
+  .hd{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:4px}
+  .hd__mark{font-family:var(--mono);font-weight:700;font-size:13px;letter-spacing:.18em;
+    color:var(--accent);border:1px solid var(--accent-line);border-radius:6px;padding:4px 8px;
+    background:var(--accent-dim);white-space:nowrap}
+  .hd h1{font-size:26px;font-weight:600;margin:0;letter-spacing:-.01em}
+  .hd p{color:var(--muted);font-size:14px;margin:6px 0 24px;max-width:62ch}
+  .hd p b{color:var(--text);font-weight:600}
+
+  /* Segmented mode control */
+  .seg{display:inline-flex;background:var(--surface);border:1px solid var(--line);
+    border-radius:10px;padding:4px;gap:4px;margin-bottom:18px}
+  .seg button{appearance:none;border:0;background:transparent;color:var(--muted);
+    font-family:var(--sans);font-size:14px;font-weight:500;padding:9px 16px;border-radius:7px;
+    cursor:pointer;transition:background .18s,color .18s}
+  .seg button[aria-selected="true"]{background:var(--surface-2);color:var(--text);
+    box-shadow:inset 0 0 0 1px var(--line)}
+  .seg button:hover{color:var(--text)}
+
+  /* Cards */
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+    padding:18px;margin-bottom:16px}
+  .card__h{font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--faint);margin:0 0 14px}
+
+  .panel[hidden]{display:none}
+
+  /* Form rows */
+  .field{margin-bottom:14px}
+  .field:last-child{margin-bottom:0}
+  .field > label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+  .inp,.sel{width:100%;background:var(--bg);color:var(--text);border:1px solid var(--line);
+    border-radius:8px;padding:10px 12px;font-family:var(--mono);font-size:13px;outline:none;
+    transition:border-color .18s,box-shadow .18s}
+  .inp:focus,.sel:focus{border-color:var(--accent-line);box-shadow:0 0 0 3px var(--accent-dim)}
+  .sel{font-family:var(--sans);cursor:pointer}
+  .key-row{display:flex;gap:8px}
+  .key-row .inp{flex:1}
+  .mini{background:var(--surface-2);border:1px solid var(--line);color:var(--muted);
+    border-radius:8px;padding:0 12px;font-size:12px;font-family:var(--sans);cursor:pointer;white-space:nowrap}
+  .mini:hover{color:var(--text)}
+  .hint{font-size:12px;color:var(--faint);margin-top:6px;line-height:1.5}
+  .hint a{color:var(--accent);text-decoration:none}
+  .hint a:hover{text-decoration:underline}
+  .chk{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--muted);cursor:pointer;user-select:none}
+  .chk input{accent-color:var(--accent);width:16px;height:16px}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .badge{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;
+    padding:3px 8px;border-radius:5px;border:1px solid var(--line);color:var(--muted)}
+  .badge .dot{width:7px;height:7px;border-radius:50%}
+  .badge .dot.on{background:var(--ok)} .badge .dot.off{background:var(--faint)}
+
+  /* Dropzone */
+  .drop{display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;gap:8px;border:1.5px dashed var(--line);border-radius:var(--r);
+    padding:34px 18px;cursor:pointer;transition:border-color .18s,background .18s}
+  .drop:hover,.drop.over{border-color:var(--accent-line);background:var(--accent-dim)}
+  .drop__big{font-size:15px;font-weight:500}
+  .drop__sub{font-size:12px;color:var(--faint)}
+  .drop svg{color:var(--accent);opacity:.9}
+  .file-meta{display:none;margin-top:14px;font-family:var(--mono);font-size:12.5px;
+    color:var(--muted);background:var(--bg);border:1px solid var(--line);border-radius:8px;
+    padding:10px 12px;word-break:break-all}
+  .file-meta b{color:var(--text);font-weight:500}
+
+  /* Action bar */
+  .actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+  .btn{appearance:none;border:0;border-radius:9px;padding:11px 20px;font-family:var(--sans);
+    font-size:14px;font-weight:600;cursor:pointer;transition:filter .15s,opacity .15s}
+  .btn--go{background:var(--accent);color:#1a1304}
+  .btn--go:hover{filter:brightness(1.07)}
+  .btn--stop{background:var(--surface-2);color:var(--err);box-shadow:inset 0 0 0 1px var(--line)}
+  .btn--stop:hover{filter:brightness(1.12)}
+  .btn:disabled{opacity:.4;cursor:not-allowed;filter:none}
+  .status{font-size:13px;color:var(--muted);font-family:var(--mono);flex:1;min-width:200px}
+  .status.ok{color:var(--ok)} .status.err{color:var(--err)} .status.warn{color:var(--warn)}
+  .rec{display:none;width:9px;height:9px;border-radius:50%;background:var(--err);flex:none}
+  .rec.live{display:inline-block;animation:pulse 1.2s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+
+  /* Progress scrubber */
+  .scrub{height:6px;background:var(--surface-2);border:1px solid var(--line);border-radius:99px;
+    overflow:hidden;margin-bottom:6px}
+  .scrub__fill{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),#ffd479);
+    border-radius:99px;transition:width .3s ease}
+  .scrub-lbl{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;
+    color:var(--faint)}
+
+  /* Transcript log (signature) */
+  .out__bar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+  .out__bar .card__h{margin:0}
+  .exports{display:flex;gap:7px;flex-wrap:wrap}
+  .exp{appearance:none;border:1px solid var(--line);background:var(--surface-2);color:var(--muted);
+    font-family:var(--mono);font-size:11.5px;font-weight:500;padding:6px 11px;border-radius:7px;cursor:pointer;
+    transition:color .15s,border-color .15s}
+  .exp:hover:not(:disabled){color:var(--accent);border-color:var(--accent-line)}
+  .exp:disabled{opacity:.4;cursor:not-allowed}
+  .log{max-height:46vh;overflow-y:auto;border:1px solid var(--line);border-radius:10px;
+    background:var(--bg);padding:6px}
+  .log__empty{color:var(--faint);font-size:13px;text-align:center;padding:34px 12px}
+  .cue{display:flex;gap:12px;padding:7px 10px;border-radius:6px;align-items:baseline}
+  .cue:nth-child(odd){background:rgba(255,255,255,.018)}
+  .cue__tc{font-family:var(--mono);font-size:11.5px;color:var(--accent);flex:none;
+    padding-top:1px;opacity:.85}
+  .cue__text{font-size:14px;color:var(--text)}
+  .cue.new{animation:slidein .35s ease}
+  @keyframes slidein{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+  .foot{color:var(--faint);font-size:12px;line-height:1.7;margin-top:22px;border-top:1px solid var(--line);padding-top:16px}
+  .foot b{color:var(--muted);font-weight:600}
+  .foot code{font-family:var(--mono);background:var(--surface-2);padding:1px 5px;border-radius:4px;color:var(--muted)}
+
+  @media (max-width:560px){
+    .row2{grid-template-columns:1fr}
+    .hd h1{font-size:22px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none!important;transition:none!important}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="hd">
+      <span class="hd__mark">SRT · TR</span>
+      <h1>Altyazı Çıkar</h1>
+    </div>
+    <p>Uzun (3 saat+) Türkçe videodan altyazı/transkript çıkarır. Ses tarayıcıda akışsal olarak çözülür (büyük dosyalar sorun değil), sonuç <b>SRT / VTT / TXT</b> olarak iner. İki çalışma modu seçilebilir.</p>
+  </header>
+
+  <!-- MODE -->
+  <div class="seg" role="tablist" aria-label="Çalışma modu">
+    <button id="tab-groq" role="tab" aria-selected="true">Bulut API · hızlı</button>
+    <button id="tab-browser" role="tab" aria-selected="false">Tarayıcı · gizli</button>
+  </div>
+
+  <!-- GROQ CONFIG -->
+  <section class="card panel" id="panel-groq">
+    <h2 class="card__h">Bulut · Groq Whisper</h2>
+    <div class="field">
+      <label for="groq-key">Groq API anahtarı</label>
+      <div class="key-row">
+        <input class="inp" id="groq-key" type="password" placeholder="gsk_..." autocomplete="off" spellcheck="false">
+        <button class="mini" id="groq-key-show" type="button">Göster</button>
+      </div>
+      <div class="hint"><a href="https://console.groq.com/keys" target="_blank" rel="noopener">console.groq.com/keys</a> üzerinden ücretsiz alınır. Anahtar yalnızca senin tarayıcında tutulur, sunucuya gönderilmez.</div>
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label for="groq-model">Model</label>
+        <select class="sel" id="groq-model">
+          <option value="whisper-large-v3-turbo" selected>large-v3-turbo (hızlı, ucuz)</option>
+          <option value="whisper-large-v3">large-v3 (en yüksek doğruluk)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Dil</label>
+        <input class="inp" value="Türkçe (tr) — sabit" disabled>
+      </div>
+    </div>
+    <div class="field">
+      <label class="chk"><input type="checkbox" id="proxy-on" checked> CORS proxy kullan (Groq tarayıcıdan doğrudan çağrıya izin vermez)</label>
+    </div>
+    <div class="field" id="proxy-field">
+      <label for="proxy-url">CORS proxy ön eki</label>
+      <input class="inp" id="proxy-url" value="https://mycors.recepyeni.workers.dev/" spellcheck="false">
+      <div class="hint">Hedef URL bunun sonuna eklenir. Eğer proxy'in <code>?url=</code> biçimindeyse <code>{url}</code> yer tutucusunu kullan: <code>https://mycors.recepyeni.workers.dev/?url={url}</code>. Proxy POST + <code>Authorization</code> başlığı + multipart gövdeyi iletmeli.</div>
+    </div>
+    <div class="hint">Ses tarayıcıda 16kHz mono'ya çevrilip ~10 dakikalık parçalar halinde gönderilir (Groq 25 MB sınırı için). Zaman damgaları otomatik birleştirilir. 429 (kota) gelirse otomatik beklenip tekrar denenir.</div>
+  </section>
+
+  <!-- BROWSER CONFIG -->
+  <section class="card panel" id="panel-browser" hidden>
+    <h2 class="card__h">Tarayıcı · transformers.js (Whisper)</h2>
+    <div class="row2">
+      <div class="field">
+        <label for="br-model">Model</label>
+        <select class="sel" id="br-model">
+          <option value="onnx-community/whisper-base">base — hızlı (Türkçe orta)</option>
+          <option value="onnx-community/whisper-small" selected>small — dengeli (önerilen)</option>
+          <option value="onnx-community/whisper-large-v3-turbo">large-v3-turbo — en iyi (ağır, deneysel)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Hızlandırma</label>
+        <div style="display:flex;gap:8px;align-items:center;height:40px">
+          <span class="badge"><span class="dot" id="gpu-dot"></span><span id="gpu-text">WebGPU kontrol…</span></span>
+        </div>
+      </div>
+    </div>
+    <div class="hint">Hiçbir veri dışarı çıkmaz, anahtar gerekmez. Model ilk kullanımda indirilir (base ~290 MB, small ~970 MB, turbo ~1.6 GB) ve tarayıcıda saklanır. Bazı modellerin sıkıştırılmış (quantized) sürümleri bu tarayıcı motorunda hatalı yüklendiği için tam hassasiyetli (fp32) dosyalar kullanılıyor — daha büyük indirme ama garantili çalışır. <b>WebGPU varsa hızlı; yoksa (WASM) 3 saat çok yavaş olur</b> — o durumda Bulut modu önerilir. GitHub Pages dahil her yerde header gerektirmeden çalışır.</div>
+  </section>
+
+  <!-- FILE -->
+  <section class="card">
+    <h2 class="card__h">Dosya</h2>
+    <div class="drop" id="drop" tabindex="0" role="button" aria-label="Dosya seç">
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0L8 8m4-4 4 4"/><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+      <span class="drop__big">Video veya ses dosyası seç</span>
+      <span class="drop__sub">tıkla ya da sürükle — mp4, mkv, webm, mov, mp3, m4a, wav…</span>
+    </div>
+    <input type="file" id="file" accept="video/*,audio/*" hidden>
+    <div class="file-meta" id="file-meta"></div>
+  </section>
+
+  <!-- RUN -->
+  <section class="card">
+    <div class="actions">
+      <button class="btn btn--go" id="go" disabled>Altyazıyı çıkar</button>
+      <button class="btn btn--stop" id="stop" hidden>Durdur</button>
+      <span class="rec" id="rec"></span>
+      <span class="status" id="status">Hazır.</span>
+    </div>
+    <div class="scrub"><div class="scrub__fill" id="bar"></div></div>
+    <div class="scrub-lbl"><span id="bar-time">00:00:00 / 00:00:00</span><span id="bar-pct">%0</span></div>
+  </section>
+
+  <!-- OUTPUT -->
+  <section class="card">
+    <div class="out__bar">
+      <h2 class="card__h">Transkript</h2>
+      <div class="exports">
+        <button class="exp" id="exp-srt" disabled>SRT indir</button>
+        <button class="exp" id="exp-vtt" disabled>VTT indir</button>
+        <button class="exp" id="exp-txt" disabled>TXT indir</button>
+        <button class="exp" id="exp-copy" disabled>Metni kopyala</button>
+      </div>
+    </div>
+    <div class="log" id="log">
+      <div class="log__empty" id="empty">Henüz satır yok. Dosya seçip “Altyazıyı çıkar”a bas.</div>
+    </div>
+  </section>
+
+  <p class="foot">
+    <b>Bulut (Groq):</b> 3 saat ~birkaç dakikada biter, en yüksek Türkçe doğruluk; kendi API anahtarın + CORS proxy gerekir. &nbsp;·&nbsp;
+    <b>Tarayıcı:</b> tamamen yerel/gizli; WebGPU ile makul, WASM ile yavaş. &nbsp;·&nbsp;
+    Kütüphaneler: mediabunny 1.46.0, transformers.js 4.2.0. Hepsi CDN'den yüklenir; ilk açılışta internet gerekir.
+  </p>
+
+</div>
+
+<!-- ==== Whisper worker kaynağı (tarayıcı modu) ==== -->
+<script id="worker-src" type="text/plain">
+let _pipeline=null, _env=null, transcriber=null, curKey=null;
+
+// Önceki sürümlerde bazı modeller hatalı/eksik-scale'li bir quantize varyantıyla
+// indirilip tarayıcının Cache Storage'ına yazılmış olabilir. Bu eski dosyaları bir
+// DEFAYA MAHSUS temizlemek gerekir — ama worker'ın kendi bellek değişkenleri her
+// sayfa yenilemesinde sıfırlandığı için, "temizlendi mi" bilgisi worker İÇİNDE
+// tutulamaz (tutulursa her sayfa açılışında tekrar temizler ve model sürekli
+// yeniden iner). Bu yüzden bu bilgi ana thread'den (localStorage, kalıcı) gelir.
+async function clearStaleModelCacheOnce(shouldClear){
+  if(!shouldClear){ console.log('[worker] clearCache=false, eski cache temizliği atlanıyor.'); return; }
+  try{
+    if(!('caches' in self)) return;
+    const names = await caches.keys();
+    console.log('[worker] clearCache=true, bulunan cache adları:', names);
+    for(const n of names){
+      if(/transformers|onnx/i.test(n)){ await caches.delete(n); console.log('[worker] silindi:', n); }
+    }
+  }catch(e){ console.log('[worker] cache temizleme hatası:', e); }
+}
+
+self.onmessage = async (e)=>{
+  const m=e.data;
+  try{
+    if(m.type==='load'){
+      await clearStaleModelCacheOnce(m.clearCache);
+      if(!_pipeline){
+        const mod = await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.2.0');
+        _pipeline = mod.pipeline; _env = mod.env;
+        _env.allowLocalModels = false;
+        _env.useBrowserCache = true;
+      }
+      const key = m.model+'|'+m.device+'|'+JSON.stringify(m.dtype);
+      if(transcriber && curKey===key){ self.postMessage({type:'ready'}); return; }
+      transcriber = await _pipeline('automatic-speech-recognition', m.model, {
+        device: m.device, dtype: m.dtype,
+        progress_callback: (p)=> self.postMessage({type:'progress', data:p})
+      });
+      curKey = key;
+      self.postMessage({type:'ready'});
+    } else if(m.type==='transcribe'){
+      // Ses zaten 30sn'lik parça olarak geliyor (main thread SEG=30 ile böldü).
+      // chunk_length_s vermiyoruz — kütüphane tüm buffer'ı tek pencere olarak işler,
+      // on_chunk_end callback'i yoktur (transformers.js v4.2.0'da desteklenmez).
+      // Sonuç hemen döner; main thread her 30sn'de bir done alır → anlık gösterim.
+      const out = await transcriber(m.pcm, {
+        language: m.language||'tr', task:'transcribe',
+        return_timestamps:true
+      });
+      self.postMessage({type:'done', id:m.id, chunks: out.chunks||[], text: out.text||''});
+    }
+  }catch(err){
+    self.postMessage({type:'error', id:m.id, message:String((err&&err.message)||err)});
+  }
+};
+</script>
+
+<!-- ==== Uygulama ==== -->
+<script type="module">
+import { Input, ALL_FORMATS, BlobSource, AudioBufferSink }
+  from 'https://cdn.jsdelivr.net/npm/mediabunny@1.46.0/+esm';
+
+// ---- DOM ----
+const $ = (id)=>document.getElementById(id);
+const tabGroq=$('tab-groq'), tabBrowser=$('tab-browser');
+const panelGroq=$('panel-groq'), panelBrowser=$('panel-browser');
+const groqKey=$('groq-key'), groqKeyShow=$('groq-key-show'), groqModel=$('groq-model');
+const proxyOn=$('proxy-on'), proxyField=$('proxy-field'), proxyUrl=$('proxy-url');
+const brModel=$('br-model'), gpuDot=$('gpu-dot'), gpuText=$('gpu-text');
+const drop=$('drop'), fileInput=$('file'), fileMeta=$('file-meta');
+const goBtn=$('go'), stopBtn=$('stop'), recDot=$('rec'), statusEl=$('status');
+const bar=$('bar'), barTime=$('bar-time'), barPct=$('bar-pct');
+const logEl=$('log'), emptyEl=$('empty');
+const expSrt=$('exp-srt'), expVtt=$('exp-vtt'), expTxt=$('exp-txt'), expCopy=$('exp-copy');
+
+// ---- Durum ----
+let mode='groq';
+let selectedFile=null;
+let running=false, cancelled=false;
+let cues=[];
+let totalDuration=0;
+let abortCtrl=null;
+let webgpuOK=null; // null=henüz test edilmedi, true/false=gerçek adaptör testi sonucu
+
+// 'gpu' in navigator yalnızca API'nin var olduğunu gösterir, çalışan bir GPU adaptörü
+// olduğunu göstermez (paylaşımlı/eski Intel grafik kartlarında sık görülür). Gerçek
+// testi yalnızca requestAdapter() verir.
+async function detectWebGPU(){
+  if(webgpuOK!==null) return webgpuOK;
+  try{
+    if(!('gpu' in navigator)){ webgpuOK=false; return false; }
+    const adapter=await navigator.gpu.requestAdapter();
+    webgpuOK = !!adapter;
+  }catch(e){ webgpuOK=false; }
+  return webgpuOK;
+}
+
+// ---- Whisper worker ----
+let worker=null;
+function getWorker(){
+  if(!worker){
+    const src=$('worker-src').textContent;
+    worker=new Worker(URL.createObjectURL(new Blob([src],{type:'text/javascript'})),{type:'module'});
+  }
+  return worker;
+}
+
+// ---- Kalıcı ayarlar (güvenli) ----
+const store={
+  get(k,d){ try{ const v=localStorage.getItem(k); return v===null?d:v; }catch(e){ return d; } },
+  set(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+};
+
+// ---- Yardımcılar ----
+const sleep=(ms)=>new Promise(r=>setTimeout(r,ms));
+const tick=()=>new Promise(r=>setTimeout(r,0));
+function pad(n,l=2){ return String(Math.floor(n)).padStart(l,'0'); }
+function fmtClock(t){ t=Math.max(0,t||0); return pad(t/3600)+':'+pad((t%3600)/60)+':'+pad(t%60); }
+function fmtTime(t,srt){ t=Math.max(0,t||0); const ms=Math.floor((t-Math.floor(t))*1000);
+  return pad(t/3600)+':'+pad((t%3600)/60)+':'+pad(t%60)+(srt?',':'.')+pad(ms,3); }
+function humanSize(b){ if(b<1048576) return (b/1024).toFixed(0)+' KB';
+  if(b<1073741824) return (b/1048576).toFixed(1)+' MB'; return (b/1073741824).toFixed(2)+' GB'; }
+
+function setStatus(msg, kind){ statusEl.textContent=msg; statusEl.className='status'+(kind?(' '+kind):''); }
+function setProgress(frac){ const p=Math.max(0,Math.min(1,frac||0));
+  bar.style.width=(p*100).toFixed(1)+'%'; barPct.textContent='%'+Math.round(p*100);
+  barTime.textContent=fmtClock(p*totalDuration)+' / '+fmtClock(totalDuration); }
+function modelProgress(p){
+  if(p&&p.status==='progress'&&p.file){ const pct=p.total?Math.round((p.loaded/p.total)*100):0;
+    setStatus('Model indiriliyor: '+p.file.split('/').pop()+' %'+pct); }
+  else if(p&&p.status==='ready'){ /* yoksay */ }
+}
+
+function addCue(start,end,text){
+  emptyEl.style.display='none';
+  const row=document.createElement('div'); row.className='cue new';
+  const tc=document.createElement('span'); tc.className='cue__tc'; tc.textContent=fmtClock(start);
+  const tx=document.createElement('span'); tx.className='cue__text'; tx.textContent=text;
+  row.append(tc,tx); logEl.appendChild(row);
+  logEl.scrollTop=logEl.scrollHeight;
+  setTimeout(()=>row.classList.remove('new'),400);
+}
+function resetOutput(){
+  cues=[]; logEl.querySelectorAll('.cue').forEach(n=>n.remove());
+  emptyEl.style.display='block'; setProgress(0);
+  [expSrt,expVtt,expTxt,expCopy].forEach(b=>b.disabled=true);
+}
+function finalizeOutput(){
+  const has=cues.length>0;
+  [expSrt,expVtt,expTxt,expCopy].forEach(b=>b.disabled=!has);
+}
+
+// ---- Ses: kanalları mono'ya indir + 16kHz'e yeniden örnekle ----
+function resampleToMono16k(audioBuffer, target){
+  const srcRate=audioBuffer.sampleRate, ch=audioBuffer.numberOfChannels, n=audioBuffer.length;
+  const mono=new Float32Array(n);
+  for(let c=0;c<ch;c++){ const d=audioBuffer.getChannelData(c); for(let i=0;i<n;i++) mono[i]+=d[i]/ch; }
+  if(srcRate===target) return mono;
+  const ratio=srcRate/target, outLen=Math.max(1,Math.floor(n/ratio)), out=new Float32Array(outLen);
+  for(let i=0;i<outLen;i++){ const pos=i*ratio, i0=Math.floor(pos), i1=Math.min(i0+1,n-1), f=pos-i0;
+    out[i]=mono[i0]*(1-f)+mono[i1]*f; }
+  return out;
+}
+function mergeFloat32(arrs,total){ const out=new Float32Array(total); let o=0;
+  for(const a of arrs){ out.set(a,o); o+=a.length; } return out; }
+
+// ---- 16kHz mono PCM'i WAV'a kodla (Groq için) ----
+function encodeWav(float32, sampleRate){
+  const len=float32.length, buf=new ArrayBuffer(44+len*2), v=new DataView(buf);
+  const ws=(o,s)=>{ for(let i=0;i<s.length;i++) v.setUint8(o+i,s.charCodeAt(i)); };
+  ws(0,'RIFF'); v.setUint32(4,36+len*2,true); ws(8,'WAVE'); ws(12,'fmt ');
+  v.setUint32(16,16,true); v.setUint16(20,1,true); v.setUint16(22,1,true);
+  v.setUint32(24,sampleRate,true); v.setUint32(28,sampleRate*2,true);
+  v.setUint16(32,2,true); v.setUint16(34,16,true); ws(36,'data'); v.setUint32(40,len*2,true);
+  let o=44; for(let i=0;i<len;i++){ let s=Math.max(-1,Math.min(1,float32[i]));
+    v.setInt16(o,s<0?s*0x8000:s*0x7FFF,true); o+=2; }
+  return new Blob([buf],{type:'audio/wav'});
+}
+
+// ---- Akışsal segment üretici: dosyayı 16kHz mono parçalara böler ----
+async function* segmentPcm(file, segSeconds){
+  const input=new Input({source:new BlobSource(file), formats:ALL_FORMATS});
+  const track=await input.getPrimaryAudioTrack();
+  if(!track) throw new Error('Bu dosyada ses parçası bulunamadı.');
+  const sink=new AudioBufferSink(track);
+  const T=16000;
+  let acc=[], accLen=0, cursor=0;
+  for await(const item of sink.buffers()){
+    if(cancelled) return;
+    const mono=resampleToMono16k(item.buffer, T);
+    acc.push(mono); accLen+=mono.length;
+    if(accLen>=segSeconds*T){
+      const merged=mergeFloat32(acc,accLen);
+      const start=cursor/T; cursor+=merged.length; const end=cursor/T;
+      acc=[]; accLen=0;
+      yield {pcm:merged,start,end};
+    }
+  }
+  if(accLen>0 && !cancelled){
+    const merged=mergeFloat32(acc,accLen);
+    const start=cursor/T; cursor+=merged.length; const end=cursor/T;
+    yield {pcm:merged,start,end};
+  }
+}
+
+// ---- Groq transkripsiyon (proxy + 429 yeniden deneme) ----
+async function groqTranscribe(wavBlob, id){
+  const apiKey=groqKey.value.trim(), model=groqModel.value;
+  const target='https://api.groq.com/openai/v1/audio/transcriptions';
+  let url=target;
+  if(proxyOn.checked && proxyUrl.value.trim()){
+    const px=proxyUrl.value.trim();
+    url = px.includes('{url}') ? px.replace('{url}', encodeURIComponent(target)) : (px+target);
+  }
+  let attempt=0;
+  while(true){
+    if(cancelled) throw new Error('İptal edildi.');
+    const form=new FormData();
+    form.append('file', wavBlob, 'ses_'+id+'.wav');
+    form.append('model', model);
+    form.append('language','tr');
+    form.append('response_format','verbose_json');
+    form.append('temperature','0');
+    abortCtrl=new AbortController();
+    let res;
+    try{
+      res=await fetch(url,{method:'POST',headers:{'Authorization':'Bearer '+apiKey},body:form,signal:abortCtrl.signal});
+    }catch(e){
+      if(cancelled) throw new Error('İptal edildi.');
+      throw new Error('Ağ/CORS hatası — proxy ayarını ve anahtarı kontrol et. ('+e.message+')');
+    }
+    if(res.status===429){
+      attempt++;
+      const ra=parseFloat(res.headers.get('retry-after')||'');
+      const wait=(isFinite(ra)&&ra>0)?ra:Math.min(60,5*attempt);
+      setStatus('Kota limiti (429) — '+wait+' sn bekleniyor… (segment '+id+')','warn');
+      await sleep(wait*1000); continue;
+    }
+    if(res.status===401) throw new Error('401 — API anahtarı geçersiz.');
+    if(!res.ok){ const t=await res.text().catch(()=> ''); throw new Error('Groq '+res.status+' '+t.slice(0,180)); }
+    const json=await res.json();
+    if(Array.isArray(json.segments)&&json.segments.length)
+      return json.segments.map(s=>({start:s.start,end:s.end,text:s.text}));
+    return [{start:0,end:null,text:json.text||''}];
+  }
+}
+
+// ---- Tarayıcı transkripsiyon (worker) ----
+// NOT: uint8/q8 etiketli decoder_model_merged dosyası bu onnxruntime-web sürümünde
+// "Missing required scale" hatası veriyor (blok-kuantize formatla uyumsuzluk).
+// fp32 kuantizasyon scale'i gerektirmediği için kategorik olarak bu hatayı önler;
+// dosya biraz daha büyük ama base/small modellerde bu donanımda sorun olmaz.
+function dtypeFor(model, device){
+  if(model.includes('large-v3-turbo'))
+    return device==='webgpu' ? {encoder_model:'fp32',decoder_model_merged:'q4'} : {encoder_model:'fp32',decoder_model_merged:'fp32'};
+  return {encoder_model:'fp32',decoder_model_merged:'fp32'};
+}
+// Eski sürümlerde indirilmiş olabilecek bozuk/uyumsuz model dosyalarını bir DEFAYA
+// MAHSUS temizlemek için kalıcı bir bayrak. localStorage (worker'ın aksine) sayfa
+// yenilemelerinde silinmediği için, temizlik gerçekten yalnızca bir kez çalışır.
+const MODEL_CACHE_FIX_VERSION = 'v3-fp32-explicit';
+function needsModelCacheClear(){
+  const done = store.get('modelCacheFixVersion','');
+  const need = done!==MODEL_CACHE_FIX_VERSION;
+  console.log('[altyazi-cikar] cache-fix kontrolü — kayıtlı sürüm:', JSON.stringify(done), '| gerekli sürüm:', MODEL_CACHE_FIX_VERSION, '| temizlik gerekli mi:', need);
+  if(need) store.set('modelCacheFixVersion', MODEL_CACHE_FIX_VERSION);
+  return need;
+}
+function loadModel(model, device){
+  return new Promise((resolve,reject)=>{
+    const w=getWorker();
+    const onMsg=(e)=>{ const m=e.data;
+      if(m.type==='progress'){ modelProgress(m.data); }
+      else if(m.type==='ready'){ w.removeEventListener('message',onMsg); resolve(); }
+      else if(m.type==='error'){ w.removeEventListener('message',onMsg); reject(new Error(m.message)); }
+    };
+    w.addEventListener('message',onMsg);
+    w.postMessage({type:'load', model, device, dtype:dtypeFor(model,device), clearCache:needsModelCacheClear()});
+  });
+}
+function workerTranscribe(pcm, id){
+  return new Promise((resolve,reject)=>{
+    const w=getWorker();
+    const onMsg=(e)=>{ const m=e.data;
+      if(m.type==='done' && m.id===id){ w.removeEventListener('message',onMsg); resolve(m.chunks||[]); }
+      else if(m.type==='error'){ w.removeEventListener('message',onMsg); reject(new Error(m.message)); }
+    };
+    w.addEventListener('message',onMsg);
+    w.postMessage({type:'transcribe', id, pcm, language:'tr'}, [pcm.buffer]);
+  });
+}
+
+// ---- Ana akış ----
+async function run(){
+  if(running) return;
+  if(!selectedFile){ setStatus('Önce bir dosya seç.','err'); return; }
+  if(mode==='groq' && !groqKey.value.trim()){ setStatus('Groq API anahtarını gir.','err'); return; }
+  if(!('AudioDecoder' in window)){ setStatus('Tarayıcın WebCodecs desteklemiyor. Güncel Chrome/Edge dene.','err'); return; }
+
+  running=true; cancelled=false;
+  goBtn.disabled=true; stopBtn.hidden=false; recDot.classList.add('live');
+  resetOutput();
+
+  try{
+    setStatus('Dosya okunuyor…');
+    const probe=new Input({source:new BlobSource(selectedFile), formats:ALL_FORMATS});
+    let duration; try{ duration=await probe.computeDuration(); }
+      catch(e){ throw new Error('Dosya çözümlenemedi (format/codec desteklenmiyor olabilir).'); }
+    const track=await probe.getPrimaryAudioTrack();
+    if(!track) throw new Error('Bu dosyada ses parçası bulunamadı.');
+    totalDuration=duration||0;
+
+    // Groq: 90sn parçalar (~1-2sn/parça, sık güncelleme)
+    // Tarayıcı: 30sn parçalar — her parça worker'a ayrı gönderilir, sonuç hemen
+    //   alınır ve UI'ya eklenir. on_chunk_end callback olmadan anlık gösterim.
+    const SEG = mode==='groq' ? 90 : 30;
+    const N = Math.max(1, Math.ceil((duration||SEG)/SEG));
+
+    if(mode==='browser'){
+      setStatus('Donanım kontrol ediliyor…');
+      const gpuReal = await detectWebGPU();
+      const dev = gpuReal ? 'webgpu' : 'wasm';
+      if(!gpuReal && brModel.value!=='onnx-community/whisper-base'){
+        setStatus('GPU adaptörü bulunamadı — bu makinede WASM ile büyük modeller çok yavaş/riskli olabilir. Bulut modu önerilir.','warn');
+        await sleep(1800);
+      }
+      setStatus('Model hazırlanıyor ('+brModel.value.split('/').pop()+' · '+dev+')…');
+      try{ await loadModel(brModel.value, dev); }
+      catch(e){
+        if(dev==='webgpu'){ setStatus('WebGPU başarısız — WASM ile deneniyor (yavaş)…','warn');
+          webgpuOK=false;
+          await loadModel(brModel.value,'wasm'); }
+        else throw e;
+      }
+    }
+
+    let idx=0;
+    for await(const seg of segmentPcm(selectedFile, SEG)){
+      if(cancelled) break;
+      idx++;
+      setStatus('Segment '+idx+'/'+N+' işleniyor… ('+fmtClock(seg.start)+' → '+fmtClock(seg.end)+')');
+      // {start,end} veya {timestamp:[s,e]} formatlarını normalleştirir
+      const addSegCue=(c)=>{
+        const rawStart=c.start!=null?c.start:(c.timestamp?.[0]??0);
+        const rawEnd=c.end!=null?c.end:(c.timestamp?.[1]??null);
+        const st=rawStart+seg.start;
+        let en=rawEnd!=null?rawEnd+seg.start:null;
+        const text=(c.text||'').trim();
+        if(en==null||en<=st) en=st+Math.max(1.2,text.length*0.06);
+        if(text){ cues.push({start:st,end:en,text}); addCue(st,en,text); }
+      };
+      if(mode==='groq'){
+        const segCues=await groqTranscribe(encodeWav(seg.pcm,16000), idx);
+        for(const c of segCues) addSegCue(c);
+      } else {
+        // Her çağrı tam olarak 30sn PCM alır, işler ve hemen döner.
+        // on_chunk_end callback gereksiz — zaten her segment bir callback gibi davranır.
+        const chunks=await workerTranscribe(seg.pcm, idx);
+        for(const c of chunks) addSegCue(c);
+      }
+      setProgress(Math.min(1, (seg.end||0)/(duration||1)));
+      await tick();
+    }
+
+    if(cancelled) setStatus('Durduruldu — '+cues.length+' satır çıkarıldı.','warn');
+    else { setProgress(1); setStatus('Bitti — '+cues.length+' altyazı satırı.','ok'); }
+  }catch(err){
+    const m=err.message||String(err);
+    const looksLikeStaleModel = /session|scale|MatMul|backend|adapter/i.test(m);
+    const hint = (mode==='browser' && looksLikeStaleModel)
+      ? ' — Ctrl+Shift+R ile sayfayı sıfırdan yükleyip tekrar dene (eski model dosyası önbellekte kalmış olabilir).'
+      : '';
+    setStatus('Hata: '+m+hint,'err');
+  }finally{
+    finalizeOutput();
+    running=false; goBtn.disabled=false; stopBtn.hidden=true; recDot.classList.remove('live');
+  }
+}
+
+function stop(){
+  if(!running) return;
+  cancelled=true;
+  try{ if(abortCtrl) abortCtrl.abort(); }catch(e){}
+  setStatus('Durduruluyor…','warn');
+}
+
+// ---- Dışa aktar ----
+function buildSRT(){ return cues.map((c,i)=>(i+1)+'\n'+fmtTime(c.start,true)+' --> '+fmtTime(c.end,true)+'\n'+c.text).join('\n\n')+'\n'; }
+function buildVTT(){ return 'WEBVTT\n\n'+cues.map(c=>fmtTime(c.start,false)+' --> '+fmtTime(c.end,false)+'\n'+c.text).join('\n\n')+'\n'; }
+function buildTXT(){ return cues.map(c=>c.text).join(' '); }
+function baseName(){ const n=selectedFile?selectedFile.name.replace(/\.[^.]+$/,''):'altyazi'; return n||'altyazi'; }
+function download(name, text){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([text],{type:'text/plain;charset=utf-8'}));
+  a.download=name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),3000);
+}
+
+// ---- Dosya seçimi ----
+async function handleFile(f){
+  if(!f) return;
+  selectedFile=f; goBtn.disabled=false;
+  fileMeta.style.display='block';
+  fileMeta.innerHTML='<b>'+f.name+'</b> · '+humanSize(f.size)+' · süre okunuyor…';
+  setStatus('Hazır.');
+  try{
+    const probe=new Input({source:new BlobSource(f), formats:ALL_FORMATS});
+    const d=await probe.computeDuration();
+    const at=await probe.getPrimaryAudioTrack();
+    const extra = at ? (' · '+(await at.getSampleRate())+' Hz, '+(await at.getNumberOfChannels())+' kanal') : ' · ⚠ ses parçası yok';
+    fileMeta.innerHTML='<b>'+f.name+'</b> · '+humanSize(f.size)+' · '+fmtClock(d)+extra;
+    totalDuration=d; setProgress(0);
+  }catch(e){
+    fileMeta.innerHTML='<b>'+f.name+'</b> · '+humanSize(f.size)+' · ⚠ süre okunamadı (yine de denenebilir)';
+  }
+}
+
+// ---- Mod değiştir ----
+function setMode(m){
+  mode=m;
+  const g=(m==='groq');
+  tabGroq.setAttribute('aria-selected',g); tabBrowser.setAttribute('aria-selected',!g);
+  panelGroq.hidden=!g; panelBrowser.hidden=g;
+  store.set('mode',m);
+}
+
+// ---- Olaylar ----
+tabGroq.onclick=()=>setMode('groq');
+tabBrowser.onclick=()=>setMode('browser');
+groqKeyShow.onclick=()=>{ const p=groqKey.type==='password'; groqKey.type=p?'text':'password'; groqKeyShow.textContent=p?'Gizle':'Göster'; };
+proxyOn.onchange=()=>{ proxyField.style.opacity=proxyOn.checked?'1':'.5'; store.set('proxyOn',proxyOn.checked?'1':'0'); };
+proxyUrl.onchange=()=>store.set('proxyUrl',proxyUrl.value.trim());
+groqKey.onchange=()=>store.set('groqKey',groqKey.value.trim());
+groqModel.onchange=()=>store.set('groqModel',groqModel.value);
+brModel.onchange=()=>store.set('brModel',brModel.value);
+
+drop.onclick=()=>fileInput.click();
+drop.onkeydown=(e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); fileInput.click(); } };
+fileInput.onchange=(e)=>handleFile(e.target.files[0]);
+drop.ondragover=(e)=>{ e.preventDefault(); drop.classList.add('over'); };
+drop.ondragleave=()=>drop.classList.remove('over');
+drop.ondrop=(e)=>{ e.preventDefault(); drop.classList.remove('over'); if(e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); };
+
+goBtn.onclick=run;
+stopBtn.onclick=stop;
+expSrt.onclick=()=>download(baseName()+'.srt', buildSRT());
+expVtt.onclick=()=>download(baseName()+'.vtt', buildVTT());
+expTxt.onclick=()=>download(baseName()+'.txt', buildTXT());
+expCopy.onclick=async()=>{ try{ await navigator.clipboard.writeText(buildTXT()); expCopy.textContent='Kopyalandı ✓'; setTimeout(()=>expCopy.textContent='Metni kopyala',1500);}catch(e){ setStatus('Kopyalanamadı.','err'); } };
+
+// ---- Başlangıç ----
+(async function init(){
+  // WebGPU rozeti — gerçek adaptör testi (sadece API varlığı değil)
+  gpuText.textContent='WebGPU kontrol…';
+  const ok = await detectWebGPU();
+  if(ok){ gpuDot.className='dot on'; gpuText.textContent='WebGPU var (hızlı)'; }
+  else { gpuDot.className='dot off'; gpuText.textContent='GPU adaptörü yok → WASM (bu makinede yavaş olabilir)'; }
+  // kayıtlı ayarlar
+  const sk=store.get('groqKey',''); if(sk) groqKey.value=sk;
+  const gm=store.get('groqModel',''); if(gm) groqModel.value=gm;
+  const bm=store.get('brModel',''); if(bm) brModel.value=bm;
+  const pu=store.get('proxyUrl',''); if(pu) proxyUrl.value=pu;
+  proxyOn.checked = store.get('proxyOn','1')==='1';
+  proxyField.style.opacity=proxyOn.checked?'1':'.5';
+  setMode(store.get('mode','groq'));
+})();
+</script>
+</body>
+</html>
