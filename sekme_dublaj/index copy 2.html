@@ -139,14 +139,6 @@
 <div id="settings" class="settings">
   <div class="grid">
     <div class="field">
-      <div class="row"><label for="vadEngine">VAD motoru (konuşma algılama)</label></div>
-      <select id="vadEngine">
-        <option value="silero" selected>Silero VAD (önerilen)</option>
-        <option value="energy">Enerji VAD (basit)</option>
-      </select>
-      <div class="hint">Silero = akıllı, ses/müzik fark etmez. Enerji = basit eşik. Motor değişince Başlat'ta geçerli olur.</div>
-    </div>
-    <div class="field">
       <div class="row"><label for="model">Whisper modeli</label></div>
       <select id="model">
         <option value="onnx-community/whisper-base">whisper-base (hızlı)</option>
@@ -176,17 +168,12 @@
     <div class="field">
       <div class="row"><label for="redemption">Sessizlik süresi (sn)</label><span class="val" id="redemptionVal">0.3 sn</span></div>
       <input type="range" id="redemption" min="0.3" max="2.5" step="0.1" value="0.3">
-      <div class="hint">Konuşma bitti sayılması için gereken sessizlik (her iki motorda da geçerli). Düşük = kısa parça (cümle); yüksek = uzun parça. Enerji modunda genelde 0.6-0.8 daha iyi. Başlat'ta geçerli.</div>
+      <div class="hint">Konuşma bitti sayılması için gereken sessizlik. Düşük = kısa parça (cümle); yüksek = uzun parça (paragraf). Değişiklik Başlat'ta geçerli olur.</div>
     </div>
-    <div class="field" data-engine="silero">
-      <div class="row"><label for="posThresh">Konuşma hassasiyeti (Silero)</label><span class="val" id="posThreshVal">0.30</span></div>
+    <div class="field">
+      <div class="row"><label for="posThresh">Konuşma hassasiyeti</label><span class="val" id="posThreshVal">0.30</span></div>
       <input type="range" id="posThresh" min="0.2" max="0.8" step="0.05" value="0.3">
       <div class="hint">Yüksek = sadece net konuşmayı alır (fon/gürültüyü eler), ama yavaş başlar. Başlat'ta geçerli.</div>
-    </div>
-    <div class="field" data-engine="energy">
-      <div class="row"><label for="silThresh">Ses eşiği (Enerji)</label><span class="val" id="silThreshVal">0.010</span></div>
-      <input type="range" id="silThresh" min="0.002" max="0.05" step="0.002" value="0.01">
-      <div class="hint">Bu seviyenin altı "sessizlik" sayılır (kazançtan sonra ölçülür). Çok kesiyorsa düşür, hiç kesmiyorsa yükselt. Başlat'ta geçerli.</div>
     </div>
   </div>
 </div>
@@ -230,14 +217,13 @@ const PROXY = "https://mycors.recepyeni.workers.dev/";   // Google yedeği için
 const $ = id => document.getElementById(id);
 const S = {
   running:false, stream:null, vad:null,
-  audioCtx:null, node:null, seg:[], segLen:0, silRun:0,   // enerji modu
   transcriber:null, modelId:null,
   queue:[], processing:false,
   lastText:"", pendingTTS:0, translators:new Map(), detector:null,
 };
 
 /* ---------- UI kurulum ---------- */
-const PERSIST = ['vadEngine','targetLang','srcLang','model','engine','speed','gain','redemption','posThresh','silThresh'];
+const PERSIST = ['targetLang','srcLang','model','engine','speed','gain','redemption','posThresh'];
 function saveSettings(){
   try{ const o={}; for(const id of PERSIST){ const el=$(id); if(el) o[id]=el.value; }
     localStorage.setItem('sekmeDublajAyar', JSON.stringify(o)); }catch(e){}
@@ -260,19 +246,9 @@ function loadSettings(){
   bind('gain','gainVal',v=>v.toFixed(1)+'×');
   bind('redemption','redemptionVal',v=>v.toFixed(1)+' sn');
   bind('posThresh','posThreshVal',v=>v.toFixed(2));
-  bind('silThresh','silThreshVal',v=>v.toFixed(3));
-  applyEngineUI();                                   // motora göre ilgili alanları göster
-  $('vadEngine').addEventListener('change', applyEngineUI);
   for(const id of PERSIST){ const el=$(id); if(el) el.addEventListener('change', saveSettings); }
   $('startBtn').onclick=start; $('stopBtn').onclick=stop;
 })();
-
-function applyEngineUI(){
-  const eng=$('vadEngine').value;
-  document.querySelectorAll('.field[data-engine]').forEach(el=>{
-    el.style.display = (el.getAttribute('data-engine')===eng) ? '' : 'none';
-  });
-}
 
 function setStatus(text,cls){const p=$('status');p.className='pill'+(cls?' '+cls:'');$('statusText').textContent=text;}
 function setProgress(p){$('bar').style.width=Math.max(0,Math.min(100,p))+'%';}
@@ -313,11 +289,8 @@ async function start(){
     $('startBtn').disabled=false; stream.getTracks().forEach(t=>t.stop()); return;
   }
 
-  // 3) Konuşma algılama (seçilen motora göre)
-  try{
-    if($('vadEngine').value==='energy') await initEnergyVAD(stream);
-    else await initVAD(stream);
-  }
+  // 3) Silero VAD (sekme stream'inden konuşma parçaları)
+  try{ await initVAD(stream); }
   catch(e){ console.error(e); toast("VAD başlatılamadı: "+(e.message||e)+" — CDN engellenmiş olabilir.",true); $('startBtn').disabled=false; stream.getTracks().forEach(t=>t.stop()); return; }
 
   S.running=true;
@@ -379,63 +352,7 @@ async function initVAD(stream){
   S.vad.start();
 }
 
-/* ---------- Enerji VAD (basit, eklentisiz) ---------- */
-async function initEnergyVAD(stream){
-  const ctx = new (window.AudioContext||window.webkitAudioContext)({sampleRate:16000});
-  await ctx.resume();
-  const code = `
-    class Cap extends AudioWorkletProcessor{
-      process(inputs){
-        const inp=inputs[0];
-        if(inp && inp[0]){
-          const n=inp[0].length; const mono=new Float32Array(n);
-          if(inp.length>1){ const a=inp[0],b=inp[1]; for(let i=0;i<n;i++) mono[i]=(a[i]+b[i])*0.5; }
-          else mono.set(inp[0]);
-          this.port.postMessage(mono,[mono.buffer]);
-        }
-        return true;
-      }
-    }
-    registerProcessor('cap',Cap);`;
-  const url=URL.createObjectURL(new Blob([code],{type:'application/javascript'}));
-  await ctx.audioWorklet.addModule(url);
-  const src=ctx.createMediaStreamSource(stream);
-  const node=new AudioWorkletNode(ctx,'cap');
-  const zero=ctx.createGain(); zero.gain.value=0;     // sessiz: kendi sesimizi geri çalmayız
-  src.connect(node); node.connect(zero); zero.connect(ctx.destination);
-  node.port.onmessage=(e)=>onPCM(e.data);
-  S.audioCtx=ctx; S.node=node; S.seg=[]; S.segLen=0; S.silRun=0;
-}
-
-function onPCM(buf){
-  if(!S.running) return;
-  const sr=16000, g=parseFloat($('gain').value);
-  let sum=0; for(let i=0;i<buf.length;i++){ const x=buf[i]; sum+=x*x; }
-  const rms=Math.sqrt(sum/buf.length)*g;            // RMS'i gain'den SONRA ölç (kısık seste şaşmaz)
-  S.seg.push(buf); S.segLen+=buf.length;            // ham sesi sakla (gain handleSegment'te uygulanır)
-
-  const silThresh=parseFloat($('silThresh').value);
-  const silNeed=parseFloat($('redemption').value)*sr;  // ortak "Sessizlik süresi"
-  const minLen=1.0*sr;                              // min parça 1 sn → kelime-kelime parçalanmaz
-  const maxLen=15*sr;                               // güvenlik: 30 sn Whisper sınırına takılma
-
-  if(rms<silThresh) S.silRun+=buf.length; else S.silRun=0;
-  if((S.segLen>=minLen && S.silRun>=silNeed) || S.segLen>=maxLen) finalizeSegment();
-}
-
-function finalizeSegment(){
-  if(S.segLen===0) return;
-  const out=new Float32Array(S.segLen); let o=0;
-  for(const c of S.seg){ out.set(c,o); o+=c.length; }
-  S.seg=[]; S.segLen=0; S.silRun=0;
-  const g=parseFloat($('gain').value);
-  let e=0; for(let i=0;i<out.length;i++) e+=Math.abs(out[i]);
-  if((e/out.length)*g < 0.0008) return;             // neredeyse boşsa atla
-  S.queue.push(out);
-  if(S.queue.length>4) S.queue.shift();
-  pump();
-}
-
+/* ---------- İşleme zinciri (sıralı) ---------- */
 async function pump(){
   if(S.processing) return;
   S.processing=true;
@@ -584,12 +501,10 @@ function addCard(srcText, srcSel){
 function stop(){
   S.running=false;
   try{ speechSynthesis.cancel(); }catch(e){}
-  try{ if(S.vad){ S.vad.pause(); if(S.vad.destroy) S.vad.destroy(); } }catch(e){}   // Silero
-  try{ if(S.node) S.node.disconnect(); }catch(e){}                                  // Enerji
-  try{ if(S.audioCtx) S.audioCtx.close(); }catch(e){}
+  try{ if(S.vad){ S.vad.pause(); if(S.vad.destroy) S.vad.destroy(); } }catch(e){}
   try{ if(S.stream) S.stream.getTracks().forEach(t=>t.stop()); }catch(e){}
-  S.vad=null; S.audioCtx=null; S.node=null; S.stream=null;
-  S.seg=[]; S.segLen=0; S.silRun=0; S.queue=[]; S.lastText=""; S.pendingTTS=0;
+  S.vad=null; S.stream=null;
+  S.queue=[]; S.lastText=""; S.pendingTTS=0;
   $('stopBtn').disabled=true; $('startBtn').disabled=false;
   setStatus('Durduruldu','ready');
 }
