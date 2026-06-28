@@ -66,7 +66,7 @@
 
   /* ---- settings drawer ---- */
   .settings{padding:0 20px;max-height:0;overflow:hidden;transition:max-height .3s ease;border-bottom:1px solid transparent}
-  .settings.open{max-height:420px;border-bottom-color:var(--border);padding-top:6px;padding-bottom:18px}
+  .settings.open{max-height:620px;border-bottom-color:var(--border);padding-top:6px;padding-bottom:18px}
   .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px 26px}
   .field{display:flex;flex-direction:column;gap:7px}
   .field .row{display:flex;justify-content:space-between;align-items:baseline}
@@ -166,14 +166,14 @@
       <div class="hint">Videonun sesini kıstıysan bunu yükselt; Whisper sessiz sesi de duysun.</div>
     </div>
     <div class="field">
-      <div class="row"><label for="redemption">Sessizlik süresi (sn)</label><span class="val" id="redemptionVal">1.0 sn</span></div>
-      <input type="range" id="redemption" min="0.3" max="2.5" step="0.1" value="1.0">
-      <div class="hint">Konuşma bitti sayılması için gereken sessizlik. Düşük = kısa parça (cümle); yüksek = uzun parça (paragraf). Değişiklik Başlat'ta geçerli olur.</div>
+      <div class="row"><label for="maxSeg">Max parça (sn)</label><span class="val" id="maxSegVal">7 sn</span></div>
+      <input type="range" id="maxSeg" min="3" max="15" step="1" value="7">
+      <div class="hint">Konuşmacı durmasa bile bu sürede böler. Düşük = kısa parça.</div>
     </div>
     <div class="field">
-      <div class="row"><label for="posThresh">Konuşma hassasiyeti</label><span class="val" id="posThreshVal">0.30</span></div>
-      <input type="range" id="posThresh" min="0.2" max="0.8" step="0.05" value="0.3">
-      <div class="hint">Yüksek = sadece net konuşmayı alır (fon/gürültüyü eler), ama yavaş başlar. Başlat'ta geçerli.</div>
+      <div class="row"><label for="sil">Sessizlik eşiği</label><span class="val" id="silVal">0.10</span></div>
+      <input type="range" id="sil" min="0.02" max="1" step="0.02" value="0.10">
+      <div class="hint">Yüksek = daha kolay "sessiz" sayar (cümleyi erken keser).</div>
     </div>
   </div>
 </div>
@@ -196,10 +196,6 @@
 
 <div id="toast" class="toast hide"></div>
 
-<!-- Silero VAD (tarayıcıda konuşma/sessizlik ayrımı) — onnxruntime-web + vad-web -->
-<script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.22.0/dist/ort.wasm.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@ricky0123/vad-web@0.0.29/dist/bundle.min.js"></script>
-
 <script type="module">
 import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.7.5';
 
@@ -216,9 +212,9 @@ const PROXY = "https://mycors.recepyeni.workers.dev/";   // Google yedeği için
 
 const $ = id => document.getElementById(id);
 const S = {
-  running:false, stream:null, vad:null,
-  transcriber:null, modelId:null,
-  queue:[], processing:false,
+  running:false, stream:null, audioCtx:null, node:null,
+  transcriber:null, modelId:null, busy:false,
+  seg:[], segLen:0, silRun:0, queue:[], processing:false,
   lastText:"", pendingTTS:0, translators:new Map(), detector:null,
 };
 
@@ -231,8 +227,8 @@ const S = {
   const bind=(id,valId,fmt)=>{const e=$(id);const f=$(valId);const u=()=>f.textContent=fmt(parseFloat(e.value));e.addEventListener('input',u);u();};
   bind('speed','speedVal',v=>v.toFixed(2)+'×');
   bind('gain','gainVal',v=>v.toFixed(1)+'×');
-  bind('redemption','redemptionVal',v=>v.toFixed(1)+' sn');
-  bind('posThresh','posThreshVal',v=>v.toFixed(2));
+  bind('maxSeg','maxSegVal',v=>v+' sn');
+  bind('sil','silVal',v=>v.toFixed(3));
   $('startBtn').onclick=start; $('stopBtn').onclick=stop;
 })();
 
@@ -275,9 +271,9 @@ async function start(){
     $('startBtn').disabled=false; stream.getTracks().forEach(t=>t.stop()); return;
   }
 
-  // 3) Silero VAD (sekme stream'inden konuşma parçaları)
-  try{ await initVAD(stream); }
-  catch(e){ console.error(e); toast("VAD başlatılamadı: "+(e.message||e)+" — CDN engellenmiş olabilir.",true); $('startBtn').disabled=false; stream.getTracks().forEach(t=>t.stop()); return; }
+  // 3) Ses grafiği
+  try{ await setupAudio(stream); }
+  catch(e){ console.error(e); toast("Ses başlatılamadı: "+(e.message||e),true); $('startBtn').disabled=false; return; }
 
   S.running=true;
   $('empty').style.display='none';
@@ -309,33 +305,66 @@ async function loadModel(modelId){
   S.modelId=modelId; setProgress(0);
 }
 
-async function initVAD(stream){
-  if(!window.vad || !window.vad.MicVAD){ throw new Error("vad-web yüklenemedi"); }
-  try{ window.ort.env.wasm.numThreads = 1; }catch(e){}   // GitHub Pages (COEP'siz) uyumu
-  const redMs = Math.round(parseFloat($('redemption').value)*1000);
-  const pos = parseFloat($('posThresh').value);
-  S.vad = await window.vad.MicVAD.new({
-    model: 'v5',
-    getStream: async () => stream,        // kendi sekme-stream'imizi ver (mikrofon DEĞİL)
-    pauseStream: async () => {},          // VAD durunca bizim stream'i kapatma
-    resumeStream: async () => stream,
-    positiveSpeechThreshold: pos,
-    negativeSpeechThreshold: Math.max(0.15, pos-0.15),
-    redemptionMs: redMs,                  // bu kadar sessizlik görünce konuşma bitti sayar
-    preSpeechPadMs: 300,
-    minSpeechMs: 400,                     // çok kısa parçayı (tek kelime/öksürük) ele
-    baseAssetPath: 'https://cdn.jsdelivr.net/npm/@ricky0123/vad-web@0.0.29/dist/',
-    onnxWASMBasePath: 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.22.0/dist/',
-    onSpeechStart: ()=>{ if(S.running) setStatus('Konuşma algılandı…','busy'); },
-    onSpeechEnd: (audio)=>{                // audio: Float32Array, 16 kHz
-      if(!S.running) return;
-      S.queue.push(audio);
-      if(S.queue.length>4) S.queue.shift();   // geride kalırsak en eskisini düşür
-      pump();
-    },
-    onVADMisfire: ()=>{},
-  });
-  S.vad.start();
+async function setupAudio(stream){
+  const ctx = new (window.AudioContext||window.webkitAudioContext)({sampleRate:16000});
+  await ctx.resume();
+  // AudioWorklet: ses thread'inde 16k mono kareleri toplayıp ana thread'e yollar
+  const code = `
+    class Cap extends AudioWorkletProcessor{
+      process(inputs){
+        const inp=inputs[0];
+        if(inp && inp[0]){
+          const n=inp[0].length; const mono=new Float32Array(n);
+          if(inp.length>1){ const a=inp[0],b=inp[1]; for(let i=0;i<n;i++) mono[i]=(a[i]+b[i])*0.5; }
+          else mono.set(inp[0]);
+          this.port.postMessage(mono,[mono.buffer]);
+        }
+        return true;
+      }
+    }
+    registerProcessor('cap',Cap);`;
+  const url=URL.createObjectURL(new Blob([code],{type:'application/javascript'}));
+  await ctx.audioWorklet.addModule(url);
+  const src=ctx.createMediaStreamSource(stream);
+  const node=new AudioWorkletNode(ctx,'cap');
+  const zero=ctx.createGain(); zero.gain.value=0;          // sessiz: kendi sesimizi geri çalmayız
+  src.connect(node); node.connect(zero); zero.connect(ctx.destination);
+  node.port.onmessage=(e)=>onPCM(e.data);
+  S.audioCtx=ctx; S.node=node;
+}
+
+/* ---------- Segmentasyon (sessizlik + max süre) ---------- */
+function onPCM(buf){
+  if(!S.running) return;
+  // RMS
+  let sum=0; for(let i=0;i<buf.length;i++){ const x=buf[i]; sum+=x*x; }
+  const rms=Math.sqrt(sum/buf.length);
+  S.seg.push(buf); S.segLen+=buf.length;
+
+  const sr=16000;
+  const silThresh=parseFloat($('sil').value);
+  const maxLen=parseFloat($('maxSeg').value)*sr;
+  const minLen=0.5*sr;            // çok kısa parçayı atla
+  const silNeed=0.5*sr;           // ~0.5 sn sessizlik = cümle sonu
+
+  if(rms<silThresh) S.silRun+=buf.length; else S.silRun=0;
+
+  const silenceCut = (S.segLen>=minLen && S.silRun>=silNeed);
+  const timeCut    = (S.segLen>=maxLen);
+  if(silenceCut || timeCut) finalizeSegment();
+}
+
+function finalizeSegment(){
+  if(S.segLen===0){return;}
+  const out=new Float32Array(S.segLen); let o=0;
+  for(const c of S.seg){ out.set(c,o); o+=c.length; }
+  S.seg=[]; S.segLen=0; S.silRun=0;
+  // sessizlik payı baskınsa (neredeyse boş) atla
+  let e=0; for(let i=0;i<out.length;i++) e+=Math.abs(out[i]);
+  if(e/out.length < 0.0015) return;
+  S.queue.push(out);
+  if(S.queue.length>4) S.queue.shift();   // geride kalırsak en eskisini düşür
+  pump();
 }
 
 /* ---------- İşleme zinciri (sıralı) ---------- */
@@ -485,10 +514,11 @@ function addCard(srcText, srcSel){
 function stop(){
   S.running=false;
   try{ speechSynthesis.cancel(); }catch(e){}
-  try{ if(S.vad){ S.vad.pause(); if(S.vad.destroy) S.vad.destroy(); } }catch(e){}
+  try{ if(S.node) S.node.disconnect(); }catch(e){}
+  try{ if(S.audioCtx) S.audioCtx.close(); }catch(e){}
   try{ if(S.stream) S.stream.getTracks().forEach(t=>t.stop()); }catch(e){}
-  S.vad=null; S.stream=null;
-  S.queue=[]; S.lastText=""; S.pendingTTS=0;
+  S.audioCtx=null; S.node=null; S.stream=null;
+  S.seg=[]; S.segLen=0; S.silRun=0; S.queue=[]; S.lastText=""; S.pendingTTS=0;
   $('stopBtn').disabled=true; $('startBtn').disabled=false;
   setStatus('Durduruldu','ready');
 }
