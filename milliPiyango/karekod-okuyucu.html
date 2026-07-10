@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Bilet Karekod Okuyucu — Milli Piyango</title>
+<style>
+  :root{
+    --zemin:#0E1420; --kart:#171F2E; --kart2:#1E2940;
+    --vurgu:#4AA3DF; --vurgu2:#2E7FBF; --basari:#3DDC84;
+    --metin:#EBF1F8; --soluk:#8DA2BC; --cizgi:#2A3852;
+    --hata:#FF6B6B; --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:var(--zemin); color:var(--metin);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    min-height:100vh; padding:16px 14px 60px;
+  }
+  .kap{max-width:560px;margin:0 auto}
+  header{text-align:center;margin-bottom:18px}
+  header h1{font-size:1.35rem;font-weight:700;letter-spacing:-0.3px}
+  header h1 span{color:var(--vurgu)}
+  header p{color:var(--soluk);font-size:.85rem;margin-top:4px}
+
+  /* Sekmeler */
+  .sekmeler{display:flex;gap:8px;margin-bottom:14px}
+  .sekme{
+    flex:1;padding:12px;border:1px solid var(--cizgi);border-radius:12px;
+    background:var(--kart);color:var(--soluk);font-size:.95rem;font-weight:600;
+    cursor:pointer;transition:all .15s;text-align:center;
+  }
+  .sekme.aktif{background:var(--vurgu2);border-color:var(--vurgu);color:#fff}
+  .sekme:focus-visible{outline:2px solid var(--vurgu);outline-offset:2px}
+
+  .panel{display:none}
+  .panel.aktif{display:block}
+
+  /* Kamera */
+  .kamera-kutu{
+    position:relative;border-radius:16px;overflow:hidden;
+    background:#000;border:1px solid var(--cizgi);aspect-ratio:4/3;
+  }
+  .kamera-kutu video{width:100%;height:100%;object-fit:cover;display:block}
+  .nisan{
+    position:absolute;inset:0;pointer-events:none;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .nisan .kare{
+    width:62%;aspect-ratio:1;border-radius:14px;
+    box-shadow:0 0 0 2000px rgba(8,12,20,.45);
+    border:2px solid rgba(74,163,223,.9);
+    position:relative;
+  }
+  .nisan .kare::before{
+    content:"";position:absolute;left:6%;right:6%;top:50%;height:2px;
+    background:linear-gradient(90deg,transparent,var(--basari),transparent);
+    animation:tarama 1.8s ease-in-out infinite;
+  }
+  @keyframes tarama{0%,100%{transform:translateY(-90px);opacity:.2}50%{transform:translateY(90px);opacity:1}}
+  @media (prefers-reduced-motion:reduce){.nisan .kare::before{animation:none;opacity:.5}}
+  .kamera-kutu.okundu .kare{border-color:var(--basari)}
+  .kamera-kutu.okundu .kare::before{animation:none;opacity:0}
+
+  .kamera-alt{display:flex;gap:8px;margin-top:10px}
+  .buton{
+    flex:1;padding:13px;border:none;border-radius:12px;font-size:.95rem;
+    font-weight:700;cursor:pointer;transition:transform .1s,opacity .15s;
+  }
+  .buton:active{transform:scale(.97)}
+  .buton:focus-visible{outline:2px solid var(--vurgu);outline-offset:2px}
+  .buton.ana{background:var(--vurgu);color:#06121F}
+  .buton.ikincil{background:var(--kart2);color:var(--metin);border:1px solid var(--cizgi)}
+  .buton[disabled]{opacity:.45;cursor:not-allowed}
+  .buton.gizli{display:none}
+
+  .durum{
+    margin-top:10px;padding:11px 13px;border-radius:10px;font-size:.87rem;
+    background:var(--kart);border:1px solid var(--cizgi);color:var(--soluk);
+    line-height:1.45;
+  }
+  .durum.hata{border-color:var(--hata);color:var(--hata)}
+  .durum.gizli{display:none}
+
+  /* Resim paneli */
+  .yukle-alan{
+    border:2px dashed var(--cizgi);border-radius:16px;padding:34px 18px;
+    text-align:center;background:var(--kart);cursor:pointer;transition:border-color .15s;
+  }
+  .yukle-alan:hover,.yukle-alan.surukle{border-color:var(--vurgu)}
+  .yukle-alan .ikon{font-size:2rem;margin-bottom:8px}
+  .yukle-alan p{color:var(--soluk);font-size:.9rem;line-height:1.5}
+  .yukle-alan strong{color:var(--vurgu)}
+  #dosyaGirdi{display:none}
+  .onizleme{margin-top:10px;text-align:center}
+  .onizleme img{max-width:100%;max-height:230px;border-radius:12px;border:1px solid var(--cizgi)}
+
+  /* Sonuç fişi */
+  .fis{
+    margin-top:20px;background:var(--kart);border-radius:4px 4px 14px 14px;
+    border:1px solid var(--cizgi);overflow:hidden;display:none;
+  }
+  .fis.goster{display:block;animation:belir .25s ease-out}
+  @keyframes belir{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){.fis.goster{animation:none}}
+  .fis-ust{
+    background:var(--basari);color:#06121F;padding:11px 16px;
+    font-weight:800;font-size:.92rem;display:flex;justify-content:space-between;align-items:center;
+  }
+  .fis-ust .format{font-size:.75rem;font-weight:700;background:rgba(0,0,0,.18);padding:3px 8px;border-radius:6px}
+  .fis-govde{padding:14px 16px 16px}
+  .fis-govde::before{
+    content:"";display:block;height:0;border-top:2px dashed var(--cizgi);margin:-2px -16px 12px;
+  }
+  .satir{margin-bottom:12px}
+  .satir:last-child{margin-bottom:0}
+  .etiket{font-size:.72rem;font-weight:700;letter-spacing:.6px;color:var(--soluk);text-transform:uppercase;margin-bottom:5px}
+  .etiket .rozet{
+    display:inline-block;margin-left:6px;padding:1px 7px;border-radius:99px;
+    background:var(--vurgu2);color:#fff;font-size:.68rem;letter-spacing:0;text-transform:none;
+  }
+  .deger-kutu{display:flex;gap:8px;align-items:stretch}
+  .deger{
+    flex:1;font-family:var(--mono);font-size:.92rem;background:var(--zemin);
+    border:1px solid var(--cizgi);border-radius:9px;padding:10px 11px;
+    word-break:break-all;line-height:1.4;user-select:all;min-width:0;
+  }
+  .kopyala{
+    flex-shrink:0;padding:0 14px;border:none;border-radius:9px;background:var(--vurgu);
+    color:#06121F;font-weight:800;font-size:.82rem;cursor:pointer;transition:background .15s;
+  }
+  .kopyala:focus-visible{outline:2px solid #fff;outline-offset:2px}
+  .kopyala.ok{background:var(--basari)}
+
+  /* Hızlı linkler */
+  .linkler{margin-top:22px}
+  .linkler h2{font-size:.8rem;color:var(--soluk);text-transform:uppercase;letter-spacing:.7px;margin-bottom:9px}
+  .linkler a{
+    display:block;padding:12px 14px;margin-bottom:8px;border-radius:11px;
+    background:var(--kart);border:1px solid var(--cizgi);color:var(--metin);
+    text-decoration:none;font-size:.92rem;font-weight:600;
+  }
+  .linkler a:hover{border-color:var(--vurgu)}
+  .linkler a span{color:var(--vurgu);float:right}
+  .not{margin-top:14px;font-size:.8rem;color:var(--soluk);line-height:1.55;text-align:center}
+</style>
+</head>
+<body>
+<div class="kap">
+  <header>
+    <h1>🎫 Bilet <span>Karekod</span> Okuyucu</h1>
+    <p>Milli Piyango biletindeki DataMatrix / QR kodunu anında okur</p>
+  </header>
+
+  <div class="sekmeler" role="tablist">
+    <button class="sekme aktif" id="sekmeKamera" role="tab" aria-selected="true">📷 Kamera</button>
+    <button class="sekme" id="sekmeResim" role="tab" aria-selected="false">🖼️ Resim</button>
+  </div>
+
+  <!-- KAMERA PANELİ -->
+  <section class="panel aktif" id="panelKamera">
+    <div class="kamera-kutu" id="kameraKutu">
+      <video id="video" playsinline muted></video>
+      <div class="nisan"><div class="kare"></div></div>
+    </div>
+    <div class="kamera-alt">
+      <button class="buton ana" id="btnBaslat">Kamerayı başlat</button>
+      <button class="buton ikincil gizli" id="btnFener">🔦 Fener</button>
+      <button class="buton ikincil gizli" id="btnTekrar">↻ Tekrar tara</button>
+    </div>
+    <div class="durum gizli" id="kameraDurum"></div>
+  </section>
+
+  <!-- RESİM PANELİ -->
+  <section class="panel" id="panelResim">
+    <div class="yukle-alan" id="yukleAlan" tabindex="0" role="button" aria-label="Bilet fotoğrafı seç">
+      <div class="ikon">📁</div>
+      <p><strong>Dokun ve fotoğraf seç</strong><br>ya da resmi buraya sürükle</p>
+    </div>
+    <input type="file" id="dosyaGirdi" accept="image/*">
+    <div class="onizleme" id="onizleme"></div>
+    <div class="durum gizli" id="resimDurum"></div>
+  </section>
+
+  <!-- SONUÇ FİŞİ -->
+  <div class="fis" id="fis" aria-live="polite">
+    <div class="fis-ust">
+      <span>✓ Kod okundu</span>
+      <span class="format" id="fisFormat"></span>
+    </div>
+    <div class="fis-govde" id="fisGovde"></div>
+  </div>
+
+  <!-- HIZLI LİNKLER -->
+  <div class="linkler">
+    <h2>Çekiliş sonuçları</h2>
+    <a href="https://www.millipiyangoonline.com/cekilis-sonuclari" target="_blank" rel="noopener">Tüm çekiliş sonuçları <span>→</span></a>
+    <a href="https://www.millipiyangoonline.com/super-loto/super-loto-cekilis-sonuclari" target="_blank" rel="noopener">Süper Loto sonuçları <span>→</span></a>
+    <a href="https://www.millipiyangoonline.com/sayisal-loto/cekilis-sonuclari" target="_blank" rel="noopener">Çılgın Sayısal Loto sonuçları <span>→</span></a>
+  </div>
+
+  <p class="not">Okunan bilet numarasını kopyalayıp Milli Piyango uygulamasındaki
+  "Kazancını kontrol et → Bilet Numarası" alanına yapıştırarak sonucunu öğrenebilirsin.
+  Tüm işlem cihazında yapılır, hiçbir veri gönderilmez.</p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/zxing-wasm@2/dist/iife/reader/index.js"></script>
+<script>
+"use strict";
+/* ============ GENEL ============ */
+const OKUYUCU_AYAR = {
+  formats: ["DataMatrix", "QRCode"],
+  tryHarder: true,
+  tryRotate: true,
+  tryInvert: true,
+  tryDownscale: true,
+  maxNumberOfSymbols: 1
+};
+
+// WASM modülünü sayfa açılır açılmaz ön-yükle (ilk okuma gecikmesin)
+ZXingWASM.prepareZXingModule({ fireImmediately: true }).catch(function(){});
+
+const $ = function(id){ return document.getElementById(id); };
+const video = $("video"), kameraKutu = $("kameraKutu");
+const btnBaslat = $("btnBaslat"), btnFener = $("btnFener"), btnTekrar = $("btnTekrar");
+const kameraDurum = $("kameraDurum"), resimDurum = $("resimDurum");
+const fis = $("fis"), fisGovde = $("fisGovde"), fisFormat = $("fisFormat");
+
+let akis = null, iz = null, tariyor = false, fenerAcik = false;
+const isCanvas = document.createElement("canvas");
+const isCtx = isCanvas.getContext("2d", { willReadFrequently: true });
+
+/* ============ SEKMELER ============ */
+$("sekmeKamera").addEventListener("click", function(){ sekmeSec("Kamera"); });
+$("sekmeResim").addEventListener("click", function(){ sekmeSec("Resim"); });
+function sekmeSec(ad){
+  ["Kamera","Resim"].forEach(function(x){
+    var aktif = (x === ad);
+    $("sekme"+x).classList.toggle("aktif", aktif);
+    $("sekme"+x).setAttribute("aria-selected", aktif);
+    $("panel"+x).classList.toggle("aktif", aktif);
+  });
+  if (ad === "Resim") kamerayiDurdur();
+}
+
+/* ============ KAMERA ============ */
+btnBaslat.addEventListener("click", kamerayiBaslat);
+btnTekrar.addEventListener("click", function(){
+  fis.classList.remove("goster");
+  kameraKutu.classList.remove("okundu");
+  btnTekrar.classList.add("gizli");
+  if (akis) { tariyor = true; taramaAdimi(); }
+  else kamerayiBaslat();
+});
+btnFener.addEventListener("click", async function(){
+  if (!iz) return;
+  fenerAcik = !fenerAcik;
+  try { await iz.applyConstraints({ advanced: [{ torch: fenerAcik }] }); }
+  catch(e){ fenerAcik = false; }
+  btnFener.textContent = fenerAcik ? "🔦 Feneri kapat" : "🔦 Fener";
+});
+
+async function kamerayiBaslat(){
+  durumYaz(kameraDurum, "", false);
+  if (location.protocol !== "https:" &&
+      location.hostname !== "localhost" && location.hostname !== "127.0.0.1"){
+    durumYaz(kameraDurum, "Kamera yalnızca HTTPS (ya da localhost) üzerinde çalışır. Sayfayı https:// adresinden aç.", true);
+    return;
+  }
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    durumYaz(kameraDurum, "Bu tarayıcı kamera erişimini desteklemiyor.", true);
+    return;
+  }
+  btnBaslat.disabled = true;
+  btnBaslat.textContent = "Açılıyor…";
+  try{
+    akis = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 } },
+      audio: false
+    });
+    video.srcObject = akis;
+    await video.play();
+    iz = akis.getVideoTracks()[0];
+    var yet = iz.getCapabilities ? iz.getCapabilities() : {};
+    if (yet.torch) btnFener.classList.remove("gizli");
+    btnBaslat.classList.add("gizli");
+    fis.classList.remove("goster");
+    kameraKutu.classList.remove("okundu");
+    tariyor = true;
+    taramaAdimi();
+  } catch(e){
+    btnBaslat.disabled = false;
+    btnBaslat.textContent = "Kamerayı başlat";
+    var m = "Kamera açılamadı: " + e.name;
+    if (e.name === "NotAllowedError") m = "Kamera izni reddedildi. Tarayıcı ayarlarından bu siteye kamera izni ver.";
+    if (e.name === "NotFoundError")  m = "Cihazda kamera bulunamadı.";
+    durumYaz(kameraDurum, m, true);
+  }
+}
+
+function kamerayiDurdur(){
+  tariyor = false;
+  if (akis){ akis.getTracks().forEach(function(t){ t.stop(); }); akis = null; iz = null; }
+  video.srcObject = null;
+  fenerAcik = false;
+  btnFener.classList.add("gizli");
+  btnFener.textContent = "🔦 Fener";
+  btnBaslat.classList.remove("gizli");
+  btnBaslat.disabled = false;
+  btnBaslat.textContent = "Kamerayı başlat";
+}
+
+async function taramaAdimi(){
+  if (!tariyor || !akis) return;
+  if (video.readyState >= 2 && video.videoWidth > 0){
+    try{
+      var oran = Math.min(1, 1280 / video.videoWidth);
+      var w = Math.round(video.videoWidth * oran);
+      var h = Math.round(video.videoHeight * oran);
+      isCanvas.width = w; isCanvas.height = h;
+      isCtx.drawImage(video, 0, 0, w, h);
+      var veri = isCtx.getImageData(0, 0, w, h);
+      var sonuc = await ZXingWASM.readBarcodes(veri, OKUYUCU_AYAR);
+      if (sonuc.length > 0 && sonuc[0].isValid){
+        okumaBasarili(sonuc[0]);
+        return;
+      }
+    } catch(e){ /* tek kare hatası: sıradakine geç */ }
+  }
+  setTimeout(taramaAdimi, 120);
+}
+
+function okumaBasarili(s){
+  tariyor = false;
+  kameraKutu.classList.add("okundu");
+  btnTekrar.classList.remove("gizli");
+  bipVeTitre();
+  sonucGoster(s.text, s.format);
+}
+
+function bipVeTitre(){
+  if (navigator.vibrate) navigator.vibrate(80);
+  try{
+    var ac = new (window.AudioContext || window.webkitAudioContext)();
+    var o = ac.createOscillator(), g = ac.createGain();
+    o.frequency.value = 880; o.type = "sine";
+    g.gain.setValueAtTime(0.15, ac.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.12);
+    o.connect(g); g.connect(ac.destination);
+    o.start(); o.stop(ac.currentTime + 0.12);
+  } catch(e){}
+}
+
+/* ============ RESİMDEN OKUMA ============ */
+const yukleAlan = $("yukleAlan"), dosyaGirdi = $("dosyaGirdi"), onizleme = $("onizleme");
+yukleAlan.addEventListener("click", function(){ dosyaGirdi.click(); });
+yukleAlan.addEventListener("keydown", function(e){ if (e.key === "Enter" || e.key === " ") dosyaGirdi.click(); });
+yukleAlan.addEventListener("dragover", function(e){ e.preventDefault(); yukleAlan.classList.add("surukle"); });
+yukleAlan.addEventListener("dragleave", function(){ yukleAlan.classList.remove("surukle"); });
+yukleAlan.addEventListener("drop", function(e){
+  e.preventDefault(); yukleAlan.classList.remove("surukle");
+  if (e.dataTransfer.files.length) resimIsle(e.dataTransfer.files[0]);
+});
+dosyaGirdi.addEventListener("change", function(){
+  if (dosyaGirdi.files.length) resimIsle(dosyaGirdi.files[0]);
+  dosyaGirdi.value = "";
+});
+
+async function resimIsle(dosya){
+  if (!dosya.type.startsWith("image/")){
+    durumYaz(resimDurum, "Lütfen bir resim dosyası seç (JPG, PNG…).", true);
+    return;
+  }
+  fis.classList.remove("goster");
+  durumYaz(resimDurum, "Okunuyor…", false);
+  onizleme.innerHTML = "";
+  var img = document.createElement("img");
+  img.alt = "Yüklenen bilet fotoğrafı";
+  img.src = URL.createObjectURL(dosya);
+  onizleme.appendChild(img);
+
+  try{
+    // 1. deneme: dosyayı doğrudan oku
+    var sonuc = await ZXingWASM.readBarcodes(dosya, OKUYUCU_AYAR);
+    // 2. deneme: bulunamadıysa yeniden ölçekli varyantlar
+    if (!(sonuc.length && sonuc[0].isValid)){
+      var bmp = await createImageBitmap(dosya);
+      var olcekler = [];
+      if (bmp.width > 2200) olcekler.push(2000 / bmp.width);
+      if (bmp.width < 900)  olcekler.push(2);
+      olcekler.push(1.5);
+      for (var i = 0; i < olcekler.length; i++){
+        var k = olcekler[i];
+        isCanvas.width  = Math.round(bmp.width * k);
+        isCanvas.height = Math.round(bmp.height * k);
+        isCtx.imageSmoothingEnabled = true;
+        isCtx.drawImage(bmp, 0, 0, isCanvas.width, isCanvas.height);
+        var v = isCtx.getImageData(0, 0, isCanvas.width, isCanvas.height);
+        sonuc = await ZXingWASM.readBarcodes(v, OKUYUCU_AYAR);
+        if (sonuc.length && sonuc[0].isValid) break;
+      }
+      bmp.close();
+    }
+    if (sonuc.length && sonuc[0].isValid){
+      durumYaz(resimDurum, "", false);
+      bipVeTitre();
+      sonucGoster(sonuc[0].text, sonuc[0].format);
+    } else {
+      durumYaz(resimDurum, "Bu resimde kod bulunamadı. Karekodun net, düz ve iyi aydınlatılmış olduğu bir fotoğraf dene; kodu kadraja yakın çek.", true);
+    }
+  } catch(e){
+    durumYaz(resimDurum, "Resim işlenirken hata oluştu: " + e.message, true);
+  }
+}
+
+/* ============ SONUÇ + AYIKLAMA + KOPYALAMA ============ */
+function sonucGoster(ham, format){
+  fisFormat.textContent = format;
+  fisGovde.innerHTML = "";
+  fisGovde.appendChild(satirYap("Ham veri", ham, ""));
+
+  var parcalar = ham.split(/[\s;,|#*]+/).filter(function(p){ return p.length > 0; });
+  if (parcalar.length > 1 || (parcalar.length === 1 && parcalar[0] !== ham)){
+    var enUzun = "";
+    parcalar.forEach(function(p){
+      if (/^[A-Za-z0-9]+$/.test(p) && p.length >= 15 && p.length > enUzun.length) enUzun = p;
+    });
+    parcalar.forEach(function(p){
+      var rozet = "";
+      if (p === enUzun) rozet = "Bilet Numarası (tahmini)";
+      else if (/^\d{2}[./-]\d{2}[./-]\d{2,4}$/.test(p)) rozet = "Tarih";
+      else if (/^\d{5,}$/.test(p)) rozet = "Sayısal kod";
+      fisGovde.appendChild(satirYap("Parça " + (fisGovde.children.length), p, rozet));
+    });
+  } else if (/^[A-Za-z0-9]+$/.test(ham) && ham.length >= 15){
+    // Ham verinin tamamı zaten bilet numarası görünümünde
+    fisGovde.firstChild.querySelector(".etiket").innerHTML =
+      'Ham veri <span class="rozet">Bilet Numarası (tahmini)</span>';
+  }
+
+  fis.classList.add("goster");
+  fis.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+function satirYap(etiket, deger, rozet){
+  var satir = document.createElement("div");
+  satir.className = "satir";
+  var et = document.createElement("div");
+  et.className = "etiket";
+  et.textContent = etiket;
+  if (rozet){
+    var r = document.createElement("span");
+    r.className = "rozet"; r.textContent = rozet;
+    et.appendChild(r);
+  }
+  var kutu = document.createElement("div");
+  kutu.className = "deger-kutu";
+  var d = document.createElement("div");
+  d.className = "deger"; d.textContent = deger;
+  var b = document.createElement("button");
+  b.className = "kopyala"; b.type = "button"; b.textContent = "KOPYALA";
+  b.addEventListener("click", function(){ kopyala(deger, b); });
+  kutu.appendChild(d); kutu.appendChild(b);
+  satir.appendChild(et); satir.appendChild(kutu);
+  return satir;
+}
+
+async function kopyala(metin, buton){
+  var oldu = false;
+  try{
+    await navigator.clipboard.writeText(metin);
+    oldu = true;
+  } catch(e){
+    try{
+      var t = document.createElement("textarea");
+      t.value = metin; t.style.position = "fixed"; t.style.opacity = "0";
+      document.body.appendChild(t); t.select();
+      oldu = document.execCommand("copy");
+      document.body.removeChild(t);
+    } catch(e2){ oldu = false; }
+  }
+  buton.textContent = oldu ? "✓ KOPYALANDI" : "HATA";
+  buton.classList.toggle("ok", oldu);
+  setTimeout(function(){
+    buton.textContent = "KOPYALA";
+    buton.classList.remove("ok");
+  }, 1600);
+}
+
+/* ============ YARDIMCI ============ */
+function durumYaz(el, mesaj, hataMi){
+  el.textContent = mesaj;
+  el.classList.toggle("gizli", !mesaj);
+  el.classList.toggle("hata", !!hataMi);
+}
+
+// Sayfa kapanırken kamerayı bırak
+window.addEventListener("pagehide", kamerayiDurdur);
+</script>
+</body>
+</html>
