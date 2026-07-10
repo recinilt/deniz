@@ -1,0 +1,2106 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dizi Takip</title>
+    <style>
+        :root {
+            --bg-grad-1: #0f0c29;
+            --bg-grad-2: #302b63;
+            --bg-grad-3: #24243e;
+            --card-bg: rgba(255,255,255,0.07);
+            --card-border: rgba(255,255,255,0.12);
+            --card-bg-solid: rgba(30,27,60,0.92);
+            --text-primary: #e8e6f0;
+            --text-secondary: #a09bb8;
+            --accent: #7c6ef0;
+            --accent-hover: #9589f5;
+            --success: #34d399;
+            --danger: #f87171;
+            --warning: #fbbf24;
+            --item-bg: rgba(255,255,255,0.05);
+            --item-bg-hover: rgba(255,255,255,0.09);
+            --checked-bg: rgba(52,211,153,0.08);
+            --radius: 12px;
+            --radius-sm: 8px;
+            --shadow: 0 8px 32px rgba(0,0,0,0.3);
+            --transition: 0.2s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, var(--bg-grad-1), var(--bg-grad-2), var(--bg-grad-3));
+            min-height: 100vh;
+            color: var(--text-primary);
+            overflow-x: hidden;
+        }
+
+        /* ═══════ HEADER ═══════ */
+        .app-header {
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            backdrop-filter: blur(20px);
+            background: rgba(15,12,41,0.6);
+            border-bottom: 1px solid var(--card-border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .app-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .storage-badge {
+            font-size: 0.75em;
+            padding: 4px 10px;
+            border-radius: 20px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+
+        /* ═══════ LAYOUT ═══════ */
+        .app-body {
+            display: flex;
+            height: calc(100vh - 57px);
+        }
+
+        /* ═══════ SIDEBAR ═══════ */
+        .sidebar {
+            width: 300px;
+            min-width: 300px;
+            background: var(--card-bg-solid);
+            border-right: 1px solid var(--card-border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .sidebar-header {
+            padding: 16px;
+            border-bottom: 1px solid var(--card-border);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sidebar-header h2 {
+            font-size: 0.95em;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            flex: 1;
+        }
+
+        .filter-chips {
+            display: flex;
+            gap: 6px;
+            padding: 10px 12px;
+            flex-wrap: wrap;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .filter-chip {
+            font-size: 0.72em;
+            padding: 4px 9px;
+            border-radius: 20px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all var(--transition);
+            white-space: nowrap;
+        }
+
+        .filter-chip:hover { background: var(--item-bg-hover); color: var(--text-primary); }
+
+        .filter-chip.active {
+            background: rgba(124,110,240,0.2);
+            border-color: var(--accent);
+            color: var(--text-primary);
+        }
+
+        .series-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+        }
+
+        .series-item {
+            padding: 8px 10px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 4px;
+            border: 1px solid transparent;
+        }
+
+        .series-item:hover { background: var(--item-bg-hover); }
+
+        .series-item.active {
+            background: rgba(124,110,240,0.15);
+            border-color: rgba(124,110,240,0.3);
+        }
+
+        .series-poster-sm {
+            width: 36px;
+            height: 50px;
+            border-radius: 6px;
+            object-fit: cover;
+            background: var(--card-bg);
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .series-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .series-name {
+            font-size: 0.87em;
+            font-weight: 500;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .series-sub {
+            font-size: 0.72em;
+            color: var(--text-secondary);
+            margin-top: 2px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .new-badge {
+            font-size: 0.9em;
+            flex-shrink: 0;
+        }
+
+        /* ═══════ MAIN CONTENT ═══════ */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .content-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--card-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .content-title {
+            font-size: 1.15em;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+
+        .content-stats {
+            display: flex;
+            gap: 16px;
+            font-size: 0.8em;
+            color: var(--text-secondary);
+            align-items: center;
+        }
+
+        .stat-val {
+            font-weight: 700;
+            margin-right: 3px;
+        }
+
+        .content-toolbar {
+            padding: 12px 20px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .main-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding: 14px 20px;
+        }
+
+        /* ═══════ DASHBOARD KARTLARI ═══════ */
+        .dash-section-title {
+            font-size: 0.85em;
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin: 4px 0 12px;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 12px;
+        }
+
+        .dash-card {
+            background: var(--item-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            padding: 12px;
+            display: flex;
+            gap: 12px;
+            transition: all var(--transition);
+            animation: slideIn 0.15s ease;
+        }
+
+        .dash-card:hover { background: var(--item-bg-hover); }
+
+        .dash-poster {
+            width: 64px;
+            height: 92px;
+            border-radius: var(--radius-sm);
+            object-fit: cover;
+            background: var(--card-bg);
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .dash-body {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .dash-name {
+            font-size: 0.95em;
+            font-weight: 600;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+
+        .dash-next {
+            font-size: 0.78em;
+            color: var(--text-secondary);
+            margin-top: 3px;
+            line-height: 1.4;
+        }
+
+        .dash-next .ep-code {
+            color: var(--accent-hover);
+            font-weight: 700;
+        }
+
+        .dash-actions {
+            display: flex;
+            gap: 6px;
+            margin-top: auto;
+            padding-top: 8px;
+        }
+
+        /* ═══════ PROGRESS BAR ═══════ */
+        .progress-bar {
+            height: 6px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), var(--success));
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        /* ═══════ DETAY: SEZON SEKMELERİ ═══════ */
+        .detail-poster {
+            width: 44px;
+            height: 62px;
+            border-radius: 6px;
+            object-fit: cover;
+            background: var(--card-bg);
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .status-select {
+            padding: 6px 10px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-size: 0.8em;
+            font-family: inherit;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .status-select option { background: #1e1b3c; }
+
+        .season-chips {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 12px 20px;
+            border-bottom: 1px solid var(--card-border);
+            flex-shrink: 0;
+        }
+
+        .season-chip {
+            padding: 7px 14px;
+            border-radius: 20px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.8em;
+            font-weight: 600;
+            white-space: nowrap;
+            transition: all var(--transition);
+        }
+
+        .season-chip:hover { background: var(--item-bg-hover); color: var(--text-primary); }
+
+        .season-chip.active {
+            background: rgba(124,110,240,0.2);
+            border-color: var(--accent);
+            color: var(--text-primary);
+        }
+
+        .season-chip.done { border-color: rgba(52,211,153,0.4); }
+
+        .season-progress-wrap {
+            padding: 12px 20px 0;
+        }
+
+        .season-progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.78em;
+            color: var(--text-secondary);
+        }
+
+        /* ═══════ BÖLÜM LİSTESİ ═══════ */
+        .episode-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            margin-bottom: 6px;
+            background: var(--item-bg);
+            border-radius: var(--radius-sm);
+            border: 1px solid transparent;
+            transition: all var(--transition);
+            cursor: pointer;
+            animation: slideIn 0.15s ease;
+        }
+
+        .episode-item:hover {
+            background: var(--item-bg-hover);
+            border-color: var(--card-border);
+        }
+
+        .episode-item.checked { background: var(--checked-bg); }
+
+        .episode-item.checked .ep-text {
+            text-decoration: line-through;
+            opacity: 0.5;
+        }
+
+        .ep-number {
+            font-size: 0.75em;
+            color: var(--text-secondary);
+            min-width: 28px;
+            text-align: center;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .ep-checkbox {
+            width: 20px;
+            height: 20px;
+            border-radius: 5px;
+            border: 2px solid var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all var(--transition);
+        }
+
+        .ep-checkbox.checked {
+            background: var(--success);
+            border-color: var(--success);
+        }
+
+        .ep-checkbox.checked::after {
+            content: '✓';
+            color: white;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .ep-text {
+            flex: 1;
+            font-size: 0.9em;
+            line-height: 1.4;
+            min-width: 0;
+            word-break: break-word;
+        }
+
+        .ep-note-preview {
+            display: block;
+            font-size: 0.82em;
+            color: var(--warning);
+            opacity: 0.85;
+            margin-top: 2px;
+            text-decoration: none !important;
+        }
+
+        .ep-date {
+            font-size: 0.72em;
+            color: var(--text-secondary);
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+
+        /* ═══════ BUTTONS ═══════ */
+        .btn {
+            padding: 7px 14px;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 0.8em;
+            font-weight: 600;
+            transition: all var(--transition);
+            font-family: inherit;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover { background: var(--accent-hover); }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--card-border);
+        }
+
+        .btn-ghost:hover {
+            background: var(--item-bg-hover);
+            color: var(--text-primary);
+        }
+
+        .btn-danger {
+            background: transparent;
+            color: var(--danger);
+            border: 1px solid rgba(248,113,113,0.3);
+        }
+
+        .btn-danger:hover { background: rgba(248,113,113,0.1); }
+
+        .btn-success {
+            background: transparent;
+            color: var(--success);
+            border: 1px solid rgba(52,211,153,0.3);
+        }
+
+        .btn-success:hover { background: rgba(52,211,153,0.1); }
+
+        .btn-icon {
+            width: 30px;
+            height: 30px;
+            min-width: 30px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 14px;
+            transition: all var(--transition);
+        }
+
+        .btn-icon:hover {
+            background: var(--item-bg-hover);
+            color: var(--text-primary);
+        }
+
+        /* ═══════ MODAL ═══════ */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal-overlay.show { display: flex; }
+
+        .modal-box {
+            background: var(--card-bg-solid);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            padding: 24px;
+            width: 100%;
+            max-width: 520px;
+            max-height: 82vh;
+            overflow-y: auto;
+        }
+
+        .modal-box h3 {
+            font-size: 1.1em;
+            margin-bottom: 16px;
+        }
+
+        .form-group { margin-bottom: 14px; }
+
+        .form-group label {
+            display: block;
+            font-size: 0.8em;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px 14px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-size: 0.9em;
+            font-family: inherit;
+            outline: none;
+            transition: border-color var(--transition);
+        }
+
+        .form-input:focus { border-color: var(--accent); }
+
+        .form-input::placeholder {
+            color: var(--text-secondary);
+            opacity: 0.6;
+        }
+
+        .form-input option { background: #1e1b3c; }
+
+        .form-hint {
+            font-size: 0.75em;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        /* ═══════ EKLEME MODALI: SEKMELER + ARAMA ═══════ */
+        .add-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .add-tab {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid var(--card-border);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            text-align: center;
+            font-size: 0.85em;
+            font-weight: 600;
+            color: var(--text-secondary);
+            transition: all var(--transition);
+        }
+
+        .add-tab:hover { border-color: var(--accent); }
+
+        .add-tab.active {
+            border-color: var(--accent);
+            background: rgba(124,110,240,0.12);
+            color: var(--text-primary);
+        }
+
+        .search-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .search-results {
+            margin-top: 12px;
+            max-height: 320px;
+            overflow-y: auto;
+        }
+
+        .search-result-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            border-radius: var(--radius-sm);
+            border: 1px solid transparent;
+            transition: all var(--transition);
+            margin-bottom: 4px;
+        }
+
+        .search-result-item:hover {
+            background: var(--item-bg-hover);
+            border-color: var(--card-border);
+        }
+
+        .search-poster {
+            width: 40px;
+            height: 56px;
+            border-radius: 5px;
+            object-fit: cover;
+            background: var(--card-bg);
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .search-info { flex: 1; min-width: 0; }
+
+        .search-name {
+            font-size: 0.88em;
+            font-weight: 600;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .search-meta {
+            font-size: 0.72em;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .attribution {
+            font-size: 0.7em;
+            color: var(--text-secondary);
+            text-align: right;
+            margin-top: 8px;
+            opacity: 0.7;
+        }
+
+        .attribution a { color: var(--text-secondary); }
+
+        /* ═══════ NOTIFICATION ═══════ */
+        .notification {
+            position: fixed;
+            top: -60px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--card-bg-solid);
+            border: 1px solid var(--card-border);
+            padding: 10px 24px;
+            border-radius: var(--radius);
+            font-size: 0.85em;
+            font-weight: 500;
+            transition: top 0.3s ease;
+            z-index: 2000;
+            backdrop-filter: blur(20px);
+            white-space: nowrap;
+            max-width: 92vw;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .notification.show { top: 70px; }
+
+        /* ═══════ EMPTY STATE ═══════ */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--text-secondary);
+            gap: 12px;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .empty-state .empty-icon {
+            font-size: 3em;
+            opacity: 0.4;
+        }
+
+        .empty-state p {
+            font-size: 0.9em;
+            max-width: 280px;
+        }
+
+        /* ═══════ STORAGE MODAL ═══════ */
+        .storage-selection {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .storage-option {
+            flex: 1;
+            padding: 16px;
+            border: 2px solid var(--card-border);
+            border-radius: var(--radius);
+            cursor: pointer;
+            text-align: center;
+            transition: all var(--transition);
+        }
+
+        .storage-option:hover { border-color: var(--accent); }
+
+        .storage-option.selected {
+            border-color: var(--success);
+            background: rgba(52,211,153,0.08);
+        }
+
+        .storage-option h4 {
+            font-size: 0.9em;
+            margin-bottom: 4px;
+        }
+
+        .storage-option p {
+            font-size: 0.75em;
+            color: var(--text-secondary);
+        }
+
+        .login-section {
+            display: none;
+            margin-top: 12px;
+        }
+
+        .login-section.active { display: block; }
+
+        /* ═══════ MOBILE ═══════ */
+        .mobile-nav { display: none; }
+        .sidebar-backdrop { display: none; }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: -320px;
+                top: 0;
+                bottom: 0;
+                z-index: 200;
+                width: 300px;
+                min-width: 300px;
+                transition: left 0.3s ease;
+            }
+
+            .sidebar.open { left: 0; }
+
+            .sidebar-backdrop {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(0,0,0,0.5);
+                z-index: 199;
+            }
+
+            .sidebar-backdrop.show { display: block; }
+
+            .mobile-nav { display: flex; }
+
+            .app-body { height: calc(100vh - 57px); }
+
+            .content-header { padding: 12px 14px; }
+            .content-toolbar { padding: 10px 14px; }
+            .main-scroll { padding: 10px 14px; }
+            .season-chips { padding: 10px 14px; }
+            .season-progress-wrap { padding: 10px 14px 0; }
+
+            .card-grid { grid-template-columns: 1fr; }
+
+            .btn {
+                padding: 8px 12px;
+                font-size: 0.78em;
+            }
+
+            .btn-icon {
+                width: 34px;
+                height: 34px;
+                min-width: 34px;
+                font-size: 15px;
+            }
+
+            .content-stats {
+                gap: 10px;
+                font-size: 0.75em;
+            }
+
+            .app-title { font-size: 1.1em; }
+        }
+
+        @media (max-width: 400px) {
+            .content-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+
+        /* ═══════ SCROLLBAR ═══════ */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+        /* ═══════ ANIMATIONS ═══════ */
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NOTIFICATION -->
+    <div class="notification" id="notification"></div>
+
+    <!-- SIDEBAR BACKDROP (mobil) -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar()"></div>
+
+    <!-- HEADER -->
+    <header class="app-header">
+        <div style="display:flex;align-items:center;gap:10px;">
+            <button class="btn-icon mobile-nav" onclick="toggleSidebar()" title="Menü">☰</button>
+            <span class="app-title" style="cursor:pointer;" onclick="goHome()">📺 Dizi Takip</span>
+        </div>
+        <div class="header-actions">
+            <button class="btn-icon" onclick="checkNewEpisodes(false)" title="Yeni bölüm kontrolü">🔄</button>
+            <span class="storage-badge" id="storageInfo" onclick="changeStorageMethod()">💻 Yerel</span>
+            <button class="btn-icon" onclick="openImportExportModal()" title="İçe/Dışa Aktar">📤</button>
+        </div>
+    </header>
+
+    <div class="app-body">
+        <!-- SIDEBAR -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2>Dizilerim</h2>
+                <button class="btn btn-primary" onclick="openAddModal()" style="padding:5px 10px;font-size:0.78em;">+ Dizi Ekle</button>
+            </div>
+            <div class="filter-chips" id="filterChips">
+                <!-- filtre çipleri render edilecek -->
+            </div>
+            <div class="series-list" id="seriesList">
+                <!-- dizi listesi render edilecek -->
+            </div>
+        </aside>
+
+        <!-- MAIN -->
+        <main class="main-content" id="mainContent">
+            <!-- renderMain() dolduracak -->
+        </main>
+    </div>
+
+    <!-- DİZİ EKLE MODAL -->
+    <div class="modal-overlay" id="addModal">
+        <div class="modal-box">
+            <h3>➕ Dizi Ekle</h3>
+            <div class="add-tabs">
+                <div class="add-tab active" id="tabSearch" onclick="switchAddTab('search')">🔍 İnternetten Ara</div>
+                <div class="add-tab" id="tabManual" onclick="switchAddTab('manual')">✍️ Manuel Ekle</div>
+            </div>
+            <div class="form-group">
+                <label>Başlangıç Durumu</label>
+                <select class="form-input" id="addStatusSelect">
+                    <option value="watching">📺 İzliyorum</option>
+                    <option value="planned">📌 İzlenecek</option>
+                    <option value="paused">⏸️ Ara Verdim</option>
+                    <option value="completed">✅ Bitti</option>
+                </select>
+            </div>
+            <!-- ARAMA SEKMESİ -->
+            <div id="searchTabContent">
+                <div class="search-row">
+                    <input type="text" class="form-input" id="searchInput" placeholder="Dizi adı yazın... (örn: Dark, Ezel)">
+                    <button class="btn btn-primary" onclick="searchTVMaze()">Ara</button>
+                </div>
+                <div class="search-results" id="searchResults"></div>
+                <div class="attribution">Veriler: <a href="https://www.tvmaze.com" target="_blank" rel="noopener">TVmaze.com</a></div>
+            </div>
+            <!-- MANUEL SEKMESİ -->
+            <div id="manualTabContent" style="display:none;">
+                <div class="form-group">
+                    <label>Dizi / Anime Adı</label>
+                    <input type="text" class="form-input" id="manualName" placeholder="Örn: One Piece" maxlength="120">
+                </div>
+                <div class="form-group">
+                    <label>Sezon Bölüm Sayıları (virgülle)</label>
+                    <input type="text" class="form-input" id="manualCounts" placeholder="Örn: 24,26,12">
+                    <div class="form-hint">Örn: "24,26,12" → S1: 24 bölüm, S2: 26 bölüm, S3: 12 bölüm</div>
+                </div>
+                <div class="form-group">
+                    <label>Poster URL (isteğe bağlı)</label>
+                    <input type="text" class="form-input" id="manualPoster" placeholder="https://...">
+                </div>
+                <div class="modal-actions" style="margin-top:10px;">
+                    <button class="btn btn-primary" onclick="addManualSeries()">✅ Ekle</button>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-ghost" onclick="closeModal('addModal')">Kapat</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- BÖLÜM NOTU MODAL -->
+    <div class="modal-overlay" id="noteModal">
+        <div class="modal-box">
+            <h3 id="noteTitle">📝 Bölüm Notu</h3>
+            <div class="form-group">
+                <label>Not (örn: "burada X öldü, hatırla")</label>
+                <textarea class="form-input" id="noteText" rows="4" placeholder="Bu bölümle ilgili kısa notunuz..."></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-danger" onclick="clearNote()">🗑️ Notu Sil</button>
+                <button class="btn btn-ghost" onclick="closeModal('noteModal')">İptal</button>
+                <button class="btn btn-primary" onclick="saveNote()">💾 Kaydet</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MANUEL DİZİYE BÖLÜM EKLE MODAL -->
+    <div class="modal-overlay" id="addEpisodesModal">
+        <div class="modal-box">
+            <h3>➕ Bölüm Ekle</h3>
+            <div class="form-group">
+                <label>Sezon</label>
+                <select class="form-input" id="addEpsSeasonSelect"></select>
+            </div>
+            <div class="form-group">
+                <label>Kaç bölüm eklensin?</label>
+                <input type="number" class="form-input" id="addEpsCount" min="1" max="500" value="1">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-ghost" onclick="closeModal('addEpisodesModal')">İptal</button>
+                <button class="btn btn-primary" onclick="confirmAddEpisodes()">Ekle</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- İÇE/DIŞA AKTARMA MODAL -->
+    <div class="modal-overlay" id="importExportModal">
+        <div class="modal-box">
+            <h3>📤 İçe/Dışa Aktarma</h3>
+            <div style="margin-bottom:16px;">
+                <button class="btn btn-primary" onclick="exportData()" style="width:100%;justify-content:center;margin-bottom:8px;">💾 JSON Olarak İndir</button>
+                <label class="btn btn-ghost" style="width:100%;justify-content:center;cursor:pointer;">
+                    📥 Dosyadan Yükle
+                    <input type="file" id="importFileInput" accept=".json" style="display:none;" onchange="importData()">
+                </label>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-ghost" onclick="closeModal('importExportModal')">Kapat</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- DEPOLAMA MODAL -->
+    <div class="modal-overlay" id="storageModal">
+        <div class="modal-box">
+            <h3>💾 Kayıt Yöntemi Seçin</h3>
+            <div class="storage-selection">
+                <div class="storage-option" id="optLocal" onclick="selectStorage('local')">
+                    <h4>💻 Yerel</h4>
+                    <p>Cihazınızda saklanır</p>
+                </div>
+                <div class="storage-option" id="optGithub" onclick="selectStorage('github')">
+                    <h4>☁️ GitHub</h4>
+                    <p>GitHub'da saklanır</p>
+                </div>
+            </div>
+            <div class="login-section" id="loginSection">
+                <div class="form-group">
+                    <label>Kullanıcı Adı</label>
+                    <input type="text" class="form-input" id="loginUser" placeholder="Kullanıcı adı">
+                </div>
+                <div class="form-group">
+                    <label>Şifre</label>
+                    <input type="password" class="form-input" id="loginPass" placeholder="Şifre">
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="confirmStorage()">✅ Onayla</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ══════════════════════════════════════════════════════════
+        // CLOUDFLARE WORKER BAĞLANTISI
+        // ══════════════════════════════════════════════════════════
+        const WORKER_URL = 'https://gh-reci-senkron.recepyeni.workers.dev';
+        const dosyaAdi = 'diziTakip.json';
+
+        // ══════════════════════════════════════════════════════════
+        // TVMAZE API
+        // ══════════════════════════════════════════════════════════
+        const TVMAZE_SEARCH = 'https://api.tvmaze.com/search/shows?q=';
+        const TVMAZE_EPISODES = (id) => `https://api.tvmaze.com/shows/${id}/episodes`;
+        const TVMAZE_SHOW_EMBED = (id) => `https://api.tvmaze.com/shows/${id}?embed=episodes`;
+
+        // ══════════════════════════════════════════════════════════
+        // GLOBAL DEĞİŞKENLER
+        // ══════════════════════════════════════════════════════════
+        let storageMethod = 'local';
+        let currentUser = null;
+        let userDatabase = {};
+        // diziData = { seriesList: [{ id, tvmazeId, name, poster, status, showStatus,
+        //   hasNewEpisodes, addedDate, seasons: [{ season, episodes: [{num, name, airdate, watched, note}] }] }] }
+        let diziData = { seriesList: [] };
+        let activeFilter = 'all';
+        let activeSeriesId = null;
+        let activeSeasonIdx = 0;
+        let noteContext = null; // { seriesId, sIdx, eIdx }
+        let lastSearchResults = [];
+        let ghSaveTimer = null;
+        let checkingNow = false;
+
+        const STATUS_META = {
+            watching:  { label: 'İzliyorum',  icon: '📺' },
+            planned:   { label: 'İzlenecek',  icon: '📌' },
+            paused:    { label: 'Ara Verdim', icon: '⏸️' },
+            completed: { label: 'Bitti',      icon: '✅' }
+        };
+
+        // ══════════════════════════════════════════════════════════
+        // YARDIMCILAR
+        // ══════════════════════════════════════════════════════════
+        function escapeHtml(str) {
+            return String(str ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function getSeries(id) {
+            return diziData.seriesList.find(s => s.id === id) || null;
+        }
+
+        function getProgress(series) {
+            let watched = 0, total = 0;
+            series.seasons.forEach(sz => sz.episodes.forEach(ep => {
+                total++;
+                if (ep.watched) watched++;
+            }));
+            return { watched, total };
+        }
+
+        function getNextUnwatched(series) {
+            for (let si = 0; si < series.seasons.length; si++) {
+                const sz = series.seasons[si];
+                for (let ei = 0; ei < sz.episodes.length; ei++) {
+                    if (!sz.episodes[ei].watched) {
+                        return { sIdx: si, eIdx: ei, season: sz.season, ep: sz.episodes[ei] };
+                    }
+                }
+            }
+            return null;
+        }
+
+        function formatDateTR(iso) {
+            if (!iso) return '';
+            const p = iso.split('-');
+            if (p.length !== 3) return iso;
+            return `${p[2]}.${p[1]}.${p[0]}`;
+        }
+
+        // ══════════════════════════════════════════════════════════
+        // NOTIFICATION
+        // ══════════════════════════════════════════════════════════
+        function showNotification(msg) {
+            const n = document.getElementById('notification');
+            n.textContent = msg;
+            n.classList.add('show');
+            setTimeout(() => n.classList.remove('show'), 2800);
+        }
+
+        // ══════════════════════════════════════════════════════════
+        // MODAL
+        // ══════════════════════════════════════════════════════════
+        function openModal(id) {
+            document.getElementById(id).classList.add('show');
+        }
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('show');
+        }
+
+        // ══════════════════════════════════════════════════════════
+        // SIDEBAR - MOBİL
+        // ══════════════════════════════════════════════════════════
+        function toggleSidebar() {
+            const sb = document.getElementById('sidebar');
+            const bd = document.getElementById('sidebarBackdrop');
+            sb.classList.toggle('open');
+            bd.classList.toggle('show');
+        }
+
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('sidebarBackdrop').classList.remove('show');
+        }
+
+        // ══════════════════════════════════════════════════════════
+        // RENDER: SIDEBAR (FİLTRE + DİZİ LİSTESİ)
+        // ══════════════════════════════════════════════════════════
+        function renderSidebar() {
+            const chipWrap = document.getElementById('filterChips');
+            const counts = { all: diziData.seriesList.length };
+            Object.keys(STATUS_META).forEach(k => {
+                counts[k] = diziData.seriesList.filter(s => s.status === k).length;
+            });
+            let chips = `<span class="filter-chip ${activeFilter === 'all' ? 'active' : ''}" onclick="setFilter('all')">Tümü (${counts.all})</span>`;
+            Object.entries(STATUS_META).forEach(([key, meta]) => {
+                chips += `<span class="filter-chip ${activeFilter === key ? 'active' : ''}" onclick="setFilter('${key}')">${meta.icon} ${meta.label} (${counts[key]})</span>`;
+            });
+            chipWrap.innerHTML = chips;
+
+            const list = document.getElementById('seriesList');
+            const filtered = diziData.seriesList.filter(s => activeFilter === 'all' || s.status === activeFilter);
+
+            if (filtered.length === 0) {
+                list.innerHTML = `<div class="empty-state" style="height:auto;padding:30px 16px;">
+                    <div class="empty-icon">🎬</div>
+                    <p>${diziData.seriesList.length === 0 ? 'Henüz dizi eklenmedi. "+ Dizi Ekle" ile başlayın.' : 'Bu filtrede dizi yok.'}</p>
+                </div>`;
+                return;
+            }
+
+            list.innerHTML = filtered.map(s => {
+                const pr = getProgress(s);
+                const next = getNextUnwatched(s);
+                let sub;
+                if (!next) {
+                    sub = `✅ Tamamlandı · ${pr.total} bölüm`;
+                } else {
+                    sub = `Sıradaki: S${next.season}B${next.ep.num} · ${pr.watched}/${pr.total}`;
+                }
+                const posterHtml = s.poster
+                    ? `<img class="series-poster-sm" src="${escapeHtml(s.poster)}" alt="" loading="lazy" onerror="this.outerHTML='<div class=\\'series-poster-sm\\'>🎬</div>'">`
+                    : `<div class="series-poster-sm">🎬</div>`;
+                return `<div class="series-item ${activeSeriesId === s.id ? 'active' : ''}" onclick="openSeries('${s.id}')">
+                    ${posterHtml}
+                    <div class="series-info">
+                        <div class="series-name">${STATUS_META[s.status].icon} ${escapeHtml(s.name)}</div>
+                        <div class="series-sub">${sub}</div>
+                    </div>
+                    ${s.hasNewEpisodes ? '<span class="new-badge" title="Yeni bölüm var!">🔔</span>' : ''}
+                </div>`;
+            }).join('');
+        }
+
+        function setFilter(f) {
+            activeFilter = f;
+            renderSidebar();
+        }
+
+        // ══════════════════════════════════════════════════════════
+        // RENDER: ANA PANEL
+        // ══════════════════════════════════════════════════════════
+        function renderMain() {
+            if (activeSeriesId && getSeries(activeSeriesId)) {
+                renderDetail();
+            } else {
+                activeSeriesId = null;
+                renderDashboard();
+            }
+        }
+
+        function renderAll() {
+            renderSidebar();
+            renderMain();
+        }
+
+        // ── DASHBOARD: İZLEMEYE DEVAM ET ──
+        function renderDashboard() {
+            const main = document.getElementById('mainContent');
+            let totalWatched = 0;
+            diziData.seriesList.forEach(s => { totalWatched += getProgress(s).watched; });
+
+            const watching = diziData.seriesList.filter(s => s.status === 'watching' && getNextUnwatched(s));
+
+            let cardsHtml;
+            if (diziData.seriesList.length === 0) {
+                cardsHtml = `<div class="empty-state">
+                    <div class="empty-icon">📺</div>
+                    <p>Hoş geldiniz! "➕ Dizi Ekle" ile ilk dizinizi ekleyin. İnternetten arayın ya da manuel girin.</p>
+                </div>`;
+            } else if (watching.length === 0) {
+                cardsHtml = `<div class="empty-state">
+                    <div class="empty-icon">🍿</div>
+                    <p>"İzliyorum" durumunda bekleyen bölüm yok. Sol panelden bir dizi seçin veya yeni dizi ekleyin.</p>
+                </div>`;
+            } else {
+                cardsHtml = `<div class="dash-section-title">▶️ İzlemeye Devam Et</div>
+                <div class="card-grid">` + watching.map(s => {
+                    const next = getNextUnwatched(s);
+                    const pr = getProgress(s);
+                    const pct = pr.total ? Math.round(pr.watched / pr.total * 100) : 0;
+                    const posterHtml = s.poster
+                        ? `<img class="dash-poster" src="${escapeHtml(s.poster)}" alt="" loading="lazy" onclick="openSeries('${s.id}')" onerror="this.outerHTML='<div class=\\'dash-poster\\' onclick=\\'openSeries(&quot;${s.id}&quot;)\\'>🎬</div>'">`
+                        : `<div class="dash-poster" onclick="openSeries('${s.id}')">🎬</div>`;
+                    const dateStr = next.ep.airdate ? ` · ${formatDateTR(next.ep.airdate)}` : '';
+                    return `<div class="dash-card">
+                        ${posterHtml}
+                        <div class="dash-body">
+                            <div class="dash-name" onclick="openSeries('${s.id}')">${escapeHtml(s.name)} ${s.hasNewEpisodes ? '🔔' : ''}</div>
+                            <div class="dash-next">Sıradaki: <span class="ep-code">S${next.season}B${next.ep.num}</span><br>${escapeHtml(next.ep.name)}${dateStr}</div>
+                            <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+                            <div class="dash-actions">
+                                <button class="btn btn-success" onclick="markNextWatched('${s.id}')">▶️ Bunu izledim</button>
+                                <button class="btn btn-ghost" onclick="openSeries('${s.id}')">📂 Aç</button>
+                            </div>
+                        </div>
+                    </div>`;
+                }).join('') + `</div>`;
+            }
+
+            main.innerHTML = `
+                <div class="content-header">
+                    <span class="content-title">📺 İzlemeye Devam Et</span>
+                    <div class="content-stats">
+                        <span><span class="stat-val">${diziData.seriesList.length}</span>dizi</span>
+                        <span><span class="stat-val">${totalWatched}</span>bölüm izlendi</span>
+                    </div>
+                </div>
+                <div class="content-toolbar">
+                    <button class="btn btn-primary" onclick="openAddModal()">➕ Dizi Ekle</button>
+                    <button class="btn btn-ghost" onclick="checkNewEpisodes(false)">🔄 Yeni Bölüm Kontrolü</button>
+                    <button class="btn btn-ghost" onclick="saveAllData()">💾 Kaydet</button>
+                </div>
+                <div class="main-scroll">${cardsHtml}</div>`;
+        }
+
+        // ── DİZİ DETAYI ──
+        function renderDetail() {
+            const s = getSeries(activeSeriesId);
+            if (!s) { renderDashboard(); return; }
+            if (activeSeasonIdx >= s.seasons.length) activeSeasonIdx = Math.max(0, s.seasons.length - 1);
+
+            const main = document.getElementById('mainContent');
+            const pr = getProgress(s);
+            const pct = pr.total ? Math.round(pr.watched / pr.total * 100) : 0;
+
+            const posterHtml = s.poster
+                ? `<img class="detail-poster" src="${escapeHtml(s.poster)}" alt="" onerror="this.outerHTML='<div class=\\'detail-poster\\'>🎬</div>'">`
+                : `<div class="detail-poster">🎬</div>`;
+
+            let statusOptions = '';
+            Object.entries(STATUS_META).forEach(([key, meta]) => {
+                statusOptions += `<option value="${key}" ${s.status === key ? 'selected' : ''}>${meta.icon} ${meta.label}</option>`;
+            });
+
+            const isManual = !s.tvmazeId;
+
+            // Sezon çipleri
+            const chipsHtml = s.seasons.map((sz, idx) => {
+                const w = sz.episodes.filter(e => e.watched).length;
+                const done = sz.episodes.length > 0 && w === sz.episodes.length;
+                return `<span class="season-chip ${idx === activeSeasonIdx ? 'active' : ''} ${done ? 'done' : ''}" onclick="selectSeason(${idx})">S${sz.season} · ${w}/${sz.episodes.length}</span>`;
+            }).join('');
+
+            // Aktif sezon
+            let seasonHtml = '';
+            if (s.seasons.length === 0) {
+                seasonHtml = `<div class="empty-state"><div class="empty-icon">📭</div><p>Bu dizide hiç bölüm yok.</p></div>`;
+            } else {
+                const sz = s.seasons[activeSeasonIdx];
+                const w = sz.episodes.filter(e => e.watched).length;
+                const spct = sz.episodes.length ? Math.round(w / sz.episodes.length * 100) : 0;
+                const epsHtml = sz.episodes.map((ep, ei) => {
+                    const dateStr = ep.airdate ? formatDateTR(ep.airdate) : '';
+                    const notePreview = ep.note ? `<span class="ep-note-preview">📝 ${escapeHtml(ep.note)}</span>` : '';
+                    return `<div class="episode-item ${ep.watched ? 'checked' : ''}" onclick="toggleEpisode(${activeSeasonIdx},${ei})">
+                        <div class="ep-checkbox ${ep.watched ? 'checked' : ''}"></div>
+                        <span class="ep-number">${ep.num}.</span>
+                        <span class="ep-text">${escapeHtml(ep.name)}${notePreview}</span>
+                        <span class="ep-date">${dateStr}</span>
+                        <button class="btn-icon" title="${ep.note ? 'Notu düzenle' : 'Not ekle'}" onclick="event.stopPropagation();openNoteModal(${activeSeasonIdx},${ei})">${ep.note ? '📝' : '🗒️'}</button>
+                    </div>`;
+                }).join('');
+                seasonHtml = `
+                    <div class="season-progress-wrap">
+                        <div class="season-progress-label"><span>Sezon ${sz.season} ilerlemesi</span><span>${w}/${sz.episodes.length} (%${spct})</span></div>
+                        <div class="progress-bar"><div class="progress-fill" style="width:${spct}%"></div></div>
+                    </div>
+                    <div class="main-scroll">${epsHtml}</div>`;
+            }
+
+            main.innerHTML = `
+                <div class="content-header">
+                    <span class="content-title">
+                        <button class="btn-icon" onclick="goHome()" title="Ana ekrana dön">←</button>
+                        ${posterHtml}
+                        <span style="overflow:hidden;text-overflow:ellipsis;">${escapeHtml(s.name)} ${s.hasNewEpisodes ? '🔔' : ''}</span>
+                    </span>
+                    <div class="content-stats">
+                        <select class="status-select" onchange="setSeriesStatus(this.value)">${statusOptions}</select>
+                        <span><span class="stat-val">${pr.watched}/${pr.total}</span>(%${pct})</span>
+                    </div>
+                </div>
+                <div class="content-toolbar">
+                    <button class="btn btn-success" onclick="markNextWatched('${s.id}')">▶️ Sıradakini İzledim</button>
+                    <button class="btn btn-ghost" onclick="completeSeason()">✅ Sezonu Bitir</button>
+                    ${isManual ? '<button class="btn btn-ghost" onclick="openAddEpisodesModal()">➕ Bölüm Ekle</button>' : ''}
+                    <button class="btn btn-ghost" onclick="saveAllData()">💾 Kaydet</button>
+                    <button class="btn btn-danger" onclick="deleteSeries()">🗑️ Diziyi Sil</button>
+                </div>
+                <div class="season-chips">${chipsHtml}</div>
+                ${seasonHtml}`;
+        }
+
+        // ══════════════════════════════════════════════════════════
+        // NAVİGASYON
+        // ══════════════════════════════════════════════════════════
+        function openSeries(id) {
+            const s = getSeries(id);
+            if (!s) return;
+            activeSeriesId = id;
+            // Sıradaki bölümün sezonuna otomatik git
+            const next = getNextUnwatched(s);
+            activeSeasonIdx = next ? next.sIdx : Math.max(0, s.seasons.length - 1);
+            // Yeni bölüm rozetini temizle
+            if (s.hasNewEpisodes) {
+                s.hasNewEpisodes = false;
+                autoSave();
+            }
+            renderAll();
+            closeSidebar();
+        }
+
+        function goHome() {
+            activeSeriesId = null;
+            renderAll();
+        }
+
+        function selectSeason(idx) {
+            activeSeasonIdx = idx;
+            renderDetail();
+        }
+
+        // ══════════════════════════════════════════════════════════
+        // BÖLÜM İŞLEMLERİ
+        // ══════════════════════════════════════════════════════════
+        function toggleEpisode(sIdx, eIdx) {
+            const s = getSeries(activeSeriesId);
+            if (!s) return;
+            const ep = s.seasons[sIdx].episodes[eIdx];
+            ep.watched = !ep.watched;
+            afterWatchChange(s);
+        }
+
+        function markNextWatched(id) {
+            const s = getSeries(id);
+            if (!s) return;
+            const next = getNextUnwatched(s);
+            if (!next) { showNotification('✅ Bu dizide izlenmemiş bölüm yok!'); return; }
+            s.seasons[next.sIdx].episodes[next.eIdx].watched = true;
+            showNotification(`▶️ S${next.season}B${next.ep.num} izlendi: ${next.ep.name}`);
+            if (activeSeriesId === id) {
+                const nn = getNextUnwatched(s);
+                if (nn) activeSeasonIdx = nn.sIdx;
+            }
+            afterWatchChange(s);
+        }
+
+        function completeSeason() {
+            const s = getSeries(activeSeriesId);
+            if (!s || s.seasons.length === 0) return;
+            const sz = s.seasons[activeSeasonIdx];
+            sz.episodes.forEach(ep => ep.watched = true);
+            showNotification(`✅ Sezon ${sz.season} tamamlandı!`);
+            afterWatchChange(s);
+        }
+
+        function afterWatchChange(s) {
+            // Tüm bölümler bittiyse ve "İzliyorum" ise otomatik "Bitti" yap
+            const next = getNextUnwatched(s);
+            if (!next && s.status === 'watching' && getProgress(s).total > 0) {
+                s.status = 'completed';
+                showNotification(`🎉 "${s.name}" tamamlandı!`);
+            }
+            autoSave();
+            renderAll();
+        }
+
+        function setSeriesStatus(val) {
+            const s = getSeries(activeSeriesId);
+            if (!s) return;
+            s.status = val;
+            autoSave();
+            renderAll();
+        }
+
+        function deleteSeries() {
+            const s = getSeries(activeSeriesId);
+            if (!s) return;
+            if (!confirm(`"${s.name}" dizisi ve tüm izleme kayıtları silinsin mi?`)) return;
+            diziData.seriesList = diziData.seriesList.filter(x => x.id !== s.id);
+            activeSeriesId = null;
+            autoSave();
+            renderAll();
+            showNotification('🗑️ Dizi silindi: ' + s.name);
+        }
+
+        // ══════════════════════════════════════════════════════════
+        // BÖLÜM NOTLARI
+        // ══════════════════════════════════════════════════════════
+        function openNoteModal(sIdx, eIdx) {
+            const s = getSeries(activeSeriesId);
+            if (!s) return;
+            const sz = s.seasons[sIdx];
+            const ep = sz.episodes[eIdx];
+            noteContext = { seriesId: s.id, sIdx, eIdx };
+            document.getElementById('noteTitle').textContent = `📝 S${sz.season}B${ep.num} — ${ep.name}`;
+            document.getElementById('noteText').value = ep.note || '';
+            openModal('noteModal');
+            setTimeout(() => document.getElementById('noteText').focus(), 100);
+        }
+
+        function saveNote() {
+            if (!noteContext) return;
+            const s = getSeries(noteContext.seriesId);
+            if (!s) return;
+            s.seasons[noteContext.sIdx].episodes[noteContext.eIdx].note =
+                document.getElementById('noteText').value.trim();
+            closeModal('noteModal');
+            autoSave();
+            renderDetail();
+            showNotification('📝 Not kaydedildi');
+        }
+
+        function clearNote() {
+            if (!noteContext) return;
+            const s = getSeries(noteContext.seriesId);
+            if (!s) return;
+            s.seasons[noteContext.sIdx].episodes[noteContext.eIdx].note = '';
+            closeModal('noteModal');
+            autoSave();
+            renderDetail();
+            showNotification('🗑️ Not silindi');
+        }
+
+        // ══════════════════════════════════════════════════════════
+        // DİZİ EKLEME: MODAL + SEKMELER
+        // ══════════════════════════════════════════════════════════
+        function openAddModal() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('searchResults').innerHTML = '';
+            document.getElementById('manualName').value = '';
+            document.getElementById('manualCounts').value = '';
+            document.getElementById('manualPoster').value = '';
+            switchAddTab('search');
+            openModal('addModal');
+            setTimeout(() => document.getElementById('searchInput').focus(), 100);
+        }
+
+        function switchAddTab(tab) {
+            document.getElementById('tabSearch').classList.toggle('active', tab === 'search');
+            document.getElementById('tabManual').classList.toggle('active', tab === 'manual');
+            document.getElementById('searchTabContent').style.display = tab === 'search' ? 'block' : 'none';
+            document.getElementById('manualTabContent').style.display = tab === 'manual' ? 'block' : 'none';
+        }
+
+        // ── TVMAZE ARAMA ──
+        async function searchTVMaze() {
+            const q = document.getElementById('searchInput').value.trim();
+            if (!q) { showNotification('⚠️ Dizi adı yazın!'); return; }
+            const box = document.getElementById('searchResults');
+            box.innerHTML = '<div class="form-hint" style="padding:10px;">🔍 Aranıyor...</div>';
+            try {
+                const res = await fetch(TVMAZE_SEARCH + encodeURIComponent(q));
+                if (!res.ok) throw new Error('API hatası: ' + res.status);
+                const data = await res.json();
+                lastSearchResults = data.map(r => r.show);
+                if (lastSearchResults.length === 0) {
+                    box.innerHTML = '<div class="form-hint" style="padding:10px;">😕 Sonuç bulunamadı. "✍️ Manuel Ekle" sekmesini deneyin.</div>';
+                    return;
+                }
+                box.innerHTML = lastSearchResults.map((show, idx) => {
+                    const year = show.premiered ? show.premiered.slice(0, 4) : '?';
+                    const img = show.image && show.image.medium
+                        ? `<img class="search-poster" src="${escapeHtml(show.image.medium)}" alt="" loading="lazy">`
+                        : `<div class="search-poster">🎬</div>`;
+                    const already = diziData.seriesList.some(s => s.tvmazeId === show.id);
+                    return `<div class="search-result-item">
+                        ${img}
+                        <div class="search-info">
+                            <div class="search-name">${escapeHtml(show.name)}</div>
+                            <div class="search-meta">${year} · ${escapeHtml(show.language || '?')} · ${escapeHtml(show.status || '')}</div>
+                        </div>
+                        ${already
+                            ? '<span class="form-hint">✅ Ekli</span>'
+                            : `<button class="btn btn-primary" onclick="addFromTVMaze(${idx})">➕ Ekle</button>`}
+                    </div>`;
+                }).join('');
+            } catch (err) {
+                console.error('TVMaze arama hatası:', err);
+                box.innerHTML = '<div class="form-hint" style="padding:10px;">⚠️ Bağlantı hatası! İnterneti kontrol edin veya manuel ekleyin.</div>';
+            }
+        }
+
+        async function addFromTVMaze(idx) {
+            const show = lastSearchResults[idx];
+            if (!show) return;
+            if (diziData.seriesList.some(s => s.tvmazeId === show.id)) {
+                showNotification('⚠️ Bu dizi zaten ekli!');
+                return;
+            }
+            showNotification('⏳ Bölümler alınıyor: ' + show.name);
+            try {
+                const res = await fetch(TVMAZE_EPISODES(show.id));
+                if (!res.ok) throw new Error('API hatası: ' + res.status);
+                const eps = await res.json();
+                const seasons = buildSeasonsFromEpisodes(eps);
+                const series = {
+                    id: 'tv' + show.id,
+                    tvmazeId: show.id,
+                    name: show.name,
+                    poster: (show.image && show.image.medium) ? show.image.medium : null,
+                    status: document.getElementById('addStatusSelect').value,
+                    showStatus: show.status || '',
+                    hasNewEpisodes: false,
+                    addedDate: new Date().toISOString(),
+                    seasons: seasons
+                };
+                diziData.seriesList.push(series);
+                autoSave();
+                closeModal('addModal');
+                openSeries(series.id);
+                showNotification(`✅ Eklendi: ${show.name} (${getProgress(series).total} bölüm)`);
+            } catch (err) {
+                console.error('TVMaze bölüm hatası:', err);
+                showNotification('⚠️ Bölümler alınamadı! Tekrar deneyin.');
+            }
+        }
+
+        function buildSeasonsFromEpisodes(eps) {
+            const map = {};
+            eps.forEach(ep => {
+                const sNum = ep.season;
+                if (!map[sNum]) map[sNum] = { season: sNum, episodes: [] };
+                map[sNum].episodes.push({
+                    num: ep.number,
+                    name: ep.name || `Bölüm ${ep.number}`,
+                    airdate: ep.airdate || '',
+                    watched: false,
+                    note: ''
+                });
+            });
+            const seasons = Object.values(map).sort((a, b) => a.season - b.season);
+            seasons.forEach(sz => sz.episodes.sort((a, b) => a.num - b.num));
+            return seasons;
+        }
+
+        // ── MANUEL EKLEME ──
+        function addManualSeries() {
+            const name = document.getElementById('manualName').value.trim();
+            const countsStr = document.getElementById('manualCounts').value.trim();
+            const poster = document.getElementById('manualPoster').value.trim();
+            if (!name) { showNotification('⚠️ Dizi adı boş olamaz!'); return; }
+            if (!countsStr) { showNotification('⚠️ Sezon bölüm sayılarını yazın!'); return; }
+            const counts = countsStr.split(',').map(x => parseInt(x.trim(), 10));
+            if (counts.some(c => isNaN(c) || c < 1 || c > 2000)) {
+                showNotification('⚠️ Geçersiz sayı! Örn: 24,26,12');
+                return;
+            }
+            const seasons = counts.map((c, i) => ({
+                season: i + 1,
+                episodes: Array.from({ length: c }, (_, k) => ({
+                    num: k + 1,
+                    name: `Bölüm ${k + 1}`,
+                    airdate: '',
+                    watched: false,
+                    note: ''
+                }))
+            }));
+            const series = {
+                id: 'm' + Date.now(),
+                tvmazeId: null,
+                name: name,
+                poster: poster || null,
+                status: document.getElementById('addStatusSelect').value,
+                showStatus: 'Manuel',
+                hasNewEpisodes: false,
+                addedDate: new Date().toISOString(),
+                seasons: seasons
+            };
+            diziData.seriesList.push(series);
+            autoSave();
+            closeModal('addModal');
+            openSeries(series.id);
+            showNotification(`✅ Manuel eklendi: ${name} (${getProgress(series).total} bölüm)`);
+        }
+
+        // ── MANUEL DİZİYE SONRADAN BÖLÜM/SEZON EKLEME ──
+        function openAddEpisodesModal() {
+            const s = getSeries(activeSeriesId);
+            if (!s || s.tvmazeId) return;
+            const sel = document.getElementById('addEpsSeasonSelect');
+            let opts = s.seasons.map((sz, i) =>
+                `<option value="${i}">Sezon ${sz.season} (şu an ${sz.episodes.length} bölüm)</option>`).join('');
+            const nextSeasonNum = s.seasons.length > 0 ? s.seasons[s.seasons.length - 1].season + 1 : 1;
+            opts += `<option value="new">🆕 Yeni Sezon (S${nextSeasonNum})</option>`;
+            sel.innerHTML = opts;
+            sel.value = s.seasons.length > 0 ? String(s.seasons.length - 1) : 'new';
+            document.getElementById('addEpsCount').value = 1;
+            openModal('addEpisodesModal');
+        }
+
+        function confirmAddEpisodes() {
+            const s = getSeries(activeSeriesId);
+            if (!s || s.tvmazeId) return;
+            const selVal = document.getElementById('addEpsSeasonSelect').value;
+            const count = parseInt(document.getElementById('addEpsCount').value, 10);
+            if (isNaN(count) || count < 1 || count > 500) {
+                showNotification('⚠️ Geçersiz bölüm sayısı!');
+                return;
+            }
+            let sz;
+            if (selVal === 'new') {
+                const nextSeasonNum = s.seasons.length > 0 ? s.seasons[s.seasons.length - 1].season + 1 : 1;
+                sz = { season: nextSeasonNum, episodes: [] };
+                s.seasons.push(sz);
+                activeSeasonIdx = s.seasons.length - 1;
+            } else {
+                sz = s.seasons[parseInt(selVal, 10)];
+                activeSeasonIdx = parseInt(selVal, 10);
+            }
+            const startNum = sz.episodes.length > 0 ? sz.episodes[sz.episodes.length - 1].num + 1 : 1;
+            for (let i = 0; i < count; i++) {
+                sz.episodes.push({
+                    num: startNum + i,
+                    name: `Bölüm ${startNum + i}`,
+                    airdate: '',
+                    watched: false,
+                    note: ''
+                });
+            }
+            closeModal('addEpisodesModal');
+            autoSave();
+            renderAll();
+            showNotification(`➕ S${sz.season} sezonuna ${count} bölüm eklendi`);
+        }
+
+        // ══════════════════════════════════════════════════════════
+        // YENİ BÖLÜM KONTROLÜ (TVMAZE)
+        // ══════════════════════════════════════════════════════════
+        async function checkNewEpisodes(silent) {
+            if (checkingNow) return;
+            const targets = diziData.seriesList.filter(s => s.tvmazeId && s.showStatus !== 'Ended');
+            if (targets.length === 0) {
+                if (!silent) showNotification('ℹ️ Kontrol edilecek (devam eden) dizi yok');
+                return;
+            }
+            checkingNow = true;
+            if (!silent) showNotification(`🔄 ${targets.length} dizi kontrol ediliyor...`);
+            let totalNew = 0;
+            const updatedNames = [];
+            let errors = 0;
+            for (const s of targets) {
+                try {
+                    const res = await fetch(TVMAZE_SHOW_EMBED(s.tvmazeId));
+                    if (!res.ok) throw new Error('API hatası: ' + res.status);
+                    const data = await res.json();
+                    s.showStatus = data.status || s.showStatus;
+                    if (!s.poster && data.image && data.image.medium) s.poster = data.image.medium;
+                    const eps = (data._embedded && data._embedded.episodes) ? data._embedded.episodes : [];
+                    let added = 0;
+                    eps.forEach(ep => {
+                        let sz = s.seasons.find(x => x.season === ep.season);
+                        if (!sz) {
+                            sz = { season: ep.season, episodes: [] };
+                            s.seasons.push(sz);
+                            s.seasons.sort((a, b) => a.season - b.season);
+                        }
+                        const existing = sz.episodes.find(e => e.num === ep.number);
+                        if (existing) {
+                            // İsim/tarih güncellemesi (TBA → gerçek isim)
+                            if (ep.name) existing.name = ep.name;
+                            if (ep.airdate) existing.airdate = ep.airdate;
+                        } else {
+                            sz.episodes.push({
+                                num: ep.number,
+                                name: ep.name || `Bölüm ${ep.number}`,
+                                airdate: ep.airdate || '',
+                                watched: false,
+                                note: ''
+                            });
+                            sz.episodes.sort((a, b) => a.num - b.num);
+                            added++;
+                        }
+                    });
+                    if (added > 0) {
+                        s.hasNewEpisodes = true;
+                        totalNew += added;
+                        updatedNames.push(`${s.name} (+${added})`);
+                    }
+                } catch (err) {
+                    console.error('Yeni bölüm kontrol hatası:', s.name, err);
+                    errors++;
+                }
+                await new Promise(r => setTimeout(r, 300)); // API'yi yormamak için
+            }
+            checkingNow = false;
+            if (totalNew > 0) {
+                autoSave();
+                renderAll();
+                showNotification(`🔔 ${totalNew} yeni bölüm! ${updatedNames.join(', ')}`);
+            } else if (!silent) {
+                showNotification(errors > 0 ? `⚠️ Kontrol bitti (${errors} hata), yeni bölüm yok` : '✅ Yeni bölüm yok, güncelsiniz');
+            }
+        }
+
+        // ══════════════════════════════════════════════════════════
+        // İÇE/DIŞA AKTARMA
+        // ══════════════════════════════════════════════════════════
+        function openImportExportModal() {
+            openModal('importExportModal');
+        }
+
+        function exportData() {
+            const blob = new Blob([JSON.stringify(diziData, null, 2)], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'diziTakip-yedek.json';
+            a.click();
+            URL.revokeObjectURL(a.href);
+            showNotification('💾 JSON indirildi');
+        }
+
+        function importData() {
+            const file = document.getElementById('importFileInput').files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    if (!parsed || !Array.isArray(parsed.seriesList)) {
+                        showNotification('⚠️ Geçersiz dosya formatı!');
+                        return;
+                    }
+                    diziData = parsed;
+                    activeSeriesId = null;
+                    autoSave();
+                    renderAll();
+                    closeModal('importExportModal');
+                    showNotification('📥 Veriler yüklendi: ' + diziData.seriesList.length + ' dizi');
+                } catch (err) {
+                    console.error('İçe aktarma hatası:', err);
+                    showNotification('⚠️ Dosya okunamadı!');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // ══════════════════════════════════════════════════════════
+        // DEPOLAMA - GitHub & Yerel
+        // ══════════════════════════════════════════════════════════
+        function selectStorage(method) {
+            document.querySelectorAll('.storage-option').forEach(o => o.classList.remove('selected'));
+            document.getElementById(method === 'github' ? 'optGithub' : 'optLocal').classList.add('selected');
+            storageMethod = method;
+            document.getElementById('loginSection').classList.toggle('active', method === 'github');
+        }
+
+        async function confirmStorage() {
+            if (storageMethod === 'github') {
+                const username = document.getElementById('loginUser').value.trim();
+                const password = document.getElementById('loginPass').value.trim();
+                if (!username || !password) { showNotification('⚠️ Kullanıcı adı ve şifre gerekli!'); return; }
+                try {
+                    await loadUserDatabase();
+                    if (userDatabase[username]) {
+                        if (userDatabase[username].password === password) {
+                            currentUser = username;
+                            diziData = userDatabase[username].diziData || { seriesList: [] };
+                            if (!Array.isArray(diziData.seriesList)) diziData.seriesList = [];
+                            renderAll();
+                            const settings = { method: storageMethod, username: currentUser };
+                            localStorage.setItem('dizitakip-storage-settings', JSON.stringify(settings));
+                            showNotification(`👋 Hoş geldin ${username}!`);
+                            closeModal('storageModal');
+                            updateStorageInfo();
+                            setTimeout(() => checkNewEpisodes(true), 1200);
+                        } else {
+                            showNotification('❌ Şifre hatalı!');
+                        }
+                    } else {
+                        userDatabase[username] = {
+                            password: password,
+                            diziData: diziData,
+                            createdDate: new Date().toISOString()
+                        };
+                        currentUser = username;
+                        localStorage.removeItem('dizitakip-data');
+                        await saveUserDatabase();
+                        const settings = { method: storageMethod, username: currentUser };
+                        localStorage.setItem('dizitakip-storage-settings', JSON.stringify(settings));
+                        showNotification(`🎉 Yeni kayıt açıldı! Hoş geldin ${username}!`);
+                        closeModal('storageModal');
+                        updateStorageInfo();
+                    }
+                } catch (err) {
+                    console.error('GitHub hatası:', err);
+                    showNotification('⚠️ GitHub bağlantı hatası! Yerel kayıt kullanılıyor.');
+                    storageMethod = 'local';
+                    localStorage.setItem('dizitakip-storage-settings', JSON.stringify({ method: 'local' }));
+                    closeModal('storageModal');
+                    updateStorageInfo();
+                }
+            } else {
+                localStorage.setItem('dizitakip-storage-settings', JSON.stringify({ method: 'local' }));
+                showNotification('💻 Yerel kayıt seçildi!');
+                closeModal('storageModal');
+                updateStorageInfo();
+                setTimeout(loadAllData, 300);
+            }
+        }
+
+        async function loadUserDatabase() {
+            const res = await fetch(WORKER_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'read', dosyaAdi: dosyaAdi })
+            });
+            const data = await res.json();
+            if (data.content) {
+                userDatabase = JSON.parse(data.content);
+            } else {
+                userDatabase = {};
+            }
+        }
+
+        async function saveUserDatabase() {
+            const json = JSON.stringify(userDatabase, null, 2);
+            const res = await fetch(WORKER_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'write', dosyaAdi: dosyaAdi, content: json, message: 'Dizi takip güncellendi' })
+            });
+            const data = await res.json();
+            if (!data.success) throw new Error(data.error || 'Worker hatası');
+        }
+
+        function updateStorageInfo() {
+            const info = document.getElementById('storageInfo');
+            if (storageMethod === 'github') {
+                info.textContent = `☁️ GitHub${currentUser ? ` (${currentUser})` : ''}`;
+            } else {
+                info.textContent = '💻 Yerel';
+            }
+        }
+
+        function changeStorageMethod() {
+            localStorage.removeItem('dizitakip-storage-settings');
+            document.querySelectorAll('.storage-option').forEach(o => o.classList.remove('selected'));
+            document.getElementById('loginSection').classList.remove('active');
+            document.getElementById('loginUser').value = '';
+            document.getElementById('loginPass').value = '';
+            storageMethod = 'local';
+            currentUser = null;
+            openModal('storageModal');
+        }
+
+        // ══════════════════════════════════════════════════════════
+        // KAYDET / YÜKLE
+        // ══════════════════════════════════════════════════════════
+        async function saveAllData() {
+            if (storageMethod === 'github' && currentUser) {
+                await saveToGitHub();
+            } else {
+                saveToLocal();
+            }
+            showNotification('💾 Kaydedildi!');
+        }
+
+        function saveToLocal() {
+            localStorage.setItem('dizitakip-data', JSON.stringify(diziData));
+        }
+
+        async function saveToGitHub() {
+            try {
+                await loadUserDatabase();
+                if (!userDatabase[currentUser]) userDatabase[currentUser] = { password: '', createdDate: new Date().toISOString() };
+                userDatabase[currentUser].diziData = diziData;
+                userDatabase[currentUser].lastUpdated = new Date().toISOString();
+                await saveUserDatabase();
+            } catch (err) {
+                console.error('GitHub hatası:', err);
+                showNotification('⚠️ GitHub hatası! Yerel kayıt yapılıyor.');
+                saveToLocal();
+            }
+        }
+
+        async function loadAllData() {
+            if (storageMethod === 'github' && currentUser) {
+                await loadFromGitHub();
+            } else {
+                loadFromLocal();
+            }
+        }
+
+        function loadFromLocal() {
+            const saved = localStorage.getItem('dizitakip-data');
+            if (saved) {
+                try {
+                    diziData = JSON.parse(saved);
+                    if (!Array.isArray(diziData.seriesList)) diziData = { seriesList: [] };
+                } catch (e) {
+                    diziData = { seriesList: [] };
+                }
+                renderAll();
+                showNotification('💻 Yerel veriler yüklendi');
+            } else {
+                renderAll();
+            }
+        }
+
+        async function loadFromGitHub() {
+            try {
+                await loadUserDatabase();
+                if (userDatabase[currentUser] && userDatabase[currentUser].diziData) {
+                    diziData = userDatabase[currentUser].diziData;
+                    if (!Array.isArray(diziData.seriesList)) diziData = { seriesList: [] };
+                    renderAll();
+                    showNotification('☁️ GitHub\'dan yüklendi');
+                } else {
+                    renderAll();
+                    showNotification('⚠️ GitHub\'da veri bulunamadı');
+                }
+            } catch (err) {
+                console.error('GitHub yükleme hatası:', err);
+                showNotification('⚠️ GitHub hatası!');
+                loadFromLocal();
+            }
+        }
+
+        function autoSave() {
+            if (storageMethod === 'local') {
+                saveToLocal();
+            } else if (currentUser) {
+                // Bölüm işaretlemeleri kaybolmasın diye GitHub'a gecikmeli otomatik kayıt
+                clearTimeout(ghSaveTimer);
+                ghSaveTimer = setTimeout(() => { saveToGitHub(); }, 2500);
+            }
+        }
+
+        // ══════════════════════════════════════════════════════════
+        // SETTINGS KONTROL
+        // ══════════════════════════════════════════════════════════
+        function checkStorageSettings() {
+            const saved = localStorage.getItem('dizitakip-storage-settings');
+            if (saved) {
+                const settings = JSON.parse(saved);
+                storageMethod = settings.method;
+                if (settings.method === 'github' && settings.username) {
+                    currentUser = settings.username;
+                }
+                updateStorageInfo();
+                return true;
+            }
+            return false;
+        }
+
+        // ══════════════════════════════════════════════════════════
+        // ENTER İLE MODAL ONAY
+        // ══════════════════════════════════════════════════════════
+        document.getElementById('searchInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') searchTVMaze();
+        });
+        document.getElementById('manualCounts').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') addManualSeries();
+        });
+        document.getElementById('loginPass').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') confirmStorage();
+        });
+        document.getElementById('addEpsCount').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') confirmAddEpisodes();
+        });
+
+        // ══════════════════════════════════════════════════════════
+        // BAŞLANGIÇ
+        // ══════════════════════════════════════════════════════════
+        window.onload = async function() {
+            if (!checkStorageSettings()) {
+                renderAll();
+                openModal('storageModal');
+            } else {
+                await loadAllData();
+                // Açılışta sessiz yeni bölüm kontrolü
+                setTimeout(() => checkNewEpisodes(true), 1200);
+            }
+        };
+    </script>
+</body>
+</html>

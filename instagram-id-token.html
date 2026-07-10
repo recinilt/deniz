@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Instagram User ID &amp; Token Aracı — @reci3d</title>
+<style>
+  :root {
+    --bg: #0d0a12;
+    --panel: #171221;
+    --panel2: #1f1830;
+    --line: #2e2544;
+    --text: #e9e4f2;
+    --muted: #9a8fb5;
+    --ok: #3ddc84;
+    --err: #ff5c7a;
+    --ig1: #833ab4;
+    --ig2: #fd1d1d;
+    --ig3: #fcb045;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, "Segoe UI", Roboto, Arial, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 32px 16px;
+  }
+  .wrap { width: 100%; max-width: 580px; }
+  h1 {
+    font-size: 1.45rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .ig-line {
+    height: 3px;
+    width: 120px;
+    margin: 10px 0 6px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--ig1), var(--ig2), var(--ig3));
+  }
+  .sub { color: var(--muted); font-size: 0.85rem; margin-bottom: 22px; }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 18px;
+    margin-bottom: 16px;
+  }
+  label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 6px; }
+  textarea {
+    width: 100%;
+    min-height: 84px;
+    background: var(--panel2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: ui-monospace, Consolas, monospace;
+    font-size: 0.8rem;
+    padding: 10px;
+    resize: vertical;
+  }
+  textarea:focus { outline: 2px solid var(--ig1); border-color: transparent; }
+  button.main {
+    margin-top: 12px;
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(90deg, var(--ig1), var(--ig2));
+    color: #fff;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  button.main:hover { filter: brightness(1.12); }
+  button.main:disabled { opacity: 0.5; cursor: wait; }
+  .status { margin-top: 10px; font-size: 0.82rem; min-height: 1.2em; }
+  .status.ok { color: var(--ok); }
+  .status.err { color: var(--err); }
+  .result { display: none; }
+  .row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .row:last-child { border-bottom: none; }
+  .row .k { font-size: 0.75rem; color: var(--muted); white-space: nowrap; }
+  .row .v {
+    font-family: ui-monospace, Consolas, monospace;
+    font-size: 0.85rem;
+    word-break: break-all;
+    text-align: right;
+    flex: 1;
+  }
+  .row .v.big { font-size: 1.05rem; font-weight: 700; color: var(--ok); }
+  .copy {
+    background: var(--panel2);
+    border: 1px solid var(--line);
+    color: var(--text);
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 0.72rem;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .copy:hover { border-color: var(--ig1); }
+  details {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 16px;
+    font-size: 0.85rem;
+  }
+  summary { cursor: pointer; font-weight: 600; }
+  details ol { margin: 12px 0 4px 18px; line-height: 1.7; color: var(--muted); }
+  details li b { color: var(--text); }
+  details a { color: var(--ig3); }
+  .note { font-size: 0.72rem; color: var(--muted); margin-top: 14px; line-height: 1.5; }
+  .test-tr { display: none; } /* Çöğüş işini böyle yapmışsın — UTF-8 test */
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Instagram User ID &amp; Token Aracı</h1>
+  <div class="ig-line"></div>
+  <div class="sub">Hesap: <b>@reci3d</b> · Instagram API with Instagram Login (2026)</div>
+
+  <details>
+    <summary>📋 Token nasıl alınır? (adım adım)</summary>
+    <ol>
+      <li>Instagram uygulamasında: <b>Ayarlar → Hesap türü ve araçlar → Profesyonel hesaba geç → Creator</b> (ücretsiz, şart).</li>
+      <li><a href="https://developers.facebook.com/apps/" target="_blank" rel="noopener">developers.facebook.com/apps</a> → <b>Create App</b> → tür olarak <b>Business</b> seç.</li>
+      <li>App panelinde sol menü: <b>Instagram → API setup with Instagram business login</b>.</li>
+      <li><b>1. Generate access tokens</b> bölümünde <b>Add account</b> ile @reci3d'yi bağla → <b>Generate Token</b>.</li>
+      <li>Açılan Instagram penceresinde izin ver → çıkan <b>60 günlük token</b>'ı kopyala.</li>
+      <li>Token'ı aşağıya yapıştır → <b>Bilgileri Getir</b>.</li>
+    </ol>
+  </details>
+
+  <div class="card">
+    <label for="token">Access Token</label>
+    <textarea id="token" placeholder="IGAA... veya EAAG... ile başlayan token'ı buraya yapıştır" spellcheck="false"></textarea>
+    <button class="main" id="btn" onclick="getir()">Bilgileri Getir</button>
+    <div class="status" id="status"></div>
+  </div>
+
+  <div class="card result" id="result">
+    <div class="row">
+      <span class="k">Instagram User ID</span>
+      <span class="v big" id="r_userid">—</span>
+      <button class="copy" onclick="kopyala('r_userid', this)">Kopyala</button>
+    </div>
+    <div class="row">
+      <span class="k">App-Scoped ID</span>
+      <span class="v" id="r_id">—</span>
+      <button class="copy" onclick="kopyala('r_id', this)">Kopyala</button>
+    </div>
+    <div class="row">
+      <span class="k">Kullanıcı adı</span>
+      <span class="v" id="r_username">—</span>
+      <button class="copy" onclick="kopyala('r_username', this)">Kopyala</button>
+    </div>
+    <div class="row">
+      <span class="k">Hesap türü</span>
+      <span class="v" id="r_type">—</span>
+    </div>
+    <div class="row">
+      <span class="k">Access Token</span>
+      <span class="v" id="r_token" style="max-height:60px;overflow:auto;">—</span>
+      <button class="copy" onclick="kopyala('r_token', this)">Kopyala</button>
+    </div>
+  </div>
+
+  <div class="note">
+    ℹ️ Token 60 gün geçerlidir; süresi dolmadan aynı panelden <b>Generate Token</b> ile yenilenir.
+    Token'ını kimseyle paylaşma. Bu araç veriyi yalnızca tarayıcında işler, hiçbir yere kaydetmez.
+    Doğrudan bağlantı engellenirse otomatik olarak kendi CORS proxy'n
+    (mycors.recepyeni.workers.dev) üzerinden denenir.
+  </div>
+</div>
+
+<script>
+const API = "https://graph.instagram.com/me?fields=user_id,username,name,account_type&access_token=";
+const PROXY = "https://mycors.recepyeni.workers.dev/?";
+
+async function fetchJson(url) {
+  const res = await fetch(url);
+  return res.json();
+}
+
+async function getir() {
+  const token = document.getElementById("token").value.trim();
+  const st = document.getElementById("status");
+  const btn = document.getElementById("btn");
+  const result = document.getElementById("result");
+  result.style.display = "none";
+  st.className = "status";
+
+  if (!token) {
+    st.className = "status err";
+    st.textContent = "Önce token yapıştır.";
+    return;
+  }
+
+  btn.disabled = true;
+  st.textContent = "Sorgulanıyor...";
+
+  let data = null;
+  const url = API + encodeURIComponent(token);
+
+  try {
+    data = await fetchJson(url);
+  } catch (e) {
+    // CORS veya ağ hatası → proxy ile dene
+    st.textContent = "Doğrudan bağlantı olmadı, proxy deneniyor...";
+    try {
+      data = await fetchJson(PROXY + encodeURIComponent(url));
+    } catch (e2) {
+      st.className = "status err";
+      st.textContent = "Bağlantı kurulamadı (ağ/proxy hatası). İnternetini ve proxy'ni kontrol et.";
+      btn.disabled = false;
+      return;
+    }
+  }
+
+  btn.disabled = false;
+
+  if (data && data.error) {
+    st.className = "status err";
+    const msg = data.error.message || "Bilinmeyen hata";
+    let ipucu = "";
+    if (/expired|invalid|malformed|OAuth/i.test(msg)) {
+      ipucu = " → Token geçersiz/süresi dolmuş olabilir ya da hesap Professional (Creator/Business) değil.";
+    }
+    st.textContent = "API hatası: " + msg + ipucu;
+    return;
+  }
+
+  if (data && (data.user_id || data.id)) {
+    document.getElementById("r_userid").textContent = data.user_id || "(dönmedi)";
+    document.getElementById("r_id").textContent = data.id || "—";
+    document.getElementById("r_username").textContent = data.username ? "@" + data.username : "—";
+    document.getElementById("r_type").textContent = data.account_type || "—";
+    document.getElementById("r_token").textContent = token;
+    result.style.display = "block";
+    st.className = "status ok";
+    st.textContent = "✅ Başarılı — bilgiler aşağıda.";
+  } else {
+    st.className = "status err";
+    st.textContent = "Beklenmeyen yanıt: " + JSON.stringify(data).slice(0, 200);
+  }
+}
+
+function kopyala(id, btn) {
+  const text = document.getElementById(id).textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const eski = btn.textContent;
+    btn.textContent = "✔ Kopyalandı";
+    setTimeout(() => { btn.textContent = eski; }, 1500);
+  });
+}
+</script>
+</body>
+</html>
