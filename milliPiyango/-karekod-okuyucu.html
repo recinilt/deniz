@@ -199,9 +199,9 @@
     <a href="https://www.millipiyangoonline.com/sayisal-loto/cekilis-sonuclari" target="_blank" rel="noopener">Çılgın Sayısal Loto sonuçları <span>→</span></a>
   </div>
 
-  <p class="not">Okunan seri numarasını ya da bilet numarasını kopyalayıp Milli Piyango
-  uygulamasındaki "Kazancını kontrol et" ekranında ilgili sekmeye (Seri Numarası / Bilet Numarası)
-  yapıştırarak sonucunu öğrenebilirsin. Tüm işlem cihazında yapılır, hiçbir veri gönderilmez.</p>
+  <p class="not">Okunan bilet numarasını kopyalayıp Milli Piyango uygulamasındaki
+  "Kazancını kontrol et → Bilet Numarası" alanına yapıştırarak sonucunu öğrenebilirsin.
+  Tüm işlem cihazında yapılır, hiçbir veri gönderilmez.</p>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/zxing-wasm@2/dist/iife/reader/index.js"></script>
@@ -417,50 +417,26 @@ async function resimIsle(dosya){
 function sonucGoster(ham, format){
   fisFormat.textContent = format;
   fisGovde.innerHTML = "";
-
-  var parcalar = ham.split(/[\s;,|#*]+/).filter(function(p){ return p.length > 0; });
-
-  // Bilet Numarası tahmini: en uzun (15+ karakter) alfanümerik parça
-  var biletNo = "";
-  parcalar.forEach(function(p){
-    if (/^[A-Za-z0-9]+$/.test(p) && p.length >= 15 && p.length > biletNo.length) biletNo = p;
-  });
-  if (!biletNo && /^[A-Za-z0-9]+$/.test(ham) && ham.length >= 15) biletNo = ham;
-
-  // Seri Numarası tahmini: bilet no dışında kalan 5-14 karakterlik alfanümerik parça
-  // (harf+rakam karışık olanlar önceliklidir, örn. 46A82505)
-  var seriNo = "", seriPuan = -1;
-  parcalar.forEach(function(p){
-    if (p === biletNo) return;
-    if (!/^[A-Za-z0-9]+$/.test(p)) return;
-    if (p.length < 5 || p.length > 14) return;
-    var puan = p.length + ((/[A-Za-z]/.test(p) && /\d/.test(p)) ? 100 : 0);
-    if (puan > seriPuan){ seriPuan = puan; seriNo = p; }
-  });
-
-  // Ayrı ayrı kopyalanabilir sabit alanlar
-  if (biletNo) fisGovde.appendChild(satirYap("Bilet Numarası", biletNo, "tahmini"));
-  if (seriNo)  fisGovde.appendChild(satirYap("Seri Numarası", seriNo, "tahmini"));
-  if (!biletNo && !seriNo){
-    var uyari = document.createElement("div");
-    uyari.className = "etiket";
-    uyari.style.marginBottom = "10px";
-    uyari.textContent = "Karekodda bilet/seri numarası deseni bulunamadı — aşağıdaki parçalardan kopyalayabilirsin.";
-    fisGovde.appendChild(uyari);
-  }
-
   fisGovde.appendChild(satirYap("Ham veri", ham, ""));
 
-  // Kalan parçalar (bilet/seri olarak gösterilenler tekrarlanmaz)
-  var sayac = 0;
-  parcalar.forEach(function(p){
-    if (p === biletNo || p === seriNo || p === ham) return;
-    sayac++;
-    var rozet = "";
-    if (/^\d{2}[./-]\d{2}[./-]\d{2,4}$/.test(p)) rozet = "Tarih";
-    else if (/^\d{5,}$/.test(p)) rozet = "Sayısal kod";
-    fisGovde.appendChild(satirYap("Parça " + sayac, p, rozet));
-  });
+  var parcalar = ham.split(/[\s;,|#*]+/).filter(function(p){ return p.length > 0; });
+  if (parcalar.length > 1 || (parcalar.length === 1 && parcalar[0] !== ham)){
+    var enUzun = "";
+    parcalar.forEach(function(p){
+      if (/^[A-Za-z0-9]+$/.test(p) && p.length >= 15 && p.length > enUzun.length) enUzun = p;
+    });
+    parcalar.forEach(function(p){
+      var rozet = "";
+      if (p === enUzun) rozet = "Bilet Numarası (tahmini)";
+      else if (/^\d{2}[./-]\d{2}[./-]\d{2,4}$/.test(p)) rozet = "Tarih";
+      else if (/^\d{5,}$/.test(p)) rozet = "Sayısal kod";
+      fisGovde.appendChild(satirYap("Parça " + (fisGovde.children.length), p, rozet));
+    });
+  } else if (/^[A-Za-z0-9]+$/.test(ham) && ham.length >= 15){
+    // Ham verinin tamamı zaten bilet numarası görünümünde
+    fisGovde.firstChild.querySelector(".etiket").innerHTML =
+      'Ham veri <span class="rozet">Bilet Numarası (tahmini)</span>';
+  }
 
   fis.classList.add("goster");
   fis.scrollIntoView({ behavior: "smooth", block: "nearest" });
