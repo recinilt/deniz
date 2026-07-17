@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BIST Analiz Masası</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --zemin:#0E1420; --panel:#161E2E; --panel2:#1B2436; --cizgi:#24304A;
+  --murekkep:#E9EEF8; --soluk:#8B97AD; --amber:#F5B841; --amber-koyu:#3A2F12;
+  --yukselen:#35C58C; --dusen:#E5484D; --radius:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{color-scheme:dark}
+body{
+  background:var(--zemin); color:var(--murekkep);
+  font-family:"Archivo",system-ui,sans-serif; font-size:15px; line-height:1.5;
+  min-height:100vh; padding:28px 16px 60px;
+  background-image:linear-gradient(180deg,#101828 0%,var(--zemin) 260px);
+}
+.sarici{max-width:880px;margin:0 auto}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace}
+
+/* Baslik */
+.kas{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.28em;color:var(--amber);text-transform:uppercase}
+h1{font-size:clamp(28px,5vw,40px);font-weight:800;letter-spacing:-.02em;margin:6px 0 4px}
+.altbaslik{color:var(--soluk);max-width:56ch}
+header{margin-bottom:26px}
+
+/* Kartlar */
+.kart{background:var(--panel);border:1px solid var(--cizgi);border-radius:var(--radius);padding:18px;margin-bottom:16px}
+.kart h2{font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--soluk);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.kart h2::before{content:"";width:8px;height:8px;background:var(--amber);display:inline-block}
+
+/* Form */
+.izgara{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+label{display:block;font-size:12px;color:var(--soluk);margin-bottom:5px}
+input[type=text],input[type=password],input[type=number],select{
+  width:100%;background:var(--zemin);border:1px solid var(--cizgi);border-radius:6px;
+  color:var(--murekkep);padding:9px 10px;font:inherit;font-family:"IBM Plex Mono",monospace;font-size:13px;
+}
+input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid var(--amber);outline-offset:1px}
+.satirici{display:flex;gap:8px;align-items:center}
+.goz{background:none;border:1px solid var(--cizgi);border-radius:6px;color:var(--soluk);padding:8px 10px;cursor:pointer}
+.onay{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--soluk);cursor:pointer}
+.onay input{accent-color:var(--amber);width:15px;height:15px}
+.ipucu{font-size:12px;color:var(--soluk);margin-top:8px}
+
+/* Portfoy tablosu */
+table{width:100%;border-collapse:collapse}
+th{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--soluk);text-align:left;padding:0 8px 8px 0;font-weight:600}
+td{padding:0 8px 8px 0;vertical-align:middle}
+td input{padding:8px 9px}
+.sil{background:none;border:1px solid var(--cizgi);color:var(--dusen);border-radius:6px;width:34px;height:34px;cursor:pointer;font-size:15px;line-height:1}
+.sil:hover{border-color:var(--dusen)}
+.ekle{background:var(--panel2);border:1px dashed var(--cizgi);color:var(--murekkep);border-radius:6px;padding:9px 14px;cursor:pointer;font:inherit;font-size:13px;margin-top:4px}
+.ekle:hover{border-color:var(--amber)}
+
+/* Eylemler */
+.eylemler{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:20px 0 12px}
+.birincil{
+  background:var(--amber);color:#181000;border:none;border-radius:8px;
+  font:inherit;font-weight:800;font-size:16px;letter-spacing:.02em;
+  padding:14px 30px;cursor:pointer;
+}
+.birincil:hover{filter:brightness(1.06)}
+.birincil:disabled{opacity:.55;cursor:wait}
+.ikincil{background:none;border:1px solid var(--cizgi);color:var(--murekkep);border-radius:8px;font:inherit;font-size:14px;padding:12px 16px;cursor:pointer}
+.ikincil:hover{border-color:var(--amber)}
+#dosyaGizli{display:none}
+
+/* Durum */
+#durum{font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--soluk);min-height:20px;margin-bottom:16px}
+#durum.hata{color:var(--dusen)}
+#durum.tamam{color:var(--yukselen)}
+
+/* Seans bandi — imza oge */
+.bant{
+  overflow:hidden;border-top:1px solid var(--cizgi);border-bottom:1px solid var(--cizgi);
+  background:#0A0F19;margin:0 -16px 20px;padding:9px 0;display:none;
+}
+.bant-ic{display:inline-flex;gap:34px;white-space:nowrap;will-change:transform;animation:kay 40s linear infinite;padding-left:100%}
+@keyframes kay{to{transform:translateX(-100%)}}
+@media (prefers-reduced-motion:reduce){.bant-ic{animation:none;padding-left:16px;flex-wrap:wrap;white-space:normal;gap:14px}}
+.bant span{font-family:"IBM Plex Mono",monospace;font-size:13px}
+.bant .sem{color:var(--amber);font-weight:600}
+.bant .art{color:var(--yukselen)} .bant .eks{color:var(--dusen)}
+
+/* Rapor */
+.pazar-karti{background:var(--panel2);border-left:3px solid var(--amber);border-radius:0 8px 8px 0;padding:14px 16px;margin-bottom:16px}
+.pazar-karti .mono{font-size:12px;color:var(--soluk);margin-top:8px;display:block}
+.karar-satir{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:baseline;padding:12px 0;border-bottom:1px solid var(--cizgi)}
+.karar-satir:last-child{border-bottom:none}
+.karar-satir .sembol{font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:15px;min-width:70px}
+.karar-satir .fiyat{font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--soluk)}
+.cip{
+  font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:600;letter-spacing:.1em;
+  padding:3px 10px;border-radius:4px;border:1px solid;
+}
+.cip.EKLE{color:var(--yukselen);border-color:var(--yukselen);background:rgba(53,197,140,.08)}
+.cip.TUT{color:var(--amber);border-color:var(--amber);background:rgba(245,184,65,.08)}
+.cip.AZALT{color:#F09B59;border-color:#F09B59;background:rgba(240,155,89,.08)}
+.cip.SAT{color:var(--dusen);border-color:var(--dusen);background:rgba(229,72,77,.08)}
+.cip.VERI_YOK{color:var(--soluk);border-color:var(--cizgi)}
+.gerekce{flex-basis:100%;color:var(--soluk);font-size:13.5px}
+.kz{font-family:"IBM Plex Mono",monospace;font-size:12px}
+.kz.art{color:var(--yukselen)} .kz.eks{color:var(--dusen)}
+.haber-mini{flex-basis:100%;font-size:12px;color:#67748C;font-family:"IBM Plex Mono",monospace}
+.vade{font-size:11px;color:var(--soluk);font-family:"IBM Plex Mono",monospace;text-transform:uppercase;letter-spacing:.1em}
+.uyari{font-size:12.5px;color:var(--soluk);border-top:1px dashed var(--cizgi);margin-top:20px;padding-top:14px}
+#raporBolge{display:none}
+.zaman{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--soluk)}
+footer{margin-top:36px;font-size:12px;color:#5A667F}
+@media(max-width:560px){.eylemler{flex-direction:column;align-items:stretch}.birincil,.ikincil{width:100%}}
+</style>
+</head>
+<body>
+<div class="sarici">
+
+<header>
+  <div class="kas">Kişisel seans masası · Borsa İstanbul</div>
+  <h1>BIST Analiz Masası</h1>
+  <p class="altbaslik">Kapanış sonrası tek tuş: portföyündeki her hisse için EKLE / TUT / AZALT / SAT kararı ve yeni kısa-orta vade adayları. Veri TradingView'dan, yorum Gemini'den, her şey bu tarayıcıda kalır.</p>
+</header>
+
+<section class="kart">
+  <h2>Ayarlar</h2>
+  <div class="izgara">
+    <div>
+      <label for="geminiKey">Gemini API anahtarı</label>
+      <div class="satirici">
+        <input type="password" id="geminiKey" placeholder="AIza..." autocomplete="off">
+        <button class="goz" id="gozBtn" type="button" title="Göster / gizle">👁</button>
+      </div>
+    </div>
+    <div>
+      <label for="model">Model</label>
+      <input type="text" id="model" value="gemini-3.5-flash">
+    </div>
+    <div>
+      <label for="adaySayisi">Aday sayısı</label>
+      <input type="number" id="adaySayisi" min="0" max="10" value="5">
+    </div>
+    <div>
+      <label for="haberSayisi">Hisse başına haber</label>
+      <input type="number" id="haberSayisi" min="0" max="5" value="3">
+    </div>
+  </div>
+  <div style="margin-top:12px" class="izgara">
+    <label class="onay"><input type="checkbox" id="haberAcik" checked> Haber başlıklarını dahil et (CORS proxy üzerinden; ulaşılamazsa sessizce atlanır)</label>
+    <div>
+      <label for="proxy">CORS proxy öneki (haberler için)</label>
+      <input type="text" id="proxy" value="https://api.allorigins.win/raw?url=">
+    </div>
+  </div>
+  <p class="ipucu">Anahtar yalnızca bu tarayıcının yerel depolamasında tutulur ve doğrudan Google'a gider; başka hiçbir sunucuya gitmez. Ücretsiz anahtar: aistudio.google.com</p>
+</section>
+
+<section class="kart">
+  <h2>Portföy</h2>
+  <table>
+    <thead><tr><th>Sembol</th><th>Adet</th><th>Maliyet (₺)</th><th></th></tr></thead>
+    <tbody id="portfoyGovde"></tbody>
+  </table>
+  <button class="ekle" id="satirEkleBtn" type="button">+ Hisse ekle</button>
+  <p class="ipucu">Adet ve maliyet isteğe bağlı; maliyet girersen rapor kâr/zararı da değerlendirir. Ondalıkta virgül kullanabilirsin (250,50).</p>
+</section>
+
+<div class="eylemler">
+  <button class="birincil" id="analizBtn" type="button">Analiz et</button>
+  <button class="ikincil" id="disaBtn" type="button">JSON dışa aktar</button>
+  <button class="ikincil" id="iceBtn" type="button">JSON içe aktar</button>
+  <input type="file" id="dosyaGizli" accept="application/json">
+  <label class="onay" style="margin-left:auto"><input type="checkbox" id="anahtarDahil"> Dışa aktarıma anahtarı dahil et</label>
+</div>
+<div id="durum"></div>
+
+<div class="bant" id="bant"><div class="bant-ic" id="bantIc"></div></div>
+
+<section id="raporBolge">
+  <div class="kart">
+    <h2>Rapor <span class="zaman" id="raporZaman" style="margin-left:auto"></span></h2>
+    <div class="pazar-karti" id="pazarKarti"></div>
+    <h2 style="margin-top:18px">Portföy kararları</h2>
+    <div id="portfoyRapor"></div>
+    <h2 style="margin-top:18px">Adaylar · kısa-orta vade</h2>
+    <div id="adayRapor"></div>
+    <p class="uyari">⚠️ Bu rapor bilgilendirme amaçlıdır, yatırım tavsiyesi değildir. Fiyat verileri TradingView üzerinden ~15 dk gecikmelidir. Test: Çöğüş işini böyle yapmışsın ✅</p>
+  </div>
+</section>
+
+<footer>BIST Analiz Masası · veriler: TradingView scanner + Google News RSS · yorum: Google Gemini · tüm veriler yerelde saklanır</footer>
+</div>
+
+<script>
+"use strict";
+/* ============ SAF-BASLA (DOM'suz cekirdek mantik) ============ */
+var KOLONLAR = ["name","description","close","change","volume","Value.Traded","market_cap_basic","RSI","MACD.macd","MACD.signal","SMA20","SMA50","SMA200","Recommend.All","Perf.W","Perf.1M","Perf.3M","relative_volume_10d_calc","price_52_week_high","price_52_week_low"];
+
+function taramaGovdesi(){
+  return JSON.stringify({
+    filter:[
+      {left:"type",operation:"equal",right:"stock"},
+      {left:"subtype",operation:"in_range",right:["common","foreign-issuer",""]},
+      {left:"exchange",operation:"equal",right:"BIST"}
+    ],
+    options:{lang:"tr"},
+    markets:["turkey"],
+    symbols:{query:{types:[]},tickers:[]},
+    columns:KOLONLAR,
+    sort:{sortBy:"Value.Traded",sortOrder:"desc"},
+    range:[0,600]
+  });
+}
+
+function satirlariCoz(scan){
+  return (scan.data||[]).map(function(r){
+    var o={};
+    (r.d||[]).forEach(function(v,i){ o[KOLONLAR[i]]=v; });
+    o.sembol=String(r.s||"").replace("BIST:","");
+    return o;
+  });
+}
+
+function ozet(m){
+  function y(n){ return (n===null||n===undefined||isNaN(n))?null:Math.round(n*100)/100; }
+  return {
+    ad:m.description||m.name||"",
+    fiyat:y(m.close),degisim:y(m.change),
+    rsi:y(m.RSI),macd:y(m["MACD.macd"]),macdSinyal:y(m["MACD.signal"]),
+    sma20:y(m.SMA20),sma50:y(m.SMA50),sma200:y(m.SMA200),
+    tavsiye:y(m["Recommend.All"]),
+    perfHafta:y(m["Perf.W"]),perfAy:y(m["Perf.1M"]),perf3Ay:y(m["Perf.3M"]),
+    hacimOrani:y(m.relative_volume_10d_calc),
+    islemHacmiMilyonTL:y((m["Value.Traded"]||0)/1000000),
+    yil52Yuksek:y(m.price_52_week_high),yil52Dusuk:y(m.price_52_week_low)
+  };
+}
+
+function pazarHesapla(rows){
+  var yuk=rows.filter(function(r){return (r.change||0)>0;}).length;
+  var dus=rows.filter(function(r){return (r.change||0)<0;}).length;
+  return {toplam:rows.length,yukselen:yuk,dusen:dus};
+}
+
+function adaySec(rows,portfoySembolleri,adet){
+  var pset=new Set(portfoySembolleri);
+  var likit=rows.filter(function(r){return !pset.has(r.sembol);})
+    .sort(function(a,b){return (b["Value.Traded"]||0)-(a["Value.Traded"]||0);})
+    .slice(0,200);
+  return likit.filter(function(r){
+      var smaOk=(r.SMA50!==null&&r.SMA50!==undefined)?((r.close||0)>r.SMA50):false;
+      var rsiOk=(r.RSI||0)>=45&&(r.RSI||0)<=72;
+      var tavOk=(typeof r["Recommend.All"]==="number")&&r["Recommend.All"]>0.1;
+      return smaOk&&rsiOk&&tavOk;
+    })
+    .map(function(r){
+      r.skor=Math.round(((r["Recommend.All"]||0)*2+((r["Perf.1M"]||0)/100)+((r["Perf.W"]||0)/100))*1000)/1000;
+      return r;
+    })
+    .sort(function(a,b){return b.skor-a.skor;})
+    .slice(0,adet);
+}
+
+function rssBasliklar(xml,N){
+  var haberler=[];
+  if(!xml) return haberler;
+  var bloklar=String(xml).split("<item>").slice(1);
+  for(var i=0;i<bloklar.length;i++){
+    if(haberler.length>=N) break;
+    var blok=bloklar[i];
+    var t=(blok.match(/<title>([\s\S]*?)<\/title>/)||[])[1]||"";
+    var d=(blok.match(/<pubDate>([\s\S]*?)<\/pubDate>/)||[])[1]||"";
+    var baslik=t.replace(/<!\[CDATA\[|\]\]>/g,"")
+      .replace(/&amp;/g,"&").replace(/&quot;/g,'"').replace(/&#39;/g,"'")
+      .replace(/&lt;/g,"<").replace(/&gt;/g,">").trim();
+    if(baslik) haberler.push({baslik:baslik.slice(0,200),tarih:d.slice(5,16)});
+  }
+  return haberler;
+}
+
+function promptKur(bugun,pazar,portfoy,adaylar){
+  return 'You are an experienced analyst of the Turkish stock market (Borsa Istanbul, BIST). Today is '+bugun+'.\n'+
+  'Market breadth today: '+pazar.yukselen+' advancing / '+pazar.dusen+' declining out of '+pazar.toplam+' stocks.\n\n'+
+  'PORTFOLIO (stocks the user currently holds; technical data is end-of-day, ~15 min delayed; maliyet = cost basis per share in TRY if provided; haberler = recent Turkish news headlines):\n'+
+  JSON.stringify(portfoy)+'\n\n'+
+  'CANDIDATES (pre-screened liquid momentum stocks the user does NOT hold; skor is an internal momentum score):\n'+
+  JSON.stringify(adaylar)+'\n\n'+
+  'TASK:\n'+
+  '1. For EVERY portfolio stock decide exactly one of: "EKLE" (accumulate more), "TUT" (hold), "AZALT" (trim position), "SAT" (exit). Judge by trend (price vs sma20/sma50/sma200), rsi, macd vs macdSinyal, TradingView composite rating tavsiye (range -1..1, above 0.5 = strong buy zone), weekly/monthly performance, news headlines, and unrealized P/L if maliyet is given. If veri is null or bulunamadi is true, use "VERI_YOK".\n'+
+  '2. For each candidate write one short Turkish sentence (yorum) explaining why it is interesting, and a horizon vade: "kisa" (days to weeks) or "orta" (1-3 months).\n'+
+  '3. Write a 2-3 sentence Turkish market summary (pazar) based on breadth and what you see in the data.\n'+
+  'RULES: All output text values MUST be in Turkish. guven is an integer 1-5 (conviction). Each gerekce max 200 characters, concrete, name the key indicator or news driving the decision. Do not invent prices or facts. This is informational analysis, not licensed investment advice.\n'+
+  'Respond ONLY with minified JSON exactly in this schema, no markdown fences, no extra text:\n'+
+  '{"pazar":"...","portfoy":[{"sembol":"THYAO","karar":"TUT","guven":3,"gerekce":"..."}],"adaylar":[{"sembol":"ASELS","vade":"orta","yorum":"..."}]}';
+}
+
+function jsonAyikla(raw){
+  var s0=String(raw).replace(/```json|```/g,"").trim();
+  var i0=s0.indexOf("{");
+  if(i0>=0){
+    var depth=0,inStr=false,esc=false,endIdx=-1;
+    for(var i=i0;i<s0.length;i++){
+      var ch=s0[i];
+      if(inStr){
+        if(esc){esc=false;}
+        else if(ch==="\\"){esc=true;}
+        else if(ch==='"'){inStr=false;}
+      } else {
+        if(ch==='"'){inStr=true;}
+        else if(ch==="{"){depth++;}
+        else if(ch==="}"){depth--; if(depth===0){endIdx=i;break;}}
+      }
+    }
+    if(endIdx>=0){ s0=s0.slice(i0,endIdx+1); }
+  }
+  return JSON.parse(s0);
+}
+/* ============ SAF-BITIR ============ */
+
+/* ---------- Depolama ---------- */
+var DKEY="bist_masa_v1";
+function varsayilanDurum(){
+  return {
+    ayarlar:{geminiKey:"",model:"gemini-3.5-flash",adaySayisi:5,haberSayisi:3,haberAcik:true,proxy:"https://api.allorigins.win/raw?url="},
+    portfoy:[{sembol:"",adet:"",maliyet:""}],
+    sonRapor:null
+  };
+}
+var durumVeri=varsayilanDurum();
+function depoYukle(){
+  try{
+    var ham=localStorage.getItem(DKEY);
+    if(ham){
+      var d=JSON.parse(ham);
+      durumVeri.ayarlar=Object.assign(varsayilanDurum().ayarlar,d.ayarlar||{});
+      durumVeri.portfoy=(Array.isArray(d.portfoy)&&d.portfoy.length)?d.portfoy:varsayilanDurum().portfoy;
+      durumVeri.sonRapor=d.sonRapor||null;
+    }
+  }catch(e){}
+}
+function depoKaydet(){
+  try{ localStorage.setItem(DKEY,JSON.stringify(durumVeri)); }catch(e){}
+}
+
+/* ---------- DOM yardimcilari ---------- */
+function $(id){ return document.getElementById(id); }
+function durum(metin,sinif){
+  var d=$("durum"); d.textContent=metin||""; d.className=sinif||"";
+}
+function fmt(n){
+  if(n===null||n===undefined||isNaN(n)) return "-";
+  return Number(n).toLocaleString("tr-TR",{maximumFractionDigits:2});
+}
+function kacir(s){
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+/* ---------- Ayarlar <-> form ---------- */
+function ayarlariForma(){
+  var a=durumVeri.ayarlar;
+  $("geminiKey").value=a.geminiKey||"";
+  $("model").value=a.model||"gemini-3.5-flash";
+  $("adaySayisi").value=a.adaySayisi;
+  $("haberSayisi").value=a.haberSayisi;
+  $("haberAcik").checked=!!a.haberAcik;
+  $("proxy").value=a.proxy||"";
+}
+function formuAyarlara(){
+  var a=durumVeri.ayarlar;
+  a.geminiKey=$("geminiKey").value.trim();
+  a.model=$("model").value.trim()||"gemini-3.5-flash";
+  a.adaySayisi=Math.max(0,Math.min(10,Number($("adaySayisi").value)||0));
+  a.haberSayisi=Math.max(0,Math.min(5,Number($("haberSayisi").value)||0));
+  a.haberAcik=$("haberAcik").checked;
+  a.proxy=$("proxy").value.trim();
+  depoKaydet();
+}
+
+/* ---------- Portfoy tablosu ---------- */
+function portfoyuCiz(){
+  var g=$("portfoyGovde"); g.innerHTML="";
+  durumVeri.portfoy.forEach(function(p,i){
+    var tr=document.createElement("tr");
+    tr.innerHTML='<td><input type="text" data-i="'+i+'" data-a="sembol" value="'+kacir(p.sembol||"")+'" placeholder="THYAO" maxlength="6" style="text-transform:uppercase"></td>'+
+      '<td><input type="text" data-i="'+i+'" data-a="adet" value="'+kacir(p.adet||"")+'" placeholder="100" inputmode="numeric"></td>'+
+      '<td><input type="text" data-i="'+i+'" data-a="maliyet" value="'+kacir(p.maliyet||"")+'" placeholder="250,50" inputmode="decimal"></td>'+
+      '<td><button class="sil" type="button" data-sil="'+i+'" title="Satırı sil">×</button></td>';
+    g.appendChild(tr);
+  });
+}
+function portfoyDinle(e){
+  var h=e.target;
+  if(h.dataset&&h.dataset.a!==undefined&&h.dataset.i!==undefined){
+    var i=Number(h.dataset.i);
+    if(durumVeri.portfoy[i]){
+      var deger=h.value;
+      if(h.dataset.a==="sembol") deger=deger.toUpperCase();
+      durumVeri.portfoy[i][h.dataset.a]=deger;
+      depoKaydet();
+    }
+  }
+}
+function temizPortfoy(){
+  return durumVeri.portfoy.map(function(p){
+    var s=String(p.sembol||"").toUpperCase().trim().replace(/[^A-Z0-9]/g,"");
+    var m=String(p.maliyet||"").trim().replace(",",".");
+    return {sembol:s,adet:Number(p.adet)||null,maliyet:m?(Number(m)||null):null};
+  }).filter(function(p){return p.sembol.length>=3;});
+}
+
+/* ---------- Dosya ice/disa aktarim ---------- */
+function disaAktar(){
+  formuAyarlara();
+  var kopya=JSON.parse(JSON.stringify(durumVeri));
+  if(!$("anahtarDahil").checked) kopya.ayarlar.geminiKey="";
+  var blob=new Blob([JSON.stringify(kopya,null,2)],{type:"application/json"});
+  var a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  var t=new Date();
+  a.download="bist-masa-"+t.toISOString().slice(0,10)+".json";
+  a.click();
+  setTimeout(function(){URL.revokeObjectURL(a.href);},2000);
+  durum("Dışa aktarıldı"+($("anahtarDahil").checked?" (anahtar dahil).":" (anahtar hariç)."),"tamam");
+}
+function iceAktar(dosya){
+  var okuyucu=new FileReader();
+  okuyucu.onload=function(){
+    try{
+      var d=JSON.parse(okuyucu.result);
+      if(!d||typeof d!=="object") throw new Error("beklenen yapı yok");
+      if(d.ayarlar){
+        var yeni=Object.assign({},durumVeri.ayarlar,d.ayarlar);
+        if(!d.ayarlar.geminiKey) yeni.geminiKey=durumVeri.ayarlar.geminiKey; /* anahtarsız yedek mevcut anahtarı silmesin */
+        durumVeri.ayarlar=yeni;
+      }
+      if(Array.isArray(d.portfoy)&&d.portfoy.length) durumVeri.portfoy=d.portfoy.map(function(p){
+        return {sembol:String(p.sembol||""),adet:String(p.adet==null?"":p.adet),maliyet:String(p.maliyet==null?"":p.maliyet)};
+      });
+      if(d.sonRapor) durumVeri.sonRapor=d.sonRapor;
+      depoKaydet(); ayarlariForma(); portfoyuCiz();
+      if(durumVeri.sonRapor) raporCiz(durumVeri.sonRapor);
+      durum("İçe aktarıldı: "+(durumVeri.portfoy.length)+" satır portföy.","tamam");
+    }catch(e){ durum("İçe aktarma başarısız: geçerli bir dışa aktarma dosyası seçin ("+e.message+").","hata"); }
+  };
+  okuyucu.readAsText(dosya,"utf-8");
+}
+
+/* ---------- Ag cagrilari ---------- */
+function zamanAsimliFetch(url,secenek,ms){
+  var ac=new AbortController();
+  var z=setTimeout(function(){ac.abort();},ms);
+  secenek=secenek||{}; secenek.signal=ac.signal;
+  return fetch(url,secenek).finally(function(){clearTimeout(z);});
+}
+async function taramaCek(){
+  /* Content-Type text/plain => preflight yok (scanner CORS'u content-type header'ina izin vermiyor) */
+  var r=await zamanAsimliFetch("https://scanner.tradingview.com/turkey/scan",
+    {method:"POST",headers:{"Content-Type":"text/plain"},body:taramaGovdesi()},30000);
+  if(!r.ok) throw new Error("TradingView "+r.status+" döndü");
+  return r.json();
+}
+async function haberCek(sembol,proxy,N){
+  try{
+    var hedef="https://news.google.com/rss/search?q="+encodeURIComponent(sembol+" hisse")+"&hl=tr&gl=TR&ceid=TR:tr";
+    var r=await zamanAsimliFetch(proxy+encodeURIComponent(hedef),{},9000);
+    if(!r.ok) return [];
+    return rssBasliklar(await r.text(),N);
+  }catch(e){ return []; }
+}
+async function geminiCagir(anahtar,model,prompt){
+  var govde={contents:[{parts:[{text:prompt}]}],
+    generationConfig:{responseMimeType:"application/json",temperature:0.3,maxOutputTokens:8192}};
+  var r=await zamanAsimliFetch("https://generativelanguage.googleapis.com/v1beta/models/"+encodeURIComponent(model)+":generateContent?key="+encodeURIComponent(anahtar),
+    {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(govde)},120000);
+  var zarf=await r.json();
+  if(zarf.error){
+    var m=zarf.error.message||("HTTP "+r.status);
+    if(r.status===400||r.status===403) m="Anahtar veya model reddedildi: "+m;
+    if(r.status===429) m="Gemini kota sınırı (free tier): birkaç dakika sonra tekrar deneyin.";
+    throw new Error(m);
+  }
+  var cand=(zarf.candidates&&zarf.candidates[0])||{};
+  var fr=cand.finishReason||"";
+  var raw="";
+  try{ raw=cand.content.parts.map(function(p){return p.text||"";}).join(""); }catch(e){}
+  if(!raw.trim()) throw new Error("Gemini boş yanıt döndü (finishReason: "+(fr||"yok")+"). Tekrar deneyin.");
+  return jsonAyikla(raw);
+}
+
+/* ---------- Analiz hatti ---------- */
+var calisiyor=false;
+async function analiz(){
+  if(calisiyor) return;
+  formuAyarlara();
+  var a=durumVeri.ayarlar;
+  if(!a.geminiKey){ durum("Önce Gemini API anahtarını gir (aistudio.google.com'dan ücretsiz).","hata"); return; }
+  calisiyor=true; $("analizBtn").disabled=true;
+  try{
+    durum("1/4 · BIST taranıyor (TradingView)…");
+    var scan=await taramaCek();
+    var rows=satirlariCoz(scan);
+    if(!rows.length) throw new Error("Tarama boş döndü — piyasa tatili olabilir.");
+    var pazar=pazarHesapla(rows);
+    bantCiz(rows);
+
+    var portfoyGiris=temizPortfoy();
+    var portfoy=portfoyGiris.map(function(p){
+      var m=rows.find(function(r){return r.sembol===p.sembol;})||null;
+      return {sembol:p.sembol,adet:p.adet,maliyet:p.maliyet,veri:m?ozet(m):null,bulunamadi:!m,haberler:[]};
+    });
+    var adayHam=adaySec(rows,portfoyGiris.map(function(p){return p.sembol;}),a.adaySayisi);
+    var adaylar=adayHam.map(function(r){return {sembol:r.sembol,veri:ozet(r),skor:r.skor,haberler:[]};});
+    if(!portfoy.length&&!adaylar.length) throw new Error("Portföy boş ve filtreyi geçen aday yok — en az bir hisse ekleyin.");
+
+    if(a.haberAcik&&a.haberSayisi>0&&a.proxy){
+      var hedefler=portfoy.concat(adaylar).slice(0,20);
+      for(var i=0;i<hedefler.length;i++){
+        durum("2/4 · Haberler: "+hedefler[i].sembol+" ("+(i+1)+"/"+hedefler.length+")…");
+        hedefler[i].haberler=await haberCek(hedefler[i].sembol,a.proxy,a.haberSayisi);
+        await new Promise(function(c){setTimeout(c,1200);});
+      }
+    }
+
+    durum("3/4 · Gemini değerlendiriyor…");
+    var bugun=new Date().toLocaleDateString("tr-TR");
+    var prompt=promptKur(bugun,pazar,portfoy,adaylar);
+    var rapor=await geminiCagir(a.geminiKey,a.model,prompt);
+
+    durum("4/4 · Rapor hazırlanıyor…");
+    var paket={tarih:bugun,zaman:new Date().toLocaleString("tr-TR"),pazar:pazar,portfoy:portfoy,adaylar:adaylar,rapor:rapor};
+    durumVeri.sonRapor=paket; depoKaydet();
+    raporCiz(paket);
+    durum("Rapor hazır · "+paket.zaman,"tamam");
+  }catch(e){
+    var mesaj=e&&e.name==="AbortError"?"İstek zaman aşımına uğradı — bağlantıyı kontrol edin.":(e.message||String(e));
+    durum("Hata: "+mesaj,"hata");
+  }finally{
+    calisiyor=false; $("analizBtn").disabled=false;
+  }
+}
+
+/* ---------- Cizimler ---------- */
+function bantCiz(rows){
+  var portfoySem=new Set(temizPortfoy().map(function(p){return p.sembol;}));
+  var sec=rows.filter(function(r){return portfoySem.has(r.sembol);});
+  if(!sec.length) sec=rows.slice(0,12);
+  var ic=$("bantIc"); ic.innerHTML="";
+  sec.concat(sec).forEach(function(r){ /* kesintisiz akis icin cift */
+    var sp=document.createElement("span");
+    var yon=(r.change||0)>=0?"art":"eks";
+    var ok=(r.change||0)>=0?"▲":"▼";
+    sp.innerHTML='<span class="sem">'+kacir(r.sembol)+'</span> '+fmt(r.close)+'₺ <span class="'+yon+'">'+ok+' %'+fmt(Math.abs(r.change||0))+'</span>';
+    ic.appendChild(sp);
+  });
+  $("bant").style.display="block";
+}
+function raporCiz(paket){
+  var rapor=paket.rapor||{};
+  var pMap={}; (paket.portfoy||[]).forEach(function(p){pMap[p.sembol]=p;});
+  var aMap={}; (paket.adaylar||[]).forEach(function(x){aMap[x.sembol]=x;});
+  $("raporZaman").textContent=paket.zaman||paket.tarih||"";
+  var pz=paket.pazar||{};
+  $("pazarKarti").innerHTML=kacir(rapor.pazar||"")+
+    (pz.toplam?('<span class="mono">'+pz.yukselen+' yükselen · '+pz.dusen+' düşen · toplam '+pz.toplam+' hisse</span>'):"");
+
+  var ph=$("portfoyRapor"); ph.innerHTML="";
+  var rp=rapor.portfoy||[];
+  if(!rp.length) ph.innerHTML='<p class="ipucu">Portföy boş — yukarıya hisselerini ekleyip yeniden çalıştır.</p>';
+  rp.forEach(function(p){
+    var v=pMap[p.sembol]||{}; var d=v.veri||{};
+    var div=document.createElement("div"); div.className="karar-satir";
+    var fiyatHtml=(d.fiyat!=null)?('<span class="fiyat">'+fmt(d.fiyat)+'₺ · %'+fmt(d.degisim)+'</span>'):"";
+    var kzHtml="";
+    if(v.maliyet&&d.fiyat){
+      var kz=((d.fiyat-v.maliyet)/v.maliyet)*100;
+      kzHtml='<span class="kz '+(kz>=0?"art":"eks")+'">K/Z %'+fmt(kz)+'</span>';
+    }
+    var karar=String(p.karar||"?");
+    var haberHtml="";
+    if(v.haberler&&v.haberler.length) haberHtml='<span class="haber-mini">📰 '+kacir(v.haberler[0].baslik)+'</span>';
+    div.innerHTML='<span class="sembol">'+kacir(p.sembol)+'</span>'+fiyatHtml+
+      '<span class="cip '+kacir(karar)+'">'+kacir(karar)+(p.guven?(" · "+p.guven+"/5"):"")+'</span>'+kzHtml+
+      (p.gerekce?('<span class="gerekce">'+kacir(p.gerekce)+'</span>'):"")+haberHtml;
+    ph.appendChild(div);
+  });
+
+  var ah=$("adayRapor"); ah.innerHTML="";
+  var ra=rapor.adaylar||[];
+  if(!ra.length) ah.innerHTML='<p class="ipucu">Bugün filtreyi geçen güçlü aday yok.</p>';
+  ra.forEach(function(x){
+    var v=aMap[x.sembol]||{}; var d=v.veri||{};
+    var div=document.createElement("div"); div.className="karar-satir";
+    var fiyatHtml=(d.fiyat!=null)?('<span class="fiyat">'+fmt(d.fiyat)+'₺ · %'+fmt(d.degisim)+'</span>'):"";
+    div.innerHTML='<span class="sembol">'+kacir(x.sembol)+'</span>'+fiyatHtml+
+      (x.vade?('<span class="vade">'+kacir(x.vade)+' vade</span>'):"")+
+      (x.yorum?('<span class="gerekce">'+kacir(x.yorum)+'</span>'):"");
+    ah.appendChild(div);
+  });
+  $("raporBolge").style.display="block";
+}
+
+/* ---------- Baglanti ---------- */
+document.addEventListener("DOMContentLoaded",function(){
+  depoYukle(); ayarlariForma(); portfoyuCiz();
+  if(durumVeri.sonRapor){ raporCiz(durumVeri.sonRapor); durum("Son rapor yüklendi · "+(durumVeri.sonRapor.zaman||""),""); }
+
+  $("analizBtn").addEventListener("click",analiz);
+  $("disaBtn").addEventListener("click",disaAktar);
+  $("iceBtn").addEventListener("click",function(){ $("dosyaGizli").click(); });
+  $("dosyaGizli").addEventListener("change",function(e){
+    if(e.target.files&&e.target.files[0]) iceAktar(e.target.files[0]);
+    e.target.value="";
+  });
+  $("satirEkleBtn").addEventListener("click",function(){
+    durumVeri.portfoy.push({sembol:"",adet:"",maliyet:""}); depoKaydet(); portfoyuCiz();
+  });
+  $("portfoyGovde").addEventListener("input",portfoyDinle);
+  $("portfoyGovde").addEventListener("click",function(e){
+    var h=e.target.closest("[data-sil]");
+    if(h){ durumVeri.portfoy.splice(Number(h.dataset.sil),1);
+      if(!durumVeri.portfoy.length) durumVeri.portfoy.push({sembol:"",adet:"",maliyet:""});
+      depoKaydet(); portfoyuCiz(); }
+  });
+  $("gozBtn").addEventListener("click",function(){
+    var k=$("geminiKey"); k.type=(k.type==="password")?"text":"password";
+  });
+  ["geminiKey","model","adaySayisi","haberSayisi","proxy"].forEach(function(id){
+    $(id).addEventListener("input",formuAyarlara);
+  });
+  $("haberAcik").addEventListener("change",formuAyarlara);
+});
+</script>
+</body>
+</html>
