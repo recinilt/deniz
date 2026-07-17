@@ -536,46 +536,21 @@ async function haberCek(sembol,proxy,N,genel,ad){
 async function geminiCagir(anahtar,model,prompt){
   var govde={contents:[{parts:[{text:prompt}]}],
     generationConfig:{responseMimeType:"application/json",temperature:0.3,maxOutputTokens:8192}};
-  var url="https://generativelanguage.googleapis.com/v1beta/models/"+encodeURIComponent(model)+":generateContent?key="+encodeURIComponent(anahtar);
-  var MAKS_DENEME=4,sonHata=null;
-  for(var deneme=1;deneme<=MAKS_DENEME;deneme++){
-    var r;
-    try{
-      r=await zamanAsimliFetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(govde)},120000);
-    }catch(agHatasi){
-      sonHata=agHatasi;
-      if(deneme<MAKS_DENEME){
-        var bms=Math.min(20000,2000*Math.pow(2,deneme-1));
-        durum("Bağlantı sorunu, "+Math.round(bms/1000)+"sn sonra tekrar denenecek ("+deneme+"/"+MAKS_DENEME+")…");
-        await new Promise(function(c){setTimeout(c,bms);});
-        continue;
-      }
-      throw (agHatasi&&agHatasi.name==="AbortError"?new Error("İstek zaman aşımına uğradı — bağlantıyı kontrol edin."):agHatasi);
-    }
-    var zarf=await r.json();
-    if(zarf.error){
-      var m=zarf.error.message||("HTTP "+r.status);
-      var asiriTalep=r.status===503||/overloaded|high demand|UNAVAILABLE/i.test(m);
-      var kotaSinirlandi=r.status===429;
-      if((asiriTalep||kotaSinirlandi)&&deneme<MAKS_DENEME){
-        var bms2=Math.min(20000,2000*Math.pow(2,deneme-1))+Math.floor(Math.random()*800);
-        durum("Gemini yoğun ("+r.status+"), "+Math.round(bms2/1000)+"sn sonra tekrar denenecek ("+deneme+"/"+MAKS_DENEME+")…");
-        await new Promise(function(c){setTimeout(c,bms2);});
-        continue;
-      }
-      if(r.status===400||r.status===403) m="Anahtar veya model reddedildi: "+m;
-      if(kotaSinirlandi) m="Gemini kota sınırı (free tier): birkaç dakika sonra tekrar deneyin.";
-      if(asiriTalep) m="Gemini şu an aşırı yoğun (high demand); "+MAKS_DENEME+" deneme sonunda da başarısız oldu, birkaç dakika sonra tekrar deneyin.";
-      throw new Error(m);
-    }
-    var cand=(zarf.candidates&&zarf.candidates[0])||{};
-    var fr=cand.finishReason||"";
-    var raw="";
-    try{ raw=cand.content.parts.map(function(p){return p.text||"";}).join(""); }catch(e){}
-    if(!raw.trim()) throw new Error("Gemini boş yanıt döndü (finishReason: "+(fr||"yok")+"). Tekrar deneyin.");
-    return jsonAyikla(raw);
+  var r=await zamanAsimliFetch("https://generativelanguage.googleapis.com/v1beta/models/"+encodeURIComponent(model)+":generateContent?key="+encodeURIComponent(anahtar),
+    {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(govde)},120000);
+  var zarf=await r.json();
+  if(zarf.error){
+    var m=zarf.error.message||("HTTP "+r.status);
+    if(r.status===400||r.status===403) m="Anahtar veya model reddedildi: "+m;
+    if(r.status===429) m="Gemini kota sınırı (free tier): birkaç dakika sonra tekrar deneyin.";
+    throw new Error(m);
   }
-  throw sonHata||new Error("Gemini isteği başarısız oldu.");
+  var cand=(zarf.candidates&&zarf.candidates[0])||{};
+  var fr=cand.finishReason||"";
+  var raw="";
+  try{ raw=cand.content.parts.map(function(p){return p.text||"";}).join(""); }catch(e){}
+  if(!raw.trim()) throw new Error("Gemini boş yanıt döndü (finishReason: "+(fr||"yok")+"). Tekrar deneyin.");
+  return jsonAyikla(raw);
 }
 
 /* ---------- Analiz hatti ---------- */
