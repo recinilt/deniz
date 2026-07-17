@@ -192,7 +192,7 @@ footer{margin-top:36px;font-size:12px;color:#5A667F}
   </div>
 </section>
 
-<footer>BIST Analiz Masası · veriler: TradingView scanner + GDELT/Dünya Gazetesi haber araması · yorum: Google Gemini · tüm veriler yerelde saklanır</footer>
+<footer>BIST Analiz Masası · veriler: TradingView scanner + GDELT haber araması · yorum: Google Gemini · tüm veriler yerelde saklanır</footer>
 </div>
 
 <script>
@@ -484,35 +484,9 @@ async function taramaCek(){
   if(!r.ok) throw new Error("TradingView "+r.status+" döndü");
   return r.json();
 }
-async function genelHaberCek(proxy){
-  var hedef="https://www.dunya.com/rss?category=ekonomi";
-  if(proxy){
-    try{
-      var r=await zamanAsimliFetch(proxy+encodeURIComponent(hedef),{},9000);
-      if(r.ok){
-        var h=rssBasliklar(await r.text(),50);
-        if(h.length) return h;
-      }
-    }catch(e){}
-  }
-  try{
-    var r2=await zamanAsimliFetch(hedef,{},9000);
-    if(!r2.ok) return [];
-    return rssBasliklar(await r2.text(),50);
-  }catch(e){ return []; }
-}
-function genelDenSuz(genel,sembol,ad,N){
-  if(!genel||!genel.length) return [];
-  var s=String(sembol||"").toUpperCase();
-  var a=String(ad||"").toUpperCase();
-  return genel.filter(function(h){
-    var b=String(h.baslik||"").toUpperCase();
-    return (s.length>=3&&b.indexOf(s)>=0)||(a.length>2&&b.indexOf(a)>=0);
-  }).slice(0,N);
-}
-async function haberCek(sembol,proxy,N,genel,ad){
+async function haberCek(sembol,proxy,N){
   var hedef="https://api.gdeltproject.org/api/v2/doc/doc?query="+encodeURIComponent(sembol+" hisse sourcelang:tur")+"&mode=artlist&format=json&maxrecords="+N+"&sort=datedesc";
-  /* 1) GDELT proxy uzerinden dene (CORS header vermiyor, tarayicidan dogrudan cogu zaman calismaz) */
+  /* 1) proxy uzerinden dene (GDELT CORS header vermiyor, tarayicidan dogrudan cogu zaman calismaz) */
   if(proxy){
     try{
       var r=await zamanAsimliFetch(proxy+encodeURIComponent(hedef),{},9000);
@@ -522,16 +496,12 @@ async function haberCek(sembol,proxy,N,genel,ad){
       }
     }catch(e){}
   }
-  /* 2) GDELT proxysiz dogrudan dene (yine de bir sans) */
+  /* 2) proxysiz dogrudan dene (yine de bir sans) */
   try{
     var r2=await zamanAsimliFetch(hedef,{},9000);
-    if(r2.ok){
-      var h2=gdeltAyikla(await r2.text(),N);
-      if(h2.length) return h2;
-    }
-  }catch(e){}
-  /* 3) GDELT basarisiz olduysa: genel ekonomi feed'inde sembol/sirket adi gecen basliklari filtrele */
-  return genelDenSuz(genel,sembol,ad,N);
+    if(!r2.ok) return [];
+    return gdeltAyikla(await r2.text(),N);
+  }catch(e){ return []; }
 }
 async function geminiCagir(anahtar,model,prompt){
   var govde={contents:[{parts:[{text:prompt}]}],
@@ -579,14 +549,11 @@ async function analiz(){
     if(!portfoy.length&&!adaylar.length) throw new Error("Portföy boş ve filtreyi geçen aday yok — en az bir hisse ekleyin.");
 
     if(a.haberAcik&&a.haberSayisi>0){
-      durum("2/4 · Genel ekonomi haberleri çekiliyor…");
-      var genel=await genelHaberCek(a.proxy);
       var hedefler=portfoy.concat(adaylar).slice(0,20);
       for(var i=0;i<hedefler.length;i++){
         durum("2/4 · Haberler: "+hedefler[i].sembol+" ("+(i+1)+"/"+hedefler.length+")…");
-        var ad=(hedefler[i].veri&&hedefler[i].veri.ad)||"";
-        hedefler[i].haberler=await haberCek(hedefler[i].sembol,a.proxy,a.haberSayisi,genel,ad);
-        await new Promise(function(c){setTimeout(c,9000);}); /* GDELT 429'lariyla karsilasildi, bekleme artirildi */
+        hedefler[i].haberler=await haberCek(hedefler[i].sembol,a.proxy,a.haberSayisi);
+        await new Promise(function(c){setTimeout(c,5500);}); /* GDELT: ~1 istek/5sn onerisi */
       }
     }
 
