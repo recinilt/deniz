@@ -192,7 +192,7 @@ footer{margin-top:36px;font-size:12px;color:#5A667F}
   </div>
 </section>
 
-<footer>BIST Analiz Masası · veriler: TradingView scanner + GDELT haber araması · yorum: Google Gemini · tüm veriler yerelde saklanır</footer>
+<footer>BIST Analiz Masası · veriler: TradingView scanner + Google News RSS · yorum: Google Gemini · tüm veriler yerelde saklanır</footer>
 </div>
 
 <script>
@@ -279,22 +279,6 @@ function rssBasliklar(xml,N){
       .replace(/&lt;/g,"<").replace(/&gt;/g,">").trim();
     if(baslik) haberler.push({baslik:baslik.slice(0,200),tarih:d.slice(5,16)});
   }
-  return haberler;
-}
-function gdeltAyikla(metin,N){
-  var haberler=[];
-  try{
-    var d=JSON.parse(metin);
-    var arts=(d&&d.articles)||[];
-    for(var i=0;i<arts.length&&haberler.length<N;i++){
-      var a=arts[i]||{};
-      var baslik=String(a.title||"").trim();
-      if(!baslik) continue;
-      var sd=String(a.seendate||"");
-      var tarih=(sd.length>=8)?(sd.slice(6,8)+"."+sd.slice(4,6)+"."+sd.slice(0,4)):"";
-      haberler.push({baslik:baslik.slice(0,200),tarih:tarih});
-    }
-  }catch(e){}
   return haberler;
 }
 
@@ -485,22 +469,22 @@ async function taramaCek(){
   return r.json();
 }
 async function haberCek(sembol,proxy,N){
-  var hedef="https://api.gdeltproject.org/api/v2/doc/doc?query="+encodeURIComponent(sembol+" hisse sourcelang:tur")+"&mode=artlist&format=json&maxrecords="+N+"&sort=datedesc";
-  /* 1) proxy uzerinden dene (GDELT CORS header vermiyor, tarayicidan dogrudan cogu zaman calismaz) */
+  var hedef="https://news.google.com/rss/search?q="+encodeURIComponent(sembol+" hisse")+"&hl=tr&gl=TR&ceid=TR:tr";
+  /* 1) proxy uzerinden dene */
   if(proxy){
     try{
       var r=await zamanAsimliFetch(proxy+encodeURIComponent(hedef),{},9000);
       if(r.ok){
-        var h=gdeltAyikla(await r.text(),N);
+        var h=rssBasliklar(await r.text(),N);
         if(h.length) return h;
       }
     }catch(e){}
   }
-  /* 2) proxysiz dogrudan dene (yine de bir sans) */
+  /* 2) proxysiz dogrudan dene (kaynak CORS izni veriyorsa calisir) */
   try{
     var r2=await zamanAsimliFetch(hedef,{},9000);
     if(!r2.ok) return [];
-    return gdeltAyikla(await r2.text(),N);
+    return rssBasliklar(await r2.text(),N);
   }catch(e){ return []; }
 }
 async function geminiCagir(anahtar,model,prompt){
@@ -553,7 +537,7 @@ async function analiz(){
       for(var i=0;i<hedefler.length;i++){
         durum("2/4 · Haberler: "+hedefler[i].sembol+" ("+(i+1)+"/"+hedefler.length+")…");
         hedefler[i].haberler=await haberCek(hedefler[i].sembol,a.proxy,a.haberSayisi);
-        await new Promise(function(c){setTimeout(c,5500);}); /* GDELT: ~1 istek/5sn onerisi */
+        await new Promise(function(c){setTimeout(c,1200);});
       }
     }
 
