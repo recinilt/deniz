@@ -150,10 +150,10 @@ footer{margin-top:36px;font-size:12px;color:#5A667F}
     </div>
   </div>
   <div style="margin-top:12px" class="izgara">
-    <label class="onay"><input type="checkbox" id="haberAcik" checked> Haber başlıklarını dahil et (önce proxy, olmazsa proxysiz denenir; ulaşılamazsa sessizce atlanır)</label>
+    <label class="onay"><input type="checkbox" id="haberAcik" checked> Haber başlıklarını dahil et (CORS proxy üzerinden; ulaşılamazsa sessizce atlanır)</label>
     <div>
       <label for="proxy">CORS proxy öneki (haberler için)</label>
-      <input type="text" id="proxy" value="https://mycors.recepyeni.workers.dev/?url=">
+      <input type="text" id="proxy" value="https://api.allorigins.win/raw?url=">
     </div>
   </div>
   <p class="ipucu">Anahtar yalnızca bu tarayıcının yerel depolamasında tutulur ve doğrudan Google'a gider; başka hiçbir sunucuya gitmez. Ücretsiz anahtar: aistudio.google.com</p>
@@ -325,7 +325,7 @@ function jsonAyikla(raw){
 var DKEY="bist_masa_v1";
 function varsayilanDurum(){
   return {
-    ayarlar:{geminiKey:"",model:"gemini-3.5-flash",adaySayisi:5,haberSayisi:3,haberAcik:true,proxy:"https://mycors.recepyeni.workers.dev/?url="},
+    ayarlar:{geminiKey:"",model:"gemini-3.5-flash",adaySayisi:5,haberSayisi:3,haberAcik:true,proxy:"https://api.allorigins.win/raw?url="},
     portfoy:[{sembol:"",adet:"",maliyet:""}],
     sonRapor:null
   };
@@ -339,11 +339,6 @@ function depoYukle(){
       durumVeri.ayarlar=Object.assign(varsayilanDurum().ayarlar,d.ayarlar||{});
       durumVeri.portfoy=(Array.isArray(d.portfoy)&&d.portfoy.length)?d.portfoy:varsayilanDurum().portfoy;
       durumVeri.sonRapor=d.sonRapor||null;
-      /* eski allorigins kaydini yeni proxy ile degistir (tek seferlik gecis) */
-      if(durumVeri.ayarlar.proxy==="https://api.allorigins.win/raw?url="){
-        durumVeri.ayarlar.proxy="https://mycors.recepyeni.workers.dev/?url=";
-        depoKaydet();
-      }
     }
   }catch(e){}
 }
@@ -469,22 +464,11 @@ async function taramaCek(){
   return r.json();
 }
 async function haberCek(sembol,proxy,N){
-  var hedef="https://news.google.com/rss/search?q="+encodeURIComponent(sembol+" hisse")+"&hl=tr&gl=TR&ceid=TR:tr";
-  /* 1) proxy uzerinden dene */
-  if(proxy){
-    try{
-      var r=await zamanAsimliFetch(proxy+encodeURIComponent(hedef),{},9000);
-      if(r.ok){
-        var h=rssBasliklar(await r.text(),N);
-        if(h.length) return h;
-      }
-    }catch(e){}
-  }
-  /* 2) proxysiz dogrudan dene (kaynak CORS izni veriyorsa calisir) */
   try{
-    var r2=await zamanAsimliFetch(hedef,{},9000);
-    if(!r2.ok) return [];
-    return rssBasliklar(await r2.text(),N);
+    var hedef="https://news.google.com/rss/search?q="+encodeURIComponent(sembol+" hisse")+"&hl=tr&gl=TR&ceid=TR:tr";
+    var r=await zamanAsimliFetch(proxy+encodeURIComponent(hedef),{},9000);
+    if(!r.ok) return [];
+    return rssBasliklar(await r.text(),N);
   }catch(e){ return []; }
 }
 async function geminiCagir(anahtar,model,prompt){
@@ -532,7 +516,7 @@ async function analiz(){
     var adaylar=adayHam.map(function(r){return {sembol:r.sembol,veri:ozet(r),skor:r.skor,haberler:[]};});
     if(!portfoy.length&&!adaylar.length) throw new Error("Portföy boş ve filtreyi geçen aday yok — en az bir hisse ekleyin.");
 
-    if(a.haberAcik&&a.haberSayisi>0){
+    if(a.haberAcik&&a.haberSayisi>0&&a.proxy){
       var hedefler=portfoy.concat(adaylar).slice(0,20);
       for(var i=0;i<hedefler.length;i++){
         durum("2/4 · Haberler: "+hedefler[i].sembol+" ("+(i+1)+"/"+hedefler.length+")…");
