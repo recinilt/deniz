@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Optik Ses Tezgâhı — görüntüden ses</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --void:#0C0B0E;
+  --panel:#16141A;
+  --panel-2:#1E1B23;
+  --rule:#332E3B;
+  --bone:#EFE9DE;
+  --dim:#8E8697;
+  --amber:#F2A03D;
+  --amber-soft:#FFD79B;
+  --red:#E4453B;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,sans-serif;
+  --disp:"Big Shoulders Display","Arial Narrow",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--void);
+  color:var(--bone);
+  font-family:var(--sans);
+  font-size:14px;
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+  background-image:
+    repeating-linear-gradient(90deg,rgba(255,255,255,.018) 0 1px,transparent 1px 4px);
+}
+.wrap{max-width:1240px;margin:0 auto;padding:0 20px 64px}
+
+/* ---------- başlık ---------- */
+.masthead{padding:40px 0 26px;border-bottom:1px solid var(--rule)}
+.eyebrow{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--amber);margin:0 0 10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap
+}
+.eyebrow::before{content:"";width:26px;height:1px;background:var(--amber);display:inline-block}
+h1{
+  font-family:var(--disp);font-weight:800;font-size:clamp(44px,9vw,104px);line-height:.86;
+  margin:0;letter-spacing:-.005em;text-transform:uppercase;
+}
+h1 em{font-style:normal;color:var(--amber);display:block}
+.lede{max-width:56ch;margin:18px 0 0;color:var(--dim)}
+.lede b{color:var(--bone);font-weight:500}
+.specline{
+  font-family:var(--mono);font-size:11px;color:var(--dim);margin-top:16px;
+  display:flex;gap:6px 22px;flex-wrap:wrap
+}
+.specline span{white-space:nowrap}
+.specline i{font-style:normal;color:var(--amber-soft)}
+
+/* ---------- yerleşim ---------- */
+.stage{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(300px,1fr);gap:1px;background:var(--rule);border-bottom:1px solid var(--rule)}
+.cell{background:var(--void);padding:22px}
+@media(max-width:900px){.stage{grid-template-columns:1fr}}
+
+.frame{position:relative;background:#000;border:1px solid var(--rule);aspect-ratio:16/9;overflow:hidden}
+.frame video{width:100%;height:100%;object-fit:contain;display:block;background:#000}
+.frame canvas.overlay{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.frame .badge{
+  position:absolute;left:0;top:0;font-family:var(--mono);font-size:10px;letter-spacing:.18em;
+  text-transform:uppercase;background:var(--amber);color:#1A1206;padding:3px 9px
+}
+.frame .empty{
+  position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:8px;color:var(--dim);font-family:var(--mono);font-size:12px;text-align:center;padding:20px
+}
+
+/* ---------- kontroller ---------- */
+.grp{margin:0 0 22px}
+.grp:last-child{margin-bottom:0}
+.grp > h3{
+  font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);
+  margin:0 0 10px;padding-bottom:6px;border-bottom:1px solid var(--rule)
+}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+button,label.filebtn{
+  font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+  background:var(--panel);color:var(--bone);border:1px solid var(--rule);padding:9px 13px;
+  cursor:pointer;transition:background .12s,border-color .12s,color .12s;border-radius:2px;
+}
+button:hover,label.filebtn:hover{background:var(--panel-2);border-color:var(--amber)}
+button:focus-visible,label.filebtn:focus-within,input:focus-visible,select:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+button.on{background:var(--amber);color:#1A1206;border-color:var(--amber);font-weight:600}
+button.rec.on{background:var(--red);border-color:var(--red);color:#fff}
+button[disabled]{opacity:.35;cursor:not-allowed}
+input[type=file]{position:absolute;width:1px;height:1px;opacity:0}
+
+.modes{display:grid;grid-template-columns:1fr;gap:1px;background:var(--rule);border:1px solid var(--rule)}
+.mode{
+  background:var(--panel);padding:11px 13px;cursor:pointer;text-align:left;border:0;border-radius:0;
+  display:grid;grid-template-columns:auto 1fr;gap:0 11px;align-items:baseline;text-transform:none;letter-spacing:0;
+}
+.mode:hover{background:var(--panel-2)}
+.mode .k{font-family:var(--mono);font-size:10px;color:var(--amber);letter-spacing:.1em}
+.mode .n{font-family:var(--disp);font-size:21px;font-weight:700;text-transform:uppercase;line-height:1}
+.mode .d{grid-column:2;font-family:var(--sans);font-size:11.5px;color:var(--dim);text-transform:none;letter-spacing:0;margin-top:3px}
+.mode[aria-pressed=true]{background:var(--amber);color:#1A1206}
+.mode[aria-pressed=true] .k{color:#7A4A05}
+.mode[aria-pressed=true] .d{color:#4A3006}
+
+.knob{margin:0 0 13px}
+.knob label{
+  display:flex;justify-content:space-between;align-items:baseline;gap:10px;
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-bottom:5px
+}
+.knob output{color:var(--amber-soft);font-variant-numeric:tabular-nums}
+input[type=range]{
+  -webkit-appearance:none;appearance:none;width:100%;height:22px;background:transparent;cursor:pointer;margin:0
+}
+input[type=range]::-webkit-slider-runnable-track{height:2px;background:var(--rule)}
+input[type=range]::-moz-range-track{height:2px;background:var(--rule)}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:3px;height:18px;background:var(--amber);margin-top:-8px;border-radius:0;border:0
+}
+input[type=range]::-moz-range-thumb{width:3px;height:18px;background:var(--amber);border-radius:0;border:0}
+select{
+  width:100%;font-family:var(--mono);font-size:11px;background:var(--panel);color:var(--bone);
+  border:1px solid var(--rule);padding:8px 9px;border-radius:2px
+}
+.switch{display:flex;align-items:center;gap:9px;font-family:var(--mono);font-size:11px;color:var(--dim);cursor:pointer;margin-bottom:9px}
+.switch input{accent-color:var(--amber);width:14px;height:14px}
+
+/* ---------- imza: optik ses şeridi ---------- */
+.strip{border-bottom:1px solid var(--rule);padding:22px 0 26px}
+.strip h2{
+  font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);
+  margin:0 0 10px;display:flex;justify-content:space-between;align-items:baseline;gap:14px
+}
+.strip h2 b{color:var(--amber);font-weight:400}
+.film{position:relative;border:1px solid var(--rule);background:#000}
+.film canvas{display:block;width:100%;height:190px}
+.perfs{height:13px;background:
+  repeating-linear-gradient(90deg,var(--panel) 0 9px,var(--void) 9px 20px);
+  border-left:1px solid var(--rule);border-right:1px solid var(--rule)}
+.meters{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:1px;background:var(--rule);border:1px solid var(--rule);border-top:0}
+.meter{background:var(--panel);padding:10px 12px}
+.meter dt{font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:0}
+.meter dd{font-family:var(--mono);font-size:19px;margin:3px 0 0;color:var(--bone);font-variant-numeric:tabular-nums}
+.meter dd.hue{display:flex;align-items:center;gap:8px}
+.swatch{width:15px;height:15px;border:1px solid var(--rule);flex:none}
+
+/* ---------- notlar ---------- */
+.notes{padding:30px 0 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:28px}
+.note h4{font-family:var(--disp);font-weight:700;font-size:23px;text-transform:uppercase;margin:0 0 7px;letter-spacing:.01em}
+.note p{margin:0;color:var(--dim);font-size:13px}
+.note code{font-family:var(--mono);font-size:11.5px;color:var(--amber-soft);background:var(--panel);padding:1px 5px;border-radius:2px}
+.dl{margin-top:14px}
+.dl a{color:var(--amber);font-family:var(--mono);font-size:11px;text-decoration:none;border-bottom:1px solid var(--amber)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="masthead">
+  <p class="eyebrow">optik ses tezgâhı · web audio + canvas</p>
+  <h1>Görüntüyü<em>duy</em></h1>
+  <p class="lede">Videonun her karesi <b>parlaklık haritasına</b> indirgeniyor; dikey eksen frekansa, yatay eksen ya panoramaya ya da zamana bağlanıyor. Ortalama renge bakan basit yöntem de burada — ama üçüncü seçenek olarak.</p>
+  <p class="specline">
+    <span>çözünürlük <i id="sp-res">64×48</i></span>
+    <span>örnekleme <i>requestVideoFrameCallback</i></span>
+    <span>sentez <i>toplamalı osilatör bankası</i></span>
+    <span>çıkış <i>WebM / Opus</i></span>
+  </p>
+</header>
+
+<section class="stage">
+  <div class="cell">
+    <div class="frame">
+      <video id="vid" playsinline muted loop crossorigin="anonymous"></video>
+      <canvas class="overlay" id="ov"></canvas>
+      <div class="badge" id="badge">kaynak yok</div>
+      <div class="empty" id="empty">Bir video yükle, kamerayı aç<br>ya da yerleşik test desenini çalıştır.</div>
+    </div>
+
+    <div class="grp" style="margin-top:18px">
+      <h3>Kaynak</h3>
+      <div class="row">
+        <label class="filebtn" tabindex="0">Video yükle<input type="file" id="file" accept="video/*"></label>
+        <button id="btn-cam">Kamera</button>
+        <button id="btn-demo">Test deseni</button>
+        <button id="btn-play" disabled>Oynat</button>
+      </div>
+    </div>
+
+    <div class="grp">
+      <h3>Ses motoru</h3>
+      <div class="modes">
+        <button class="mode" data-mode="additive" aria-pressed="true">
+          <span class="k">01</span><span class="n">Toplamalı</span>
+          <span class="d">Kare bir bütün olarak okunur. Her yatay şerit bir kısmî sese denk gelir; şeridin parlaklığı genliği, parlak bölgenin yatay ağırlık merkezi panoramayı sürer.</span>
+        </button>
+        <button class="mode" data-mode="scan" aria-pressed="false">
+          <span class="k">02</span><span class="n">Tarayıcı</span>
+          <span class="d">ANS / Photosounder mantığı: bir tarama çizgisi kareyi soldan sağa süpürür, yalnız o sütun duyulur. Yatay eksen artık zaman.</span>
+        </button>
+        <button class="mode" data-mode="feature" aria-pressed="false">
+          <span class="k">03</span><span class="n">Renk özniteliği</span>
+          <span class="d">Senin sorduğun yöntem: ortalama renk. Ton → akor kökü, doygunluk → tını, parlaklık → filtre ve seviye, hareket enerjisi → vuruş.</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="cell">
+    <div class="grp">
+      <h3>Eşleme</h3>
+      <div class="knob">
+        <label for="bands">Kısmî ses sayısı <output id="o-bands">48</output></label>
+        <input type="range" id="bands" min="12" max="96" step="4" value="48">
+      </div>
+      <div class="knob">
+        <label for="fmin">Alt frekans <output id="o-fmin">80 Hz</output></label>
+        <input type="range" id="fmin" min="40" max="400" step="5" value="80">
+      </div>
+      <div class="knob">
+        <label for="fmax">Üst frekans <output id="o-fmax">4200 Hz</output></label>
+        <input type="range" id="fmax" min="1000" max="12000" step="100" value="4200">
+      </div>
+      <label for="scale" class="switch" style="margin-bottom:5px">Perde ızgarası</label>
+      <select id="scale">
+        <option value="minPent" selected>Minör pentatonik</option>
+        <option value="majPent">Majör pentatonik</option>
+        <option value="dorian">Dorian</option>
+        <option value="whole">Tam ses</option>
+        <option value="chromatic">Kromatik</option>
+        <option value="harmonic">Doğal harmonik dizi</option>
+        <option value="raw">Ham logaritmik (ızgara yok)</option>
+      </select>
+    </div>
+
+    <div class="grp">
+      <h3>Kare okuma</h3>
+      <div class="knob">
+        <label for="gate">Parlaklık eşiği <output id="o-gate">0.22</output></label>
+        <input type="range" id="gate" min="0" max="0.8" step="0.01" value="0.22">
+      </div>
+      <div class="knob">
+        <label for="gamma">Kontrast (γ) <output id="o-gamma">2.0</output></label>
+        <input type="range" id="gamma" min="0.5" max="5" step="0.1" value="2">
+      </div>
+      <div class="knob">
+        <label for="glide">Yumuşatma <output id="o-glide">60 ms</output></label>
+        <input type="range" id="glide" min="5" max="400" step="5" value="60">
+      </div>
+      <div class="knob" id="knob-scan" hidden>
+        <label for="scanrate">Tarama hızı <output id="o-scanrate">1.4 tur/sn</output></label>
+        <input type="range" id="scanrate" min="0.1" max="8" step="0.1" value="1.4">
+      </div>
+      <div class="knob">
+        <label for="motion">Hareket duyarlılığı <output id="o-motion">0.55</output></label>
+        <input type="range" id="motion" min="0" max="1" step="0.01" value="0.55">
+      </div>
+      <label class="switch"><input type="checkbox" id="invert"> Negatif oku (karanlık = ses)</label>
+      <label class="switch"><input type="checkbox" id="perc" checked> Hareket vuruşları</label>
+    </div>
+
+    <div class="grp">
+      <h3>Çıkış</h3>
+      <div class="knob">
+        <label for="vol">Ana seviye <output id="o-vol">-12 dB</output></label>
+        <input type="range" id="vol" min="-48" max="0" step="1" value="-12">
+      </div>
+      <div class="knob">
+        <label for="rev">Yankı <output id="o-rev">18 %</output></label>
+        <input type="range" id="rev" min="0" max="100" step="1" value="18">
+      </div>
+      <div class="row">
+        <button id="btn-mute">Sustur</button>
+        <button id="btn-rec" class="rec">Kaydet</button>
+      </div>
+      <div class="dl" id="dl" hidden></div>
+    </div>
+  </div>
+</section>
+
+<section class="strip">
+  <h2><span>Optik ses şeridi — üretilen spektrumun kaydı</span> <b id="hud-fps">— fps</b></h2>
+  <div class="perfs"></div>
+  <div class="film"><canvas id="sono" width="1400" height="380"></canvas></div>
+  <div class="perfs"></div>
+  <dl class="meters">
+    <div class="meter"><dt>Seviye</dt><dd id="m-rms">−∞ dB</dd></div>
+    <div class="meter"><dt>Baskın ton</dt><dd class="hue" id="m-hue"><span class="swatch" id="m-sw"></span><span>—</span></dd></div>
+    <div class="meter"><dt>Parlaklık</dt><dd id="m-lum">0.00</dd></div>
+    <div class="meter"><dt>Hareket</dt><dd id="m-mot">0.00</dd></div>
+    <div class="meter"><dt>Aktif kısmî</dt><dd id="m-act">0</dd></div>
+  </dl>
+</section>
+
+<section class="notes">
+  <div class="note">
+    <h4>Neden ortalama renk yetmez</h4>
+    <p>Tüm kareyi tek bir RGB ortalamasına indirirsen elinde kare başına 3 sayı kalır — bununla ancak yavaş kıpırdayan bir pad sürebilirsin. Endüstride yaygın olan yol <b>ters spektrogram</b>: bir eksen zaman, diğeri frekans, piksel parlaklığı da o frekansın genliği. Bu araçtaki 01 ve 02 motorları bunu yapıyor.</p>
+  </div>
+  <div class="note">
+    <h4>Perde ızgarası şart</h4>
+    <p>Ham logaritmik eşlemede 48 kısmî ses aynı anda açılınca sonuç gürültüye çok yakın çıkar. Frekansları bir diziye kilitlemek (<code>minPent</code> gibi) ve eşik + γ ile zayıf bantları kapatmak, sonucu dinlenebilir kılan asıl numara.</p>
+  </div>
+  <div class="note">
+    <h4>Sınırlar</h4>
+    <p>Kare hızı ~30 fps olduğu için kontrol çözünürlüğü 33 ms. Bu yüzden genlikler <code>setTargetAtTime</code> ile yumuşatılıyor; yoksa fermuar gürültüsü olur. Kayıt, ekranda duyduğunun canlı yakalanmasıdır — örnek‑tam dışa aktarım için <code>OfflineAudioContext</code> gerekir.</p>
+  </div>
+</section>
+
+</div>
+
+<script>
+(() => {
+"use strict";
+
+/* ============================================================
+   1. DURUM
+   ============================================================ */
+const COLS = 64;                 // yatay analiz çözünürlüğü
+let BANDS = 48;                  // dikey analiz çözünürlüğü = kısmî ses sayısı
+
+const S = {
+  mode:'additive', fmin:80, fmax:4200, scale:'minPent',
+  gate:.22, gamma:2, glide:.06, scanRate:1.4, motionSens:.55,
+  invert:false, perc:true, vol:-12, rev:.18, muted:false,
+  running:false, scanPos:0, lastT:0
+};
+
+const $ = id => document.getElementById(id);
+const vid=$('vid'), ov=$('ov'), sono=$('sono');
+const ovc=ov.getContext('2d');
+const sc=sono.getContext('2d');
+
+/* analiz tuvali (ekrana çizilmez) */
+const an=document.createElement('canvas');
+const anc=an.getContext('2d',{willReadFrequently:true});
+let rowLum=new Float32Array(BANDS), rowPan=new Float32Array(BANDS);
+let cellLum=new Float32Array(BANDS*COLS), prevCell=new Float32Array(BANDS*COLS);
+let target=new Float32Array(BANDS);
+
+function resizeAnalysis(){
+  an.width=COLS; an.height=BANDS;
+  rowLum=new Float32Array(BANDS); rowPan=new Float32Array(BANDS);
+  cellLum=new Float32Array(BANDS*COLS); prevCell=new Float32Array(BANDS*COLS);
+  target=new Float32Array(BANDS);
+  $('sp-res').textContent=COLS+'×'+BANDS;
+}
+resizeAnalysis();
+
+/* ============================================================
+   2. SES ZİNCİRİ
+   ============================================================ */
+let ctx=null, bank=[], master=null, dry=null, wet=null, conv=null,
+    comp=null, noiseBuf=null, recDest=null, pad=null, analyser=null;
+
+function makeImpulse(a, sec, decay){
+  const n=Math.floor(a.sampleRate*sec), b=a.createBuffer(2,n,a.sampleRate);
+  for(let ch=0;ch<2;ch++){
+    const d=b.getChannelData(ch);
+    for(let i=0;i<n;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/n,decay);
+  }
+  return b;
+}
+
+function initAudio(){
+  if(ctx) return;
+  ctx=new (window.AudioContext||window.webkitAudioContext)();
+
+  master=ctx.createGain(); master.gain.value=dbToGain(S.vol);
+  comp=ctx.createDynamicsCompressor();
+  comp.threshold.value=-14; comp.knee.value=8; comp.ratio.value=8;
+  comp.attack.value=.004; comp.release.value=.18;
+
+  conv=ctx.createConvolver(); conv.buffer=makeImpulse(ctx,2.6,2.4);
+  dry=ctx.createGain(); wet=ctx.createGain();
+  dry.gain.value=1-S.rev; wet.gain.value=S.rev;
+
+  analyser=ctx.createAnalyser(); analyser.fftSize=1024;
+
+  // bus -> [dry, conv->wet] -> comp -> master -> çıkış
+  bus=ctx.createGain(); bus.gain.value=1;
+  bus.connect(dry); bus.connect(conv); conv.connect(wet);
+  dry.connect(comp); wet.connect(comp);
+  comp.connect(master); master.connect(analyser); master.connect(ctx.destination);
+
+  recDest=ctx.createMediaStreamDestination(); master.connect(recDest);
+
+  // gürültü tamponu (vuruşlar için)
+  const n=Math.floor(ctx.sampleRate*.5);
+  noiseBuf=ctx.createBuffer(1,n,ctx.sampleRate);
+  const nd=noiseBuf.getChannelData(0);
+  for(let i=0;i<n;i++) nd[i]=Math.random()*2-1;
+
+  buildBank();
+  buildPad();
+}
+let bus=null;
+
+function buildBank(){
+  bank.forEach(v=>{try{v.osc.stop()}catch(e){} v.g.disconnect()});
+  bank=[];
+  for(let i=0;i<BANDS;i++){
+    const osc=ctx.createOscillator(); osc.type='sine';
+    const g=ctx.createGain(); g.gain.value=0;
+    const p=ctx.createStereoPanner? ctx.createStereoPanner() : null;
+    osc.connect(g);
+    if(p){ g.connect(p); p.connect(bus); } else { g.connect(bus); }
+    osc.frequency.value=bandFreq(i);
+    osc.start();
+    bank.push({osc,g,p});
+  }
+}
+
+function buildPad(){
+  pad={osc:[],g:[],filt:ctx.createBiquadFilter(),amp:ctx.createGain()};
+  pad.filt.type='lowpass'; pad.filt.frequency.value=600; pad.filt.Q.value=1.2;
+  pad.amp.gain.value=0;
+  pad.filt.connect(pad.amp); pad.amp.connect(bus);
+  const dets=[-9,-3,4,11];
+  for(let i=0;i<4;i++){
+    const o=ctx.createOscillator(); o.type= i<2?'sawtooth':'triangle';
+    o.detune.value=dets[i];
+    const g=ctx.createGain(); g.gain.value=[0.5,0.35,0.28,0.16][i];
+    o.connect(g); g.connect(pad.filt); o.start();
+    pad.osc.push(o); pad.g.push(g);
+  }
+}
+
+const dbToGain=db=>Math.pow(10,db/20);
+const clamp=(v,a,b)=>v<a?a:(v>b?b:v);
+
+/* ---------- perde ızgarası ---------- */
+const SETS={
+  chromatic:[0,1,2,3,4,5,6,7,8,9,10,11],
+  majPent:[0,2,4,7,9], minPent:[0,3,5,7,10],
+  dorian:[0,2,3,5,7,9,10], whole:[0,2,4,6,8,10]
+};
+function snap(f,name){
+  if(name==='raw') return f;
+  const set=SETS[name]; if(!set) return f;
+  let m=69+12*Math.log2(f/440);
+  const oct=Math.floor(m/12), pc=m-oct*12;
+  let best=set[0], bd=99;
+  for(const s of set){ const d=Math.abs(pc-s); if(d<bd){bd=d;best=s;} }
+  // oktav sınırında komşu dereceyi de dene
+  const alt=set[0]+12, da=Math.abs(pc-alt);
+  if(da<bd) best=alt;
+  return 440*Math.pow(2,(oct*12+best-69)/12);
+}
+function bandFreq(i){
+  const t=BANDS>1? i/(BANDS-1) : 0;
+  if(S.scale==='harmonic') return Math.min(S.fmin*(i+1), S.fmax);
+  const f=S.fmin*Math.pow(S.fmax/S.fmin,t);
+  return snap(f,S.scale);
+}
+function retune(){
+  if(!ctx) return;
+  const now=ctx.currentTime;
+  bank.forEach((v,i)=>v.osc.frequency.setTargetAtTime(bandFreq(i),now,.02));
+}
+
+/* ---------- vuruş ---------- */
+let lastHit=0;
+function hit(vel,hue){
+  if(!ctx||!S.perc) return;
+  const t=ctx.currentTime;
+  if(t-lastHit<.09) return;
+  lastHit=t;
+  const src=ctx.createBufferSource(); src.buffer=noiseBuf;
+  const bp=ctx.createBiquadFilter(); bp.type='bandpass';
+  bp.frequency.value=180+hue*5200; bp.Q.value=1.1+vel*3;
+  const g=ctx.createGain();
+  g.gain.setValueAtTime(0,t);
+  g.gain.linearRampToValueAtTime(clamp(vel,0,1)*.55,t+.004);
+  g.gain.exponentialRampToValueAtTime(.0001,t+.05+vel*.35);
+  const p=ctx.createStereoPanner? ctx.createStereoPanner():null;
+  if(p) p.pan.value=(Math.random()*2-1)*.5;
+  src.connect(bp); bp.connect(g);
+  if(p){g.connect(p); p.connect(bus);} else g.connect(bus);
+  src.start(t); src.stop(t+.5);
+}
+
+/* ============================================================
+   3. KARE ANALİZİ
+   ============================================================ */
+let stats={lum:0,hue:0,sat:0,motion:0,active:0,rms:0};
+let motionAvg=0;
+
+function analyse(){
+  try{ anc.drawImage(vid,0,0,COLS,BANDS); }catch(e){ return false; }
+  let d;
+  try{ d=anc.getImageData(0,0,COLS,BANDS).data; }catch(e){ return false; }
+
+  let sr=0,sg=0,sb=0,motion=0;
+  rowLum.fill(0); rowPan.fill(0);
+
+  for(let r=0;r<BANDS;r++){
+    let sum=0,wx=0;
+    for(let c=0;c<COLS;c++){
+      const o=(r*COLS+c)*4;
+      const R=d[o]/255, G=d[o+1]/255, B=d[o+2]/255;
+      let L=.2126*R+.7152*G+.0722*B;
+      if(S.invert) L=1-L;
+      const idx=r*COLS+c;
+      motion+=Math.abs(L-prevCell[idx]);
+      prevCell[idx]=L;
+      cellLum[idx]=L;
+      sum+=L; wx+=L*c;
+      sr+=R; sg+=G; sb+=B;
+    }
+    rowLum[r]=sum/COLS;
+    rowPan[r]=sum>1e-4 ? ((wx/sum)/(COLS-1))*2-1 : 0;
+  }
+
+  const px=COLS*BANDS;
+  const [h,s,l]=rgb2hsl(sr/px,sg/px,sb/px);
+  motion/=px;
+  motionAvg=motionAvg*.9+motion*.1;
+
+  stats.hue=h; stats.sat=s; stats.lum=l; stats.motion=motion;
+  return true;
+}
+
+function rgb2hsl(r,g,b){
+  const mx=Math.max(r,g,b), mn=Math.min(r,g,b), l=(mx+mn)/2;
+  if(mx===mn) return [0,0,l];
+  const d=mx-mn, s=l>.5? d/(2-mx-mn) : d/(mx+mn);
+  let h;
+  if(mx===r) h=((g-b)/d+(g<b?6:0));
+  else if(mx===g) h=(b-r)/d+2;
+  else h=(r-g)/d+4;
+  return [h/6,s,l];
+}
+
+/* ---------- parlaklık → genlik ---------- */
+function shape(v){
+  const t=(v-S.gate)/(1-S.gate);
+  return t<=0?0:Math.pow(t,S.gamma);
+}
+
+/* ============================================================
+   4. MOTORLAR
+   ============================================================ */
+function driveBank(dt){
+  const now=ctx.currentTime, tc=S.glide;
+  let sumSq=0, active=0;
+
+  if(S.mode==='scan'){
+    S.scanPos=(S.scanPos + S.scanRate*dt)%1;
+    const col=Math.min(COLS-1,Math.floor(S.scanPos*COLS));
+    for(let i=0;i<BANDS;i++){
+      const r=BANDS-1-i;                     // alt satır = pes
+      target[i]=shape(cellLum[r*COLS+col]);
+    }
+    const panv=S.scanPos*2-1;
+    for(let i=0;i<BANDS;i++) if(bank[i].p) bank[i].p.pan.setTargetAtTime(panv*.7,now,.05);
+  } else {
+    for(let i=0;i<BANDS;i++){
+      const r=BANDS-1-i;
+      target[i]=shape(rowLum[r]);
+      if(bank[i].p) bank[i].p.pan.setTargetAtTime(clamp(rowPan[r],-1,1)*.85,now,.08);
+    }
+  }
+
+  for(let i=0;i<BANDS;i++){ sumSq+=target[i]*target[i]; if(target[i]>.008) active++; }
+  const norm=Math.sqrt(sumSq)||1;
+  const energy=clamp(norm/Math.sqrt(BANDS)*2.4,0,1);
+  const k=(0.30+0.70*energy)/norm;
+
+  for(let i=0;i<BANDS;i++) bank[i].g.gain.setTargetAtTime(target[i]*k,now,tc);
+  stats.active=active;
+  stats.rms=energy;
+}
+
+function silenceBank(){
+  if(!ctx) return; const now=ctx.currentTime;
+  bank.forEach(v=>v.g.gain.setTargetAtTime(0,now,.05));
+  target.fill(0); stats.active=0;
+}
+
+function driveFeature(){
+  const now=ctx.currentTime;
+  const b=shape(stats.lum);
+  // ton → kök nota
+  const semis=Math.round(stats.hue*12);
+  const root=snap(S.fmin*Math.pow(2,semis/12), S.scale==='raw'?'minPent':S.scale);
+  const ratios=[1,1.5,2,3];
+  pad.osc.forEach((o,i)=>{
+    o.frequency.setTargetAtTime(Math.min(root*ratios[i],S.fmax),now,.15);
+    o.detune.setTargetAtTime((i-1.5)*stats.sat*28,now,.1);
+  });
+  pad.filt.frequency.setTargetAtTime(220+Math.pow(b,1.4)*(S.fmax-220),now,.09);
+  pad.filt.Q.setTargetAtTime(.8+stats.sat*7,now,.12);
+  pad.amp.gain.setTargetAtTime(b*.5,now,S.glide);
+
+  // görsel şerit için sahte spektrum: kök + harmonikleri
+  target.fill(0);
+  for(let i=0;i<BANDS;i++){
+    const f=bandFreq(i);
+    for(const rt of ratios){
+      const d=Math.abs(Math.log2(f/(root*rt)));
+      if(d<.06) target[i]=Math.max(target[i],b*(1-d/.06));
+    }
+  }
+  stats.active=b>.01?4:0;
+  stats.rms=b;
+}
+
+function silencePad(){
+  if(!ctx||!pad) return;
+  pad.amp.gain.setTargetAtTime(0,ctx.currentTime,.06);
+}
+
+/* ============================================================
+   5. ÇİZİM
+   ============================================================ */
+function drawOverlay(){
+  const w=ov.clientWidth||640, h=ov.clientHeight||360;
+  if(ov.width!==w||ov.height!==h){ov.width=w;ov.height=h;}
+  ovc.clearRect(0,0,w,h);
+  ovc.strokeStyle='rgba(242,160,61,.10)'; ovc.lineWidth=1;
+  const step=Math.max(8,h/12);
+  for(let y=step;y<h;y+=step){ovc.beginPath();ovc.moveTo(0,y+.5);ovc.lineTo(w,y+.5);ovc.stroke();}
+  if(S.mode==='scan'){
+    const x=S.scanPos*w;
+    const grd=ovc.createLinearGradient(x-40,0,x,0);
+    grd.addColorStop(0,'rgba(242,160,61,0)'); grd.addColorStop(1,'rgba(242,160,61,.22)');
+    ovc.fillStyle=grd; ovc.fillRect(x-40,0,40,h);
+    ovc.strokeStyle='#F2A03D'; ovc.lineWidth=2;
+    ovc.beginPath(); ovc.moveTo(x,0); ovc.lineTo(x,h); ovc.stroke();
+  }
+}
+
+function drawSono(){
+  const w=sono.width,h=sono.height, cw=3;
+  sc.drawImage(sono,-cw,0);
+  sc.fillStyle='#000'; sc.fillRect(w-cw,0,cw,h);
+  const bh=h/BANDS;
+  for(let i=0;i<BANDS;i++){
+    const v=clamp(target[i],0,1);
+    if(v<=.004) continue;
+    const y=h-(i+1)*bh;
+    sc.fillStyle=ramp(v);
+    sc.fillRect(w-cw,y,cw,Math.ceil(bh));
+  }
+}
+function ramp(v){
+  // siyah → koyu kızıl → kehribar → kemik
+  if(v<.35){const t=v/.35;return `rgb(${Math.round(60*t+8)},${Math.round(16*t)},${Math.round(4*t)})`;}
+  if(v<.75){const t=(v-.35)/.4;return `rgb(${Math.round(68+174*t)},${Math.round(16+144*t)},${Math.round(4+57*t)})`;}
+  const t=(v-.75)/.25;
+  return `rgb(${Math.round(242+13*t)},${Math.round(160+55*t)},${Math.round(61+94*t)})`;
+}
+
+/* ============================================================
+   6. DÖNGÜ
+   ============================================================ */
+let frames=0, fpsT=performance.now();
+
+function tick(now){
+  const t=now/1000;
+  const dt=S.lastT? Math.min(.2, t-S.lastT) : .033;
+  S.lastT=t;
+
+  if(ctx && !vid.paused && vid.readyState>=2){
+    if(analyse()){
+      if(S.mode==='feature'){ silenceBank(); driveFeature(); }
+      else { silencePad(); driveBank(dt); }
+      const m=stats.motion*(4+S.motionSens*26);
+      if(m>.35+ (1-S.motionSens)*1.2 && stats.motion>motionAvg*1.35) hit(clamp(m*.6,0,1),stats.hue);
+    }
+  }
+  drawOverlay();
+  drawSono();
+
+  frames++;
+  if(now-fpsT>500){
+    $('hud-fps').textContent=Math.round(frames*1000/(now-fpsT))+' fps';
+    frames=0; fpsT=now;
+    updateMeters();
+  }
+  schedule();
+}
+function schedule(){
+  if(vid.requestVideoFrameCallback && !vid.paused && vid.readyState>=2)
+    vid.requestVideoFrameCallback(t=>tick(t));
+  else requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+
+function updateMeters(){
+  const db=stats.rms>0.0005? (20*Math.log10(stats.rms)) : -Infinity;
+  $('m-rms').textContent= db===-Infinity? '−∞ dB' : db.toFixed(1)+' dB';
+  $('m-lum').textContent=stats.lum.toFixed(2);
+  $('m-mot').textContent=stats.motion.toFixed(3);
+  $('m-act').textContent=stats.active;
+  const col=`hsl(${Math.round(stats.hue*360)} ${Math.round(stats.sat*100)}% ${Math.round(clamp(stats.lum,.15,.75)*100)}%)`;
+  $('m-sw').style.background=col;
+  $('m-hue').lastElementChild.textContent=Math.round(stats.hue*360)+'°';
+}
+
+/* ============================================================
+   7. KAYNAKLAR
+   ============================================================ */
+let demoRAF=null;
+function stopDemo(){ if(demoRAF){cancelAnimationFrame(demoRAF);demoRAF=null;} }
+function stopCam(){
+  const s=vid.srcObject;
+  if(s && s.getTracks) s.getTracks().forEach(t=>t.stop());
+  vid.srcObject=null;
+}
+
+function ready(label){
+  $('empty').hidden=true;
+  $('badge').textContent=label;
+  $('btn-play').disabled=false;
+}
+
+$('file').addEventListener('change',e=>{
+  const f=e.target.files[0]; if(!f) return;
+  stopDemo(); stopCam();
+  vid.src=URL.createObjectURL(f); vid.loop=true;
+  ready(f.name.slice(0,28));
+  start();
+});
+
+$('btn-cam').addEventListener('click',async()=>{
+  stopDemo();
+  try{
+    const st=await navigator.mediaDevices.getUserMedia({video:{width:640,height:360},audio:false});
+    vid.src=''; vid.srcObject=st;
+    ready('kamera');
+    start();
+  }catch(err){
+    $('empty').hidden=false;
+    $('empty').innerHTML='Kameraya erişilemedi. Tarayıcı izni gerekiyor, ya da bu sayfa güvenli bağlamda (https) değil.';
+  }
+});
+
+$('btn-demo').addEventListener('click',()=>{
+  stopCam();
+  const c=document.createElement('canvas'); c.width=640; c.height=360;
+  const g=c.getContext('2d');
+  let k=0;
+  (function draw(){
+    k+=0.016;
+    g.fillStyle='#050408'; g.fillRect(0,0,640,360);
+    for(let i=0;i<5;i++){
+      const x=320+Math.cos(k*(.5+i*.27)+i)*250;
+      const y=180+Math.sin(k*(.7+i*.19)+i*2)*140;
+      const r=60+Math.sin(k*1.7+i)*38;
+      const gr=g.createRadialGradient(x,y,0,x,y,r);
+      gr.addColorStop(0,`hsla(${(i*67+k*40)%360},85%,62%,.95)`);
+      gr.addColorStop(1,'hsla(0,0%,0%,0)');
+      g.fillStyle=gr; g.beginPath(); g.arc(x,y,r,0,7); g.fill();
+    }
+    const by=180+Math.sin(k*3.1)*150;
+    g.fillStyle='#fff'; g.fillRect(40+((k*180)%560),by-14,26,26);
+    for(let i=0;i<8;i++){
+      g.fillStyle=`rgba(255,255,255,${.05+.05*Math.sin(k*2+i)})`;
+      g.fillRect(0,i*45,640,3);
+    }
+    demoRAF=requestAnimationFrame(draw);
+  })();
+  vid.src=''; vid.srcObject=c.captureStream(30);
+  ready('test deseni');
+  start();
+});
+
+function start(){
+  initAudio();
+  if(ctx.state==='suspended') ctx.resume();
+  vid.play().then(()=>{ S.running=true; $('btn-play').textContent='Duraklat'; schedule(); }).catch(()=>{});
+}
+
+$('btn-play').addEventListener('click',()=>{
+  initAudio(); if(ctx.state==='suspended') ctx.resume();
+  if(vid.paused){ vid.play(); $('btn-play').textContent='Duraklat'; schedule(); }
+  else { vid.pause(); $('btn-play').textContent='Oynat'; silenceBank(); silencePad(); }
+});
+
+/* ============================================================
+   8. KONTROL BAĞLARI
+   ============================================================ */
+document.querySelectorAll('.mode').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('.mode').forEach(x=>x.setAttribute('aria-pressed', x===b));
+    S.mode=b.dataset.mode;
+    $('knob-scan').hidden = S.mode!=='scan';
+    silenceBank(); silencePad();
+  });
+});
+
+function bind(id,fn,fmt){
+  const el=$(id), out=$('o-'+id);
+  const run=()=>{ const v=parseFloat(el.value); fn(v); if(out) out.textContent=fmt?fmt(v):v; };
+  el.addEventListener('input',run); run();
+}
+bind('bands',v=>{ BANDS=v|0; resizeAnalysis(); if(ctx){buildBank();} },v=>v|0);
+bind('fmin',v=>{S.fmin=v;retune();},v=>v+' Hz');
+bind('fmax',v=>{S.fmax=v;retune();},v=>v+' Hz');
+bind('gate',v=>S.gate=v,v=>v.toFixed(2));
+bind('gamma',v=>S.gamma=v,v=>v.toFixed(1));
+bind('glide',v=>S.glide=v/1000,v=>v+' ms');
+bind('scanrate',v=>S.scanRate=v,v=>v.toFixed(1)+' tur/sn');
+bind('motion',v=>S.motionSens=v,v=>v.toFixed(2));
+bind('vol',v=>{S.vol=v; if(master&&!S.muted) master.gain.setTargetAtTime(dbToGain(v),ctx.currentTime,.05);},v=>v+' dB');
+bind('rev',v=>{S.rev=v/100; if(dry){dry.gain.value=1-S.rev; wet.gain.value=S.rev;}},v=>v+' %');
+
+$('scale').addEventListener('change',e=>{S.scale=e.target.value;retune();});
+$('invert').addEventListener('change',e=>S.invert=e.target.checked);
+$('perc').addEventListener('change',e=>S.perc=e.target.checked);
+
+$('btn-mute').addEventListener('click',e=>{
+  S.muted=!S.muted;
+  e.target.classList.toggle('on',S.muted);
+  e.target.textContent=S.muted?'Sesi aç':'Sustur';
+  if(master) master.gain.setTargetAtTime(S.muted?0:dbToGain(S.vol),ctx.currentTime,.03);
+});
+
+/* ---------- kayıt ---------- */
+let mr=null, chunks=[];
+$('btn-rec').addEventListener('click',e=>{
+  initAudio();
+  if(mr && mr.state==='recording'){ mr.stop(); return; }
+  chunks=[];
+  const mime=MediaRecorder.isTypeSupported('audio/webm;codecs=opus')?'audio/webm;codecs=opus':'audio/webm';
+  try{ mr=new MediaRecorder(recDest.stream,{mimeType:mime}); }
+  catch(err){ $('dl').hidden=false; $('dl').textContent='Bu tarayıcı ses kaydını desteklemiyor.'; return; }
+  mr.ondataavailable=ev=>{ if(ev.data.size) chunks.push(ev.data); };
+  mr.onstop=()=>{
+    const blob=new Blob(chunks,{type:'audio/webm'});
+    const url=URL.createObjectURL(blob);
+    const d=$('dl'); d.hidden=false;
+    d.innerHTML=`<a href="${url}" download="optik-ses-${Date.now()}.webm">kaydı indir (${(blob.size/1024).toFixed(0)} KB)</a>`;
+    e.target.classList.remove('on'); e.target.textContent='Kaydet';
+  };
+  mr.start();
+  e.target.classList.add('on'); e.target.textContent='Durdur';
+});
+
+/* ---------- klavye ---------- */
+document.addEventListener('keydown',e=>{
+  if(e.target.matches('input,select,button')) return;
+  if(e.code==='Space'){ e.preventDefault(); $('btn-play').click(); }
+});
+
+/* dosya etiketi klavyeyle açılsın */
+document.querySelector('label.filebtn').addEventListener('keydown',e=>{
+  if(e.key==='Enter'||e.key===' '){ e.preventDefault(); $('file').click(); }
+});
+
+// şerit arkaplanı
+sc.fillStyle='#000'; sc.fillRect(0,0,sono.width,sono.height);
+})();
+</script>
+</body>
+</html>
