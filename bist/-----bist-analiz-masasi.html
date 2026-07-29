@@ -150,10 +150,10 @@ footer{margin-top:36px;font-size:12px;color:#5A667F}
     </div>
   </div>
   <div style="margin-top:12px" class="izgara">
-    <label class="onay"><input type="checkbox" id="haberAcik" checked> Haber başlıklarını dahil et (CORS proxy üzerinden; ulaşılamazsa sessizce atlanır)</label>
+    <label class="onay"><input type="checkbox" id="haberAcik" checked> Haber başlıklarını dahil et (önce proxy, olmazsa proxysiz denenir; ulaşılamazsa sessizce atlanır)</label>
     <div>
       <label for="proxy">CORS proxy öneki (haberler için)</label>
-      <input type="text" id="proxy" value="https://api.allorigins.win/raw?url=">
+      <input type="text" id="proxy" value="https://mycors.recepyeni.workers.dev/?url=">
     </div>
   </div>
   <p class="ipucu">Anahtar yalnızca bu tarayıcının yerel depolamasında tutulur ve doğrudan Google'a gider; başka hiçbir sunucuya gitmez. Ücretsiz anahtar: aistudio.google.com</p>
@@ -192,7 +192,7 @@ footer{margin-top:36px;font-size:12px;color:#5A667F}
   </div>
 </section>
 
-<footer>BIST Analiz Masası · veriler: TradingView scanner + Google News RSS · yorum: Google Gemini · tüm veriler yerelde saklanır</footer>
+<footer>BIST Analiz Masası · veriler: TradingView scanner + GDELT/Dünya Gazetesi haber araması · yorum: Google Gemini · tüm veriler yerelde saklanır</footer>
 </div>
 
 <script>
@@ -281,6 +281,22 @@ function rssBasliklar(xml,N){
   }
   return haberler;
 }
+function gdeltAyikla(metin,N){
+  var haberler=[];
+  try{
+    var d=JSON.parse(metin);
+    var arts=(d&&d.articles)||[];
+    for(var i=0;i<arts.length&&haberler.length<N;i++){
+      var a=arts[i]||{};
+      var baslik=String(a.title||"").trim();
+      if(!baslik) continue;
+      var sd=String(a.seendate||"");
+      var tarih=(sd.length>=8)?(sd.slice(6,8)+"."+sd.slice(4,6)+"."+sd.slice(0,4)):"";
+      haberler.push({baslik:baslik.slice(0,200),tarih:tarih});
+    }
+  }catch(e){}
+  return haberler;
+}
 
 function promptKur(bugun,pazar,portfoy,adaylar){
   return 'You are an experienced analyst of the Turkish stock market (Borsa Istanbul, BIST). Today is '+bugun+'.\n'+
@@ -325,10 +341,9 @@ function jsonAyikla(raw){
 var DKEY="bist_masa_v1";
 function varsayilanDurum(){
   return {
-    ayarlar:{geminiKey:"",model:"gemini-3.5-flash",adaySayisi:5,haberSayisi:3,haberAcik:true,proxy:"https://api.allorigins.win/raw?url="},
+    ayarlar:{geminiKey:"",model:"gemini-3.5-flash",adaySayisi:5,haberSayisi:3,haberAcik:true,proxy:"https://mycors.recepyeni.workers.dev/?url="},
     portfoy:[{sembol:"",adet:"",maliyet:""}],
-    sonRapor:null,
-    hazirlik:null
+    sonRapor:null
   };
 }
 var durumVeri=varsayilanDurum();
@@ -340,7 +355,11 @@ function depoYukle(){
       durumVeri.ayarlar=Object.assign(varsayilanDurum().ayarlar,d.ayarlar||{});
       durumVeri.portfoy=(Array.isArray(d.portfoy)&&d.portfoy.length)?d.portfoy:varsayilanDurum().portfoy;
       durumVeri.sonRapor=d.sonRapor||null;
-      durumVeri.hazirlik=d.hazirlik||null;
+      /* eski allorigins kaydini yeni proxy ile degistir (tek seferlik gecis) */
+      if(durumVeri.ayarlar.proxy==="https://api.allorigins.win/raw?url="){
+        durumVeri.ayarlar.proxy="https://mycors.recepyeni.workers.dev/?url=";
+        depoKaydet();
+      }
     }
   }catch(e){}
 }
@@ -465,32 +484,98 @@ async function taramaCek(){
   if(!r.ok) throw new Error("TradingView "+r.status+" döndü");
   return r.json();
 }
-async function haberCek(sembol,proxy,N){
+async function genelHaberCek(proxy){
+  var hedef="https://www.dunya.com/rss?category=ekonomi";
+  if(proxy){
+    try{
+      var r=await zamanAsimliFetch(proxy+encodeURIComponent(hedef),{},9000);
+      if(r.ok){
+        var h=rssBasliklar(await r.text(),50);
+        if(h.length) return h;
+      }
+    }catch(e){}
+  }
   try{
-    var hedef="https://news.google.com/rss/search?q="+encodeURIComponent(sembol+" hisse")+"&hl=tr&gl=TR&ceid=TR:tr";
-    var r=await zamanAsimliFetch(proxy+encodeURIComponent(hedef),{},9000);
-    if(!r.ok) return [];
-    return rssBasliklar(await r.text(),N);
+    var r2=await zamanAsimliFetch(hedef,{},9000);
+    if(!r2.ok) return [];
+    return rssBasliklar(await r2.text(),50);
   }catch(e){ return []; }
+}
+function genelDenSuz(genel,sembol,ad,N){
+  if(!genel||!genel.length) return [];
+  var s=String(sembol||"").toUpperCase();
+  var a=String(ad||"").toUpperCase();
+  return genel.filter(function(h){
+    var b=String(h.baslik||"").toUpperCase();
+    return (s.length>=3&&b.indexOf(s)>=0)||(a.length>2&&b.indexOf(a)>=0);
+  }).slice(0,N);
+}
+async function haberCek(sembol,proxy,N,genel,ad){
+  var hedef="https://api.gdeltproject.org/api/v2/doc/doc?query="+encodeURIComponent(sembol+" hisse sourcelang:tur")+"&mode=artlist&format=json&maxrecords="+N+"&sort=datedesc";
+  /* 1) GDELT proxy uzerinden dene (CORS header vermiyor, tarayicidan dogrudan cogu zaman calismaz) */
+  if(proxy){
+    try{
+      var r=await zamanAsimliFetch(proxy+encodeURIComponent(hedef),{},9000);
+      if(r.ok){
+        var h=gdeltAyikla(await r.text(),N);
+        if(h.length) return h;
+      }
+    }catch(e){}
+  }
+  /* 2) GDELT proxysiz dogrudan dene (yine de bir sans) */
+  try{
+    var r2=await zamanAsimliFetch(hedef,{},9000);
+    if(r2.ok){
+      var h2=gdeltAyikla(await r2.text(),N);
+      if(h2.length) return h2;
+    }
+  }catch(e){}
+  /* 3) GDELT basarisiz olduysa: genel ekonomi feed'inde sembol/sirket adi gecen basliklari filtrele */
+  return genelDenSuz(genel,sembol,ad,N);
 }
 async function geminiCagir(anahtar,model,prompt){
   var govde={contents:[{parts:[{text:prompt}]}],
     generationConfig:{responseMimeType:"application/json",temperature:0.3,maxOutputTokens:8192}};
-  var r=await zamanAsimliFetch("https://generativelanguage.googleapis.com/v1beta/models/"+encodeURIComponent(model)+":generateContent?key="+encodeURIComponent(anahtar),
-    {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(govde)},120000);
-  var zarf=await r.json();
-  if(zarf.error){
-    var m=zarf.error.message||("HTTP "+r.status);
-    if(r.status===400||r.status===403) m="Anahtar veya model reddedildi: "+m;
-    if(r.status===429) m="Gemini kota sınırı (free tier): birkaç dakika sonra tekrar deneyin.";
-    throw new Error(m);
+  var url="https://generativelanguage.googleapis.com/v1beta/models/"+encodeURIComponent(model)+":generateContent?key="+encodeURIComponent(anahtar);
+  var MAKS_DENEME=4,sonHata=null;
+  for(var deneme=1;deneme<=MAKS_DENEME;deneme++){
+    var r;
+    try{
+      r=await zamanAsimliFetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(govde)},120000);
+    }catch(agHatasi){
+      sonHata=agHatasi;
+      if(deneme<MAKS_DENEME){
+        var bms=Math.min(20000,2000*Math.pow(2,deneme-1));
+        durum("Bağlantı sorunu, "+Math.round(bms/1000)+"sn sonra tekrar denenecek ("+deneme+"/"+MAKS_DENEME+")…");
+        await new Promise(function(c){setTimeout(c,bms);});
+        continue;
+      }
+      throw (agHatasi&&agHatasi.name==="AbortError"?new Error("İstek zaman aşımına uğradı — bağlantıyı kontrol edin."):agHatasi);
+    }
+    var zarf=await r.json();
+    if(zarf.error){
+      var m=zarf.error.message||("HTTP "+r.status);
+      var asiriTalep=r.status===503||/overloaded|high demand|UNAVAILABLE/i.test(m);
+      var kotaSinirlandi=r.status===429;
+      if((asiriTalep||kotaSinirlandi)&&deneme<MAKS_DENEME){
+        var bms2=Math.min(20000,2000*Math.pow(2,deneme-1))+Math.floor(Math.random()*800);
+        durum("Gemini yoğun ("+r.status+"), "+Math.round(bms2/1000)+"sn sonra tekrar denenecek ("+deneme+"/"+MAKS_DENEME+")…");
+        await new Promise(function(c){setTimeout(c,bms2);});
+        continue;
+      }
+      if(r.status===400||r.status===403) m="Anahtar veya model reddedildi: "+m;
+      if(kotaSinirlandi) m="Gemini kota sınırı (free tier): birkaç dakika sonra tekrar deneyin.";
+      if(asiriTalep) m="Gemini şu an aşırı yoğun (high demand); "+MAKS_DENEME+" deneme sonunda da başarısız oldu, birkaç dakika sonra tekrar deneyin.";
+      throw new Error(m);
+    }
+    var cand=(zarf.candidates&&zarf.candidates[0])||{};
+    var fr=cand.finishReason||"";
+    var raw="";
+    try{ raw=cand.content.parts.map(function(p){return p.text||"";}).join(""); }catch(e){}
+    if(!raw.trim()) throw new Error("Gemini boş yanıt döndü (finishReason: "+(fr||"yok")+"). Tekrar deneyin.");
+    return jsonAyikla(raw);
   }
-  var cand=(zarf.candidates&&zarf.candidates[0])||{};
-  var fr=cand.finishReason||"";
-  var raw="";
-  try{ raw=cand.content.parts.map(function(p){return p.text||"";}).join(""); }catch(e){}
-  if(!raw.trim()) throw new Error("Gemini boş yanıt döndü (finishReason: "+(fr||"yok")+"). Tekrar deneyin.");
-  return jsonAyikla(raw);
+  throw sonHata||new Error("Gemini isteği başarısız oldu.");
 }
 
 /* ---------- Analiz hatti ---------- */
@@ -502,59 +587,46 @@ async function analiz(){
   if(!a.geminiKey){ durum("Önce Gemini API anahtarını gir (aistudio.google.com'dan ücretsiz).","hata"); return; }
   calisiyor=true; $("analizBtn").disabled=true;
   try{
-    var pazar,portfoy,adaylar,bugun;
-    var imza=JSON.stringify({p:temizPortfoy(),a:a.adaySayisi,h:a.haberSayisi,ho:a.haberAcik});
-    var hz=durumVeri.hazirlik;
-    var TAZE=30*60*1000; /* 30 dk: fiyat verisi bayatlamadan devam edilebilir */
-    if(hz&&hz.imza===imza&&(Date.now()-hz.zamanMs)<TAZE){
-      pazar=hz.pazar; portfoy=hz.portfoy; adaylar=hz.adaylar; bugun=hz.bugun;
-      durum("Hazır veri bulundu ("+Math.round((Date.now()-hz.zamanMs)/60000)+" dk önce) — kaldığı yerden devam ediliyor…");
-    }else{
-      durum("1/4 · BIST taranıyor (TradingView)…");
-      var scan=await taramaCek();
-      var rows=satirlariCoz(scan);
-      if(!rows.length) throw new Error("Tarama boş döndü — piyasa tatili olabilir.");
-      pazar=pazarHesapla(rows);
-      bantCiz(rows);
+    durum("1/4 · BIST taranıyor (TradingView)…");
+    var scan=await taramaCek();
+    var rows=satirlariCoz(scan);
+    if(!rows.length) throw new Error("Tarama boş döndü — piyasa tatili olabilir.");
+    var pazar=pazarHesapla(rows);
+    bantCiz(rows);
 
-      var portfoyGiris=temizPortfoy();
-      portfoy=portfoyGiris.map(function(p){
-        var m=rows.find(function(r){return r.sembol===p.sembol;})||null;
-        return {sembol:p.sembol,adet:p.adet,maliyet:p.maliyet,veri:m?ozet(m):null,bulunamadi:!m,haberler:[]};
-      });
-      var adayHam=adaySec(rows,portfoyGiris.map(function(p){return p.sembol;}),a.adaySayisi);
-      adaylar=adayHam.map(function(r){return {sembol:r.sembol,veri:ozet(r),skor:r.skor,haberler:[]};});
-      if(!portfoy.length&&!adaylar.length) throw new Error("Portföy boş ve filtreyi geçen aday yok — en az bir hisse ekleyin.");
+    var portfoyGiris=temizPortfoy();
+    var portfoy=portfoyGiris.map(function(p){
+      var m=rows.find(function(r){return r.sembol===p.sembol;})||null;
+      return {sembol:p.sembol,adet:p.adet,maliyet:p.maliyet,veri:m?ozet(m):null,bulunamadi:!m,haberler:[]};
+    });
+    var adayHam=adaySec(rows,portfoyGiris.map(function(p){return p.sembol;}),a.adaySayisi);
+    var adaylar=adayHam.map(function(r){return {sembol:r.sembol,veri:ozet(r),skor:r.skor,haberler:[]};});
+    if(!portfoy.length&&!adaylar.length) throw new Error("Portföy boş ve filtreyi geçen aday yok — en az bir hisse ekleyin.");
 
-      if(a.haberAcik&&a.haberSayisi>0&&a.proxy){
-        var hedefler=portfoy.concat(adaylar).slice(0,20);
-        for(var i=0;i<hedefler.length;i++){
-          durum("2/4 · Haberler: "+hedefler[i].sembol+" ("+(i+1)+"/"+hedefler.length+")…");
-          hedefler[i].haberler=await haberCek(hedefler[i].sembol,a.proxy,a.haberSayisi);
-          await new Promise(function(c){setTimeout(c,1200);});
-        }
+    if(a.haberAcik&&a.haberSayisi>0){
+      durum("2/4 · Genel ekonomi haberleri çekiliyor…");
+      var genel=await genelHaberCek(a.proxy);
+      var hedefler=portfoy.concat(adaylar).slice(0,20);
+      for(var i=0;i<hedefler.length;i++){
+        durum("2/4 · Haberler: "+hedefler[i].sembol+" ("+(i+1)+"/"+hedefler.length+")…");
+        var ad=(hedefler[i].veri&&hedefler[i].veri.ad)||"";
+        hedefler[i].haberler=await haberCek(hedefler[i].sembol,a.proxy,a.haberSayisi,genel,ad);
+        await new Promise(function(c){setTimeout(c,9000);}); /* GDELT 429'lariyla karsilasildi, bekleme artirildi */
       }
-
-      bugun=new Date().toLocaleDateString("tr-TR");
-      /* KONTROL NOKTASI: Gemini patlarsa bu hazırlık boşa gitmesin */
-      durumVeri.hazirlik={imza:imza,zamanMs:Date.now(),pazar:pazar,portfoy:portfoy,adaylar:adaylar,bugun:bugun};
-      depoKaydet();
     }
 
     durum("3/4 · Gemini değerlendiriyor…");
+    var bugun=new Date().toLocaleDateString("tr-TR");
     var prompt=promptKur(bugun,pazar,portfoy,adaylar);
     var rapor=await geminiCagir(a.geminiKey,a.model,prompt);
 
     durum("4/4 · Rapor hazırlanıyor…");
     var paket={tarih:bugun,zaman:new Date().toLocaleString("tr-TR"),pazar:pazar,portfoy:portfoy,adaylar:adaylar,rapor:rapor};
-    durumVeri.sonRapor=paket;
-    durumVeri.hazirlik=null; /* başarı: sonraki analiz taze veriyle başlasın */
-    depoKaydet();
+    durumVeri.sonRapor=paket; depoKaydet();
     raporCiz(paket);
     durum("Rapor hazır · "+paket.zaman,"tamam");
   }catch(e){
     var mesaj=e&&e.name==="AbortError"?"İstek zaman aşımına uğradı — bağlantıyı kontrol edin.":(e.message||String(e));
-    if(durumVeri.hazirlik) mesaj+=" — Hazırlık kaydedildi: 'Analiz et'e tekrar bas, kaldığı yerden devam eder.";
     durum("Hata: "+mesaj,"hata");
   }finally{
     calisiyor=false; $("analizBtn").disabled=false;
