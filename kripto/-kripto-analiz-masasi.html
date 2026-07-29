@@ -37,11 +37,11 @@ header{margin-bottom:26px}
 
 .izgara{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
 label{display:block;font-size:12px;color:var(--soluk);margin-bottom:5px}
-input[type=text],input[type=password],input[type=number],input[type=date],select{
+input[type=text],input[type=password],input[type=number]{
   width:100%;background:var(--zemin);border:1px solid var(--cizgi);border-radius:6px;
   color:var(--murekkep);padding:9px 10px;font:inherit;font-family:"JetBrains Mono",monospace;font-size:13px;
 }
-input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid var(--siyan);outline-offset:1px}
+input:focus-visible,button:focus-visible{outline:2px solid var(--siyan);outline-offset:1px}
 .satirici{display:flex;gap:8px;align-items:center}
 .goz{background:none;border:1px solid var(--cizgi);border-radius:6px;color:var(--soluk);padding:8px 10px;cursor:pointer}
 .onay{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--soluk);cursor:pointer}
@@ -117,76 +117,7 @@ td input{padding:8px 9px}
 #raporBolge{display:none}
 #nabizBolge{display:none}
 .zaman{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--soluk);margin-left:auto}
-/* Sekmeler */
-.sekmeler{display:flex;gap:6px;border-bottom:1px solid var(--cizgi);margin-bottom:20px;flex-wrap:wrap}
-.sekme{
-  background:none;border:none;border-bottom:2px solid transparent;color:var(--soluk);
-  font:inherit;font-size:14px;font-weight:600;padding:10px 14px;cursor:pointer;margin-bottom:-1px;
-}
-.sekme:hover{color:var(--murekkep)}
-.sekme[aria-selected="true"]{color:var(--siyan);border-bottom-color:var(--siyan)}
-.panel[hidden]{display:none}
-
-/* Diyalog */
-dialog{
-  background:var(--panel);color:var(--murekkep);border:1px solid var(--cizgi);border-radius:12px;
-  padding:0;width:min(440px,calc(100vw - 32px));
-}
-dialog::backdrop{background:rgba(5,8,16,.72)}
-.dlg-ic{padding:20px}
-.dlg-ic h3{font-size:18px;font-weight:700;margin-bottom:4px}
-.dlg-alt{font-size:12.5px;color:var(--soluk);margin-bottom:16px}
-.dlg-satir{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
-.dlg-tek{margin-bottom:12px}
-.dlg-eylem{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}
-.dlg-uyari{font-size:12.5px;color:var(--dusen);min-height:18px;margin-top:4px}
-.dlg-ozet{background:var(--panel2);border-radius:8px;padding:10px 12px;font-family:"JetBrains Mono",monospace;font-size:13px;color:var(--soluk)}
-.tip-sec{display:flex;gap:8px;margin-bottom:14px}
-.tip-btn{flex:1;background:var(--zemin);border:1px solid var(--cizgi);color:var(--soluk);border-radius:8px;padding:9px;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
-.tip-btn[aria-pressed="true"]{border-color:var(--siyan);color:var(--siyan);background:rgba(77,217,232,.08)}
-
-/* Satir ici eylem butonlari */
-.mini{
-  background:none;border:1px solid var(--cizgi);color:var(--murekkep);border-radius:6px;
-  font:inherit;font-size:12px;font-weight:600;padding:4px 11px;cursor:pointer;
-}
-.mini:hover{border-color:var(--siyan);color:var(--siyan)}
-.mini.sat:hover{border-color:var(--dusen);color:var(--dusen)}
-
-/* Istatistik kartlari */
-.ist-izgara{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:12px;margin-bottom:6px}
-.ist-kutu{background:var(--panel2);border:1px solid var(--cizgi);border-radius:9px;padding:13px 14px}
-.ist-ad{font-size:11.5px;color:var(--soluk);letter-spacing:.04em;margin-bottom:6px}
-.ist-deger{font-family:"JetBrains Mono",monospace;font-size:19px;font-weight:700;line-height:1.2;word-break:break-all}
-.ist-ek{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--soluk);margin-top:3px}
-.art{color:var(--yukselen)} .eks{color:var(--dusen)}
-
-/* Veri tablolari */
-.vt{width:100%;border-collapse:collapse;font-size:13.5px}
-.vt th{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--soluk);text-align:left;padding:8px 10px 8px 0;border-bottom:1px solid var(--cizgi);white-space:nowrap}
-.vt td{padding:9px 10px 9px 0;border-bottom:1px solid var(--cizgi);vertical-align:middle}
-.vt tr:last-child td{border-bottom:none}
-.vt .sag{text-align:right}
-.vt .mono{font-family:"JetBrains Mono",monospace}
-.sarmal{overflow-x:auto}
-.rozet{font-family:"JetBrains Mono",monospace;font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;border:1px solid}
-.rozet.alim{color:var(--yukselen);border-color:var(--yukselen);background:rgba(62,207,142,.08)}
-.rozet.satim{color:var(--dusen);border-color:var(--dusen);background:rgba(240,97,107,.08)}
-
-/* Dagilim cubuklari */
-.dag-satir{display:grid;grid-template-columns:62px 1fr 92px;gap:10px;align-items:center;margin-bottom:9px}
-.dag-ad{font-family:"JetBrains Mono",monospace;font-size:13px;font-weight:700}
-.dag-yol{height:8px;background:var(--zemin);border-radius:4px;overflow:hidden}
-.dag-dolu{height:100%;background:linear-gradient(90deg,var(--siyan),var(--mor));border-radius:4px}
-.dag-deger{font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--soluk);text-align:right}
-
-/* Deger gecmisi grafigi */
-.grafik{width:100%;height:132px;display:block}
-.grafik .cizgi{fill:none;stroke:var(--siyan);stroke-width:2}
-.grafik .alan{fill:url(#grad);opacity:.28}
-.bos-durum{color:var(--soluk);font-size:13.5px;padding:14px 0}
 footer{margin-top:36px;font-size:12px;color:#59657E}
-
 @media(max-width:560px){.eylemler{flex-direction:column;align-items:stretch}.birincil,.ikincil{width:100%}}
 </style>
 </head>
@@ -198,14 +129,6 @@ footer{margin-top:36px;font-size:12px;color:#59657E}
   <h1>Kripto Analiz Masası</h1>
   <p class="altbaslik">Portföyündeki her coin için EKLE / TUT / AZALT / SAT kararı, yeni kısa-orta vade adaylar ve piyasa nabzı. Veri TradingView coin tarayıcısından, yorum Gemini'den; her şey bu tarayıcıda kalır.</p>
 </header>
-
-<nav class="sekmeler" role="tablist" aria-label="Bölümler">
-  <button class="sekme" id="sekmeAnaliz" role="tab" aria-selected="true" aria-controls="panelAnaliz" type="button">Analiz</button>
-  <button class="sekme" id="sekmeIslemler" role="tab" aria-selected="false" aria-controls="panelIslemler" type="button">İşlemler</button>
-  <button class="sekme" id="sekmeIstatistik" role="tab" aria-selected="false" aria-controls="panelIstatistik" type="button">İstatistik</button>
-</nav>
-
-<div class="panel" id="panelAnaliz" role="tabpanel" aria-labelledby="sekmeAnaliz">
 
 <section class="kart">
   <h2>Ayarlar</h2>
@@ -243,13 +166,6 @@ footer{margin-top:36px;font-size:12px;color:#59657E}
     <div>
       <label for="proxy">CORS proxy öneki (haberler için)</label>
       <input type="text" id="proxy" value="https://api.allorigins.win/raw?url=">
-    </div>
-    <div>
-      <label for="maliyetYontemi">Maliyet esası yöntemi</label>
-      <select id="maliyetYontemi">
-        <option value="fifo">FIFO — ilk giren ilk çıkar</option>
-        <option value="ortalama">Ortalama maliyet</option>
-      </select>
     </div>
   </div>
   <p class="ipucu">Anahtar yalnızca bu tarayıcının yerel depolamasında tutulur ve doğrudan Google'a gider. Ücretsiz anahtar: aistudio.google.com · Stablecoin'ler aday listesinden otomatik elenir.</p>
@@ -308,93 +224,6 @@ footer{margin-top:36px;font-size:12px;color:#59657E}
     <p class="uyari">⚠️ Bu rapor bilgilendirme amaçlıdır, yatırım tavsiyesi değildir. Kripto piyasası 7/24 açıktır ve oynaklığı yüksektir; göstergeler geçmiş fiyat hareketini özetler, geleceği garanti etmez. Test: Çöğüş işini böyle yapmışsın ✅</p>
   </div>
 </section>
-
-</div><!-- /panelAnaliz -->
-
-<div class="panel" id="panelIslemler" role="tabpanel" aria-labelledby="sekmeIslemler" hidden>
-  <section class="kart">
-    <h2>İşlem defteri <span class="zaman" id="islemSayaci"></span></h2>
-    <div class="eylemler" style="margin:0 0 16px">
-      <button class="birincil" id="islemEkleBtn" type="button" style="font-size:14px;padding:11px 20px">+ İşlem ekle</button>
-      <button class="ikincil" id="fiyatYenileBtn" type="button">Fiyatları yenile</button>
-    </div>
-    <div class="sarmal">
-      <table class="vt">
-        <thead><tr>
-          <th>Tarih</th><th>Tip</th><th>Coin</th>
-          <th class="sag">Miktar</th><th class="sag">Fiyat</th><th class="sag">Tutar</th>
-          <th class="sag">Ücret</th><th>Not</th><th></th>
-        </tr></thead>
-        <tbody id="islemGovde"></tbody>
-      </table>
-    </div>
-    <p class="bos-durum" id="islemBos" hidden>Henüz işlem yok. Analiz sekmesindeki aday önerilerinin yanındaki <strong>+ Ekle</strong> düğmesiyle ya da yukarıdaki <strong>+ İşlem ekle</strong> ile başlayabilirsin.</p>
-    <p class="ipucu">Bir işlem eklediğinde ilgili coinin portföy satırı (miktar ve ortalama maliyet) otomatik güncellenir.</p>
-  </section>
-</div>
-
-<div class="panel" id="panelIstatistik" role="tabpanel" aria-labelledby="sekmeIstatistik" hidden>
-  <div id="istIcerik"></div>
-</div>
-
-<dialog id="islemDialog" aria-labelledby="dlgBaslik">
-  <div class="dlg-ic">
-    <h3 id="dlgBaslik">İşlem ekle</h3>
-    <p class="dlg-alt" id="dlgAlt"></p>
-
-    <div class="tip-sec" id="tipSec">
-      <button class="tip-btn" id="tipAlim" type="button" aria-pressed="true">Alım</button>
-      <button class="tip-btn" id="tipSatim" type="button" aria-pressed="false">Satım</button>
-    </div>
-
-    <div class="dlg-tek">
-      <label for="dlgSembol">Coin</label>
-      <input type="text" id="dlgSembol" placeholder="BTC" maxlength="12" style="text-transform:uppercase">
-    </div>
-
-    <div class="dlg-satir">
-      <div>
-        <label for="dlgFiyat">Birim fiyat ($)</label>
-        <input type="text" id="dlgFiyat" inputmode="decimal" autofocus>
-        <div class="ist-ek" id="dlgFiyatNot" aria-live="polite"></div>
-      </div>
-      <div>
-        <label for="dlgTarih">Tarih</label>
-        <input type="date" id="dlgTarih">
-      </div>
-    </div>
-
-    <div class="dlg-satir">
-      <div>
-        <label for="dlgMiktar">Miktar</label>
-        <input type="text" id="dlgMiktar" inputmode="decimal" placeholder="0,5">
-      </div>
-      <div>
-        <label for="dlgTutar">veya tutar ($)</label>
-        <input type="text" id="dlgTutar" inputmode="decimal" placeholder="500">
-      </div>
-    </div>
-
-    <div class="dlg-satir">
-      <div>
-        <label for="dlgUcret">Komisyon ($)</label>
-        <input type="text" id="dlgUcret" inputmode="decimal" placeholder="0">
-      </div>
-      <div>
-        <label for="dlgNot">Not</label>
-        <input type="text" id="dlgNot" maxlength="60" placeholder="isteğe bağlı">
-      </div>
-    </div>
-
-    <div class="dlg-ozet" id="dlgOzet">—</div>
-    <div class="dlg-uyari" id="dlgUyari"></div>
-
-    <div class="dlg-eylem">
-      <button class="ikincil" id="dlgVazgec" type="button">Vazgeç</button>
-      <button class="birincil" id="dlgKaydet" type="button" style="font-size:14px;padding:11px 22px">Kaydet</button>
-    </div>
-  </div>
-</dialog>
 
 <footer>Kripto Analiz Masası · veriler: TradingView coin tarayıcısı, alternative.me korku endeksi, CoinGecko global, Google News RSS · yorum: Google Gemini · tüm veriler yerelde saklanır</footer>
 </div>
@@ -537,179 +366,6 @@ function fiyatBasamak(n){
   if(a>=0.01) return 5;
   return 8;
 }
-/* ---- Islem defteri motoru: pozisyonlar, gerceklesen K/Z, kapanan islemler ---- */
-/* yontem: "fifo" (ilk giren ilk cikar) | "ortalama" (agirlikli ortalama maliyet)
-   Ucret alimda maliyete eklenir, satista hasilattan dusulur. */
-function pozisyonlariHesapla(islemler,yontem){
-  var sirali=(islemler||[]).slice().sort(function(a,b){
-    var t=new Date(a.tarih||0)-new Date(b.tarih||0);
-    return t!==0?t:(String(a.id||"")<String(b.id||"")?-1:1);
-  });
-  var poz={};      /* sembol -> pozisyon */
-  var kapanan=[];  /* her satistan dogan kapali islem kayitlari */
-  function kutu(s){
-    if(!poz[s]) poz[s]={sembol:s,miktar:0,maliyet:0,lotlar:[],gerceklesen:0,
-                        alimAdet:0,satimAdet:0,harcanan:0,gelen:0,ucret:0,
-                        ilkTarih:null,agirlikliTarihToplam:0};
-    return poz[s];
-  }
-  for(var i=0;i<sirali.length;i++){
-    var it=sirali[i];
-    var s=String(it.sembol||"").toUpperCase();
-    if(!s) continue;
-    var miktar=Number(it.miktar)||0;
-    var fiyat=Number(it.fiyat)||0;
-    var ucret=Number(it.ucret)||0;
-    if(miktar<=0) continue;
-    var p=kutu(s);
-    var zaman=new Date(it.tarih||0).getTime()||0;
-    if(!p.ilkTarih||zaman<p.ilkTarih) p.ilkTarih=zaman;
-    p.ucret+=ucret;
-
-    if(it.tip==="satim"){
-      var satilabilir=Math.min(miktar,p.miktar);
-      if(satilabilir<=0) continue;
-      var hasilat=satilabilir*fiyat-ucret;
-      var esas=0,agirlikliGun=0;
-      if(yontem==="ortalama"){
-        var ortM=p.miktar>0?(p.maliyet/p.miktar):0;
-        esas=ortM*satilabilir;
-        p.maliyet-=esas;
-        var ortTarih=p.miktar>0?(p.agirlikliTarihToplam/p.miktar):zaman;
-        agirlikliGun=(zaman-ortTarih)/86400000;
-        p.agirlikliTarihToplam-=ortTarih*satilabilir;
-      }else{
-        var kalan=satilabilir;
-        while(kalan>1e-12&&p.lotlar.length){
-          var lot=p.lotlar[0];
-          var al=Math.min(kalan,lot.miktar);
-          esas+=al*lot.birim;
-          agirlikliGun+=((zaman-lot.zaman)/86400000)*al;
-          lot.miktar-=al; kalan-=al;
-          if(lot.miktar<=1e-12) p.lotlar.shift();
-        }
-        agirlikliGun=satilabilir>0?(agirlikliGun/satilabilir):0;
-        p.maliyet-=esas;
-      }
-      p.miktar-=satilabilir;
-      if(p.miktar<=1e-12){ p.miktar=0; p.maliyet=0; p.lotlar=[]; p.agirlikliTarihToplam=0; }
-      p.satimAdet++;
-      p.gelen+=hasilat;
-      var kz=hasilat-esas;
-      p.gerceklesen+=kz;
-      kapanan.push({sembol:s,miktar:satilabilir,satisFiyat:fiyat,esas:esas,hasilat:hasilat,
-                    kz:kz,yuzde:esas>0?((kz/esas)*100):null,gun:Math.max(0,agirlikliGun),tarih:it.tarih});
-    }else{
-      var toplamMaliyet=miktar*fiyat+ucret;
-      var birim=toplamMaliyet/miktar;
-      p.miktar+=miktar;
-      p.maliyet+=toplamMaliyet;
-      p.harcanan+=toplamMaliyet;
-      p.alimAdet++;
-      p.agirlikliTarihToplam+=zaman*miktar;
-      if(yontem!=="ortalama") p.lotlar.push({miktar:miktar,birim:birim,zaman:zaman});
-    }
-  }
-  var liste=Object.keys(poz).map(function(s){
-    var p=poz[s];
-    p.ortMaliyet=p.miktar>0?(p.maliyet/p.miktar):null;
-    return p;
-  });
-  return {pozisyonlar:liste,kapanan:kapanan};
-}
-
-/* Istatistikler. fiyatlar: {SEMBOL:{fiyat,ad,degisim}}, gecmis: [{t,deger}] */
-function istatistikHesapla(islemler,yontem,fiyatlar,gecmis){
-  var h=pozisyonlariHesapla(islemler,yontem);
-  var poz=h.pozisyonlar, kapanan=h.kapanan;
-  fiyatlar=fiyatlar||{};
-  var acik=[],toplamDeger=0,acikMaliyet=0,toplamHarcanan=0,toplamGelen=0,toplamUcret=0,gerceklesen=0;
-
-  poz.forEach(function(p){
-    toplamHarcanan+=p.harcanan; toplamGelen+=p.gelen;
-    toplamUcret+=p.ucret; gerceklesen+=p.gerceklesen;
-    if(p.miktar>1e-12){
-      var f=fiyatlar[p.sembol]?Number(fiyatlar[p.sembol].fiyat):null;
-      var deger=(f!==null&&!isNaN(f))?(p.miktar*f):null;
-      if(deger!==null) toplamDeger+=deger;
-      acikMaliyet+=p.maliyet;
-      acik.push({sembol:p.sembol,ad:(fiyatlar[p.sembol]&&fiyatlar[p.sembol].ad)||"",
-        miktar:p.miktar,ortMaliyet:p.ortMaliyet,fiyat:f,deger:deger,maliyet:p.maliyet,
-        kz:(deger!==null)?(deger-p.maliyet):null,
-        kzYuzde:(deger!==null&&p.maliyet>0)?(((deger-p.maliyet)/p.maliyet)*100):null,
-        ilkTarih:p.ilkTarih});
-    }
-  });
-
-  acik.forEach(function(a){ a.agirlik=(toplamDeger>0&&a.deger!==null)?((a.deger/toplamDeger)*100):null; });
-  acik.sort(function(a,b){ return (b.deger||0)-(a.deger||0); });
-
-  var gerceklesmeyen=(toplamDeger>0||acik.length)?(toplamDeger-acikMaliyet):0;
-  var toplamKZ=gerceklesen+gerceklesmeyen;
-  var roi=toplamHarcanan>0?((toplamKZ/toplamHarcanan)*100):null;
-
-  /* Kapanan islem istatistikleri */
-  var kazanan=kapanan.filter(function(k){return k.kz>0;});
-  var kaybeden=kapanan.filter(function(k){return k.kz<0;});
-  var brutKar=kazanan.reduce(function(t,k){return t+k.kz;},0);
-  var brutZarar=Math.abs(kaybeden.reduce(function(t,k){return t+k.kz;},0));
-  var basariOrani=kapanan.length?((kazanan.length/kapanan.length)*100):null;
-  var ortKazanc=kazanan.length?(brutKar/kazanan.length):null;
-  var ortKayip=kaybeden.length?(brutZarar/kaybeden.length):null;
-  var beklenti=kapanan.length?((brutKar-brutZarar)/kapanan.length):null;
-  var karFaktoru=brutZarar>0?(brutKar/brutZarar):(brutKar>0?null:null);
-  var ortGun=kapanan.length?(kapanan.reduce(function(t,k){return t+(k.gun||0);},0)/kapanan.length):null;
-  var enIyi=null,enKotu=null;
-  kapanan.forEach(function(k){
-    if(!enIyi||k.kz>enIyi.kz) enIyi=k;
-    if(!enKotu||k.kz<enKotu.kz) enKotu=k;
-  });
-
-  /* Yogunlasma: HHI (0-100; 100 = tek coin) */
-  var hhi=null;
-  if(toplamDeger>0&&acik.length){
-    hhi=acik.reduce(function(t,a){ var w=(a.deger||0)/toplamDeger; return t+w*w; },0)*100;
-  }
-  var enBuyuk=acik.length?acik[0]:null;
-
-  /* Sure ve yillandirilmis getiri */
-  var ilkZaman=null;
-  poz.forEach(function(p){ if(p.ilkTarih&&(!ilkZaman||p.ilkTarih<ilkZaman)) ilkZaman=p.ilkTarih; });
-  var gunSayisi=ilkZaman?Math.max(0,Math.round((Date.now()-ilkZaman)/86400000)):null;
-  var yillik=null;
-  if(roi!==null&&gunSayisi!==null&&gunSayisi>=30){
-    var carpan=1+(roi/100);
-    if(carpan>0) yillik=(Math.pow(carpan,365/gunSayisi)-1)*100;
-  }
-
-  /* Deger gecmisinden maksimum dusus */
-  var maksDusus=null,zirve=null;
-  var g=(gecmis||[]).slice().sort(function(a,b){return a.t-b.t;});
-  g.forEach(function(n){
-    if(zirve===null||n.deger>zirve) zirve=n.deger;
-    if(zirve>0){
-      var d=((zirve-n.deger)/zirve)*100;
-      if(maksDusus===null||d>maksDusus) maksDusus=d;
-    }
-  });
-
-  return {
-    toplamDeger:toplamDeger,acikMaliyet:acikMaliyet,toplamHarcanan:toplamHarcanan,
-    toplamGelen:toplamGelen,netYatirim:toplamHarcanan-toplamGelen,toplamUcret:toplamUcret,
-    gerceklesen:gerceklesen,gerceklesmeyen:gerceklesmeyen,toplamKZ:toplamKZ,roi:roi,
-    gerceklesmeyenYuzde:acikMaliyet>0?((gerceklesmeyen/acikMaliyet)*100):null,
-    islemSayisi:(islemler||[]).length,
-    alimSayisi:poz.reduce(function(t,p){return t+p.alimAdet;},0),
-    satimSayisi:poz.reduce(function(t,p){return t+p.satimAdet;},0),
-    kapananSayisi:kapanan.length,kazananSayisi:kazanan.length,kaybedenSayisi:kaybeden.length,
-    basariOrani:basariOrani,karFaktoru:karFaktoru,ortKazanc:ortKazanc,ortKayip:ortKayip,
-    beklenti:beklenti,ortGun:ortGun,enIyi:enIyi,enKotu:enKotu,
-    acik:acik,pozisyonSayisi:acik.length,hhi:hhi,enBuyuk:enBuyuk,
-    ilkZaman:ilkZaman,gunSayisi:gunSayisi,yillik:yillik,maksDusus:maksDusus,
-    gecmisNokta:g.length
-  };
-}
-
 /* ============ SAF-BITIR ============ */
 
 /* ---------- Depolama ---------- */
@@ -717,12 +373,8 @@ var DKEY="kripto_masa_v1";
 function varsayilanDurum(){
   return {
     ayarlar:{geminiKey:"",model:"gemini-3.5-flash",adaySayisi:5,haberSayisi:3,haberAcik:true,
-             proxy:"https://api.allorigins.win/raw?url=",minMcap:150,minHacim:10,maliyetYontemi:"fifo"},
+             proxy:"https://api.allorigins.win/raw?url=",minMcap:150,minHacim:10},
     portfoy:[{sembol:"",adet:"",maliyet:""}],
-    islemler:[],
-    fiyatlar:{},
-    fiyatZamani:null,
-    gecmis:[],
     sonRapor:null,
     hazirlik:null
   };
@@ -737,10 +389,6 @@ function depoYukle(){
       durumVeri.portfoy=(Array.isArray(d.portfoy)&&d.portfoy.length)?d.portfoy:varsayilanDurum().portfoy;
       durumVeri.sonRapor=d.sonRapor||null;
       durumVeri.hazirlik=d.hazirlik||null;
-      durumVeri.islemler=Array.isArray(d.islemler)?d.islemler:[];
-      durumVeri.fiyatlar=(d.fiyatlar&&typeof d.fiyatlar==="object")?d.fiyatlar:{};
-      durumVeri.fiyatZamani=d.fiyatZamani||null;
-      durumVeri.gecmis=Array.isArray(d.gecmis)?d.gecmis:[];
     }
   }catch(e){}
 }
@@ -781,7 +429,6 @@ function ayarlariForma(){
   $("minHacim").value=a.minHacim;
   $("haberAcik").checked=!!a.haberAcik;
   $("proxy").value=a.proxy||"";
-  $("maliyetYontemi").value=a.maliyetYontemi||"fifo";
 }
 function formuAyarlara(){
   var a=durumVeri.ayarlar;
@@ -793,7 +440,6 @@ function formuAyarlara(){
   a.minHacim=Math.max(0,Number($("minHacim").value)||0);
   a.haberAcik=$("haberAcik").checked;
   a.proxy=$("proxy").value.trim();
-  a.maliyetYontemi=$("maliyetYontemi").value==="ortalama"?"ortalama":"fifo";
   depoKaydet();
 }
 
@@ -960,7 +606,6 @@ async function analiz(){
       if(!rows.length) throw new Error("Tarama boş döndü — birazdan tekrar deneyin.");
       pazar=pazarHesapla(rows);
       bantCiz(rows);
-      fiyatlariKaydet(rows);
 
       durum("2/4 · Piyasa nabzı (korku endeksi, dominans)…");
       nabiz=await nabizCek();
@@ -999,7 +644,6 @@ async function analiz(){
     durumVeri.sonRapor=paket;
     durumVeri.hazirlik=null; /* basari: sonraki analiz taze veriyle baslasin */
     depoKaydet();
-    gecmiseKaydet();
     raporCiz(paket);
     durum("Rapor hazır · "+paket.zaman,"tamam");
   }catch(e){
@@ -1068,8 +712,6 @@ function raporCiz(paket){
     if(v.haberler&&v.haberler.length) haberHtml='<span class="haber-mini">📰 '+kacir(v.haberler[0].baslik)+'</span>';
     div.innerHTML='<span class="sembol">'+kacir(p.sembol)+'</span>'+adHtml+fiyatHtml+
       '<span class="cip '+kacir(karar)+'">'+kacir(karar)+(p.guven?(" · "+p.guven+"/5"):"")+'</span>'+kzHtml+
-      '<button class="mini sat" type="button" data-sat="'+kacir(p.sembol)+'" data-fiyat="'+(d.fiyat!=null?d.fiyat:"")+'">Sat</button>'+
-      '<button class="mini" type="button" data-ekle="'+kacir(p.sembol)+'" data-fiyat="'+(d.fiyat!=null?d.fiyat:"")+'">+ Ekle</button>'+
       (p.gerekce?('<span class="gerekce">'+kacir(p.gerekce)+'</span>'):"")+haberHtml;
     ph.appendChild(div);
   });
@@ -1085,395 +727,15 @@ function raporCiz(paket){
     var mcapHtml=(d.piyasaDegeriMilyonUsd!=null)?('<span class="fiyat">'+fmtBuyukMn(d.piyasaDegeriMilyonUsd)+'</span>'):"";
     div.innerHTML='<span class="sembol">'+kacir(x.sembol)+'</span>'+adHtml+fiyatHtml+mcapHtml+
       (x.vade?('<span class="vade">'+kacir(x.vade)+' vade</span>'):"")+
-      '<button class="mini" type="button" data-ekle="'+kacir(x.sembol)+'" data-fiyat="'+(d.fiyat!=null?d.fiyat:"")+'">+ Ekle</button>'+
       (x.yorum?('<span class="gerekce">'+kacir(x.yorum)+'</span>'):"");
     ah.appendChild(div);
   });
   $("raporBolge").style.display="block";
 }
 
-/* ---------- Sekmeler ---------- */
-var SEKMELER=[["sekmeAnaliz","panelAnaliz"],["sekmeIslemler","panelIslemler"],["sekmeIstatistik","panelIstatistik"]];
-function sekmeAc(hedefId){
-  SEKMELER.forEach(function(p){
-    var sec=(p[0]===hedefId);
-    $(p[0]).setAttribute("aria-selected",sec?"true":"false");
-    $(p[1]).hidden=!sec;
-  });
-  if(hedefId==="sekmeIslemler") islemleriCiz();
-  if(hedefId==="sekmeIstatistik") istatistikCiz();
-}
-
-/* ---------- Islem defteri ---------- */
-function yeniId(){ return "i"+Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
-function tarihGoster(iso){
-  if(!iso) return "-";
-  var d=new Date(iso);
-  return isNaN(d)?String(iso).slice(0,10):d.toLocaleDateString("tr-TR");
-}
-function bugunISO(){
-  var d=new Date(), z=d.getTimezoneOffset()*60000;
-  return new Date(d-z).toISOString().slice(0,10);
-}
-/* Islem defterinden portfoy satirlarini yeniden kur (defter gercegin kaynagi) */
-function portfoyuIslemlerdenGuncelle(){
-  var h=pozisyonlariHesapla(durumVeri.islemler,durumVeri.ayarlar.maliyetYontemi);
-  var defterSem={};
-  h.pozisyonlar.forEach(function(p){ defterSem[p.sembol]=p; });
-  /* defterde olmayan (elle girilmis) satirlari koru */
-  var elle=durumVeri.portfoy.filter(function(r){
-    var s=String(r.sembol||"").toUpperCase().trim();
-    return !defterSem[s];
-  });
-  var defterden=h.pozisyonlar.filter(function(p){return p.miktar>1e-12;}).map(function(p){
-    return {sembol:p.sembol,
-            adet:String(Number(p.miktar.toFixed(10))).replace(".",","),
-            maliyet:(p.ortMaliyet!==null)?String(Number(p.ortMaliyet.toFixed(8))).replace(".",","):"",
-            defterden:true};
-  });
-  var yeni=defterden.concat(elle.filter(function(r){ return String(r.sembol||"").trim(); }));
-  if(!yeni.length) yeni=[{sembol:"",adet:"",maliyet:""}];
-  durumVeri.portfoy=yeni;
-  depoKaydet();
-  portfoyuCiz();
-}
-function islemleriCiz(){
-  var g=$("islemGovde"); g.innerHTML="";
-  var liste=durumVeri.islemler.slice().sort(function(a,b){
-    return new Date(b.tarih||0)-new Date(a.tarih||0);
-  });
-  $("islemBos").hidden=liste.length>0;
-  $("islemSayaci").textContent=liste.length?(liste.length+" işlem"):"";
-  liste.forEach(function(it){
-    var tutar=(Number(it.miktar)||0)*(Number(it.fiyat)||0);
-    var tr=document.createElement("tr");
-    tr.innerHTML='<td class="mono">'+kacir(tarihGoster(it.tarih))+'</td>'+
-      '<td><span class="rozet '+(it.tip==="satim"?"satim":"alim")+'">'+(it.tip==="satim"?"SATIM":"ALIM")+'</span></td>'+
-      '<td class="mono" style="font-weight:700">'+kacir(it.sembol)+'</td>'+
-      '<td class="sag mono">'+fmt(it.miktar,8)+'</td>'+
-      '<td class="sag mono">$'+fmtFiyat(it.fiyat)+'</td>'+
-      '<td class="sag mono">$'+fmt(tutar,2)+'</td>'+
-      '<td class="sag mono">'+(Number(it.ucret)?("$"+fmt(it.ucret,2)):"-")+'</td>'+
-      '<td style="color:var(--soluk)">'+kacir(it.not||"")+'</td>'+
-      '<td class="sag"><button class="sil" type="button" data-islemsil="'+kacir(it.id)+'" title="İşlemi sil">×</button></td>';
-    g.appendChild(tr);
-  });
-}
-
-/* ---------- Islem diyalogu ---------- */
-var dlgDurum={tip:"alim",sonAlan:"miktar",fiyatElle:false};
-function dlgFiyatGetir(sembol){
-  var f=durumVeri.fiyatlar[sembol];
-  return (f&&Number(f.fiyat))?Number(f.fiyat):null;
-}
-function elde(sembol){
-  var h=pozisyonlariHesapla(durumVeri.islemler,durumVeri.ayarlar.maliyetYontemi);
-  var p=h.pozisyonlar.find(function(x){return x.sembol===sembol;});
-  return p?p.miktar:0;
-}
-function dlgTipAyarla(tip){
-  dlgDurum.tip=tip;
-  $("tipAlim").setAttribute("aria-pressed",tip==="alim"?"true":"false");
-  $("tipSatim").setAttribute("aria-pressed",tip==="satim"?"true":"false");
-  $("dlgKaydet").textContent=(tip==="satim")?"Satışı kaydet":"Alımı kaydet";
-  dlgOzetle();
-}
-function dlgAc(secenek){
-  secenek=secenek||{};
-  var sembol=String(secenek.sembol||"").toUpperCase();
-  dlgDurum.fiyatElle=false;
-  dlgDurum.sonAlan="miktar";
-  dlgDurum.fiyatSabit=false;
-  dlgDurum.fiyatSembol=sembol;
-  dlgTipAyarla(secenek.tip||"alim");
-  $("dlgSembol").value=sembol;
-  $("dlgTarih").value=bugunISO();
-  $("dlgMiktar").value=""; $("dlgTutar").value=""; $("dlgUcret").value=""; $("dlgNot").value="";
-  $("dlgFiyat").value="";
-  $("dlgUyari").textContent="";
-  /* rapordan gelen fiyat varsa onu kullan, yoksa haritadan otomatik gelir */
-  if(secenek.fiyat!==undefined&&secenek.fiyat!==null&&!isNaN(secenek.fiyat)&&Number(secenek.fiyat)>0){
-    $("dlgFiyat").value=String(Number(secenek.fiyat)).replace(".",",");
-    dlgDurum.fiyatSabit=true;
-  }
-  dlgFiyatUygula();
-  dlgFiyatTazele();
-  var d=$("islemDialog");
-  if(typeof d.showModal==="function") d.showModal(); else d.setAttribute("open","");
-  setTimeout(function(){ (sembol?$("dlgMiktar"):$("dlgSembol")).focus(); },30);
-}
-function dlgKapat(){
-  var d=$("islemDialog");
-  if(typeof d.close==="function") d.close(); else d.removeAttribute("open");
-}
-function dlgOzetle(){
-  var fiyat=sayiCoz($("dlgFiyat").value);
-  var miktar=sayiCoz($("dlgMiktar").value);
-  var tutar=sayiCoz($("dlgTutar").value);
-  var ucret=sayiCoz($("dlgUcret").value)||0;
-  if(!fiyat||fiyat<=0){ $("dlgOzet").textContent="Birim fiyat gir."; return; }
-  /* miktar <-> tutar bagi: kullanicinin en son yazdigi alan digerini belirler */
-  if(dlgDurum.sonAlan==="tutar"&&tutar){
-    miktar=tutar/fiyat;
-    $("dlgMiktar").value=String(Number(miktar.toFixed(8))).replace(".",",");
-  }else if(dlgDurum.sonAlan==="miktar"&&miktar){
-    tutar=miktar*fiyat;
-    $("dlgTutar").value=String(Number(tutar.toFixed(2))).replace(".",",");
-  }
-  if(!miktar||miktar<=0){ $("dlgOzet").textContent="Miktar veya tutar gir."; return; }
-  var brut=miktar*fiyat;
-  var net=(dlgDurum.tip==="satim")?(brut-ucret):(brut+ucret);
-  $("dlgOzet").textContent=(dlgDurum.tip==="satim"?"Eline geçecek: $":"Ödeyeceğin: $")+fmt(net,2)+
-    "  ·  "+fmt(miktar,8)+" × $"+fmtFiyat(fiyat)+(ucret?("  ·  komisyon $"+fmt(ucret,2)):"");
-}
-function dlgKaydet(){
-  var sembol=String($("dlgSembol").value||"").toUpperCase().trim().replace(/[^A-Z0-9]/g,"");
-  var fiyat=sayiCoz($("dlgFiyat").value);
-  var miktar=sayiCoz($("dlgMiktar").value);
-  var ucret=sayiCoz($("dlgUcret").value)||0;
-  var tarih=$("dlgTarih").value||bugunISO();
-  var u=$("dlgUyari");
-  if(sembol.length<2){ u.textContent="Coin sembolü gir (örn. BTC)."; return; }
-  if(!fiyat||fiyat<=0){ u.textContent="Birim fiyat sıfırdan büyük olmalı."; return; }
-  if(!miktar||miktar<=0){ u.textContent="Miktar sıfırdan büyük olmalı."; return; }
-  if(dlgDurum.tip==="satim"){
-    var sahip=elde(sembol);
-    if(miktar>sahip+1e-9){
-      u.textContent="Elinde sadece "+fmt(sahip,8)+" "+sembol+" var; daha fazlasını satamazsın.";
-      return;
-    }
-  }
-  durumVeri.islemler.push({id:yeniId(),tip:dlgDurum.tip,sembol:sembol,miktar:miktar,
-    fiyat:fiyat,ucret:ucret,tarih:tarih,not:String($("dlgNot").value||"").trim()});
-  depoKaydet();
-  portfoyuIslemlerdenGuncelle();
-  islemleriCiz();
-  dlgKapat();
-  durum(sembol+" "+(dlgDurum.tip==="satim"?"satışı":"alımı")+" kaydedildi · "+fmt(miktar,8)+" @ $"+fmtFiyat(fiyat),"tamam");
-}
-
-/* Fiyat haritasi bayat/bossa arka planda tazele (tek ucus) */
-var fiyatIstek=null;
-function fiyatlarTaze(){
-  return durumVeri.fiyatZamani &&
-         (Date.now()-durumVeri.fiyatZamani<15*60*1000) &&
-         Object.keys(durumVeri.fiyatlar||{}).length>0;
-}
-function fiyatlariSagla(){
-  if(fiyatlarTaze()) return Promise.resolve(false);
-  if(fiyatIstek) return fiyatIstek;
-  fiyatIstek=(async function(){
-    try{
-      var scan=await taramaCek();
-      var rows=satirlariCoz(scan);
-      if(rows.length){ fiyatlariKaydet(rows); return true; }
-    }catch(e){}
-    finally{ fiyatIstek=null; }
-    return false;
-  })();
-  return fiyatIstek;
-}
-/* Sembole gore birim fiyati otomatik doldur (kullanici elle degistirmediyse) */
-function dlgFiyatUygula(){
-  var sembol=String($("dlgSembol").value||"").toUpperCase().trim().replace(/[^A-Z0-9]/g,"");
-  var f=dlgFiyatGetir(sembol);
-  var not=$("dlgFiyatNot");
-  /* rapordan gelen fiyat, sembol degismedigi surece korunur */
-  var sabitGecerli=dlgDurum.fiyatSabit&&sembol===dlgDurum.fiyatSembol;
-  if(!sabitGecerli) dlgDurum.fiyatSabit=false;
-  if(!dlgDurum.fiyatElle&&!sabitGecerli){
-    if(f!==null) $("dlgFiyat").value=String(f).replace(".",",");
-    else if(sembol.length>=2) $("dlgFiyat").value="";
-  }
-  if(dlgDurum.fiyatElle) not.textContent="elle girdin";
-  else if(sabitGecerli) not.textContent="rapordaki fiyat";
-  else if(f!==null) not.textContent="güncel fiyat"+(durumVeri.fiyatZamani?(" · "+new Date(durumVeri.fiyatZamani).toLocaleTimeString("tr-TR")):"");
-  else if(sembol.length>=2) not.textContent="bu sembol için fiyat yok — elle gir";
-  else not.textContent="";
-  /* ad ve mevcut bakiye bilgisini de tazele */
-  var ad=(durumVeri.fiyatlar[sembol]&&durumVeri.fiyatlar[sembol].ad)||"";
-  var sahip=sembol.length>=2?elde(sembol):0;
-  $("dlgBaslik").textContent=sembol?(sembol+" işlemi"):"İşlem ekle";
-  $("dlgAlt").textContent=sembol.length>=2
-    ? ((ad?ad+" · ":"")+(sahip>0?("elinde "+fmt(sahip,8)+" var"):"yeni pozisyon"))
-    : "Coin sembolünü yaz, fiyat otomatik gelsin.";
-  dlgOzetle();
-}
-/* Fiyat haritasi yoksa cek, sonra alani tekrar doldur */
-function dlgFiyatTazele(){
-  if(fiyatlarTaze()) return;
-  var not=$("dlgFiyatNot");
-  if(!dlgDurum.fiyatElle) not.textContent="güncel fiyatlar alınıyor…";
-  fiyatlariSagla().then(function(geldi){
-    if(!$("islemDialog").open) return;
-    if(geldi) dlgFiyatUygula();
-    else if(!dlgDurum.fiyatElle&&!dlgFiyatGetir(String($("dlgSembol").value||"").toUpperCase()))
-      not.textContent="fiyat alınamadı — elle gir";
-  });
-}
-
-/* ---------- Istatistik ---------- */
-function kutuHtml(ad,deger,ek,sinif){
-  return '<div class="ist-kutu"><div class="ist-ad">'+ad+'</div>'+
-    '<div class="ist-deger '+(sinif||"")+'">'+deger+'</div>'+
-    (ek?('<div class="ist-ek">'+ek+'</div>'):"")+'</div>';
-}
-function paraFmt(n){
-  if(n===null||n===undefined||isNaN(n)) return "–";
-  var isaret=n<0?"-":"";
-  return isaret+"$"+Math.abs(n).toLocaleString("tr-TR",{minimumFractionDigits:2,maximumFractionDigits:2});
-}
-function yuzdeFmt(n){
-  if(n===null||n===undefined||isNaN(n)) return "–";
-  return (n>=0?"+%":"-%")+fmt(Math.abs(n),2);
-}
-function artEks(n){ return (n===null||n===undefined||isNaN(n))?"":(n>=0?"art":"eks"); }
-function grafikCiz(gecmis){
-  var g=(gecmis||[]).slice().sort(function(a,b){return a.t-b.t;});
-  if(g.length<2) return '<p class="bos-durum">Değer geçmişi için en az iki analiz gerekiyor. Her başarılı analizde portföy değerin buraya kaydedilir.</p>';
-  var G=560,Y=132,pd=8;
-  var degerler=g.map(function(n){return n.deger;});
-  var enAz=Math.min.apply(null,degerler), enCok=Math.max.apply(null,degerler);
-  if(enCok===enAz){ enCok=enAz+1; }
-  var noktalar=g.map(function(n,i){
-    var x=pd+(i/(g.length-1))*(G-pd*2);
-    var y=Y-pd-((n.deger-enAz)/(enCok-enAz))*(Y-pd*2);
-    return [Math.round(x*100)/100,Math.round(y*100)/100];
-  });
-  var cizgi=noktalar.map(function(p){return p[0]+","+p[1];}).join(" ");
-  var alan="M"+noktalar[0][0]+","+(Y-pd)+" L"+noktalar.map(function(p){return p[0]+","+p[1];}).join(" L")+" L"+noktalar[noktalar.length-1][0]+","+(Y-pd)+" Z";
-  return '<svg class="grafik" viewBox="0 0 '+G+' '+Y+'" preserveAspectRatio="none" role="img" aria-label="Portföy değeri geçmişi">'+
-    '<defs><linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">'+
-    '<stop offset="0%" stop-color="#4DD9E8"/><stop offset="100%" stop-color="#4DD9E8" stop-opacity="0"/>'+
-    '</linearGradient></defs>'+
-    '<path class="alan" d="'+alan+'"/><polyline class="cizgi" points="'+cizgi+'"/></svg>'+
-    '<div class="olcek-skala"><span>'+tarihGoster(new Date(g[0].t).toISOString())+' · $'+fmt(g[0].deger,0)+'</span>'+
-    '<span>'+tarihGoster(new Date(g[g.length-1].t).toISOString())+' · $'+fmt(g[g.length-1].deger,0)+'</span></div>';
-}
-function istatistikCiz(){
-  var y=durumVeri.ayarlar.maliyetYontemi||"fifo";
-  var st=istatistikHesapla(durumVeri.islemler,y,durumVeri.fiyatlar,durumVeri.gecmis);
-  var c=$("istIcerik");
-  if(!durumVeri.islemler.length){
-    c.innerHTML='<section class="kart"><h2>İstatistik</h2>'+
-      '<p class="bos-durum">Henüz işlem yok. İşlem ekledikçe harcama, kâr/zarar, dağılım ve performans istatistiklerin burada birikir.</p></section>';
-    return;
-  }
-  var fiyatNotu=durumVeri.fiyatZamani?("fiyatlar: "+new Date(durumVeri.fiyatZamani).toLocaleString("tr-TR")):"fiyat verisi yok — 'Fiyatları yenile'";
-  var h="";
-
-  h+='<section class="kart"><h2>Para akışı <span class="zaman">'+kacir(fiyatNotu)+'</span></h2><div class="ist-izgara">'+
-    kutuHtml("Elimdekilerin değeri",paraFmt(st.toplamDeger),st.pozisyonSayisi+" pozisyon")+
-    kutuHtml("Toplam harcadığım",paraFmt(st.toplamHarcanan),"alımlar + komisyon")+
-    kutuHtml("Satışlardan gelen",paraFmt(st.toplamGelen),st.satimSayisi+" satış")+
-    kutuHtml("Net yatırım",paraFmt(st.netYatirim),"harcanan − gelen")+
-    kutuHtml("Açık pozisyon maliyeti",paraFmt(st.acikMaliyet),y==="fifo"?"FIFO":"ortalama maliyet")+
-    kutuHtml("Toplam komisyon",paraFmt(st.toplamUcret))+
-    '</div></section>';
-
-  h+='<section class="kart"><h2>Kâr / zarar</h2><div class="ist-izgara">'+
-    kutuHtml("Toplam K/Z",paraFmt(st.toplamKZ),st.roi!==null?("ROI "+yuzdeFmt(st.roi)):"",artEks(st.toplamKZ))+
-    kutuHtml("Gerçekleşmemiş",paraFmt(st.gerceklesmeyen),st.gerceklesmeyenYuzde!==null?yuzdeFmt(st.gerceklesmeyenYuzde):"",artEks(st.gerceklesmeyen))+
-    kutuHtml("Gerçekleşmiş",paraFmt(st.gerceklesen),"kapanan satışlardan",artEks(st.gerceklesen))+
-    (st.yillik!==null?kutuHtml("Yıllıklandırılmış",yuzdeFmt(st.yillik),st.gunSayisi+" günlük geçmişten",artEks(st.yillik)):"")+
-    (st.maksDusus!==null?kutuHtml("Maks. düşüş","-%"+fmt(st.maksDusus,2),st.gecmisNokta+" ölçüm","eks"):"")+
-    (st.gunSayisi!==null?kutuHtml("Yatırım süresi",st.gunSayisi+" gün",st.ilkZaman?("ilk işlem "+tarihGoster(new Date(st.ilkZaman).toISOString())):""):"")+
-    '</div></section>';
-
-  if(st.kapananSayisi){
-    h+='<section class="kart"><h2>İşlem performansı</h2><div class="ist-izgara">'+
-      kutuHtml("Başarı oranı","%"+fmt(st.basariOrani,1),st.kazananSayisi+" kazanan / "+st.kaybedenSayisi+" kaybeden")+
-      kutuHtml("Kâr faktörü",st.karFaktoru!==null?fmt(st.karFaktoru,2):"–","brüt kâr ÷ brüt zarar")+
-      kutuHtml("Beklenti",paraFmt(st.beklenti),"satış başına ortalama",artEks(st.beklenti))+
-      kutuHtml("Ortalama kazanç",paraFmt(st.ortKazanc),"","art")+
-      kutuHtml("Ortalama kayıp",st.ortKayip!==null?("-"+paraFmt(st.ortKayip).replace("$","$")):"–","","eks")+
-      kutuHtml("Ort. elde tutma",st.ortGun!==null?(fmt(st.ortGun,0)+" gün"):"–","alımdan satışa")+
-      (st.enIyi?kutuHtml("En kârlı satış",paraFmt(st.enIyi.kz),st.enIyi.sembol+(st.enIyi.yuzde!==null?(" · "+yuzdeFmt(st.enIyi.yuzde)):""),artEks(st.enIyi.kz)):"")+
-      (st.enKotu&&st.enKotu!==st.enIyi?kutuHtml("En zararlı satış",paraFmt(st.enKotu.kz),st.enKotu.sembol+(st.enKotu.yuzde!==null?(" · "+yuzdeFmt(st.enKotu.yuzde)):""),artEks(st.enKotu.kz)):"")+
-      '</div></section>';
-  }
-
-  if(st.acik.length){
-    var yogunlukNot="";
-    if(st.hhi!==null){
-      yogunlukNot=(st.hhi>=50)?"tek varlığa yüksek bağımlılık":((st.hhi>=25)?"orta düzeyde yoğunlaşma":"dengeli dağılım");
-    }
-    h+='<section class="kart"><h2>Portföy yapısı</h2><div class="ist-izgara">'+
-      kutuHtml("Pozisyon sayısı",String(st.pozisyonSayisi))+
-      (st.enBuyuk?kutuHtml("En büyük pozisyon",st.enBuyuk.sembol,st.enBuyuk.agirlik!==null?("portföyün %"+fmt(st.enBuyuk.agirlik,1)+"'i"):""):"")+
-      (st.hhi!==null?kutuHtml("Yoğunlaşma",fmt(st.hhi,0)+"/100",yogunlukNot,st.hhi>=50?"eks":""):"")+
-      '</div><div style="margin-top:16px">';
-    st.acik.forEach(function(a){
-      var g=(a.agirlik!==null)?a.agirlik:0;
-      h+='<div class="dag-satir"><span class="dag-ad">'+kacir(a.sembol)+'</span>'+
-         '<span class="dag-yol"><span class="dag-dolu" style="width:'+Math.max(1,Math.min(100,g)).toFixed(1)+'%"></span></span>'+
-         '<span class="dag-deger">'+(a.agirlik!==null?("%"+fmt(a.agirlik,1)):"–")+'</span></div>';
-    });
-    h+='</div><div class="sarmal" style="margin-top:14px"><table class="vt"><thead><tr>'+
-       '<th>Coin</th><th class="sag">Miktar</th><th class="sag">Ort. maliyet</th><th class="sag">Güncel</th>'+
-       '<th class="sag">Değer</th><th class="sag">K/Z</th></tr></thead><tbody>';
-    st.acik.forEach(function(a){
-      h+='<tr><td class="mono" style="font-weight:700">'+kacir(a.sembol)+
-         (a.ad?(' <span style="font-weight:400;color:var(--soluk)">'+kacir(a.ad)+'</span>'):"")+'</td>'+
-         '<td class="sag mono">'+fmt(a.miktar,8)+'</td>'+
-         '<td class="sag mono">'+(a.ortMaliyet!==null?("$"+fmtFiyat(a.ortMaliyet)):"–")+'</td>'+
-         '<td class="sag mono">'+(a.fiyat!==null?("$"+fmtFiyat(a.fiyat)):"–")+'</td>'+
-         '<td class="sag mono">'+(a.deger!==null?paraFmt(a.deger):"–")+'</td>'+
-         '<td class="sag mono '+artEks(a.kz)+'">'+(a.kz!==null?(paraFmt(a.kz)+" · "+yuzdeFmt(a.kzYuzde)):"–")+'</td></tr>';
-    });
-    h+='</tbody></table></div></section>';
-  }
-
-  h+='<section class="kart"><h2>Portföy değeri geçmişi</h2>'+grafikCiz(durumVeri.gecmis)+'</section>';
-  h+='<p class="uyari">Hesaplamalar '+(y==="fifo"?"FIFO (ilk giren ilk çıkar)":"ağırlıklı ortalama maliyet")+
-     ' yöntemine göre yapılır; yöntemi Ayarlar\'dan değiştirebilirsin. Ülkelerin vergi mevzuatı farklı yöntem zorunlu kılabilir — bu ekran vergi beyanı değil, kişisel takip amaçlıdır.</p>';
-  c.innerHTML=h;
-}
-
-function fiyatlariKaydet(rows){
-  var m={};
-  (rows||[]).forEach(function(r){
-    m[r.sembol]={fiyat:r.close,ad:r.base_currency_desc||"",degisim:r.change};
-  });
-  durumVeri.fiyatlar=m;
-  durumVeri.fiyatZamani=Date.now();
-  depoKaydet();
-}
-function gecmiseKaydet(){
-  var st=istatistikHesapla(durumVeri.islemler,durumVeri.ayarlar.maliyetYontemi,durumVeri.fiyatlar,[]);
-  if(!durumVeri.islemler.length||!st.toplamDeger) return;
-  var g=durumVeri.gecmis||[];
-  var son=g[g.length-1];
-  /* ayni gun icinde tek kayit tut */
-  if(son&&new Date(son.t).toDateString()===new Date().toDateString()){
-    son.deger=st.toplamDeger; son.maliyet=st.acikMaliyet;
-  }else{
-    g.push({t:Date.now(),deger:st.toplamDeger,maliyet:st.acikMaliyet});
-  }
-  if(g.length>400) g=g.slice(g.length-400);
-  durumVeri.gecmis=g;
-  depoKaydet();
-}
-async function fiyatlariYenile(){
-  durum("Fiyatlar güncelleniyor…");
-  try{
-    var scan=await taramaCek();
-    var rows=satirlariCoz(scan);
-    if(!rows.length) throw new Error("tarama boş döndü");
-    fiyatlariKaydet(rows);
-    gecmiseKaydet();
-    istatistikCiz();
-    durum("Fiyatlar güncellendi · "+new Date().toLocaleTimeString("tr-TR"),"tamam");
-  }catch(e){
-    durum("Fiyatlar güncellenemedi: "+(e.message||e),"hata");
-  }
-}
-
 /* ---------- Baglanti ---------- */
 document.addEventListener("DOMContentLoaded",function(){
   depoYukle(); ayarlariForma(); portfoyuCiz();
-  if(durumVeri.islemler.length) portfoyuIslemlerdenGuncelle();
-  islemleriCiz();
   if(durumVeri.sonRapor){ raporCiz(durumVeri.sonRapor); durum("Son rapor yüklendi · "+(durumVeri.sonRapor.zaman||""),""); }
 
   $("analizBtn").addEventListener("click",analiz);
@@ -1500,57 +762,6 @@ document.addEventListener("DOMContentLoaded",function(){
     $(id).addEventListener("input",formuAyarlara);
   });
   $("haberAcik").addEventListener("change",formuAyarlara);
-  $("maliyetYontemi").addEventListener("change",function(){
-    formuAyarlara(); portfoyuIslemlerdenGuncelle(); istatistikCiz();
-  });
-
-  /* Sekmeler */
-  SEKMELER.forEach(function(p){ $(p[0]).addEventListener("click",function(){ sekmeAc(p[0]); }); });
-
-  /* Islem defteri */
-  $("islemEkleBtn").addEventListener("click",function(){ dlgAc({tip:"alim"}); });
-  $("fiyatYenileBtn").addEventListener("click",fiyatlariYenile);
-  $("islemGovde").addEventListener("click",function(e){
-    var h=e.target.closest("[data-islemsil]");
-    if(!h) return;
-    var id=h.dataset.islemsil;
-    durumVeri.islemler=durumVeri.islemler.filter(function(x){return x.id!==id;});
-    depoKaydet(); portfoyuIslemlerdenGuncelle(); islemleriCiz();
-    durum("İşlem silindi.","");
-  });
-
-  /* Rapordaki + Ekle / Sat dugmeleri */
-  document.addEventListener("click",function(e){
-    var ek=e.target.closest("[data-ekle]");
-    if(ek){ dlgAc({sembol:ek.dataset.ekle,tip:"alim",fiyat:ek.dataset.fiyat?Number(ek.dataset.fiyat):null}); return; }
-    var st=e.target.closest("[data-sat]");
-    if(st){ dlgAc({sembol:st.dataset.sat,tip:"satim",fiyat:st.dataset.fiyat?Number(st.dataset.fiyat):null}); }
-  });
-
-  /* Diyalog */
-  $("tipAlim").addEventListener("click",function(){ dlgTipAyarla("alim"); });
-  $("tipSatim").addEventListener("click",function(){ dlgTipAyarla("satim"); });
-  $("dlgKaydet").addEventListener("click",dlgKaydet);
-  $("dlgVazgec").addEventListener("click",dlgKapat);
-  $("dlgMiktar").addEventListener("input",function(){ dlgDurum.sonAlan="miktar"; dlgOzetle(); });
-  $("dlgTutar").addEventListener("input",function(){ dlgDurum.sonAlan="tutar"; dlgOzetle(); });
-  $("dlgFiyat").addEventListener("input",function(){
-    dlgDurum.fiyatElle=($("dlgFiyat").value.trim()!=="");
-    $("dlgFiyatNot").textContent=dlgDurum.fiyatElle?"elle girdin":"";
-    dlgOzetle();
-  });
-  $("dlgUcret").addEventListener("input",dlgOzetle);
-  var sembolZaman=null;
-  $("dlgSembol").addEventListener("input",function(){
-    if(sembolZaman) clearTimeout(sembolZaman);
-    sembolZaman=setTimeout(function(){ dlgFiyatUygula(); dlgFiyatTazele(); },280);
-  });
-  $("dlgSembol").addEventListener("blur",function(){ dlgFiyatUygula(); });
-  /* Arka plana tiklayinca kapat (dialog varsayilani degil) */
-  $("islemDialog").addEventListener("click",function(e){ if(e.target===this) dlgKapat(); });
-  $("islemDialog").addEventListener("keydown",function(e){
-    if(e.key==="Enter"&&e.target.tagName==="INPUT"){ e.preventDefault(); dlgKaydet(); }
-  });
 });
 </script>
 </body>
