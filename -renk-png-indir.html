@@ -217,55 +217,6 @@
     color:var(--muted);
     text-align:center;
   }
-
-  /* renk paleti */
-  .palette-card{margin-top:20px;}
-  .palette-toolbar{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    margin-bottom:16px;
-  }
-  .palette-toolbar h2{margin:0;}
-  .palette-count{
-    font-size:0.75rem;
-    color:var(--muted);
-    font-family:'Consolas', monospace;
-  }
-  .palette-grid{
-    display:grid;
-    grid-template-columns: repeat(10, 1fr);
-    gap:8px;
-  }
-  @media (max-width:760px){
-    .palette-grid{grid-template-columns: repeat(6, 1fr);}
-  }
-  .swatch{
-    position:relative;
-    aspect-ratio:1/1;
-    border-radius:8px;
-    border:1px solid rgba(255,255,255,0.08);
-    cursor:pointer;
-    transition:transform .1s, box-shadow .15s, border-color .15s;
-  }
-  .swatch:hover{
-    transform:translateY(-2px) scale(1.06);
-    box-shadow:0 4px 14px rgba(0,0,0,0.4);
-    z-index:2;
-  }
-  .swatch.selected{
-    border-color:var(--accent);
-    box-shadow:0 0 0 2px var(--accent);
-  }
-  .swatch .num{
-    position:absolute;
-    top:2px; left:4px;
-    font-size:0.58rem;
-    font-family:'Consolas', monospace;
-    color:rgba(255,255,255,0.55);
-    text-shadow:0 1px 1px rgba(0,0,0,0.5);
-    pointer-events:none;
-  }
 </style>
 </head>
 <body>
@@ -328,14 +279,6 @@
       <div class="footnote">Dosya, tarayıcınızın indirilenler klasörüne kaydedilir.</div>
     </div>
   </div>
-
-  <div class="card palette-card">
-    <div class="palette-toolbar">
-      <h2>Renk Paleti</h2>
-      <span class="palette-count" id="paletteCount">60 renk</span>
-    </div>
-    <div class="palette-grid" id="paletteGrid"></div>
-  </div>
 </div>
 
 <canvas id="exportCanvas" style="display:none;"></canvas>
@@ -381,63 +324,6 @@
     metaRgb.textContent = `${r}, ${g}, ${b}`;
     if(source !== 'picker') colorPicker.value = hex;
     if(source !== 'hex') hexInput.value = hex;
-
-    document.querySelectorAll('.swatch').forEach(sw => {
-      sw.classList.toggle('selected', sw.dataset.hex === hex && source === 'palette');
-    });
-  }
-
-  // --- Renk paleti üretimi (10 sütun x 6 satır, çok tonlu) ---
-  function hslToHex(h, s, l){
-    s /= 100; l /= 100;
-    const k = n => (n + h / 30) % 12;
-    const a = s * Math.min(l, 1 - l);
-    const f = n => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
-    const r = Math.round(f(0) * 255);
-    const g = Math.round(f(8) * 255);
-    const b = Math.round(f(4) * 255);
-    return rgbToHex(r, g, b);
-  }
-
-  function buildPalette(){
-    const grid = document.getElementById('paletteGrid');
-    const hues = [0, 24, 40, 55, 90, 130, 160, 185, 210, 250, 280, 305, 330];
-    const bands = [
-      { s: 55, l: 82 },  // açık pastel
-      { s: 70, l: 68 },
-      { s: 80, l: 55 },
-      { s: 85, l: 42 },
-      { s: 55, l: 28 },  // koyu / kahverengimsi ton
-    ];
-    let index = 1;
-    const colors = [];
-    bands.forEach(band => {
-      hues.forEach(h => {
-        colors.push(hslToHex(h, band.s, band.l));
-      });
-    });
-    // son satıra nötr griler ekle
-    ['#f5efe6', '#d8cdbb', '#b3a48c', '#8a7c66', '#5c5142', '#332c22'].forEach(c => colors.push(c));
-
-    document.getElementById('paletteCount').textContent = colors.length + ' renk';
-
-    colors.forEach(hex => {
-      const el = document.createElement('div');
-      el.className = 'swatch';
-      el.style.background = hex;
-      el.dataset.hex = hex;
-      el.title = `${index}. ${hex}`;
-      const num = document.createElement('span');
-      num.className = 'num';
-      num.textContent = index;
-      el.appendChild(num);
-      el.addEventListener('click', () => {
-        const { r, g, b } = hexToRgb(hex);
-        updateColor(r, g, b, 'palette');
-      });
-      grid.appendChild(el);
-      index++;
-    });
   }
 
   colorPicker.addEventListener('input', e => {
@@ -535,7 +421,6 @@
   });
 
   // ilk yükleme
-  buildPalette();
   updateColor(94, 230, 200);
 })();
 </script>
