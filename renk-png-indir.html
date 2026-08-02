@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Renk → PNG İndirici</title>
+<style>
+  :root{
+    --bg:#111318;
+    --panel:#181b22;
+    --panel-2:#1f232c;
+    --line:#2a2f3a;
+    --text:#e8eaf0;
+    --muted:#8a90a0;
+    --accent:#5ee6c8;
+    --accent-2:#ff8a5b;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Segoe UI', system-ui, -apple-system, sans-serif;
+    background:
+      radial-gradient(1200px 600px at 10% -10%, #1c2b28 0%, transparent 60%),
+      radial-gradient(900px 500px at 110% 10%, #2b2019 0%, transparent 55%),
+      var(--bg);
+    color:var(--text);
+    min-height:100vh;
+    padding:40px 20px;
+  }
+  .wrap{max-width:960px;margin:0 auto;}
+  header{margin-bottom:28px;}
+  h1{
+    font-size:1.7rem;
+    margin:0 0 6px;
+    letter-spacing:-0.01em;
+  }
+  header p{color:var(--muted);margin:0;font-size:0.95rem;}
+
+  .grid{
+    display:grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap:20px;
+  }
+  @media (max-width:760px){ .grid{grid-template-columns:1fr;} }
+
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:22px;
+  }
+  .card h2{
+    font-size:0.78rem;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--muted);
+    margin:0 0 16px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .card h2::before{
+    content:"";
+    width:6px;height:6px;border-radius:50%;
+    background:var(--accent);
+    display:inline-block;
+  }
+
+  /* renk seçimi */
+  .color-row{display:flex;align-items:center;gap:14px;margin-bottom:14px;}
+  input[type=color]{
+    -webkit-appearance:none;
+    width:56px;height:56px;
+    border:none;border-radius:12px;
+    background:none;cursor:pointer;
+    padding:0;
+  }
+  input[type=color]::-webkit-color-swatch-wrapper{padding:0;}
+  input[type=color]::-webkit-color-swatch{border:2px solid var(--line);border-radius:12px;}
+
+  .hex-input{
+    flex:1;
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    color:var(--text);
+    padding:12px 14px;
+    border-radius:10px;
+    font-family:'Consolas', monospace;
+    font-size:0.95rem;
+    letter-spacing:0.03em;
+  }
+  .hex-input:focus{outline:2px solid var(--accent);outline-offset:1px;}
+
+  .drop{
+    border:1.5px dashed var(--line);
+    border-radius:12px;
+    padding:16px;
+    text-align:center;
+    color:var(--muted);
+    font-size:0.85rem;
+    cursor:pointer;
+    transition:border-color .15s, color .15s;
+    margin-bottom:14px;
+  }
+  .drop:hover{border-color:var(--accent);color:var(--text);}
+  .drop.dragover{border-color:var(--accent);background:rgba(94,230,200,0.06);color:var(--text);}
+  input[type=file]{display:none;}
+
+  .canvas-shell{
+    position:relative;
+    display:none;
+    border-radius:12px;
+    overflow:hidden;
+    border:1px solid var(--line);
+    background:
+      repeating-conic-gradient(#2a2f3a 0% 25%, #202430 0% 50%) 50% / 16px 16px;
+  }
+  .canvas-shell.active{display:block;}
+  #imgCanvas{
+    display:block;
+    width:100%;
+    height:auto;
+    cursor:crosshair;
+  }
+  .zoom-hint{
+    position:absolute; bottom:8px; left:8px;
+    background:rgba(0,0,0,0.55);
+    padding:4px 9px;
+    border-radius:6px;
+    font-size:0.72rem;
+    color:var(--muted);
+    pointer-events:none;
+  }
+
+  /* önizleme */
+  .preview-swatch{
+    height:120px;
+    border-radius:12px;
+    border:1px solid var(--line);
+    margin-bottom:16px;
+    transition:background .1s;
+  }
+  .preview-meta{
+    display:flex;
+    justify-content:space-between;
+    font-size:0.82rem;
+    color:var(--muted);
+    margin-bottom:20px;
+    font-family:'Consolas', monospace;
+  }
+  .preview-meta span b{color:var(--text);font-weight:600;}
+
+  .dims{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-bottom:12px;
+  }
+  .field label{
+    display:block;
+    font-size:0.72rem;
+    color:var(--muted);
+    margin-bottom:6px;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+  }
+  .field input{
+    width:100%;
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    color:var(--text);
+    padding:10px 12px;
+    border-radius:8px;
+    font-family:'Consolas', monospace;
+    font-size:0.9rem;
+  }
+  .field input:focus{outline:2px solid var(--accent);outline-offset:1px;}
+
+  .presets{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-bottom:20px;
+  }
+  .preset-btn{
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    color:var(--muted);
+    padding:7px 12px;
+    border-radius:20px;
+    font-size:0.78rem;
+    cursor:pointer;
+    transition:all .12s;
+  }
+  .preset-btn:hover{border-color:var(--accent);color:var(--text);}
+  .preset-btn.active{background:var(--accent);color:#0b0f0d;border-color:var(--accent);font-weight:600;}
+
+  .download-btn{
+    width:100%;
+    background:linear-gradient(135deg, var(--accent), #3fb89e);
+    color:#0b0f0d;
+    border:none;
+    padding:14px;
+    border-radius:10px;
+    font-size:0.95rem;
+    font-weight:700;
+    cursor:pointer;
+    letter-spacing:0.01em;
+    transition:transform .08s, box-shadow .15s;
+  }
+  .download-btn:hover{box-shadow:0 6px 20px rgba(94,230,200,0.25); transform:translateY(-1px);}
+  .download-btn:active{transform:translateY(0);}
+
+  .footnote{
+    margin-top:10px;
+    font-size:0.75rem;
+    color:var(--muted);
+    text-align:center;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Renk → PNG İndirici</h1>
+    <p>Bir renk seç ya da yüklediğin resimden bir piksel örnekle, istediğin ebatta düz renk PNG indir.</p>
+  </header>
+
+  <div class="grid">
+    <!-- SOL: Kaynak seçimi -->
+    <div class="card">
+      <h2>Renk Kaynağı</h2>
+
+      <div class="color-row">
+        <input type="color" id="colorPicker" value="#5ee6c8">
+        <input type="text" id="hexInput" class="hex-input" value="#5EE6C8" maxlength="7">
+      </div>
+
+      <label class="drop" id="dropZone" for="fileInput">
+        📷 Resimden piksel seçmek için tıkla veya sürükle bırak
+      </label>
+      <input type="file" id="fileInput" accept="image/*">
+
+      <div class="canvas-shell" id="canvasShell">
+        <canvas id="imgCanvas"></canvas>
+        <div class="zoom-hint">Rengi seçmek için resme tıkla</div>
+      </div>
+    </div>
+
+    <!-- SAĞ: Önizleme + Export -->
+    <div class="card">
+      <h2>Önizleme</h2>
+      <div class="preview-swatch" id="previewSwatch"></div>
+      <div class="preview-meta">
+        <span>HEX <b id="metaHex">#5EE6C8</b></span>
+        <span>RGB <b id="metaRgb">94, 230, 200</b></span>
+      </div>
+
+      <h2>Ebat</h2>
+      <div class="presets" id="presets">
+        <button class="preset-btn active" data-w="3840" data-h="2160">4K 16:9</button>
+        <button class="preset-btn" data-w="1920" data-h="1080">FHD 16:9</button>
+        <button class="preset-btn" data-w="1080" data-h="1080">1:1 Kare</button>
+        <button class="preset-btn" data-w="1080" data-h="1920">9:16 Dikey</button>
+        <button class="preset-btn" data-w="2560" data-h="1440">2K 16:9</button>
+      </div>
+      <div class="dims">
+        <div class="field">
+          <label>Genişlik (px)</label>
+          <input type="number" id="widthInput" value="3840" min="1" max="10000">
+        </div>
+        <div class="field">
+          <label>Yükseklik (px)</label>
+          <input type="number" id="heightInput" value="2160" min="1" max="10000">
+        </div>
+      </div>
+
+      <button class="download-btn" id="downloadBtn">PNG OLARAK İNDİR</button>
+      <div class="footnote">Dosya, tarayıcınızın indirilenler klasörüne kaydedilir.</div>
+    </div>
+  </div>
+</div>
+
+<canvas id="exportCanvas" style="display:none;"></canvas>
+
+<script>
+(function(){
+  const colorPicker = document.getElementById('colorPicker');
+  const hexInput = document.getElementById('hexInput');
+  const previewSwatch = document.getElementById('previewSwatch');
+  const metaHex = document.getElementById('metaHex');
+  const metaRgb = document.getElementById('metaRgb');
+  const widthInput = document.getElementById('widthInput');
+  const heightInput = document.getElementById('heightInput');
+  const presets = document.getElementById('presets');
+  const downloadBtn = document.getElementById('downloadBtn');
+  const fileInput = document.getElementById('fileInput');
+  const dropZone = document.getElementById('dropZone');
+  const canvasShell = document.getElementById('canvasShell');
+  const imgCanvas = document.getElementById('imgCanvas');
+  const ctx = imgCanvas.getContext('2d', { willReadFrequently: true });
+  const exportCanvas = document.getElementById('exportCanvas');
+
+  let currentColor = { r: 94, g: 230, b: 200 };
+
+  function hexToRgb(hex){
+    hex = hex.replace('#','');
+    if(hex.length === 3){
+      hex = hex.split('').map(c => c+c).join('');
+    }
+    const num = parseInt(hex, 16);
+    return { r: (num>>16)&255, g: (num>>8)&255, b: num&255 };
+  }
+
+  function rgbToHex(r,g,b){
+    return '#' + [r,g,b].map(v => v.toString(16).padStart(2,'0')).join('').toUpperCase();
+  }
+
+  function updateColor(r,g,b, source){
+    currentColor = { r, g, b };
+    const hex = rgbToHex(r,g,b);
+    previewSwatch.style.background = `rgb(${r},${g},${b})`;
+    metaHex.textContent = hex;
+    metaRgb.textContent = `${r}, ${g}, ${b}`;
+    if(source !== 'picker') colorPicker.value = hex;
+    if(source !== 'hex') hexInput.value = hex;
+  }
+
+  colorPicker.addEventListener('input', e => {
+    const {r,g,b} = hexToRgb(e.target.value);
+    updateColor(r,g,b,'picker');
+  });
+
+  hexInput.addEventListener('input', e => {
+    let v = e.target.value.trim();
+    if(!v.startsWith('#')) v = '#' + v;
+    if(/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(v)){
+      const {r,g,b} = hexToRgb(v);
+      updateColor(r,g,b,'hex');
+    }
+  });
+
+  // --- Dosya yükleme / sürükle-bırak ---
+  dropZone.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', e => {
+    if(e.target.files[0]) loadImage(e.target.files[0]);
+  });
+  ['dragover','dragleave','drop'].forEach(evt => {
+    dropZone.addEventListener(evt, e => e.preventDefault());
+  });
+  dropZone.addEventListener('dragover', () => dropZone.classList.add('dragover'));
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+  dropZone.addEventListener('drop', e => {
+    dropZone.classList.remove('dragover');
+    if(e.dataTransfer.files[0]) loadImage(e.dataTransfer.files[0]);
+  });
+
+  function loadImage(file){
+    if(!file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const img = new Image();
+      img.onload = () => {
+        imgCanvas.width = img.naturalWidth;
+        imgCanvas.height = img.naturalHeight;
+        ctx.drawImage(img, 0, 0);
+        canvasShell.classList.add('active');
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  imgCanvas.addEventListener('click', e => {
+    const rect = imgCanvas.getBoundingClientRect();
+    const scaleX = imgCanvas.width / rect.width;
+    const scaleY = imgCanvas.height / rect.height;
+    const x = Math.floor((e.clientX - rect.left) * scaleX);
+    const y = Math.floor((e.clientY - rect.top) * scaleY);
+    const pixel = ctx.getImageData(x, y, 1, 1).data;
+    updateColor(pixel[0], pixel[1], pixel[2]);
+  });
+
+  // --- Ebat presetleri ---
+  presets.addEventListener('click', e => {
+    const btn = e.target.closest('.preset-btn');
+    if(!btn) return;
+    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    widthInput.value = btn.dataset.w;
+    heightInput.value = btn.dataset.h;
+  });
+
+  [widthInput, heightInput].forEach(inp => {
+    inp.addEventListener('input', () => {
+      document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+    });
+  });
+
+  // --- PNG indirme ---
+  downloadBtn.addEventListener('click', () => {
+    const w = Math.max(1, parseInt(widthInput.value) || 3840);
+    const h = Math.max(1, parseInt(heightInput.value) || 2160);
+    exportCanvas.width = w;
+    exportCanvas.height = h;
+    const exportCtx = exportCanvas.getContext('2d');
+    exportCtx.fillStyle = `rgb(${currentColor.r},${currentColor.g},${currentColor.b})`;
+    exportCtx.fillRect(0, 0, w, h);
+
+    exportCanvas.toBlob(blob => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const hex = rgbToHex(currentColor.r, currentColor.g, currentColor.b).replace('#','');
+      a.href = url;
+      a.download = `renk_${hex}_${w}x${h}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 'image/png');
+  });
+
+  // ilk yükleme
+  updateColor(94, 230, 200);
+})();
+</script>
+</body>
+</html>
