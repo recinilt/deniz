@@ -3,116 +3,120 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>BIST Analiz Masası</title>
+<title>Kripto Analiz Masası</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --zemin:#0E1420; --panel:#161E2E; --panel2:#1B2436; --cizgi:#24304A;
-  --murekkep:#E9EEF8; --soluk:#8B97AD; --amber:#F5B841; --amber-koyu:#3A2F12;
-  --yukselen:#35C58C; --dusen:#E5484D; --radius:10px;
+  --zemin:#0A0E1B; --panel:#131A2C; --panel2:#182135; --cizgi:#26314C;
+  --murekkep:#E8EDF9; --soluk:#8794AE;
+  --siyan:#4DD9E8; --mor:#8B7FF0;
+  --yukselen:#3ECF8E; --dusen:#F0616B; --notr:#F2B950;
+  --radius:10px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{color-scheme:dark}
 body{
   background:var(--zemin); color:var(--murekkep);
-  font-family:"Archivo",system-ui,sans-serif; font-size:15px; line-height:1.5;
+  font-family:"Space Grotesk",system-ui,sans-serif; font-size:15px; line-height:1.5;
   min-height:100vh; padding:28px 16px 60px;
-  background-image:linear-gradient(180deg,#101828 0%,var(--zemin) 260px);
+  background-image:radial-gradient(900px 380px at 50% -120px,rgba(139,127,240,.16),transparent 70%);
 }
-.sarici{max-width:880px;margin:0 auto}
-.mono{font-family:"IBM Plex Mono",ui-monospace,monospace}
+.sarici{max-width:900px;margin:0 auto}
+.mono{font-family:"JetBrains Mono",ui-monospace,monospace}
 
-/* Baslik */
-.kas{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.28em;color:var(--amber);text-transform:uppercase}
-h1{font-size:clamp(28px,5vw,40px);font-weight:800;letter-spacing:-.02em;margin:6px 0 4px}
-.altbaslik{color:var(--soluk);max-width:56ch}
+.kas{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.26em;color:var(--siyan);text-transform:uppercase}
+h1{font-size:clamp(28px,5vw,40px);font-weight:700;letter-spacing:-.02em;margin:6px 0 4px}
+.altbaslik{color:var(--soluk);max-width:58ch}
 header{margin-bottom:26px}
 
-/* Kartlar */
 .kart{background:var(--panel);border:1px solid var(--cizgi);border-radius:var(--radius);padding:18px;margin-bottom:16px}
-.kart h2{font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--soluk);margin-bottom:14px;display:flex;align-items:center;gap:8px}
-.kart h2::before{content:"";width:8px;height:8px;background:var(--amber);display:inline-block}
+.kart h2{font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--soluk);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.kart h2::before{content:"";width:8px;height:8px;background:var(--siyan);border-radius:2px;display:inline-block;flex:none}
 
-/* Form */
-.izgara{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+.izgara{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
 label{display:block;font-size:12px;color:var(--soluk);margin-bottom:5px}
 input[type=text],input[type=password],input[type=number],input[type=date],select{
   width:100%;background:var(--zemin);border:1px solid var(--cizgi);border-radius:6px;
-  color:var(--murekkep);padding:9px 10px;font:inherit;font-family:"IBM Plex Mono",monospace;font-size:13px;
+  color:var(--murekkep);padding:9px 10px;font:inherit;font-family:"JetBrains Mono",monospace;font-size:13px;
 }
-input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid var(--amber);outline-offset:1px}
+input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid var(--siyan);outline-offset:1px}
 .satirici{display:flex;gap:8px;align-items:center}
 .goz{background:none;border:1px solid var(--cizgi);border-radius:6px;color:var(--soluk);padding:8px 10px;cursor:pointer}
 .onay{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--soluk);cursor:pointer}
-.onay input{accent-color:var(--amber);width:15px;height:15px}
+.onay input{accent-color:var(--siyan);width:15px;height:15px}
 .ipucu{font-size:12px;color:var(--soluk);margin-top:8px}
 
-/* Portfoy tablosu */
 table{width:100%;border-collapse:collapse}
-th{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--soluk);text-align:left;padding:0 8px 8px 0;font-weight:600}
+th{font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--soluk);text-align:left;padding:0 8px 8px 0;font-weight:600}
 td{padding:0 8px 8px 0;vertical-align:middle}
 td input{padding:8px 9px}
 .sil{background:none;border:1px solid var(--cizgi);color:var(--dusen);border-radius:6px;width:34px;height:34px;cursor:pointer;font-size:15px;line-height:1}
 .sil:hover{border-color:var(--dusen)}
 .ekle{background:var(--panel2);border:1px dashed var(--cizgi);color:var(--murekkep);border-radius:6px;padding:9px 14px;cursor:pointer;font:inherit;font-size:13px;margin-top:4px}
-.ekle:hover{border-color:var(--amber)}
+.ekle:hover{border-color:var(--siyan)}
 
-/* Eylemler */
 .eylemler{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:20px 0 12px}
 .birincil{
-  background:var(--amber);color:#181000;border:none;border-radius:8px;
-  font:inherit;font-weight:800;font-size:16px;letter-spacing:.02em;
-  padding:14px 30px;cursor:pointer;
+  background:linear-gradient(100deg,var(--siyan),var(--mor));color:#07101C;border:none;border-radius:8px;
+  font:inherit;font-weight:700;font-size:16px;padding:14px 30px;cursor:pointer;
 }
-.birincil:hover{filter:brightness(1.06)}
+.birincil:hover{filter:brightness(1.08)}
 .birincil:disabled{opacity:.55;cursor:wait}
 .ikincil{background:none;border:1px solid var(--cizgi);color:var(--murekkep);border-radius:8px;font:inherit;font-size:14px;padding:12px 16px;cursor:pointer}
-.ikincil:hover{border-color:var(--amber)}
+.ikincil:hover{border-color:var(--siyan)}
 #dosyaGizli{display:none}
 
-/* Durum */
-#durum{font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--soluk);min-height:20px;margin-bottom:16px}
+#durum{font-family:"JetBrains Mono",monospace;font-size:13px;color:var(--soluk);min-height:20px;margin-bottom:16px}
 #durum.hata{color:var(--dusen)}
 #durum.tamam{color:var(--yukselen)}
 
-/* Seans bandi — imza oge */
-.bant{
-  overflow:hidden;border-top:1px solid var(--cizgi);border-bottom:1px solid var(--cizgi);
-  background:#0A0F19;margin:0 -16px 20px;padding:9px 0;display:none;
-}
-.bant-ic{display:inline-flex;gap:34px;white-space:nowrap;will-change:transform;animation:kay 40s linear infinite;padding-left:100%}
+.bant{overflow:hidden;border-top:1px solid var(--cizgi);border-bottom:1px solid var(--cizgi);background:#070B15;margin:0 -16px 20px;padding:9px 0;display:none}
+.bant-ic{display:inline-flex;gap:32px;white-space:nowrap;will-change:transform;animation:kay 42s linear infinite;padding-left:100%}
 @keyframes kay{to{transform:translateX(-100%)}}
 @media (prefers-reduced-motion:reduce){.bant-ic{animation:none;padding-left:16px;flex-wrap:wrap;white-space:normal;gap:14px}}
-.bant span{font-family:"IBM Plex Mono",monospace;font-size:13px}
-.bant .sem{color:var(--amber);font-weight:600}
+.bant span{font-family:"JetBrains Mono",monospace;font-size:13px}
+.bant .sem{color:var(--siyan);font-weight:700}
 .bant .art{color:var(--yukselen)} .bant .eks{color:var(--dusen)}
 
-/* Rapor */
-.pazar-karti{background:var(--panel2);border-left:3px solid var(--amber);border-radius:0 8px 8px 0;padding:14px 16px;margin-bottom:16px}
-.pazar-karti .mono{font-size:12px;color:var(--soluk);margin-top:8px;display:block}
+/* Imza: korku-acgozluluk olcegi */
+.nabiz{display:grid;grid-template-columns:1fr;gap:16px;margin-bottom:16px}
+@media(min-width:660px){.nabiz{grid-template-columns:1.3fr 1fr}}
+.olcek-kart{background:var(--panel);border:1px solid var(--cizgi);border-radius:var(--radius);padding:16px 18px}
+.olcek-ust{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:14px}
+.olcek-deger{font-family:"JetBrains Mono",monospace;font-size:34px;font-weight:700;line-height:1}
+.olcek-etiket{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--soluk)}
+.olcek-yol{position:relative;height:8px;border-radius:4px;background:linear-gradient(90deg,#F0616B 0%,#F2B950 45%,#3ECF8E 100%)}
+.olcek-igne{position:absolute;top:-5px;width:3px;height:18px;background:var(--murekkep);border-radius:2px;box-shadow:0 0 0 2px var(--panel);transition:left .5s ease}
+.olcek-skala{display:flex;justify-content:space-between;font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--soluk);margin-top:7px}
+.kucuk-istatistik{display:flex;flex-direction:column;justify-content:center;gap:10px}
+.ki-satir{display:flex;justify-content:space-between;align-items:baseline;gap:10px;border-bottom:1px solid var(--cizgi);padding-bottom:8px}
+.ki-satir:last-child{border-bottom:none;padding-bottom:0}
+.ki-ad{font-size:12.5px;color:var(--soluk)}
+.ki-deger{font-family:"JetBrains Mono",monospace;font-size:15px;font-weight:500}
+
+.pazar-karti{background:var(--panel2);border-left:3px solid var(--mor);border-radius:0 8px 8px 0;padding:14px 16px;margin-bottom:16px}
 .karar-satir{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:baseline;padding:12px 0;border-bottom:1px solid var(--cizgi)}
 .karar-satir:last-child{border-bottom:none}
-.karar-satir .sembol{font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:15px;min-width:70px}
-.karar-satir .fiyat{font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--soluk)}
-.cip{
-  font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:600;letter-spacing:.1em;
-  padding:3px 10px;border-radius:4px;border:1px solid;
-}
-.cip.EKLE{color:var(--yukselen);border-color:var(--yukselen);background:rgba(53,197,140,.08)}
-.cip.TUT{color:var(--amber);border-color:var(--amber);background:rgba(245,184,65,.08)}
-.cip.AZALT{color:#F09B59;border-color:#F09B59;background:rgba(240,155,89,.08)}
-.cip.SAT{color:var(--dusen);border-color:var(--dusen);background:rgba(229,72,77,.08)}
+.karar-satir .sembol{font-family:"JetBrains Mono",monospace;font-weight:700;font-size:15px;min-width:64px}
+.karar-satir .tamad{font-size:12px;color:var(--soluk)}
+.karar-satir .fiyat{font-family:"JetBrains Mono",monospace;font-size:13px;color:var(--soluk)}
+.cip{font-family:"JetBrains Mono",monospace;font-size:12px;font-weight:700;letter-spacing:.08em;padding:3px 10px;border-radius:4px;border:1px solid}
+.cip.EKLE{color:var(--yukselen);border-color:var(--yukselen);background:rgba(62,207,142,.09)}
+.cip.TUT{color:var(--notr);border-color:var(--notr);background:rgba(242,185,80,.09)}
+.cip.AZALT{color:#F09B59;border-color:#F09B59;background:rgba(240,155,89,.09)}
+.cip.SAT{color:var(--dusen);border-color:var(--dusen);background:rgba(240,97,107,.09)}
 .cip.VERI_YOK{color:var(--soluk);border-color:var(--cizgi)}
 .gerekce{flex-basis:100%;color:var(--soluk);font-size:13.5px}
-.kz{font-family:"IBM Plex Mono",monospace;font-size:12px}
+.kz{font-family:"JetBrains Mono",monospace;font-size:12px}
 .kz.art{color:var(--yukselen)} .kz.eks{color:var(--dusen)}
-.haber-mini{flex-basis:100%;font-size:12px;color:#67748C;font-family:"IBM Plex Mono",monospace}
-.vade{font-size:11px;color:var(--soluk);font-family:"IBM Plex Mono",monospace;text-transform:uppercase;letter-spacing:.1em}
+.haber-mini{flex-basis:100%;font-size:12px;color:#65728C;font-family:"JetBrains Mono",monospace}
+.vade{font-size:11px;color:var(--soluk);font-family:"JetBrains Mono",monospace;text-transform:uppercase;letter-spacing:.09em}
 .uyari{font-size:12.5px;color:var(--soluk);border-top:1px dashed var(--cizgi);margin-top:20px;padding-top:14px}
 #raporBolge{display:none}
-.zaman{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--soluk)}
+#nabizBolge{display:none}
+.zaman{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--soluk);margin-left:auto}
 /* Sekmeler */
 .sekmeler{display:flex;gap:6px;border-bottom:1px solid var(--cizgi);margin-bottom:20px;flex-wrap:wrap}
 .sekme{
@@ -120,7 +124,7 @@ td input{padding:8px 9px}
   font:inherit;font-size:14px;font-weight:600;padding:10px 14px;cursor:pointer;margin-bottom:-1px;
 }
 .sekme:hover{color:var(--murekkep)}
-.sekme[aria-selected="true"]{color:var(--amber);border-bottom-color:var(--amber)}
+.sekme[aria-selected="true"]{color:var(--siyan);border-bottom-color:var(--siyan)}
 .panel[hidden]{display:none}
 
 /* Diyalog */
@@ -136,25 +140,25 @@ dialog::backdrop{background:rgba(5,8,16,.72)}
 .dlg-tek{margin-bottom:12px}
 .dlg-eylem{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}
 .dlg-uyari{font-size:12.5px;color:var(--dusen);min-height:18px;margin-top:4px}
-.dlg-ozet{background:var(--panel2);border-radius:8px;padding:10px 12px;font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--soluk)}
+.dlg-ozet{background:var(--panel2);border-radius:8px;padding:10px 12px;font-family:"JetBrains Mono",monospace;font-size:13px;color:var(--soluk)}
 .tip-sec{display:flex;gap:8px;margin-bottom:14px}
 .tip-btn{flex:1;background:var(--zemin);border:1px solid var(--cizgi);color:var(--soluk);border-radius:8px;padding:9px;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
-.tip-btn[aria-pressed="true"]{border-color:var(--amber);color:var(--amber);background:rgba(245,184,65,.08)}
+.tip-btn[aria-pressed="true"]{border-color:var(--siyan);color:var(--siyan);background:rgba(77,217,232,.08)}
 
 /* Satir ici eylem butonlari */
 .mini{
   background:none;border:1px solid var(--cizgi);color:var(--murekkep);border-radius:6px;
   font:inherit;font-size:12px;font-weight:600;padding:4px 11px;cursor:pointer;
 }
-.mini:hover{border-color:var(--amber);color:var(--amber)}
+.mini:hover{border-color:var(--siyan);color:var(--siyan)}
 .mini.sat:hover{border-color:var(--dusen);color:var(--dusen)}
 
 /* Istatistik kartlari */
 .ist-izgara{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:12px;margin-bottom:6px}
 .ist-kutu{background:var(--panel2);border:1px solid var(--cizgi);border-radius:9px;padding:13px 14px}
 .ist-ad{font-size:11.5px;color:var(--soluk);letter-spacing:.04em;margin-bottom:6px}
-.ist-deger{font-family:"IBM Plex Mono",monospace;font-size:19px;font-weight:700;line-height:1.2;word-break:break-all}
-.ist-ek{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--soluk);margin-top:3px}
+.ist-deger{font-family:"JetBrains Mono",monospace;font-size:19px;font-weight:700;line-height:1.2;word-break:break-all}
+.ist-ek{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--soluk);margin-top:3px}
 .art{color:var(--yukselen)} .eks{color:var(--dusen)}
 
 /* Veri tablolari */
@@ -163,22 +167,22 @@ dialog::backdrop{background:rgba(5,8,16,.72)}
 .vt td{padding:9px 10px 9px 0;border-bottom:1px solid var(--cizgi);vertical-align:middle}
 .vt tr:last-child td{border-bottom:none}
 .vt .sag{text-align:right}
-.vt .mono{font-family:"IBM Plex Mono",monospace}
+.vt .mono{font-family:"JetBrains Mono",monospace}
 .sarmal{overflow-x:auto}
-.rozet{font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;border:1px solid}
-.rozet.alim{color:var(--yukselen);border-color:var(--yukselen);background:rgba(53,197,140,.08)}
-.rozet.satim{color:var(--dusen);border-color:var(--dusen);background:rgba(229,72,77,.08)}
+.rozet{font-family:"JetBrains Mono",monospace;font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;border:1px solid}
+.rozet.alim{color:var(--yukselen);border-color:var(--yukselen);background:rgba(62,207,142,.08)}
+.rozet.satim{color:var(--dusen);border-color:var(--dusen);background:rgba(240,97,107,.08)}
 
 /* Dagilim cubuklari */
 .dag-satir{display:grid;grid-template-columns:62px 1fr 92px;gap:10px;align-items:center;margin-bottom:9px}
-.dag-ad{font-family:"IBM Plex Mono",monospace;font-size:13px;font-weight:700}
+.dag-ad{font-family:"JetBrains Mono",monospace;font-size:13px;font-weight:700}
 .dag-yol{height:8px;background:var(--zemin);border-radius:4px;overflow:hidden}
-.dag-dolu{height:100%;background:linear-gradient(90deg,var(--amber),#F2D08A);border-radius:4px}
-.dag-deger{font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--soluk);text-align:right}
+.dag-dolu{height:100%;background:linear-gradient(90deg,var(--siyan),var(--mor));border-radius:4px}
+.dag-deger{font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--soluk);text-align:right}
 
 /* Deger gecmisi grafigi */
 .grafik{width:100%;height:132px;display:block}
-.grafik .cizgi{fill:none;stroke:var(--amber);stroke-width:2}
+.grafik .cizgi{fill:none;stroke:var(--siyan);stroke-width:2}
 .grafik .alan{fill:url(#grad);opacity:.28}
 .bos-durum{color:var(--soluk);font-size:13.5px;padding:14px 0}
 
@@ -186,17 +190,17 @@ dialog::backdrop{background:rgba(5,8,16,.72)}
 .sanal-ust{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:14px;margin-bottom:14px}
 .sanal-liste{border-top:1px solid var(--cizgi);margin:12px 0}
 .sanal-satir{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:baseline;padding:9px 0;border-bottom:1px solid var(--cizgi)}
-.sanal-satir .sembol{font-family:"IBM Plex Mono";font-weight:700;min-width:64px}
+.sanal-satir .sembol{font-family:"JetBrains Mono";font-weight:700;min-width:64px}
 .sanal-satir .soluk{color:var(--soluk)}
 button[disabled]{opacity:.45;cursor:not-allowed}
 /* Grafikler */
 .grafik.buyuk{width:100%;height:190px;display:block}
-.grafik.buyuk .cizgi{fill:none;stroke:#F5B841;stroke-width:2.2;stroke-linejoin:round}
+.grafik.buyuk .cizgi{fill:none;stroke:#4DD9E8;stroke-width:2.2;stroke-linejoin:round}
 .grafik.buyuk .kiyas{fill:none;stroke:var(--soluk);stroke-width:1.6;stroke-dasharray:5 4;opacity:.85}
 .grafik.buyuk .ref{stroke:var(--cizgi);stroke-width:1;stroke-dasharray:3 4}
 .grafik.dusus{width:100%;height:90px;display:block}
 .grafik.dusus path{fill:rgba(229,72,77,.28);stroke:#E5484D;stroke-width:1.4}
-.grafik-alt{display:flex;justify-content:space-between;gap:10px;font-family:"IBM Plex Mono";font-size:11px;color:var(--soluk);margin-top:6px;flex-wrap:wrap}
+.grafik-alt{display:flex;justify-content:space-between;gap:10px;font-family:"JetBrains Mono";font-size:11px;color:var(--soluk);margin-top:6px;flex-wrap:wrap}
 .kiyas-etiket{color:var(--soluk)}
 /* Aylık çubuklar */
 .aylik{display:flex;gap:6px;align-items:flex-end;height:110px;margin-top:6px;overflow-x:auto;padding-bottom:2px}
@@ -205,17 +209,18 @@ button[disabled]{opacity:.45;cursor:not-allowed}
 .aylik-dolu{width:100%;border-radius:4px}
 .aylik-dolu.art{background:linear-gradient(180deg,var(--yukselen),rgba(53,197,140,.35))}
 .aylik-dolu.eks{background:linear-gradient(180deg,rgba(229,72,77,.4),var(--dusen))}
-.aylik-ad{font-family:"IBM Plex Mono";font-size:10px;color:var(--soluk)}
+.aylik-ad{font-family:"JetBrains Mono";font-size:10px;color:var(--soluk)}
 /* Skor rozetleri */
-.skor{display:inline-flex;align-items:center;gap:6px;font-family:"IBM Plex Mono";font-size:11px;padding:3px 9px;border-radius:999px;border:1px solid}
+.skor{display:inline-flex;align-items:center;gap:6px;font-family:"JetBrains Mono";font-size:11px;padding:3px 9px;border-radius:999px;border:1px solid}
 .skor.iyi{color:var(--yukselen);border-color:var(--yukselen);background:rgba(53,197,140,.09)}
-.skor.orta{color:#F5B841;border-color:#F5B841;background:rgba(245,184,65,.09)}
+.skor.orta{color:#4DD9E8;border-color:#4DD9E8;background:rgba(245,184,65,.09)}
 .skor.zayif{color:var(--dusen);border-color:var(--dusen);background:rgba(229,72,77,.09)}
 .skor.yok{color:var(--soluk);border-color:var(--cizgi)}
 .olcut-not{font-size:12px;color:var(--soluk);margin-top:4px}
 .bolum-ic{display:grid;grid-template-columns:1fr;gap:18px}
 @media(min-width:700px){.bolum-ic.iki{grid-template-columns:1fr 1fr}}
-footer{margin-top:36px;font-size:12px;color:#5A667F}
+footer{margin-top:36px;font-size:12px;color:#59657E}
+
 @media(max-width:560px){.eylemler{flex-direction:column;align-items:stretch}.birincil,.ikincil{width:100%}}
 </style>
 </head>
@@ -223,9 +228,9 @@ footer{margin-top:36px;font-size:12px;color:#5A667F}
 <div class="sarici">
 
 <header>
-  <div class="kas">Kişisel seans masası · Borsa İstanbul</div>
-  <h1>BIST Analiz Masası</h1>
-  <p class="altbaslik">Kapanış sonrası tek tuş: portföyündeki her hisse için EKLE / TUT / AZALT / SAT kararı ve yeni kısa-orta vade adayları. Veri TradingView'dan, yorum Gemini'den, her şey bu tarayıcıda kalır.</p>
+  <div class="kas">7/24 piyasa · coin masası</div>
+  <h1>Kripto Analiz Masası</h1>
+  <p class="altbaslik">Portföyündeki her coin için EKLE / TUT / AZALT / SAT kararı, yeni kısa-orta vade adaylar ve piyasa nabzı. Veri TradingView coin tarayıcısından, yorum Gemini'den; her şey bu tarayıcıda kalır.</p>
 </header>
 
 <nav class="sekmeler" role="tablist" aria-label="Bölümler">
@@ -255,8 +260,16 @@ footer{margin-top:36px;font-size:12px;color:#5A667F}
       <input type="number" id="adaySayisi" min="0" max="10" value="5">
     </div>
     <div>
-      <label for="haberSayisi">Hisse başına haber</label>
+      <label for="haberSayisi">Coin başına haber</label>
       <input type="number" id="haberSayisi" min="0" max="5" value="3">
+    </div>
+    <div>
+      <label for="minMcap">Min. piyasa değeri (milyon $)</label>
+      <input type="number" id="minMcap" min="0" step="10" value="150">
+    </div>
+    <div>
+      <label for="minHacim">Min. 24s hacim (milyon $)</label>
+      <input type="number" id="minHacim" min="0" step="1" value="10">
     </div>
   </div>
   <div style="margin-top:12px" class="izgara">
@@ -273,11 +286,11 @@ footer{margin-top:36px;font-size:12px;color:#5A667F}
       </select>
     </div>
       <div>
-        <label for="sermaye">Başlangıç sermayesi (₺)</label>
+        <label for="sermaye">Başlangıç sermayesi ($)</label>
         <input type="text" id="sermaye" inputmode="decimal">
       </div>
       <div>
-        <label for="butce">İşlem başına bütçe (₺)</label>
+        <label for="butce">İşlem başına bütçe ($)</label>
         <input type="text" id="butce" inputmode="decimal">
       </div>
       <div>
@@ -301,17 +314,17 @@ footer{margin-top:36px;font-size:12px;color:#5A667F}
         <input type="text" id="riskSiz" inputmode="decimal">
       </div>
   </div>
-  <p class="ipucu">Anahtar yalnızca bu tarayıcının yerel depolamasında tutulur ve doğrudan Google'a gider; başka hiçbir sunucuya gitmez. Ücretsiz anahtar: aistudio.google.com</p>
+  <p class="ipucu">Anahtar yalnızca bu tarayıcının yerel depolamasında tutulur ve doğrudan Google'a gider. Ücretsiz anahtar: aistudio.google.com · Stablecoin'ler aday listesinden otomatik elenir.</p>
 </section>
 
 <section class="kart">
   <h2>Portföy</h2>
   <table>
-    <thead><tr><th>Sembol</th><th>Adet</th><th>Maliyet (₺)</th><th></th></tr></thead>
+    <thead><tr><th>Coin</th><th>Miktar</th><th>Maliyet ($/adet)</th><th></th></tr></thead>
     <tbody id="portfoyGovde"></tbody>
   </table>
-  <button class="ekle" id="satirEkleBtn" type="button">+ Hisse ekle</button>
-  <p class="ipucu">Adet ve maliyet isteğe bağlı; maliyet girersen rapor kâr/zararı da değerlendirir. Ondalıkta virgül kullanabilirsin (250,50).</p>
+  <button class="ekle" id="satirEkleBtn" type="button">+ Coin ekle</button>
+  <p class="ipucu">Sembolü kısa yaz: BTC, ETH, SOL. Miktar kesirli olabilir (0,5). Maliyet girersen rapor kâr/zararı da değerlendirir; ondalıkta virgül kullanabilirsin.</p>
 </section>
 
 <div class="eylemler">
@@ -325,9 +338,30 @@ footer{margin-top:36px;font-size:12px;color:#5A667F}
 
 <div class="bant" id="bant"><div class="bant-ic" id="bantIc"></div></div>
 
+<section id="nabizBolge">
+  <div class="nabiz">
+    <div class="olcek-kart">
+      <div class="olcek-ust">
+        <div>
+          <div class="olcek-etiket">Korku &amp; Açgözlülük</div>
+          <div class="olcek-deger" id="fngDeger">–</div>
+        </div>
+        <div class="mono" id="fngSinif" style="font-size:13px;color:var(--soluk)"></div>
+      </div>
+      <div class="olcek-yol"><div class="olcek-igne" id="fngIgne" style="left:50%"></div></div>
+      <div class="olcek-skala"><span>0 · aşırı korku</span><span>50</span><span>aşırı açgözlülük · 100</span></div>
+    </div>
+    <div class="olcek-kart kucuk-istatistik">
+      <div class="ki-satir"><span class="ki-ad">BTC dominansı</span><span class="ki-deger" id="kiDominans">–</span></div>
+      <div class="ki-satir"><span class="ki-ad">Toplam piyasa değeri · 24s</span><span class="ki-deger" id="kiMcap">–</span></div>
+      <div class="ki-satir"><span class="ki-ad">Yükselen / düşen coin</span><span class="ki-deger" id="kiGenislik">–</span></div>
+    </div>
+  </div>
+</section>
+
 <section id="raporBolge">
   <div class="kart">
-    <h2>Rapor <span class="zaman" id="raporZaman" style="margin-left:auto"></span></h2>
+    <h2>Rapor <span class="zaman" id="raporZaman"></span></h2>
     <div class="pazar-karti" id="pazarKarti"></div>
     <h2 style="margin-top:18px">Sanal portföye uygula</h2>
     <div id="sanalKart"></div>
@@ -335,7 +369,7 @@ footer{margin-top:36px;font-size:12px;color:#5A667F}
     <div id="portfoyRapor"></div>
     <h2 style="margin-top:18px">Adaylar · kısa-orta vade</h2>
     <div id="adayRapor"></div>
-    <p class="uyari">⚠️ Bu rapor bilgilendirme amaçlıdır, yatırım tavsiyesi değildir. Fiyat verileri TradingView üzerinden ~15 dk gecikmelidir. Test: Çöğüş işini böyle yapmışsın ✅</p>
+    <p class="uyari">⚠️ Bu rapor bilgilendirme amaçlıdır, yatırım tavsiyesi değildir. Kripto piyasası 7/24 açıktır ve oynaklığı yüksektir; göstergeler geçmiş fiyat hareketini özetler, geleceği garanti etmez. Test: Çöğüş işini böyle yapmışsın ✅</p>
   </div>
 </section>
 
@@ -351,15 +385,15 @@ footer{margin-top:36px;font-size:12px;color:#5A667F}
     <div class="sarmal">
       <table class="vt">
         <thead><tr>
-          <th>Tarih</th><th>Tip</th><th>Hisse</th>
-          <th class="sag">Adet</th><th class="sag">Fiyat</th><th class="sag">Tutar</th>
+          <th>Tarih</th><th>Tip</th><th>Coin</th>
+          <th class="sag">Miktar</th><th class="sag">Fiyat</th><th class="sag">Tutar</th>
           <th class="sag">Ücret</th><th>Not</th><th></th>
         </tr></thead>
         <tbody id="islemGovde"></tbody>
       </table>
     </div>
     <p class="bos-durum" id="islemBos" hidden>Henüz işlem yok. Analiz sekmesindeki aday önerilerinin yanındaki <strong>+ Ekle</strong> düğmesiyle ya da yukarıdaki <strong>+ İşlem ekle</strong> ile başlayabilirsin.</p>
-    <p class="ipucu">Bir işlem eklediğinde ilgili hissenin portföy satırı (adet ve ortalama maliyet) otomatik güncellenir.</p>
+    <p class="ipucu">Bir işlem eklediğinde ilgili coinin portföy satırı (miktar ve ortalama maliyet) otomatik güncellenir.</p>
   </section>
 </div>
 
@@ -378,13 +412,13 @@ footer{margin-top:36px;font-size:12px;color:#5A667F}
     </div>
 
     <div class="dlg-tek">
-      <label for="dlgSembol">Hisse</label>
-      <input type="text" id="dlgSembol" placeholder="THYAO" maxlength="12" style="text-transform:uppercase">
+      <label for="dlgSembol">Coin</label>
+      <input type="text" id="dlgSembol" placeholder="BTC" maxlength="12" style="text-transform:uppercase">
     </div>
 
     <div class="dlg-satir">
       <div>
-        <label for="dlgFiyat">Birim fiyat (₺)</label>
+        <label for="dlgFiyat">Birim fiyat ($)</label>
         <input type="text" id="dlgFiyat" inputmode="decimal" autofocus>
         <div class="ist-ek" id="dlgFiyatNot" aria-live="polite"></div>
       </div>
@@ -396,18 +430,18 @@ footer{margin-top:36px;font-size:12px;color:#5A667F}
 
     <div class="dlg-satir">
       <div>
-        <label for="dlgMiktar">Adet</label>
-        <input type="text" id="dlgMiktar" inputmode="decimal" placeholder="100">
+        <label for="dlgMiktar">Miktar</label>
+        <input type="text" id="dlgMiktar" inputmode="decimal" placeholder="0,5">
       </div>
       <div>
-        <label for="dlgTutar">veya tutar (₺)</label>
-        <input type="text" id="dlgTutar" inputmode="decimal" placeholder="5000">
+        <label for="dlgTutar">veya tutar ($)</label>
+        <input type="text" id="dlgTutar" inputmode="decimal" placeholder="500">
       </div>
     </div>
 
     <div class="dlg-satir">
       <div>
-        <label for="dlgUcret">Komisyon (₺)</label>
+        <label for="dlgUcret">Komisyon ($)</label>
         <input type="text" id="dlgUcret" inputmode="decimal" placeholder="0">
       </div>
       <div>
@@ -426,27 +460,22 @@ footer{margin-top:36px;font-size:12px;color:#5A667F}
   </div>
 </dialog>
 
-<footer>BIST Analiz Masası · veriler: TradingView scanner + Google News RSS · yorum: Google Gemini · tüm veriler yerelde saklanır</footer>
+<footer>Kripto Analiz Masası · veriler: TradingView coin tarayıcısı, alternative.me korku endeksi, CoinGecko global, Google News RSS · yorum: Google Gemini · tüm veriler yerelde saklanır</footer>
 </div>
 
 <script>
 "use strict";
 /* ============ SAF-BASLA (DOM'suz cekirdek mantik) ============ */
-var KOLONLAR = ["name","description","close","change","volume","Value.Traded","market_cap_basic","RSI","MACD.macd","MACD.signal","SMA20","SMA50","SMA200","Recommend.All","Perf.W","Perf.1M","Perf.3M","relative_volume_10d_calc","price_52_week_high","price_52_week_low"];
+var KOLONLAR = ["base_currency","base_currency_desc","close","change","24h_close_change|5","market_cap_calc","24h_vol_cmc","RSI","MACD.macd","MACD.signal","SMA20","SMA50","SMA200","Recommend.All","Perf.W","Perf.1M","Perf.3M","crypto_total_rank","price_52_week_high","price_52_week_low","Volatility.D"];
 
 function taramaGovdesi(){
   return JSON.stringify({
-    filter:[
-      {left:"type",operation:"equal",right:"stock"},
-      {left:"subtype",operation:"in_range",right:["common","foreign-issuer",""]},
-      {left:"exchange",operation:"equal",right:"BIST"}
-    ],
-    options:{lang:"tr"},
-    markets:["turkey"],
-    symbols:{query:{types:[]},tickers:[]},
     columns:KOLONLAR,
-    sort:{sortBy:"Value.Traded",sortOrder:"desc"},
-    range:[0,600]
+    filter:[{left:"crypto_common_categories",operation:"has_none_of",right:["stablecoins"]}],
+    markets:["coin"],
+    options:{lang:"tr"},
+    sort:{sortBy:"crypto_total_rank",sortOrder:"asc"},
+    range:[0,300]
   });
 }
 
@@ -454,22 +483,27 @@ function satirlariCoz(scan){
   return (scan.data||[]).map(function(r){
     var o={};
     (r.d||[]).forEach(function(v,i){ o[KOLONLAR[i]]=v; });
-    o.sembol=String(r.s||"").replace("BIST:","");
+    o.sembol=String(o.base_currency||"").toUpperCase();
     return o;
-  });
+  }).filter(function(o){ return o.sembol; });
 }
 
 function ozet(m){
-  function y(n){ return (n===null||n===undefined||isNaN(n))?null:Math.round(n*100)/100; }
+  function y(n){ return (n===null||n===undefined||isNaN(n))?null:Math.round(n*1e6)/1e6; }
+  function y2(n){ return (n===null||n===undefined||isNaN(n))?null:Math.round(n*100)/100; }
   return {
-    ad:m.description||m.name||"",
-    fiyat:y(m.close),degisim:y(m.change),
-    rsi:y(m.RSI),macd:y(m["MACD.macd"]),macdSinyal:y(m["MACD.signal"]),
+    ad:m.base_currency_desc||m.base_currency||"",
+    fiyat:y(m.close),
+    degisim:y2(m.change),
+    degisim24s:y2(m["24h_close_change|5"]),
+    piyasaDegeriMilyonUsd:y2((m.market_cap_calc||0)/1e6),
+    hacim24sMilyonUsd:y2((m["24h_vol_cmc"]||0)/1e6),
+    sira:m.crypto_total_rank||null,
+    rsi:y2(m.RSI),macd:y(m["MACD.macd"]),macdSinyal:y(m["MACD.signal"]),
     sma20:y(m.SMA20),sma50:y(m.SMA50),sma200:y(m.SMA200),
-    tavsiye:y(m["Recommend.All"]),
-    perfHafta:y(m["Perf.W"]),perfAy:y(m["Perf.1M"]),perf3Ay:y(m["Perf.3M"]),
-    hacimOrani:y(m.relative_volume_10d_calc),
-    islemHacmiMilyonTL:y((m["Value.Traded"]||0)/1000000),
+    tavsiye:y2(m["Recommend.All"]),
+    perfHafta:y2(m["Perf.W"]),perfAy:y2(m["Perf.1M"]),perf3Ay:y2(m["Perf.3M"]),
+    oynaklikGunluk:y2(m["Volatility.D"]),
     yil52Yuksek:y(m.price_52_week_high),yil52Dusuk:y(m.price_52_week_low)
   };
 }
@@ -480,16 +514,16 @@ function pazarHesapla(rows){
   return {toplam:rows.length,yukselen:yuk,dusen:dus};
 }
 
-function adaySec(rows,portfoySembolleri,adet){
+function adaySec(rows,portfoySembolleri,adet,minMcapMn,minHacimMn){
   var pset=new Set(portfoySembolleri);
-  var likit=rows.filter(function(r){return !pset.has(r.sembol);})
-    .sort(function(a,b){return (b["Value.Traded"]||0)-(a["Value.Traded"]||0);})
-    .slice(0,200);
-  return likit.filter(function(r){
+  return rows.filter(function(r){
+      if(pset.has(r.sembol)) return false;
+      var mcapOk=((r.market_cap_calc||0)/1e6)>=minMcapMn;
+      var hacimOk=((r["24h_vol_cmc"]||0)/1e6)>=minHacimMn;
       var smaOk=(r.SMA50!==null&&r.SMA50!==undefined)?((r.close||0)>r.SMA50):false;
       var rsiOk=(r.RSI||0)>=45&&(r.RSI||0)<=72;
       var tavOk=(typeof r["Recommend.All"]==="number")&&r["Recommend.All"]>0.1;
-      return smaOk&&rsiOk&&tavOk;
+      return mcapOk&&hacimOk&&smaOk&&rsiOk&&tavOk;
     })
     .map(function(r){
       r.skor=Math.round(((r["Recommend.All"]||0)*2+((r["Perf.1M"]||0)/100)+((r["Perf.W"]||0)/100))*1000)/1000;
@@ -516,20 +550,25 @@ function rssBasliklar(xml,N){
   return haberler;
 }
 
-function promptKur(bugun,pazar,portfoy,adaylar){
-  return 'You are an experienced analyst of the Turkish stock market (Borsa Istanbul, BIST). Today is '+bugun+'.\n'+
-  'Market breadth today: '+pazar.yukselen+' advancing / '+pazar.dusen+' declining out of '+pazar.toplam+' stocks.\n\n'+
-  'PORTFOLIO (stocks the user currently holds; technical data is end-of-day, ~15 min delayed; maliyet = cost basis per share in TRY if provided; haberler = recent Turkish news headlines):\n'+
+function promptKur(bugun,pazar,nabiz,portfoy,adaylar){
+  var nabizMetin="";
+  if(nabiz&&nabiz.fng!==null&&nabiz.fng!==undefined) nabizMetin+="Crypto Fear & Greed Index: "+nabiz.fng+" ("+(nabiz.fngSinif||"")+"). ";
+  if(nabiz&&nabiz.dominans!==null&&nabiz.dominans!==undefined) nabizMetin+="BTC dominance: "+nabiz.dominans+"%. ";
+  if(nabiz&&nabiz.mcapDegisim!==null&&nabiz.mcapDegisim!==undefined) nabizMetin+="Total crypto market cap change in 24h: "+nabiz.mcapDegisim+"%. ";
+  return 'You are an experienced cryptocurrency market analyst. Today is '+bugun+'. The crypto market trades 24/7.\n'+
+  'Market breadth right now: '+pazar.yukselen+' rising / '+pazar.dusen+' falling out of the top '+pazar.toplam+' coins by rank.\n'+
+  (nabizMetin?('Market pulse: '+nabizMetin+'\n'):'')+'\n'+
+  'PORTFOLIO (coins the user currently holds; prices and indicators are USD, daily timeframe; maliyet = cost basis per coin in USD if provided; miktar may be fractional; haberler = recent Turkish news headlines):\n'+
   JSON.stringify(portfoy)+'\n\n'+
-  'CANDIDATES (pre-screened liquid momentum stocks the user does NOT hold; skor is an internal momentum score):\n'+
+  'CANDIDATES (pre-screened coins the user does NOT hold; stablecoins are already excluded; skor is an internal momentum score):\n'+
   JSON.stringify(adaylar)+'\n\n'+
   'TASK:\n'+
-  '1. For EVERY portfolio stock decide exactly one of: "EKLE" (accumulate more), "TUT" (hold), "AZALT" (trim position), "SAT" (exit). Judge by trend (price vs sma20/sma50/sma200), rsi, macd vs macdSinyal, TradingView composite rating tavsiye (range -1..1, above 0.5 = strong buy zone), weekly/monthly performance, news headlines, and unrealized P/L if maliyet is given. If veri is null or bulunamadi is true, use "VERI_YOK".\n'+
+  '1. For EVERY portfolio coin decide exactly one of: "EKLE" (accumulate more), "TUT" (hold), "AZALT" (trim position), "SAT" (exit). Judge by trend (fiyat vs sma20/sma50/sma200), rsi, macd vs macdSinyal, TradingView composite rating tavsiye (range -1..1, above 0.5 = strong buy zone), weekly/monthly performance, oynaklikGunluk (daily volatility), liquidity (hacim24sMilyonUsd), the market pulse above, news headlines, and unrealized P/L if maliyet is given. If veri is null or bulunamadi is true, use "VERI_YOK".\n'+
   '2. For each candidate write one short Turkish sentence (yorum) explaining why it is interesting, and a horizon vade: "kisa" (days to weeks) or "orta" (1-3 months).\n'+
-  '3. Write a 2-3 sentence Turkish market summary (pazar) based on breadth and what you see in the data.\n'+
-  'RULES: All output text values MUST be in Turkish. guven is an integer 1-5 (conviction). Each gerekce max 200 characters, concrete, name the key indicator or news driving the decision. Do not invent prices or facts. This is informational analysis, not licensed investment advice.\n'+
+  '3. Write a 2-3 sentence Turkish market summary (pazar) that reads the breadth, the fear/greed level and BTC dominance together.\n'+
+  'RULES: All output text values MUST be in Turkish. guven is an integer 1-5 (conviction). Each gerekce max 200 characters, concrete, name the key indicator, liquidity issue or news driving the decision. Mention elevated risk when a coin is small-cap, illiquid or extremely volatile. Never advise leverage, futures or borrowing. Do not invent prices or facts. This is informational analysis, not licensed investment advice.\n'+
   'Respond ONLY with minified JSON exactly in this schema, no markdown fences, no extra text:\n'+
-  '{"pazar":"...","portfoy":[{"sembol":"THYAO","karar":"TUT","guven":3,"gerekce":"..."}],"adaylar":[{"sembol":"ASELS","vade":"orta","yorum":"..."}]}';
+  '{"pazar":"...","portfoy":[{"sembol":"BTC","karar":"TUT","guven":3,"gerekce":"..."}],"adaylar":[{"sembol":"SOL","vade":"orta","yorum":"..."}]}';
 }
 
 function jsonAyikla(raw){
@@ -552,6 +591,15 @@ function jsonAyikla(raw){
     if(endIdx>=0){ s0=s0.slice(i0,endIdx+1); }
   }
   return JSON.parse(s0);
+}
+
+/* Kripto fiyatlari 6 basamak kucuk de olabilir, 100 bin dolar da: basamagi degere gore sec */
+function fiyatBasamak(n){
+  var a=Math.abs(Number(n)||0);
+  if(a>=1000) return 2;
+  if(a>=1) return 4;
+  if(a>=0.01) return 5;
+  return 8;
 }
 /* ---- Islem defteri motoru: pozisyonlar, gerceklesen K/Z, kapanan islemler ---- */
 /* yontem: "fifo" (ilk giren ilk cikar) | "ortalama" (agirlikli ortalama maliyet)
@@ -729,10 +777,11 @@ function istatistikHesapla(islemler,yontem,fiyatlar,gecmis){
 /* ============ SAF-BITIR ============ */
 
 /* ---------- Depolama ---------- */
-var DKEY="bist_masa_v1";
+var DKEY="kripto_masa_v1";
 function varsayilanDurum(){
   return {
-    ayarlar:{geminiKey:"",model:"gemini-3.5-flash",adaySayisi:5,haberSayisi:3,haberAcik:true,proxy:"https://api.allorigins.win/raw?url=",maliyetYontemi:"fifo",sermaye:1000000,butce:3000,komisyon:0.0015,kayma:0.0005,azaltOrani:0.5,maksPozisyon:15,riskSiz:0},
+    ayarlar:{geminiKey:"",model:"gemini-3.5-flash",adaySayisi:5,haberSayisi:3,haberAcik:true,
+             proxy:"https://api.allorigins.win/raw?url=",minMcap:150,minHacim:10,maliyetYontemi:"fifo",sermaye:10000,butce:10,komisyon:0.001,kayma:0.0005,azaltOrani:0.5,maksPozisyon:15,riskSiz:0},
     portfoy:[{sembol:"",adet:"",maliyet:""}],
     islemler:[],
     fiyatlar:{},
@@ -769,22 +818,21 @@ function depoKaydet(){
 
 /* ---------- DOM yardimcilari ---------- */
 function $(id){ return document.getElementById(id); }
-function durum(metin,sinif){
-  var d=$("durum"); d.textContent=metin||""; d.className=sinif||"";
-}
-function fmt(n){
+function durum(metin,sinif){ var d=$("durum"); d.textContent=metin||""; d.className=sinif||""; }
+function fmt(n,bas){
   if(n===null||n===undefined||isNaN(n)) return "-";
-  return Number(n).toLocaleString("tr-TR",{maximumFractionDigits:2});
+  return Number(n).toLocaleString("tr-TR",{maximumFractionDigits:(bas===undefined?2:bas)});
 }
 function fmtFiyat(n){
   if(n===null||n===undefined||isNaN(n)) return "-";
-  return Number(n).toLocaleString("tr-TR",{minimumFractionDigits:2,maximumFractionDigits:4});
+  return Number(n).toLocaleString("tr-TR",{maximumFractionDigits:fiyatBasamak(n)});
 }
-function sayiCoz(x){
-  var s=String(x==null?"":x).trim().replace(/\s/g,"").replace(",",".");
-  if(!s) return null;
-  var n=Number(s);
-  return isNaN(n)?null:n;
+function fmtBuyukMn(mn){ /* girdi milyon dolar */
+  if(mn===null||mn===undefined||isNaN(mn)) return "-";
+  var v=Number(mn);
+  if(v>=1e6) return fmt(v/1e6,2)+" T$";
+  if(v>=1e3) return fmt(v/1e3,1)+" Mr$";
+  return fmt(v,1)+" Mn$";
 }
 function kacir(s){
   return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
@@ -797,6 +845,8 @@ function ayarlariForma(){
   $("model").value=a.model||"gemini-3.5-flash";
   $("adaySayisi").value=a.adaySayisi;
   $("haberSayisi").value=a.haberSayisi;
+  $("minMcap").value=a.minMcap;
+  $("minHacim").value=a.minHacim;
   $("haberAcik").checked=!!a.haberAcik;
   $("proxy").value=a.proxy||"";
   $("maliyetYontemi").value=a.maliyetYontemi||"fifo";
@@ -814,6 +864,8 @@ function formuAyarlara(){
   a.model=$("model").value.trim()||"gemini-3.5-flash";
   a.adaySayisi=Math.max(0,Math.min(10,Number($("adaySayisi").value)||0));
   a.haberSayisi=Math.max(0,Math.min(5,Number($("haberSayisi").value)||0));
+  a.minMcap=Math.max(0,Number($("minMcap").value)||0);
+  a.minHacim=Math.max(0,Number($("minHacim").value)||0);
   a.haberAcik=$("haberAcik").checked;
   a.proxy=$("proxy").value.trim();
   a.maliyetYontemi=$("maliyetYontemi").value==="ortalama"?"ortalama":"fifo";
@@ -832,9 +884,9 @@ function portfoyuCiz(){
   var g=$("portfoyGovde"); g.innerHTML="";
   durumVeri.portfoy.forEach(function(p,i){
     var tr=document.createElement("tr");
-    tr.innerHTML='<td><input type="text" data-i="'+i+'" data-a="sembol" value="'+kacir(p.sembol||"")+'" placeholder="THYAO" maxlength="6" style="text-transform:uppercase"></td>'+
-      '<td><input type="text" data-i="'+i+'" data-a="adet" value="'+kacir(p.adet||"")+'" placeholder="100" inputmode="numeric"></td>'+
-      '<td><input type="text" data-i="'+i+'" data-a="maliyet" value="'+kacir(p.maliyet||"")+'" placeholder="250,50" inputmode="decimal"></td>'+
+    tr.innerHTML='<td><input type="text" data-i="'+i+'" data-a="sembol" value="'+kacir(p.sembol||"")+'" placeholder="BTC" maxlength="12" style="text-transform:uppercase"></td>'+
+      '<td><input type="text" data-i="'+i+'" data-a="adet" value="'+kacir(p.adet||"")+'" placeholder="0,5" inputmode="decimal"></td>'+
+      '<td><input type="text" data-i="'+i+'" data-a="maliyet" value="'+kacir(p.maliyet||"")+'" placeholder="58000" inputmode="decimal"></td>'+
       '<td><button class="sil" type="button" data-sil="'+i+'" title="Satırı sil">×</button></td>';
     g.appendChild(tr);
   });
@@ -851,12 +903,17 @@ function portfoyDinle(e){
     }
   }
 }
+function sayiCoz(x){
+  var s=String(x==null?"":x).trim().replace(/\s/g,"").replace(",",".");
+  if(!s) return null;
+  var n=Number(s);
+  return isNaN(n)?null:n;
+}
 function temizPortfoy(){
   return durumVeri.portfoy.map(function(p){
     var s=String(p.sembol||"").toUpperCase().trim().replace(/[^A-Z0-9]/g,"");
-    var m=String(p.maliyet||"").trim().replace(",",".");
-    return {sembol:s,adet:Number(p.adet)||null,maliyet:m?(Number(m)||null):null};
-  }).filter(function(p){return p.sembol.length>=3;});
+    return {sembol:s,miktar:sayiCoz(p.adet),maliyet:sayiCoz(p.maliyet)};
+  }).filter(function(p){return p.sembol.length>=2;});
 }
 
 /* ---------- Dosya ice/disa aktarim ---------- */
@@ -867,8 +924,7 @@ function disaAktar(){
   var blob=new Blob([JSON.stringify(kopya,null,2)],{type:"application/json"});
   var a=document.createElement("a");
   a.href=URL.createObjectURL(blob);
-  var t=new Date();
-  a.download="bist-masa-"+t.toISOString().slice(0,10)+".json";
+  a.download="kripto-masa-"+new Date().toISOString().slice(0,10)+".json";
   a.click();
   setTimeout(function(){URL.revokeObjectURL(a.href);},2000);
   durum("Dışa aktarıldı"+($("anahtarDahil").checked?" (anahtar dahil).":" (anahtar hariç)."),"tamam");
@@ -881,16 +937,17 @@ function iceAktar(dosya){
       if(!d||typeof d!=="object") throw new Error("beklenen yapı yok");
       if(d.ayarlar){
         var yeni=Object.assign({},durumVeri.ayarlar,d.ayarlar);
-        if(!d.ayarlar.geminiKey) yeni.geminiKey=durumVeri.ayarlar.geminiKey; /* anahtarsız yedek mevcut anahtarı silmesin */
+        if(!d.ayarlar.geminiKey) yeni.geminiKey=durumVeri.ayarlar.geminiKey;
         durumVeri.ayarlar=yeni;
       }
       if(Array.isArray(d.portfoy)&&d.portfoy.length) durumVeri.portfoy=d.portfoy.map(function(p){
         return {sembol:String(p.sembol||""),adet:String(p.adet==null?"":p.adet),maliyet:String(p.maliyet==null?"":p.maliyet)};
       });
       if(d.sonRapor) durumVeri.sonRapor=d.sonRapor;
+      if(d.hazirlik) durumVeri.hazirlik=d.hazirlik;
       depoKaydet(); ayarlariForma(); portfoyuCiz();
-      if(durumVeri.sonRapor) raporCiz(durumVeri.sonRapor);
-      durum("İçe aktarıldı: "+(durumVeri.portfoy.length)+" satır portföy.","tamam");
+      if(durumVeri.sonRapor){ nabizCiz(durumVeri.sonRapor.nabiz,durumVeri.sonRapor.pazar); raporCiz(durumVeri.sonRapor); }
+      durum("İçe aktarıldı: "+durumVeri.portfoy.length+" satır portföy.","tamam");
     }catch(e){ durum("İçe aktarma başarısız: geçerli bir dışa aktarma dosyası seçin ("+e.message+").","hata"); }
   };
   okuyucu.readAsText(dosya,"utf-8");
@@ -903,28 +960,38 @@ function zamanAsimliFetch(url,secenek,ms){
   secenek=secenek||{}; secenek.signal=ac.signal;
   return fetch(url,secenek).finally(function(){clearTimeout(z);});
 }
-/* XU100 endeksi: kıyas çizgisi için, en iyi çaba (başarısızsa sessizce atlanır) */
-async function kiyasCek(){
-  try{
-    var govde=JSON.stringify({symbols:{tickers:["BIST:XU100"]},columns:["name","close"]});
-    var r=await zamanAsimliFetch("https://scanner.tradingview.com/turkey/scan",
-      {method:"POST",headers:{"Content-Type":"text/plain"},body:govde},15000);
-    if(!r.ok) return null;
-    var j=await r.json();
-    var d=(j.data&&j.data[0]&&j.data[0].d)||[];
-    return Number(d[1])>0?Number(d[1]):null;
-  }catch(e){ return null; }
-}
 async function taramaCek(){
-  /* Content-Type text/plain => preflight yok (scanner CORS'u content-type header'ina izin vermiyor) */
-  var r=await zamanAsimliFetch("https://scanner.tradingview.com/turkey/scan",
+  /* text/plain => preflight yok (scanner CORS'u content-type header'ina izin vermiyor) */
+  var r=await zamanAsimliFetch("https://scanner.tradingview.com/coin/scan",
     {method:"POST",headers:{"Content-Type":"text/plain"},body:taramaGovdesi()},30000);
   if(!r.ok) throw new Error("TradingView "+r.status+" döndü");
   return r.json();
 }
-async function haberCek(sembol,proxy,N){
+async function nabizCek(){
+  var nabiz={fng:null,fngSinif:"",dominans:null,mcapDegisim:null};
   try{
-    var hedef="https://news.google.com/rss/search?q="+encodeURIComponent(sembol+" hisse")+"&hl=tr&gl=TR&ceid=TR:tr";
+    var r=await zamanAsimliFetch("https://api.alternative.me/fng/?limit=1",{},9000);
+    var d=await r.json();
+    if(d&&d.data&&d.data[0]){
+      nabiz.fng=Number(d.data[0].value);
+      var s=String(d.data[0].value_classification||"");
+      var harita={"Extreme Fear":"aşırı korku","Fear":"korku","Neutral":"nötr","Greed":"açgözlülük","Extreme Greed":"aşırı açgözlülük"};
+      nabiz.fngSinif=harita[s]||s;
+    }
+  }catch(e){}
+  try{
+    var r2=await zamanAsimliFetch("https://api.coingecko.com/api/v3/global",{},9000);
+    var g=(await r2.json()).data;
+    if(g){
+      if(g.market_cap_percentage&&typeof g.market_cap_percentage.btc==="number") nabiz.dominans=Math.round(g.market_cap_percentage.btc*100)/100;
+      if(typeof g.market_cap_change_percentage_24h_usd==="number") nabiz.mcapDegisim=Math.round(g.market_cap_change_percentage_24h_usd*100)/100;
+    }
+  }catch(e){}
+  return nabiz;
+}
+async function haberCek(arama,proxy,N){
+  try{
+    var hedef="https://news.google.com/rss/search?q="+encodeURIComponent(arama+" kripto")+"&hl=tr&gl=TR&ceid=TR:tr";
     var r=await zamanAsimliFetch(proxy+encodeURIComponent(hedef),{},9000);
     if(!r.ok) return [];
     return rssBasliklar(await r.text(),N);
@@ -940,6 +1007,7 @@ async function geminiCagir(anahtar,model,prompt){
     var m=zarf.error.message||("HTTP "+r.status);
     if(r.status===400||r.status===403) m="Anahtar veya model reddedildi: "+m;
     if(r.status===429) m="Gemini kota sınırı (free tier): birkaç dakika sonra tekrar deneyin.";
+    if(r.status===503) m="Gemini şu an yoğun (503). Hazırlık kaydedildi, birazdan tekrar deneyin.";
     throw new Error(m);
   }
   var cand=(zarf.candidates&&zarf.candidates[0])||{};
@@ -959,56 +1027,61 @@ async function analiz(){
   if(!a.geminiKey){ durum("Önce Gemini API anahtarını gir (aistudio.google.com'dan ücretsiz).","hata"); return; }
   calisiyor=true; $("analizBtn").disabled=true;
   try{
-    var pazar,portfoy,adaylar,bugun;
-    var imza=JSON.stringify({p:temizPortfoy(),a:a.adaySayisi,h:a.haberSayisi,ho:a.haberAcik});
+    var pazar,portfoy,adaylar,bugun,nabiz;
+    var imza=JSON.stringify({p:temizPortfoy(),a:a.adaySayisi,h:a.haberSayisi,ho:a.haberAcik,mc:a.minMcap,hc:a.minHacim});
     var hz=durumVeri.hazirlik;
-    var TAZE=30*60*1000; /* 30 dk: fiyat verisi bayatlamadan devam edilebilir */
+    var TAZE=30*60*1000; /* kripto 7/24: 30 dk'dan eski hazirlik bayat sayilir */
     if(hz&&hz.imza===imza&&(Date.now()-hz.zamanMs)<TAZE){
-      pazar=hz.pazar; portfoy=hz.portfoy; adaylar=hz.adaylar; bugun=hz.bugun;
+      pazar=hz.pazar; portfoy=hz.portfoy; adaylar=hz.adaylar; bugun=hz.bugun; nabiz=hz.nabiz;
+      nabizCiz(nabiz,pazar);
       durum("Hazır veri bulundu ("+Math.round((Date.now()-hz.zamanMs)/60000)+" dk önce) — kaldığı yerden devam ediliyor…");
     }else{
-      durum("1/4 · BIST taranıyor (TradingView)…");
+      durum("1/4 · Coin evreni taranıyor (TradingView)…");
       var scan=await taramaCek();
       var rows=satirlariCoz(scan);
-      if(!rows.length) throw new Error("Tarama boş döndü — piyasa tatili olabilir.");
+      if(!rows.length) throw new Error("Tarama boş döndü — birazdan tekrar deneyin.");
       pazar=pazarHesapla(rows);
       bantCiz(rows);
       fiyatlariKaydet(rows);
-      var xu=await kiyasCek();
-      if(xu){ durumVeri.kiyasSon=xu; depoKaydet(); }
+      var btc=rows.find(function(r){ return r.sembol==='BTC'; });
+      if(btc&&btc.close>0){ durumVeri.kiyasSon=btc.close; depoKaydet(); }
+
+      durum("2/4 · Piyasa nabzı (korku endeksi, dominans)…");
+      nabiz=await nabizCek();
+      nabizCiz(nabiz,pazar);
 
       var portfoyGiris=temizPortfoy();
       portfoy=portfoyGiris.map(function(p){
         var m=rows.find(function(r){return r.sembol===p.sembol;})||null;
-        return {sembol:p.sembol,adet:p.adet,maliyet:p.maliyet,veri:m?ozet(m):null,bulunamadi:!m,haberler:[]};
+        return {sembol:p.sembol,miktar:p.miktar,maliyet:p.maliyet,veri:m?ozet(m):null,bulunamadi:!m,haberler:[]};
       });
-      var adayHam=adaySec(rows,portfoyGiris.map(function(p){return p.sembol;}),a.adaySayisi);
+      var adayHam=adaySec(rows,portfoyGiris.map(function(p){return p.sembol;}),a.adaySayisi,a.minMcap,a.minHacim);
       adaylar=adayHam.map(function(r){return {sembol:r.sembol,veri:ozet(r),skor:r.skor,haberler:[]};});
-      if(!portfoy.length&&!adaylar.length) throw new Error("Portföy boş ve filtreyi geçen aday yok — en az bir hisse ekleyin.");
+      if(!portfoy.length&&!adaylar.length) throw new Error("Portföy boş ve filtreyi geçen aday yok — coin ekleyin veya minimum piyasa değeri/hacim eşiklerini düşürün.");
 
       if(a.haberAcik&&a.haberSayisi>0&&a.proxy){
         var hedefler=portfoy.concat(adaylar).slice(0,20);
         for(var i=0;i<hedefler.length;i++){
-          durum("2/4 · Haberler: "+hedefler[i].sembol+" ("+(i+1)+"/"+hedefler.length+")…");
-          hedefler[i].haberler=await haberCek(hedefler[i].sembol,a.proxy,a.haberSayisi);
+          durum("3/4 · Haberler: "+hedefler[i].sembol+" ("+(i+1)+"/"+hedefler.length+")…");
+          var arama=(hedefler[i].veri&&hedefler[i].veri.ad)?hedefler[i].veri.ad:hedefler[i].sembol;
+          hedefler[i].haberler=await haberCek(arama,a.proxy,a.haberSayisi);
           await new Promise(function(c){setTimeout(c,1200);});
         }
       }
 
       bugun=new Date().toLocaleDateString("tr-TR");
-      /* KONTROL NOKTASI: Gemini patlarsa bu hazırlık boşa gitmesin */
-      durumVeri.hazirlik={imza:imza,zamanMs:Date.now(),pazar:pazar,portfoy:portfoy,adaylar:adaylar,bugun:bugun};
+      /* KONTROL NOKTASI: Gemini patlarsa bu hazirlik bosa gitmesin */
+      durumVeri.hazirlik={imza:imza,zamanMs:Date.now(),pazar:pazar,nabiz:nabiz,portfoy:portfoy,adaylar:adaylar,bugun:bugun};
       depoKaydet();
     }
 
-    durum("3/4 · Gemini değerlendiriyor…");
-    var prompt=promptKur(bugun,pazar,portfoy,adaylar);
+    durum("4/4 · Gemini değerlendiriyor…");
+    var prompt=promptKur(bugun,pazar,nabiz,portfoy,adaylar);
     var rapor=await geminiCagir(a.geminiKey,a.model,prompt);
 
-    durum("4/4 · Rapor hazırlanıyor…");
-    var paket={tarih:bugun,zaman:new Date().toLocaleString("tr-TR"),pazar:pazar,portfoy:portfoy,adaylar:adaylar,rapor:rapor};
+    var paket={tarih:bugun,zaman:new Date().toLocaleString("tr-TR"),pazar:pazar,nabiz:nabiz,portfoy:portfoy,adaylar:adaylar,rapor:rapor};
     durumVeri.sonRapor=paket;
-    durumVeri.hazirlik=null; /* başarı: sonraki analiz taze veriyle başlasın */
+    durumVeri.hazirlik=null; /* basari: sonraki analiz taze veriyle baslasin */
     depoKaydet();
     gecmiseKaydet();
     raporCiz(paket);
@@ -1028,31 +1101,47 @@ function bantCiz(rows){
   var sec=rows.filter(function(r){return portfoySem.has(r.sembol);});
   if(!sec.length) sec=rows.slice(0,12);
   var ic=$("bantIc"); ic.innerHTML="";
-  sec.concat(sec).forEach(function(r){ /* kesintisiz akis icin cift */
+  sec.concat(sec).forEach(function(r){
     var sp=document.createElement("span");
     var yon=(r.change||0)>=0?"art":"eks";
     var ok=(r.change||0)>=0?"▲":"▼";
-    sp.innerHTML='<span class="sem">'+kacir(r.sembol)+'</span> '+fmt(r.close)+'₺ <span class="'+yon+'">'+ok+' %'+fmt(Math.abs(r.change||0))+'</span>';
+    sp.innerHTML='<span class="sem">'+kacir(r.sembol)+'</span> $'+fmtFiyat(r.close)+' <span class="'+yon+'">'+ok+' %'+fmt(Math.abs(r.change||0))+'</span>';
     ic.appendChild(sp);
   });
   $("bant").style.display="block";
+}
+function nabizCiz(nabiz,pazar){
+  nabiz=nabiz||{};
+  var v=(typeof nabiz.fng==="number")?nabiz.fng:null;
+  $("fngDeger").textContent=(v===null)?"–":String(v);
+  $("fngSinif").textContent=nabiz.fngSinif||"";
+  $("fngIgne").style.left=((v===null?50:Math.max(0,Math.min(100,v)))+"%");
+  $("kiDominans").textContent=(nabiz.dominans===null||nabiz.dominans===undefined)?"–":("%"+fmt(nabiz.dominans));
+  var md=nabiz.mcapDegisim;
+  $("kiMcap").textContent=(md===null||md===undefined)?"–":((md>=0?"▲ %":"▼ %")+fmt(Math.abs(md)));
+  $("kiMcap").style.color=(md===null||md===undefined)?"":(md>=0?"var(--yukselen)":"var(--dusen)");
+  var pz=pazar||{};
+  $("kiGenislik").textContent=pz.toplam?(pz.yukselen+" / "+pz.dusen):"–";
+  $("nabizBolge").style.display="block";
 }
 function raporCiz(paket){
   var rapor=paket.rapor||{};
   var pMap={}; (paket.portfoy||[]).forEach(function(p){pMap[p.sembol]=p;});
   var aMap={}; (paket.adaylar||[]).forEach(function(x){aMap[x.sembol]=x;});
+  nabizCiz(paket.nabiz,paket.pazar);
   $("raporZaman").textContent=paket.zaman||paket.tarih||"";
   var pz=paket.pazar||{};
   $("pazarKarti").innerHTML=kacir(rapor.pazar||"")+
-    (pz.toplam?('<span class="mono">'+pz.yukselen+' yükselen · '+pz.dusen+' düşen · toplam '+pz.toplam+' hisse</span>'):"");
+    (pz.toplam?('<span class="mono" style="display:block;margin-top:8px;font-size:12px;color:var(--soluk)">'+pz.yukselen+' yükselen · '+pz.dusen+' düşen · taranan '+pz.toplam+' coin</span>'):"");
 
   var ph=$("portfoyRapor"); ph.innerHTML="";
   var rp=rapor.portfoy||[];
-  if(!rp.length) ph.innerHTML='<p class="ipucu">Portföy boş — yukarıya hisselerini ekleyip yeniden çalıştır.</p>';
+  if(!rp.length) ph.innerHTML='<p class="ipucu">Portföy boş — yukarıya coinlerini ekleyip yeniden çalıştır.</p>';
   rp.forEach(function(p){
     var v=pMap[p.sembol]||{}; var d=v.veri||{};
     var div=document.createElement("div"); div.className="karar-satir";
-    var fiyatHtml=(d.fiyat!=null)?('<span class="fiyat">'+fmt(d.fiyat)+'₺ · %'+fmt(d.degisim)+'</span>'):"";
+    var adHtml=d.ad?('<span class="tamad">'+kacir(d.ad)+'</span>'):"";
+    var fiyatHtml=(d.fiyat!=null)?('<span class="fiyat">$'+fmtFiyat(d.fiyat)+' · %'+fmt(d.degisim)+'</span>'):"";
     var kzHtml="";
     if(v.maliyet&&d.fiyat){
       var kz=((d.fiyat-v.maliyet)/v.maliyet)*100;
@@ -1061,7 +1150,7 @@ function raporCiz(paket){
     var karar=String(p.karar||"?");
     var haberHtml="";
     if(v.haberler&&v.haberler.length) haberHtml='<span class="haber-mini">📰 '+kacir(v.haberler[0].baslik)+'</span>';
-    div.innerHTML='<span class="sembol">'+kacir(p.sembol)+'</span>'+fiyatHtml+
+    div.innerHTML='<span class="sembol">'+kacir(p.sembol)+'</span>'+adHtml+fiyatHtml+
       '<span class="cip '+kacir(karar)+'">'+kacir(karar)+(p.guven?(" · "+p.guven+"/5"):"")+'</span>'+kzHtml+
       '<button class="mini sat" type="button" data-sat="'+kacir(p.sembol)+'" data-fiyat="'+(d.fiyat!=null?d.fiyat:"")+'">Sat</button>'+
       '<button class="mini" type="button" data-ekle="'+kacir(p.sembol)+'" data-fiyat="'+(d.fiyat!=null?d.fiyat:"")+'">+ Ekle</button>'+
@@ -1071,12 +1160,14 @@ function raporCiz(paket){
 
   var ah=$("adayRapor"); ah.innerHTML="";
   var ra=rapor.adaylar||[];
-  if(!ra.length) ah.innerHTML='<p class="ipucu">Bugün filtreyi geçen güçlü aday yok.</p>';
+  if(!ra.length) ah.innerHTML='<p class="ipucu">Filtreyi geçen güçlü aday yok — eşikleri düşürmeyi deneyebilirsin.</p>';
   ra.forEach(function(x){
     var v=aMap[x.sembol]||{}; var d=v.veri||{};
     var div=document.createElement("div"); div.className="karar-satir";
-    var fiyatHtml=(d.fiyat!=null)?('<span class="fiyat">'+fmt(d.fiyat)+'₺ · %'+fmt(d.degisim)+'</span>'):"";
-    div.innerHTML='<span class="sembol">'+kacir(x.sembol)+'</span>'+fiyatHtml+
+    var adHtml=d.ad?('<span class="tamad">'+kacir(d.ad)+'</span>'):"";
+    var fiyatHtml=(d.fiyat!=null)?('<span class="fiyat">$'+fmtFiyat(d.fiyat)+' · %'+fmt(d.degisim)+'</span>'):"";
+    var mcapHtml=(d.piyasaDegeriMilyonUsd!=null)?('<span class="fiyat">'+fmtBuyukMn(d.piyasaDegeriMilyonUsd)+'</span>'):"";
+    div.innerHTML='<span class="sembol">'+kacir(x.sembol)+'</span>'+adHtml+fiyatHtml+mcapHtml+
       (x.vade?('<span class="vade">'+kacir(x.vade)+' vade</span>'):"")+
       '<button class="mini" type="button" data-ekle="'+kacir(x.sembol)+'" data-fiyat="'+(d.fiyat!=null?d.fiyat:"")+'">+ Ekle</button>'+
       (x.yorum?('<span class="gerekce">'+kacir(x.yorum)+'</span>'):"");
@@ -1144,10 +1235,10 @@ function islemleriCiz(){
     tr.innerHTML='<td class="mono">'+kacir(tarihGoster(it.tarih))+'</td>'+
       '<td><span class="rozet '+(it.tip==="satim"?"satim":"alim")+'">'+(it.tip==="satim"?"SATIM":"ALIM")+'</span></td>'+
       '<td class="mono" style="font-weight:700">'+kacir(it.sembol)+'</td>'+
-      '<td class="sag mono">'+fmt(it.miktar,4)+'</td>'+
-      '<td class="sag mono">'+fmtFiyat(it.fiyat)+'₺</td>'+
-      '<td class="sag mono">'+fmt(tutar,2)+'₺</td>'+
-      '<td class="sag mono">'+(Number(it.ucret)?(fmt(it.ucret,2)+"₺"):"-")+'</td>'+
+      '<td class="sag mono">'+fmt(it.miktar,8)+'</td>'+
+      '<td class="sag mono">$'+fmtFiyat(it.fiyat)+'</td>'+
+      '<td class="sag mono">$'+fmt(tutar,2)+'</td>'+
+      '<td class="sag mono">'+(Number(it.ucret)?("$"+fmt(it.ucret,2)):"-")+'</td>'+
       '<td style="color:var(--soluk)">'+kacir(it.not||"")+'</td>'+
       '<td class="sag"><button class="sil" type="button" data-islemsil="'+kacir(it.id)+'" title="İşlemi sil">×</button></td>';
     g.appendChild(tr);
@@ -1217,8 +1308,8 @@ function dlgOzetle(){
   if(!miktar||miktar<=0){ $("dlgOzet").textContent="Miktar veya tutar gir."; return; }
   var brut=miktar*fiyat;
   var net=(dlgDurum.tip==="satim")?(brut-ucret):(brut+ucret);
-  $("dlgOzet").textContent=(dlgDurum.tip==="satim"?"Eline geçecek: ":"Ödeyeceğin: ")+fmt(net,2)+"₺"+
-    "  ·  "+fmt(miktar,4)+" × "+fmtFiyat(fiyat)+"₺"+(ucret?("  ·  komisyon "+fmt(ucret,2)+"₺"):"");
+  $("dlgOzet").textContent=(dlgDurum.tip==="satim"?"Eline geçecek: $":"Ödeyeceğin: $")+fmt(net,2)+
+    "  ·  "+fmt(miktar,8)+" × $"+fmtFiyat(fiyat)+(ucret?("  ·  komisyon $"+fmt(ucret,2)):"");
 }
 function dlgKaydet(){
   var sembol=String($("dlgSembol").value||"").toUpperCase().trim().replace(/[^A-Z0-9]/g,"");
@@ -1227,13 +1318,13 @@ function dlgKaydet(){
   var ucret=sayiCoz($("dlgUcret").value)||0;
   var tarih=$("dlgTarih").value||bugunISO();
   var u=$("dlgUyari");
-  if(sembol.length<3){ u.textContent="Hisse kodu gir (örn. THYAO)."; return; }
+  if(sembol.length<2){ u.textContent="Coin sembolü gir (örn. BTC)."; return; }
   if(!fiyat||fiyat<=0){ u.textContent="Birim fiyat sıfırdan büyük olmalı."; return; }
   if(!miktar||miktar<=0){ u.textContent="Miktar sıfırdan büyük olmalı."; return; }
   if(dlgDurum.tip==="satim"){
     var sahip=elde(sembol);
     if(miktar>sahip+1e-9){
-      u.textContent="Elinde sadece "+fmt(sahip,4)+" adet "+sembol+" var; daha fazlasını satamazsın.";
+      u.textContent="Elinde sadece "+fmt(sahip,8)+" "+sembol+" var; daha fazlasını satamazsın.";
       return;
     }
   }
@@ -1245,7 +1336,7 @@ function dlgKaydet(){
   gecmiseKaydet();
   try{ sanalKartCiz(); }catch(e){}
   dlgKapat();
-  durum(sembol+" "+(dlgDurum.tip==="satim"?"satışı":"alımı")+" kaydedildi · "+fmt(miktar,4)+" @ "+fmtFiyat(fiyat)+"₺","tamam");
+  durum(sembol+" "+(dlgDurum.tip==="satim"?"satışı":"alımı")+" kaydedildi · "+fmt(miktar,8)+" @ $"+fmtFiyat(fiyat),"tamam");
 }
 
 /* Fiyat haritasi bayat/bossa arka planda tazele (tek ucus) */
@@ -1279,20 +1370,20 @@ function dlgFiyatUygula(){
   if(!sabitGecerli) dlgDurum.fiyatSabit=false;
   if(!dlgDurum.fiyatElle&&!sabitGecerli){
     if(f!==null) $("dlgFiyat").value=String(f).replace(".",",");
-    else if(sembol.length>=3) $("dlgFiyat").value="";
+    else if(sembol.length>=2) $("dlgFiyat").value="";
   }
   if(dlgDurum.fiyatElle) not.textContent="elle girdin";
   else if(sabitGecerli) not.textContent="rapordaki fiyat";
   else if(f!==null) not.textContent="güncel fiyat"+(durumVeri.fiyatZamani?(" · "+new Date(durumVeri.fiyatZamani).toLocaleTimeString("tr-TR")):"");
-  else if(sembol.length>=3) not.textContent="bu kod için fiyat yok — elle gir";
+  else if(sembol.length>=2) not.textContent="bu sembol için fiyat yok — elle gir";
   else not.textContent="";
   /* ad ve mevcut bakiye bilgisini de tazele */
   var ad=(durumVeri.fiyatlar[sembol]&&durumVeri.fiyatlar[sembol].ad)||"";
-  var sahip=sembol.length>=3?elde(sembol):0;
+  var sahip=sembol.length>=2?elde(sembol):0;
   $("dlgBaslik").textContent=sembol?(sembol+" işlemi"):"İşlem ekle";
-  $("dlgAlt").textContent=sembol.length>=3
-    ? ((ad?ad+" · ":"")+(sahip>0?("elinde "+fmt(sahip,4)+" adet var"):"yeni pozisyon"))
-    : "Hisse kodunu yaz, fiyat otomatik gelsin.";
+  $("dlgAlt").textContent=sembol.length>=2
+    ? ((ad?ad+" · ":"")+(sahip>0?("elinde "+fmt(sahip,8)+" var"):"yeni pozisyon"))
+    : "Coin sembolünü yaz, fiyat otomatik gelsin.";
   dlgOzetle();
 }
 /* Fiyat haritasi yoksa cek, sonra alani tekrar doldur */
@@ -1310,23 +1401,21 @@ function dlgFiyatTazele(){
 
 
 /* ---- Sanal motor sabitleri ---- */
-var PARA = '₺';
-var VURGU = '#F5B841';
-var KIYAS_AD = 'XU100';
-var MIKTAR_KESIRLI = false;
-var MIKTAR_BASAMAK = 4;
-var VARSAYILAN_SERMAYE = 1000000;
-var VARSAYILAN_BUTCE = 3000;
-var VARSAYILAN_KOMISYON = 0.0015;
+var PARA = '$';
+var VURGU = '#4DD9E8';
+var KIYAS_AD = 'BTC';
+var MIKTAR_KESIRLI = true;
+var MIKTAR_BASAMAK = 8;
+var VARSAYILAN_SERMAYE = 10000;
+var VARSAYILAN_BUTCE = 10;
+var VARSAYILAN_KOMISYON = 0.001;
 var VARSAYILAN_KAYMA = 0.0005;
 
 function alimMiktari(fiyat, A){
   if (!(fiyat > 0)) return { miktar: null, sebep: 'fiyat yok' };
-  var lot = Math.max(1, Math.ceil(A.butce / fiyat));   /* lot tam sayıdır, yukarı yuvarlanır */
-  if (lot * fiyat > A.butce * 2) {
-    return { miktar: null, sebep: '1 lot ' + fmt(lot * fiyat, 2) + PARA + ' — bütçenin iki katından pahalı' };
-  }
-  return { miktar: lot, sebep: null };
+  var m = Math.round((A.butce / fiyat) * 1e8) / 1e8;
+  if (!(m > 0)) return { miktar: null, sebep: 'bütçe çok küçük' };
+  return { miktar: m, sebep: null };
 }
 /* ==================== SANAL İŞLEM MOTORU + RİSK METRİKLERİ ==================== */
 /* Bu blok analiz raporundaki kararları sanal bir portföye uygular ve
@@ -1369,9 +1458,8 @@ function emirleriUret(paket){
   var fiyatMap = {};
   (paket.portfoy || []).forEach(function(p){ if (p.veri && p.veri.fiyat) fiyatMap[p.sembol] = p.veri.fiyat; });
   (paket.adaylar || []).forEach(function(a){ if (a.veri && a.veri.fiyat) fiyatMap[a.sembol] = a.veri.fiyat; });
-  var hm = fiyatHaritasi();
-  Object.keys(hm).forEach(function(s){
-    if (!fiyatMap[s] && hm[s].fiyat) fiyatMap[s] = Number(hm[s].fiyat);
+  Object.keys(durumVeri.fiyatlar || {}).forEach(function(s){
+    if (!fiyatMap[s] && durumVeri.fiyatlar[s] && durumVeri.fiyatlar[s].fiyat) fiyatMap[s] = Number(durumVeri.fiyatlar[s].fiyat);
   });
 
   var poz = {};
@@ -1729,7 +1817,7 @@ function kutuHtml(ad,deger,ek,sinif){
 function paraFmt(n){
   if(n===null||n===undefined||isNaN(n)) return "–";
   var isaret=n<0?"-":"";
-  return isaret+Math.abs(n).toLocaleString("tr-TR",{minimumFractionDigits:2,maximumFractionDigits:2})+"₺";
+  return isaret+"$"+Math.abs(n).toLocaleString("tr-TR",{minimumFractionDigits:2,maximumFractionDigits:2});
 }
 function yuzdeFmt(n){
   if(n===null||n===undefined||isNaN(n)) return "–";
@@ -1752,23 +1840,22 @@ function grafikCiz(gecmis){
   var alan="M"+noktalar[0][0]+","+(Y-pd)+" L"+noktalar.map(function(p){return p[0]+","+p[1];}).join(" L")+" L"+noktalar[noktalar.length-1][0]+","+(Y-pd)+" Z";
   return '<svg class="grafik" viewBox="0 0 '+G+' '+Y+'" preserveAspectRatio="none" role="img" aria-label="Portföy değeri geçmişi">'+
     '<defs><linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">'+
-    '<stop offset="0%" stop-color="#F5B841"/><stop offset="100%" stop-color="#F5B841" stop-opacity="0"/>'+
+    '<stop offset="0%" stop-color="#4DD9E8"/><stop offset="100%" stop-color="#4DD9E8" stop-opacity="0"/>'+
     '</linearGradient></defs>'+
     '<path class="alan" d="'+alan+'"/><polyline class="cizgi" points="'+cizgi+'"/></svg>'+
-    '<div class="olcek-skala"><span>'+tarihGoster(new Date(g[0].t).toISOString())+' · '+fmt(g[0].deger,0)+'₺'+'</span>'+
-    '<span>'+tarihGoster(new Date(g[g.length-1].t).toISOString())+' · '+fmt(g[g.length-1].deger,0)+'₺'+'</span></div>';
+    '<div class="olcek-skala"><span>'+tarihGoster(new Date(g[0].t).toISOString())+' · $'+fmt(g[0].deger,0)+'</span>'+
+    '<span>'+tarihGoster(new Date(g[g.length-1].t).toISOString())+' · $'+fmt(g[g.length-1].deger,0)+'</span></div>';
 }
 function istatistikCiz(){
   var y=durumVeri.ayarlar.maliyetYontemi||"fifo";
-  var st=istatistikHesapla(durumVeri.islemler,y,fiyatHaritasi(),durumVeri.gecmis);
+  var st=istatistikHesapla(durumVeri.islemler,y,durumVeri.fiyatlar,durumVeri.gecmis);
   var c=$("istIcerik");
   if(!durumVeri.islemler.length){
     c.innerHTML='<section class="kart"><h2>İstatistik</h2>'+
       '<p class="bos-durum">Henüz işlem yok. Analiz sekmesinde bir analiz çalıştırıp <strong>“Sanal portföye uygula”</strong> düğmesine bastığında ya da elle işlem eklediğinde tüm istatistikler burada birikir.</p></section>';
     return;
   }
-  var fiyatNotu=durumVeri.fiyatZamani?("fiyatlar: "+new Date(durumVeri.fiyatZamani).toLocaleString("tr-TR"))
-    :(Object.keys(fiyatHaritasi()).length?("fiyatlar son analizden: "+((durumVeri.sonRapor&&durumVeri.sonRapor.zaman)||"")):"fiyat verisi yok — 'Fiyatları yenile'");
+  var fiyatNotu=durumVeri.fiyatZamani?("fiyatlar: "+new Date(durumVeri.fiyatZamani).toLocaleString("tr-TR")):"fiyat verisi yok — 'Fiyatları yenile'";
   var h="";
 
   var nakit=nakitHesapla(durumVeri.islemler,y);
@@ -1844,7 +1931,7 @@ function istatistikCiz(){
       kutuHtml("Kâr faktörü",st.karFaktoru!==null?fmt(st.karFaktoru,2):"–","brüt kâr ÷ brüt zarar")+
       kutuHtml("Beklenti",paraFmt(st.beklenti),"satış başına ortalama",artEks(st.beklenti))+
       kutuHtml("Ortalama kazanç",paraFmt(st.ortKazanc),"","art")+
-      kutuHtml("Ortalama kayıp",st.ortKayip!==null?("-"+paraFmt(st.ortKayip)):"–","","eks")+
+      kutuHtml("Ortalama kayıp",st.ortKayip!==null?("-"+paraFmt(st.ortKayip).replace("$","$")):"–","","eks")+
       kutuHtml("Ort. elde tutma",st.ortGun!==null?(fmt(st.ortGun,0)+" gün"):"–","alımdan satışa")+
       (st.enIyi?kutuHtml("En kârlı satış",paraFmt(st.enIyi.kz),st.enIyi.sembol+(st.enIyi.yuzde!==null?(" · "+yuzdeFmt(st.enIyi.yuzde)):""),artEks(st.enIyi.kz)):"")+
       (st.enKotu&&st.enKotu!==st.enIyi?kutuHtml("En zararlı satış",paraFmt(st.enKotu.kz),st.enKotu.sembol+(st.enKotu.yuzde!==null?(" · "+yuzdeFmt(st.enKotu.yuzde)):""),artEks(st.enKotu.kz)):"")+
@@ -1868,14 +1955,14 @@ function istatistikCiz(){
          '<span class="dag-deger">'+(a.agirlik!==null?("%"+fmt(a.agirlik,1)):"–")+'</span></div>';
     });
     h+='</div><div class="sarmal" style="margin-top:14px"><table class="vt"><thead><tr>'+
-       '<th>Hisse</th><th class="sag">Miktar</th><th class="sag">Ort. maliyet</th><th class="sag">Güncel</th>'+
+       '<th>Coin</th><th class="sag">Miktar</th><th class="sag">Ort. maliyet</th><th class="sag">Güncel</th>'+
        '<th class="sag">Değer</th><th class="sag">K/Z</th></tr></thead><tbody>';
     st.acik.forEach(function(a){
       h+='<tr><td class="mono" style="font-weight:700">'+kacir(a.sembol)+
          (a.ad?(' <span style="font-weight:400;color:var(--soluk)">'+kacir(a.ad)+'</span>'):"")+'</td>'+
-         '<td class="sag mono">'+fmt(a.miktar,4)+'</td>'+
-         '<td class="sag mono">'+(a.ortMaliyet!==null?(fmtFiyat(a.ortMaliyet)+"₺"):"–")+'</td>'+
-         '<td class="sag mono">'+(a.fiyat!==null?(fmtFiyat(a.fiyat)+"₺"):"–")+'</td>'+
+         '<td class="sag mono">'+fmt(a.miktar,8)+'</td>'+
+         '<td class="sag mono">'+(a.ortMaliyet!==null?("$"+fmtFiyat(a.ortMaliyet)):"–")+'</td>'+
+         '<td class="sag mono">'+(a.fiyat!==null?("$"+fmtFiyat(a.fiyat)):"–")+'</td>'+
          '<td class="sag mono">'+(a.deger!==null?paraFmt(a.deger):"–")+'</td>'+
          '<td class="sag mono '+artEks(a.kz)+'">'+(a.kz!==null?(paraFmt(a.kz)+" · "+yuzdeFmt(a.kzYuzde)):"–")+'</td></tr>';
     });
@@ -1887,28 +1974,10 @@ function istatistikCiz(){
   c.innerHTML=h;
 }
 
-/* Güncel fiyat haritası: tarama verisi ana kaynak, son analiz raporu yedek.
-   Böylece tarama kaydı bir sebeple oluşmadıysa bile pozisyonlar değersiz görünmez. */
-function fiyatHaritasi(){
-  var m={};
-  var p=durumVeri.sonRapor;
-  if(p){
-    (p.portfoy||[]).concat(p.adaylar||[]).forEach(function(x){
-      if(x&&x.sembol&&x.veri&&Number(x.veri.fiyat)>0){
-        m[String(x.sembol).toUpperCase()]={fiyat:Number(x.veri.fiyat),ad:x.veri.ad||""};
-      }
-    });
-  }
-  Object.keys(durumVeri.fiyatlar||{}).forEach(function(s){
-    var f=durumVeri.fiyatlar[s];
-    if(f&&Number(f.fiyat)>0) m[String(s).toUpperCase()]=f;
-  });
-  return m;
-}
 function fiyatlariKaydet(rows){
   var m={};
   (rows||[]).forEach(function(r){
-    m[r.sembol]={fiyat:r.close,ad:r.description||"",degisim:r.change};
+    m[r.sembol]={fiyat:r.close,ad:r.base_currency_desc||"",degisim:r.change};
   });
   durumVeri.fiyatlar=m;
   durumVeri.fiyatZamani=Date.now();
@@ -1917,7 +1986,7 @@ function fiyatlariKaydet(rows){
 function gecmiseKaydet(){
   if(!durumVeri.islemler.length) return;
   var y=durumVeri.ayarlar.maliyetYontemi||"fifo";
-  var st=istatistikHesapla(durumVeri.islemler,y,fiyatHaritasi(),[]);
+  var st=istatistikHesapla(durumVeri.islemler,y,durumVeri.fiyatlar,[]);
   var nakit=nakitHesapla(durumVeri.islemler,y);
   /* Sermaye egrisi HESAP DEGERINI izler: nakit + acik pozisyonlarin guncel degeri.
      Sadece pozisyon degeri kaydedilirse alim yapmak "buyume" gibi gorunurdu. */
@@ -1984,7 +2053,7 @@ document.addEventListener("DOMContentLoaded",function(){
   ["sermaye","butce","komisyon","kayma","azaltOrani","maksPozisyon","riskSiz"].forEach(function(id){
     $(id).addEventListener("input",function(){ formuAyarlara(); try{ sanalKartCiz(); }catch(e){} });
   });
-  ["geminiKey","model","adaySayisi","haberSayisi","proxy"].forEach(function(id){
+  ["geminiKey","model","adaySayisi","haberSayisi","minMcap","minHacim","proxy"].forEach(function(id){
     $(id).addEventListener("input",formuAyarlara);
   });
   $("haberAcik").addEventListener("change",formuAyarlara);

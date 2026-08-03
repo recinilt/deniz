@@ -1458,8 +1458,9 @@ function emirleriUret(paket){
   var fiyatMap = {};
   (paket.portfoy || []).forEach(function(p){ if (p.veri && p.veri.fiyat) fiyatMap[p.sembol] = p.veri.fiyat; });
   (paket.adaylar || []).forEach(function(a){ if (a.veri && a.veri.fiyat) fiyatMap[a.sembol] = a.veri.fiyat; });
-  Object.keys(durumVeri.fiyatlar || {}).forEach(function(s){
-    if (!fiyatMap[s] && durumVeri.fiyatlar[s] && durumVeri.fiyatlar[s].fiyat) fiyatMap[s] = Number(durumVeri.fiyatlar[s].fiyat);
+  var hm = fiyatHaritasi();
+  Object.keys(hm).forEach(function(s){
+    if (!fiyatMap[s] && hm[s].fiyat) fiyatMap[s] = Number(hm[s].fiyat);
   });
 
   var poz = {};
@@ -1848,14 +1849,15 @@ function grafikCiz(gecmis){
 }
 function istatistikCiz(){
   var y=durumVeri.ayarlar.maliyetYontemi||"fifo";
-  var st=istatistikHesapla(durumVeri.islemler,y,durumVeri.fiyatlar,durumVeri.gecmis);
+  var st=istatistikHesapla(durumVeri.islemler,y,fiyatHaritasi(),durumVeri.gecmis);
   var c=$("istIcerik");
   if(!durumVeri.islemler.length){
     c.innerHTML='<section class="kart"><h2>İstatistik</h2>'+
       '<p class="bos-durum">Henüz işlem yok. Analiz sekmesinde bir analiz çalıştırıp <strong>“Sanal portföye uygula”</strong> düğmesine bastığında ya da elle işlem eklediğinde tüm istatistikler burada birikir.</p></section>';
     return;
   }
-  var fiyatNotu=durumVeri.fiyatZamani?("fiyatlar: "+new Date(durumVeri.fiyatZamani).toLocaleString("tr-TR")):"fiyat verisi yok — 'Fiyatları yenile'";
+  var fiyatNotu=durumVeri.fiyatZamani?("fiyatlar: "+new Date(durumVeri.fiyatZamani).toLocaleString("tr-TR"))
+    :(Object.keys(fiyatHaritasi()).length?("fiyatlar son analizden: "+((durumVeri.sonRapor&&durumVeri.sonRapor.zaman)||"")):"fiyat verisi yok — 'Fiyatları yenile'");
   var h="";
 
   var nakit=nakitHesapla(durumVeri.islemler,y);
@@ -1974,6 +1976,24 @@ function istatistikCiz(){
   c.innerHTML=h;
 }
 
+/* Güncel fiyat haritası: tarama verisi ana kaynak, son analiz raporu yedek.
+   Böylece tarama kaydı bir sebeple oluşmadıysa bile pozisyonlar değersiz görünmez. */
+function fiyatHaritasi(){
+  var m={};
+  var p=durumVeri.sonRapor;
+  if(p){
+    (p.portfoy||[]).concat(p.adaylar||[]).forEach(function(x){
+      if(x&&x.sembol&&x.veri&&Number(x.veri.fiyat)>0){
+        m[String(x.sembol).toUpperCase()]={fiyat:Number(x.veri.fiyat),ad:x.veri.ad||""};
+      }
+    });
+  }
+  Object.keys(durumVeri.fiyatlar||{}).forEach(function(s){
+    var f=durumVeri.fiyatlar[s];
+    if(f&&Number(f.fiyat)>0) m[String(s).toUpperCase()]=f;
+  });
+  return m;
+}
 function fiyatlariKaydet(rows){
   var m={};
   (rows||[]).forEach(function(r){
@@ -1986,7 +2006,7 @@ function fiyatlariKaydet(rows){
 function gecmiseKaydet(){
   if(!durumVeri.islemler.length) return;
   var y=durumVeri.ayarlar.maliyetYontemi||"fifo";
-  var st=istatistikHesapla(durumVeri.islemler,y,durumVeri.fiyatlar,[]);
+  var st=istatistikHesapla(durumVeri.islemler,y,fiyatHaritasi(),[]);
   var nakit=nakitHesapla(durumVeri.islemler,y);
   /* Sermaye egrisi HESAP DEGERINI izler: nakit + acik pozisyonlarin guncel degeri.
      Sadece pozisyon degeri kaydedilirse alim yapmak "buyume" gibi gorunurdu. */
