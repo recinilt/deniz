@@ -181,40 +181,6 @@ dialog::backdrop{background:rgba(5,8,16,.72)}
 .grafik .cizgi{fill:none;stroke:var(--amber);stroke-width:2}
 .grafik .alan{fill:url(#grad);opacity:.28}
 .bos-durum{color:var(--soluk);font-size:13.5px;padding:14px 0}
-
-/* Sanal işlem kartı */
-.sanal-ust{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:14px;margin-bottom:14px}
-.sanal-liste{border-top:1px solid var(--cizgi);margin:12px 0}
-.sanal-satir{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:baseline;padding:9px 0;border-bottom:1px solid var(--cizgi)}
-.sanal-satir .sembol{font-family:"IBM Plex Mono";font-weight:700;min-width:64px}
-.sanal-satir .soluk{color:var(--soluk)}
-button[disabled]{opacity:.45;cursor:not-allowed}
-/* Grafikler */
-.grafik.buyuk{width:100%;height:190px;display:block}
-.grafik.buyuk .cizgi{fill:none;stroke:#F5B841;stroke-width:2.2;stroke-linejoin:round}
-.grafik.buyuk .kiyas{fill:none;stroke:var(--soluk);stroke-width:1.6;stroke-dasharray:5 4;opacity:.85}
-.grafik.buyuk .ref{stroke:var(--cizgi);stroke-width:1;stroke-dasharray:3 4}
-.grafik.dusus{width:100%;height:90px;display:block}
-.grafik.dusus path{fill:rgba(229,72,77,.28);stroke:#E5484D;stroke-width:1.4}
-.grafik-alt{display:flex;justify-content:space-between;gap:10px;font-family:"IBM Plex Mono";font-size:11px;color:var(--soluk);margin-top:6px;flex-wrap:wrap}
-.kiyas-etiket{color:var(--soluk)}
-/* Aylık çubuklar */
-.aylik{display:flex;gap:6px;align-items:flex-end;height:110px;margin-top:6px;overflow-x:auto;padding-bottom:2px}
-.aylik-sut{display:flex;flex-direction:column;align-items:center;gap:5px;min-width:38px;flex:1}
-.aylik-yuva{height:78px;width:100%;display:flex;align-items:flex-end;background:var(--zemin);border-radius:4px;overflow:hidden}
-.aylik-dolu{width:100%;border-radius:4px}
-.aylik-dolu.art{background:linear-gradient(180deg,var(--yukselen),rgba(53,197,140,.35))}
-.aylik-dolu.eks{background:linear-gradient(180deg,rgba(229,72,77,.4),var(--dusen))}
-.aylik-ad{font-family:"IBM Plex Mono";font-size:10px;color:var(--soluk)}
-/* Skor rozetleri */
-.skor{display:inline-flex;align-items:center;gap:6px;font-family:"IBM Plex Mono";font-size:11px;padding:3px 9px;border-radius:999px;border:1px solid}
-.skor.iyi{color:var(--yukselen);border-color:var(--yukselen);background:rgba(53,197,140,.09)}
-.skor.orta{color:#F5B841;border-color:#F5B841;background:rgba(245,184,65,.09)}
-.skor.zayif{color:var(--dusen);border-color:var(--dusen);background:rgba(229,72,77,.09)}
-.skor.yok{color:var(--soluk);border-color:var(--cizgi)}
-.olcut-not{font-size:12px;color:var(--soluk);margin-top:4px}
-.bolum-ic{display:grid;grid-template-columns:1fr;gap:18px}
-@media(min-width:700px){.bolum-ic.iki{grid-template-columns:1fr 1fr}}
 footer{margin-top:36px;font-size:12px;color:#5A667F}
 @media(max-width:560px){.eylemler{flex-direction:column;align-items:stretch}.birincil,.ikincil{width:100%}}
 </style>
@@ -272,34 +238,6 @@ footer{margin-top:36px;font-size:12px;color:#5A667F}
         <option value="ortalama">Ortalama maliyet</option>
       </select>
     </div>
-      <div>
-        <label for="sermaye">Başlangıç sermayesi (₺)</label>
-        <input type="text" id="sermaye" inputmode="decimal">
-      </div>
-      <div>
-        <label for="butce">İşlem başına bütçe (₺)</label>
-        <input type="text" id="butce" inputmode="decimal">
-      </div>
-      <div>
-        <label for="komisyon">Komisyon (%)</label>
-        <input type="text" id="komisyon" inputmode="decimal">
-      </div>
-      <div>
-        <label for="kayma">Kayma / slippage (%)</label>
-        <input type="text" id="kayma" inputmode="decimal">
-      </div>
-      <div>
-        <label for="azaltOrani">AZALT oranı (%)</label>
-        <input type="text" id="azaltOrani" inputmode="decimal">
-      </div>
-      <div>
-        <label for="maksPozisyon">Maksimum pozisyon</label>
-        <input type="number" id="maksPozisyon" min="1" max="60">
-      </div>
-      <div>
-        <label for="riskSiz">Risksiz getiri (yıllık %)</label>
-        <input type="text" id="riskSiz" inputmode="decimal">
-      </div>
   </div>
   <p class="ipucu">Anahtar yalnızca bu tarayıcının yerel depolamasında tutulur ve doğrudan Google'a gider; başka hiçbir sunucuya gitmez. Ücretsiz anahtar: aistudio.google.com</p>
 </section>
@@ -329,8 +267,6 @@ footer{margin-top:36px;font-size:12px;color:#5A667F}
   <div class="kart">
     <h2>Rapor <span class="zaman" id="raporZaman" style="margin-left:auto"></span></h2>
     <div class="pazar-karti" id="pazarKarti"></div>
-    <h2 style="margin-top:18px">Sanal portföye uygula</h2>
-    <div id="sanalKart"></div>
     <h2 style="margin-top:18px">Portföy kararları</h2>
     <div id="portfoyRapor"></div>
     <h2 style="margin-top:18px">Adaylar · kısa-orta vade</h2>
@@ -732,16 +668,14 @@ function istatistikHesapla(islemler,yontem,fiyatlar,gecmis){
 var DKEY="bist_masa_v1";
 function varsayilanDurum(){
   return {
-    ayarlar:{geminiKey:"",model:"gemini-3.5-flash",adaySayisi:5,haberSayisi:3,haberAcik:true,proxy:"https://api.allorigins.win/raw?url=",maliyetYontemi:"fifo",sermaye:1000000,butce:3000,komisyon:0.0015,kayma:0.0005,azaltOrani:0.5,maksPozisyon:15,riskSiz:0},
+    ayarlar:{geminiKey:"",model:"gemini-3.5-flash",adaySayisi:5,haberSayisi:3,haberAcik:true,proxy:"https://api.allorigins.win/raw?url=",maliyetYontemi:"fifo"},
     portfoy:[{sembol:"",adet:"",maliyet:""}],
     islemler:[],
     fiyatlar:{},
     fiyatZamani:null,
     gecmis:[],
     sonRapor:null,
-    hazirlik:null,
-    uygulananRapor:null,
-    kiyasSon:null
+    hazirlik:null
   };
 }
 var durumVeri=varsayilanDurum();
@@ -754,8 +688,6 @@ function depoYukle(){
       durumVeri.portfoy=(Array.isArray(d.portfoy)&&d.portfoy.length)?d.portfoy:varsayilanDurum().portfoy;
       durumVeri.sonRapor=d.sonRapor||null;
       durumVeri.hazirlik=d.hazirlik||null;
-      durumVeri.uygulananRapor=d.uygulananRapor||null;
-      durumVeri.kiyasSon=d.kiyasSon||null;
       durumVeri.islemler=Array.isArray(d.islemler)?d.islemler:[];
       durumVeri.fiyatlar=(d.fiyatlar&&typeof d.fiyatlar==="object")?d.fiyatlar:{};
       durumVeri.fiyatZamani=d.fiyatZamani||null;
@@ -800,13 +732,6 @@ function ayarlariForma(){
   $("haberAcik").checked=!!a.haberAcik;
   $("proxy").value=a.proxy||"";
   $("maliyetYontemi").value=a.maliyetYontemi||"fifo";
-  $("sermaye").value=String(a.sermaye).replace(".",",");
-  $("butce").value=String(a.butce).replace(".",",");
-  $("komisyon").value=String(Math.round(a.komisyon*1e6)/1e4).replace(".",",");
-  $("kayma").value=String(Math.round(a.kayma*1e6)/1e4).replace(".",",");
-  $("azaltOrani").value=String(Math.round(a.azaltOrani*100)).replace(".",",");
-  $("maksPozisyon").value=a.maksPozisyon;
-  $("riskSiz").value=String(a.riskSiz||0).replace(".",",");
 }
 function formuAyarlara(){
   var a=durumVeri.ayarlar;
@@ -817,13 +742,6 @@ function formuAyarlara(){
   a.haberAcik=$("haberAcik").checked;
   a.proxy=$("proxy").value.trim();
   a.maliyetYontemi=$("maliyetYontemi").value==="ortalama"?"ortalama":"fifo";
-  var sv=sayiCoz($("sermaye").value); if(sv!==null&&sv>0) a.sermaye=sv;
-  var bv=sayiCoz($("butce").value); if(bv!==null&&bv>0) a.butce=bv;
-  var kv=sayiCoz($("komisyon").value); if(kv!==null&&kv>=0) a.komisyon=kv/100;
-  var yv=sayiCoz($("kayma").value); if(yv!==null&&yv>=0) a.kayma=yv/100;
-  var av=sayiCoz($("azaltOrani").value); if(av!==null&&av>0&&av<100) a.azaltOrani=av/100;
-  var mv=Number($("maksPozisyon").value); if(mv>0) a.maksPozisyon=Math.min(60,Math.round(mv));
-  var rv=sayiCoz($("riskSiz").value); if(rv!==null&&rv>=0) a.riskSiz=rv;
   depoKaydet();
 }
 
@@ -902,18 +820,6 @@ function zamanAsimliFetch(url,secenek,ms){
   var z=setTimeout(function(){ac.abort();},ms);
   secenek=secenek||{}; secenek.signal=ac.signal;
   return fetch(url,secenek).finally(function(){clearTimeout(z);});
-}
-/* XU100 endeksi: kıyas çizgisi için, en iyi çaba (başarısızsa sessizce atlanır) */
-async function kiyasCek(){
-  try{
-    var govde=JSON.stringify({symbols:{tickers:["BIST:XU100"]},columns:["name","close"]});
-    var r=await zamanAsimliFetch("https://scanner.tradingview.com/turkey/scan",
-      {method:"POST",headers:{"Content-Type":"text/plain"},body:govde},15000);
-    if(!r.ok) return null;
-    var j=await r.json();
-    var d=(j.data&&j.data[0]&&j.data[0].d)||[];
-    return Number(d[1])>0?Number(d[1]):null;
-  }catch(e){ return null; }
 }
 async function taramaCek(){
   /* Content-Type text/plain => preflight yok (scanner CORS'u content-type header'ina izin vermiyor) */
@@ -1080,7 +986,6 @@ function raporCiz(paket){
     ah.appendChild(div);
   });
   $("raporBolge").style.display="block";
-  try{ sanalKartCiz(); }catch(e){}
 }
 
 /* ---------- Sekmeler ---------- */
@@ -1239,8 +1144,6 @@ function dlgKaydet(){
   depoKaydet();
   portfoyuIslemlerdenGuncelle();
   islemleriCiz();
-  gecmiseKaydet();
-  try{ sanalKartCiz(); }catch(e){}
   dlgKapat();
   durum(sembol+" "+(dlgDurum.tip==="satim"?"satışı":"alımı")+" kaydedildi · "+fmt(miktar,4)+" @ "+fmtFiyat(fiyat)+"₺","tamam");
 }
@@ -1305,417 +1208,6 @@ function dlgFiyatTazele(){
   });
 }
 
-
-/* ---- Sanal motor sabitleri ---- */
-var PARA = '₺';
-var VURGU = '#F5B841';
-var KIYAS_AD = 'XU100';
-var MIKTAR_KESIRLI = false;
-var MIKTAR_BASAMAK = 4;
-var VARSAYILAN_SERMAYE = 1000000;
-var VARSAYILAN_BUTCE = 3000;
-var VARSAYILAN_KOMISYON = 0.0015;
-var VARSAYILAN_KAYMA = 0.0005;
-
-function alimMiktari(fiyat, A){
-  if (!(fiyat > 0)) return { miktar: null, sebep: 'fiyat yok' };
-  var lot = Math.max(1, Math.ceil(A.butce / fiyat));   /* lot tam sayıdır, yukarı yuvarlanır */
-  if (lot * fiyat > A.butce * 2) {
-    return { miktar: null, sebep: '1 lot ' + fmt(lot * fiyat, 2) + PARA + ' — bütçenin iki katından pahalı' };
-  }
-  return { miktar: lot, sebep: null };
-}
-/* ==================== SANAL İŞLEM MOTORU + RİSK METRİKLERİ ==================== */
-/* Bu blok analiz raporundaki kararları sanal bir portföye uygular ve
-   endüstri standardı risk-ayarlı performans ölçütlerini hesaplar.
-   Gerçek emir gönderilmez; her şey bu tarayıcının yerel deposunda kalır. */
-
-/* ---- Sanal hesap yardımcıları ---- */
-function sanalAyar(){
-  var a = durumVeri.ayarlar || {};
-  return {
-    sermaye: Number(a.sermaye) || VARSAYILAN_SERMAYE,
-    butce: Number(a.butce) || VARSAYILAN_BUTCE,
-    komisyon: (a.komisyon === undefined || a.komisyon === null || isNaN(Number(a.komisyon))) ? VARSAYILAN_KOMISYON : Number(a.komisyon),
-    kayma: (a.kayma === undefined || a.kayma === null || isNaN(Number(a.kayma))) ? VARSAYILAN_KAYMA : Number(a.kayma),
-    azaltOrani: Number(a.azaltOrani) || 0.5,
-    maksPozisyon: Number(a.maksPozisyon) || 15
-  };
-}
-/* Nakit = başlangıç sermayesi − alımlara giden + satışlardan gelen (ikisi de komisyon dahil) */
-function nakitHesapla(islemler, yontem){
-  var h = pozisyonlariHesapla(islemler || [], yontem || (durumVeri.ayarlar.maliyetYontemi || "fifo"));
-  var nakit = sanalAyar().sermaye;
-  h.pozisyonlar.forEach(function(p){ nakit += (p.gelen - p.harcanan); });
-  return Math.round(nakit * 1e8) / 1e8;
-}
-function acikPozisyonlar(){
-  var h = pozisyonlariHesapla(durumVeri.islemler || [], durumVeri.ayarlar.maliyetYontemi || "fifo");
-  return h.pozisyonlar.filter(function(p){ return p.miktar > 1e-12; });
-}
-/* Kayma (slippage): alışta fiyat yukarı, satışta aşağı kayar — gerçekçi maliyet modellemesi */
-function kaymaliFiyat(fiyat, tip, oran){
-  var k = (tip === "ALIM") ? (1 + oran) : (1 - oran);
-  return fiyat * k;
-}
-
-/* ---- Karar motoru: rapordaki kararları emirlere çevirir ---- */
-function emirleriUret(paket){
-  var A = sanalAyar();
-  var rapor = (paket && paket.rapor) || {};
-  var fiyatMap = {};
-  (paket.portfoy || []).forEach(function(p){ if (p.veri && p.veri.fiyat) fiyatMap[p.sembol] = p.veri.fiyat; });
-  (paket.adaylar || []).forEach(function(a){ if (a.veri && a.veri.fiyat) fiyatMap[a.sembol] = a.veri.fiyat; });
-  Object.keys(durumVeri.fiyatlar || {}).forEach(function(s){
-    if (!fiyatMap[s] && durumVeri.fiyatlar[s] && durumVeri.fiyatlar[s].fiyat) fiyatMap[s] = Number(durumVeri.fiyatlar[s].fiyat);
-  });
-
-  var poz = {};
-  acikPozisyonlar().forEach(function(p){ poz[p.sembol] = { miktar: p.miktar }; });
-  var acikSayi = Object.keys(poz).length;
-  var nakit = nakitHesapla(durumVeri.islemler);
-
-  var emirler = [], atlanan = [];
-  var tarih = bugunISO();
-
-  function emirEkle(sembol, tip, miktar, hamFiyat, karar, gerekce){
-    var fiyat = kaymaliFiyat(hamFiyat, tip, A.kayma);
-    var tutar = miktar * fiyat;
-    var ucret = tutar * A.komisyon;
-    if (tip === "ALIM") nakit -= (tutar + ucret); else nakit += (tutar - ucret);
-    emirler.push({
-      id: yeniId(), tip: (tip === "ALIM" ? "alim" : "satim"), sembol: sembol,
-      miktar: Math.round(miktar * 1e8) / 1e8,
-      fiyat: Math.round(fiyat * 1e8) / 1e8,
-      ucret: Math.round(ucret * 100) / 100,
-      tarih: tarih, not: karar + (gerekce ? (" — " + String(gerekce).slice(0, 90)) : ""),
-      _karar: karar, _hamFiyat: hamFiyat, _tutar: tutar
-    });
-  }
-
-  /* 1) Elde tutulanlar: SAT / AZALT / EKLE */
-  (rapor.portfoy || []).forEach(function(k){
-    var sembol = String(k.sembol || "").toUpperCase();
-    var p = poz[sembol];
-    if (!p) return;
-    var fiyat = fiyatMap[sembol];
-    if (!fiyat) { atlanan.push(sembol + ": güncel fiyat yok"); return; }
-    var karar = String(k.karar || "").toUpperCase();
-    if (karar === "SAT") {
-      emirEkle(sembol, "SATIM", p.miktar, fiyat, "SAT", k.gerekce);
-      delete poz[sembol]; acikSayi--;
-    } else if (karar === "AZALT") {
-      var m = MIKTAR_KESIRLI ? (p.miktar * A.azaltOrani) : Math.floor(p.miktar * A.azaltOrani);
-      if (!(m > 0) || m >= p.miktar) {
-        emirEkle(sembol, "SATIM", p.miktar, fiyat, "AZALT", k.gerekce);
-        delete poz[sembol]; acikSayi--;
-      } else {
-        emirEkle(sembol, "SATIM", m, fiyat, "AZALT", k.gerekce);
-        p.miktar -= m;
-      }
-    } else if (karar === "EKLE") {
-      var b = alimMiktari(fiyat, A);
-      if (!b.miktar) { atlanan.push(sembol + " EKLE: " + b.sebep); return; }
-      var maliyet = b.miktar * kaymaliFiyat(fiyat, "ALIM", A.kayma) * (1 + A.komisyon);
-      if (nakit - maliyet < 0) { atlanan.push(sembol + " EKLE: nakit yetersiz"); return; }
-      emirEkle(sembol, "ALIM", b.miktar, fiyat, "EKLE", k.gerekce);
-      p.miktar += b.miktar;
-    }
-  });
-
-  /* 2) Yeni adaylar */
-  (rapor.adaylar || []).forEach(function(k){
-    var sembol = String(k.sembol || "").toUpperCase();
-    if (poz[sembol]) return;
-    /* Analiz raporunda aday kararı yoksa (bu ekranda adaylar öneri listesidir) hepsi alınır;
-       karar alanı varsa yalnız AL olanlar alınır. */
-    var karar = String(k.karar || "AL").toUpperCase();
-    if (karar !== "AL") return;
-    if (acikSayi >= A.maksPozisyon) { atlanan.push(sembol + " AL: maksimum pozisyon sayısı dolu"); return; }
-    var fiyat = fiyatMap[sembol];
-    if (!fiyat) { atlanan.push(sembol + " AL: güncel fiyat yok"); return; }
-    var b = alimMiktari(fiyat, A);
-    if (!b.miktar) { atlanan.push(sembol + " AL: " + b.sebep); return; }
-    var maliyet = b.miktar * kaymaliFiyat(fiyat, "ALIM", A.kayma) * (1 + A.komisyon);
-    if (nakit - maliyet < 0) { atlanan.push(sembol + " AL: nakit yetersiz"); return; }
-    emirEkle(sembol, "ALIM", b.miktar, fiyat, "AL", k.yorum || k.gerekce);
-    poz[sembol] = { miktar: b.miktar }; acikSayi++;
-  });
-
-  return { emirler: emirler, atlanan: atlanan, nakitSon: Math.round(nakit * 100) / 100 };
-}
-
-/* ---- Uygulama ---- */
-/* Her rapora bir kez benzersiz kimlik ver: aynı dakikada iki analiz yapılsa da karışmaz */
-function raporDamgasi(paket){
-  if (!paket) return "";
-  if (!paket._rid) { paket._rid = yeniId(); depoKaydet(); }
-  return paket._rid;
-}
-function sanalUygula(){
-  var paket = durumVeri.sonRapor;
-  if (!paket || !paket.rapor) { durum("Önce bir analiz çalıştır.", "hata"); return; }
-  var damga = raporDamgasi(paket);
-  if (durumVeri.uygulananRapor === damga) {
-    durum("Bu raporun önerileri zaten uygulandı (" + (paket.zaman || paket.tarih || "") + "). Aynı öneriler ikinci kez işlenmez — yeni analiz çalıştır.", "hata");
-    return;
-  }
-  var s = emirleriUret(paket);
-  if (!s.emirler.length) {
-    durumVeri.uygulananRapor = damga; depoKaydet();
-    var m = "Uygulanacak işlem çıkmadı" + (s.atlanan.length ? (" — " + s.atlanan.join(" | ")) : " (tüm kararlar TUT).");
-    durum(m, "");
-    sanalOzetCiz(s, paket);
-    return;
-  }
-  s.emirler.forEach(function(e){
-    durumVeri.islemler.push({ id: e.id, tip: e.tip, sembol: e.sembol, miktar: e.miktar,
-      fiyat: e.fiyat, ucret: e.ucret, tarih: e.tarih, not: e.not });
-  });
-  durumVeri.uygulananRapor = damga;
-  depoKaydet();
-  portfoyuIslemlerdenGuncelle();
-  islemleriCiz();
-  gecmiseKaydet();
-  sanalOzetCiz(s, paket);
-  durum(s.emirler.length + " sanal işlem kaydedildi. İstatistik sekmesinde sonuçları görebilirsin.", "tamam");
-}
-
-/* ---- Rapor altındaki uygulama kartı ---- */
-function sanalKartCiz(){
-  var alan = $("sanalKart");
-  if (!alan) return;
-  var paket = durumVeri.sonRapor;
-  if (!paket || !paket.rapor) { alan.innerHTML = ""; return; }
-  var A = sanalAyar();
-  var nakit = nakitHesapla(durumVeri.islemler);
-  var acik = acikPozisyonlar();
-  var damga = raporDamgasi(paket);
-  var uygulandi = (durumVeri.uygulananRapor === damga);
-  var onizleme = uygulandi ? null : emirleriUret(paket);
-  var h = '<div class="sanal-ust">' +
-    '<div><div class="ist-ad">Sanal nakit</div><div class="ist-deger">' + paraFmt(nakit) + '</div></div>' +
-    '<div><div class="ist-ad">Açık pozisyon</div><div class="ist-deger">' + acik.length + '</div></div>' +
-    '<div><div class="ist-ad">İşlem başına bütçe</div><div class="ist-deger">' + paraFmt(A.butce) + '</div></div>' +
-    '</div>';
-  if (uygulandi) {
-    h += '<p class="ipucu">Bu raporun önerileri uygulandı. Yeni bir analiz çalıştırdığında düğme yeniden etkinleşir.</p>';
-    h += '<button class="ikincil" id="sanalGorBtn" type="button">İstatistiklere git</button>';
-  } else {
-    var e = onizleme.emirler;
-    if (e.length) {
-      h += '<div class="sanal-liste">';
-      e.forEach(function(x){
-        h += '<div class="sanal-satir"><span class="rozet ' + (x.tip === "alim" ? "alim" : "satim") + '">' +
-             (x.tip === "alim" ? "AL" : "SAT") + '</span>' +
-             '<span class="sembol">' + kacir(x.sembol) + '</span>' +
-             '<span class="mono">' + fmt(x.miktar, MIKTAR_BASAMAK) + ' × ' + fmtFiyat(x.fiyat) + PARA + '</span>' +
-             '<span class="mono soluk">= ' + paraFmt(x.miktar * x.fiyat) + '</span>' +
-             '<span class="vade">' + kacir(x._karar) + '</span></div>';
-      });
-      h += '</div>';
-    } else {
-      h += '<p class="ipucu">Bu raporda uygulanacak işlem yok — tüm kararlar TUT ya da uygun aday çıkmadı.</p>';
-    }
-    if (onizleme.atlanan.length) {
-      h += '<p class="ipucu">Atlananlar: ' + kacir(onizleme.atlanan.join(" | ")) + '</p>';
-    }
-    h += '<button class="birincil" id="sanalUygulaBtn" type="button"' + (e.length ? '' : ' disabled') + '>' +
-         (e.length ? ('Bu ' + e.length + ' işlemi sanal portföye uygula') : 'Uygulanacak işlem yok') + '</button>';
-  }
-  h += '<p class="uyari" style="margin-top:14px">Gerçek emir gönderilmez. Fiyatlar analiz anındaki değerlerdir; ' +
-       'komisyon (%' + fmt(A.komisyon * 100, 3) + ') ve kayma (%' + fmt(A.kayma * 100, 3) + ') düşülerek uygulanır.</p>';
-  alan.innerHTML = h;
-  var b1 = $("sanalUygulaBtn"); if (b1) b1.addEventListener("click", sanalUygula);
-  var b2 = $("sanalGorBtn"); if (b2) b2.addEventListener("click", function(){ sekmeAc("sekmeIstatistik"); });
-}
-function sanalOzetCiz(s, paket){ sanalKartCiz(); }
-
-/* ==================== RİSK-AYARLI PERFORMANS ÖLÇÜTLERİ ==================== */
-/* Kaynak standartlar: Sharpe (fazla getiri / toplam oynaklık), Sortino (yalnız aşağı yönlü
-   sapma), Calmar (getiri / maksimum düşüş). Günlük seriden yıllıklandırma: √P çarpanı. */
-function riskMetrikleri(gecmis, yillikRiskSiz){
-  var g = (gecmis || []).slice().sort(function(a, b){ return a.t - b.t; });
-  var bos = { getiriler: [], sharpe: null, sortino: null, calmar: null, oynaklik: null,
-              maksDusus: null, maksDususSuresi: null, yillik: null, kazanan: 0, kaybeden: 0, nokta: g.length };
-  if (g.length < 3) return bos;
-
-  /* Günlük getiri serisi */
-  var r = [];
-  for (var i = 1; i < g.length; i++) {
-    var onceki = g[i - 1].deger, simdi = g[i].deger;
-    if (onceki > 0) r.push({ t: g[i].t, r: (simdi - onceki) / onceki });
-  }
-  if (r.length < 2) return bos;
-
-  /* Gözlem sıklığı: ortalama gün aralığından yıllık periyot sayısı */
-  var toplamGun = (g[g.length - 1].t - g[0].t) / 86400000;
-  var ortAralik = toplamGun / Math.max(1, r.length);
-  var P = (ortAralik > 0) ? Math.max(1, Math.min(365, Math.round(365 / ortAralik))) : 252;
-
-  var rf = (yillikRiskSiz || 0) / 100;
-  var rfPeriyot = rf / P;
-
-  var n = r.length;
-  var ort = r.reduce(function(t, x){ return t + x.r; }, 0) / n;
-  var varyans = r.reduce(function(t, x){ return t + Math.pow(x.r - ort, 2); }, 0) / Math.max(1, n - 1);
-  var sd = Math.sqrt(varyans);
-  var fazlaOrt = ort - rfPeriyot;
-
-  /* Aşağı yönlü sapma: hedefin altındaki sapmalar (Sortino) */
-  var altKare = r.reduce(function(t, x){
-    var d = Math.min(0, x.r - rfPeriyot);
-    return t + d * d;
-  }, 0) / n;
-  var altSapma = Math.sqrt(altKare);
-
-  var sharpe = (sd > 0) ? (fazlaOrt / sd) * Math.sqrt(P) : null;
-  var sortino = (altSapma > 0) ? (fazlaOrt / altSapma) * Math.sqrt(P) : null;
-  var oynaklik = sd * Math.sqrt(P) * 100;
-
-  /* Bileşik yıllıklandırılmış getiri */
-  var toplamGetiri = (g[0].deger > 0) ? (g[g.length - 1].deger / g[0].deger) : null;
-  var yillik = null;
-  if (toplamGetiri && toplamGetiri > 0 && toplamGun >= 1) {
-    yillik = (Math.pow(toplamGetiri, 365 / toplamGun) - 1) * 100;
-  }
-
-  /* Maksimum düşüş ve süresi */
-  var zirve = null, zirveT = null, maksDusus = 0, maksSure = 0, dususBasi = null;
-  g.forEach(function(nokta){
-    if (zirve === null || nokta.deger >= zirve) {
-      zirve = nokta.deger; zirveT = nokta.t; dususBasi = null;
-    } else {
-      if (dususBasi === null) dususBasi = zirveT;
-      var d = (zirve - nokta.deger) / zirve * 100;
-      if (d > maksDusus) maksDusus = d;
-      var sure = (nokta.t - dususBasi) / 86400000;
-      if (sure > maksSure) maksSure = sure;
-    }
-  });
-  var calmar = (yillik !== null && maksDusus > 0) ? (yillik - rf * 100) / maksDusus : null;
-
-  return {
-    getiriler: r, sharpe: sharpe, sortino: sortino, calmar: calmar, oynaklik: oynaklik,
-    maksDusus: maksDusus, maksDususSuresi: maksSure, yillik: yillik,
-    kazanan: r.filter(function(x){ return x.r > 0; }).length,
-    kaybeden: r.filter(function(x){ return x.r < 0; }).length,
-    nokta: g.length, periyot: P, gunSayisi: toplamGun
-  };
-}
-
-/* Örneklem yeterliliği: literatür anlamlı sonuç için 100+ kapanan işlem önerir */
-function orneklemNotu(kapananSayisi){
-  if (kapananSayisi >= 100) return { seviye: "iyi", metin: "istatistiksel olarak anlamlı sayıda kapanan işlem" };
-  if (kapananSayisi >= 30) return { seviye: "orta", metin: "yön verici ama kesin değil — 100+ işlemde güvenilirlik artar" };
-  if (kapananSayisi >= 1) return { seviye: "zayif", metin: "örneklem çok küçük; bu oranlar büyük ölçüde şansı ölçüyor" };
-  return { seviye: "yok", metin: "henüz kapanan işlem yok" };
-}
-
-/* ---- Çizim yardımcıları ---- */
-function svgSermayeEgrisi(gecmis){
-  /* Kıyas çizgisi: yalnız TÜM kayıtlarda kıyas değeri varsa çizilir */
-  var kiyasSerisi = null;
-  var g0 = (gecmis || []);
-  if (g0.length > 1 && g0.every(function(x){ return Number(x.kiyas) > 0; })) {
-    kiyasSerisi = g0.slice().sort(function(a,b){ return a.t-b.t; }).map(function(x){ return Number(x.kiyas); });
-  }
-  var g = (gecmis || []).slice().sort(function(a, b){ return a.t - b.t; });
-  if (g.length < 2) return '<p class="bos-durum">Sermaye eğrisi için en az iki analiz gerekiyor.</p>';
-  var G = 720, Y = 190, pd = 14, altPd = 22;
-  var degerler = g.map(function(x){ return x.deger; });
-  var enAz = Math.min.apply(null, degerler), enCok = Math.max.apply(null, degerler);
-  /* Kıyas serisi varsa aynı ölçeğe normalize et (ilk gün = portföyün ilk değeri) */
-  var kiyas = null;
-  if (kiyasSerisi && kiyasSerisi.length === g.length && kiyasSerisi[0] > 0) {
-    kiyas = kiyasSerisi.map(function(k){ return (k / kiyasSerisi[0]) * g[0].deger; });
-    enAz = Math.min(enAz, Math.min.apply(null, kiyas));
-    enCok = Math.max(enCok, Math.max.apply(null, kiyas));
-  }
-  if (enCok === enAz) enCok = enAz + 1;
-  function nokta(v, i, adet){
-    var x = pd + (i / (adet - 1)) * (G - pd * 2);
-    var y = (Y - altPd) - ((v - enAz) / (enCok - enAz)) * (Y - altPd - pd);
-    return [Math.round(x * 10) / 10, Math.round(y * 10) / 10];
-  }
-  var pts = g.map(function(x, i){ return nokta(x.deger, i, g.length); });
-  var cizgi = pts.map(function(p){ return p[0] + "," + p[1]; }).join(" ");
-  var alan = "M" + pts[0][0] + "," + (Y - altPd) + " L" + pts.map(function(p){ return p[0] + "," + p[1]; }).join(" L") +
-             " L" + pts[pts.length - 1][0] + "," + (Y - altPd) + " Z";
-  var kiyasCizgi = "";
-  if (kiyas) {
-    var kp = kiyas.map(function(v, i){ return nokta(v, i, kiyas.length); });
-    kiyasCizgi = '<polyline class="kiyas" points="' + kp.map(function(p){ return p[0] + "," + p[1]; }).join(" ") + '"/>';
-  }
-  /* Başlangıç sermayesi çizgisi */
-  var sermaye = sanalAyar().sermaye;
-  var refCizgi = "";
-  if (sermaye >= enAz && sermaye <= enCok) {
-    var ry = (Y - altPd) - ((sermaye - enAz) / (enCok - enAz)) * (Y - altPd - pd);
-    refCizgi = '<line class="ref" x1="' + pd + '" y1="' + ry + '" x2="' + (G - pd) + '" y2="' + ry + '"/>';
-  }
-  return '<svg class="grafik buyuk" viewBox="0 0 ' + G + ' ' + Y + '" preserveAspectRatio="none" role="img" aria-label="Sermaye eğrisi">' +
-    '<defs><linearGradient id="gradSerm" x1="0" y1="0" x2="0" y2="1">' +
-    '<stop offset="0%" stop-color="' + VURGU + '" stop-opacity=".38"/><stop offset="100%" stop-color="' + VURGU + '" stop-opacity="0"/>' +
-    '</linearGradient></defs>' +
-    refCizgi + '<path class="alan" fill="url(#gradSerm)" d="' + alan + '"/>' +
-    kiyasCizgi + '<polyline class="cizgi" points="' + cizgi + '"/></svg>' +
-    '<div class="grafik-alt"><span>' + tarihGoster(new Date(g[0].t).toISOString()) + ' · ' + paraFmt(g[0].deger) + '</span>' +
-    (kiyas ? '<span class="kiyas-etiket">— ' + KIYAS_AD + ' (aynı başlangıçla)</span>' : '') +
-    '<span>' + tarihGoster(new Date(g[g.length - 1].t).toISOString()) + ' · ' + paraFmt(g[g.length - 1].deger) + '</span></div>';
-}
-
-function svgDususGrafigi(gecmis){
-  var g = (gecmis || []).slice().sort(function(a, b){ return a.t - b.t; });
-  if (g.length < 3) return "";
-  var zirve = null, seri = [];
-  g.forEach(function(x){
-    if (zirve === null || x.deger > zirve) zirve = x.deger;
-    seri.push(zirve > 0 ? ((x.deger - zirve) / zirve) * 100 : 0);
-  });
-  var enKotu = Math.min.apply(null, seri);
-  if (enKotu === 0) return '<p class="ipucu">Henüz zirveden düşüş yaşanmadı.</p>';
-  var G = 720, Y = 90, pd = 6;
-  var pts = seri.map(function(v, i){
-    var x = pd + (i / (seri.length - 1)) * (G - pd * 2);
-    var y = pd + (v / enKotu) * (Y - pd * 2);
-    return [Math.round(x * 10) / 10, Math.round(y * 10) / 10];
-  });
-  var alan = "M" + pts[0][0] + "," + pd + " L" + pts.map(function(p){ return p[0] + "," + p[1]; }).join(" L") +
-             " L" + pts[pts.length - 1][0] + "," + pd + " Z";
-  return '<svg class="grafik dusus" viewBox="0 0 ' + G + ' ' + Y + '" preserveAspectRatio="none" role="img" aria-label="Zirveden düşüş">' +
-    '<path d="' + alan + '"/></svg>' +
-    '<div class="grafik-alt"><span>zirveden düşüş</span><span>en derin: %' + fmt(Math.abs(enKotu), 2) + '</span></div>';
-}
-
-function svgAylikCubuk(gecmis){
-  var g = (gecmis || []).slice().sort(function(a, b){ return a.t - b.t; });
-  if (g.length < 3) return "";
-  var aylar = {};
-  for (var i = 1; i < g.length; i++) {
-    var d = new Date(g[i].t);
-    var anahtar = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0");
-    if (!aylar[anahtar]) aylar[anahtar] = { ilk: g[i - 1].deger, son: g[i].deger };
-    else aylar[anahtar].son = g[i].deger;
-  }
-  var liste = Object.keys(aylar).sort().map(function(k){
-    var a = aylar[k];
-    return { ay: k, yuzde: a.ilk > 0 ? ((a.son - a.ilk) / a.ilk) * 100 : 0 };
-  });
-  if (!liste.length) return "";
-  var enBuyuk = Math.max.apply(null, liste.map(function(x){ return Math.abs(x.yuzde); })) || 1;
-  var h = '<div class="aylik">';
-  liste.forEach(function(x){
-    var oran = Math.abs(x.yuzde) / enBuyuk * 100;
-    var artan = x.yuzde >= 0;
-    h += '<div class="aylik-sut" title="' + x.ay + ': %' + fmt(x.yuzde, 2) + '">' +
-         '<div class="aylik-yuva"><div class="aylik-dolu ' + (artan ? "art" : "eks") + '" style="height:' + Math.max(3, oran) + '%"></div></div>' +
-         '<div class="aylik-ad">' + x.ay.slice(5) + "." + x.ay.slice(2, 4) + '</div></div>';
-  });
-  return h + '</div>';
-}
-/* ==================== SANAL MOTOR SONU ==================== */
-
 /* ---------- Istatistik ---------- */
 function kutuHtml(ad,deger,ek,sinif){
   return '<div class="ist-kutu"><div class="ist-ad">'+ad+'</div>'+
@@ -1760,28 +1252,13 @@ function istatistikCiz(){
   var c=$("istIcerik");
   if(!durumVeri.islemler.length){
     c.innerHTML='<section class="kart"><h2>İstatistik</h2>'+
-      '<p class="bos-durum">Henüz işlem yok. Analiz sekmesinde bir analiz çalıştırıp <strong>“Sanal portföye uygula”</strong> düğmesine bastığında ya da elle işlem eklediğinde tüm istatistikler burada birikir.</p></section>';
+      '<p class="bos-durum">Henüz işlem yok. İşlem ekledikçe harcama, kâr/zarar, dağılım ve performans istatistiklerin burada birikir.</p></section>';
     return;
   }
   var fiyatNotu=durumVeri.fiyatZamani?("fiyatlar: "+new Date(durumVeri.fiyatZamani).toLocaleString("tr-TR")):"fiyat verisi yok — 'Fiyatları yenile'";
   var h="";
 
-  var nakit=nakitHesapla(durumVeri.islemler,y);
-  var toplamVarlik=nakit+st.toplamDeger;
-  var sermaye=sanalAyar().sermaye;
-  var netKZ=toplamVarlik-sermaye;
-  var netRoi=sermaye>0?((netKZ/sermaye)*100):null;
-  var rm=riskMetrikleri(durumVeri.gecmis,durumVeri.ayarlar.riskSiz||0);
-  var orn=orneklemNotu(st.kapananSayisi);
-
-  h+='<section class="kart"><h2>Sanal hesap <span class="zaman">'+kacir(fiyatNotu)+'</span></h2><div class="ist-izgara">'+
-    kutuHtml("Toplam varlık",paraFmt(toplamVarlik),"nakit + pozisyonlar")+
-    kutuHtml("Nakit",paraFmt(nakit),"kullanılabilir")+
-    kutuHtml("Net sonuç",paraFmt(netKZ),netRoi!==null?("başlangıca göre "+yuzdeFmt(netRoi)):"",artEks(netKZ))+
-    kutuHtml("Başlangıç sermayesi",paraFmt(sermaye))+
-    '</div></section>';
-
-  h+='<section class="kart"><h2>Para akışı</h2><div class="ist-izgara">'+
+  h+='<section class="kart"><h2>Para akışı <span class="zaman">'+kacir(fiyatNotu)+'</span></h2><div class="ist-izgara">'+
     kutuHtml("Elimdekilerin değeri",paraFmt(st.toplamDeger),st.pozisyonSayisi+" pozisyon")+
     kutuHtml("Toplam harcadığım",paraFmt(st.toplamHarcanan),"alımlar + komisyon")+
     kutuHtml("Satışlardan gelen",paraFmt(st.toplamGelen),st.satimSayisi+" satış")+
@@ -1799,42 +1276,8 @@ function istatistikCiz(){
     (st.gunSayisi!==null?kutuHtml("Yatırım süresi",st.gunSayisi+" gün",st.ilkZaman?("ilk işlem "+tarihGoster(new Date(st.ilkZaman).toISOString())):""):"")+
     '</div></section>';
 
-  /* --- Risk-ayarlı performans (Sharpe / Sortino / Calmar) --- */
-  function olcutSinif(v,iyiEsik,ortaEsik){
-    if(v===null||v===undefined||isNaN(v)) return "yok";
-    if(v>=iyiEsik) return "iyi";
-    if(v>=ortaEsik) return "orta";
-    return "zayif";
-  }
-  function sayiFmt(v,b){ return (v===null||v===undefined||isNaN(v))?"–":fmt(v,b===undefined?2:b); }
-  if(rm.nokta>=3){
-    h+='<section class="kart"><h2>Risk-ayarlı performans</h2><div class="ist-izgara">'+
-      kutuHtml("Sharpe oranı",sayiFmt(rm.sharpe),"1 üstü iyi · 2 üstü çok iyi",artEks(rm.sharpe))+
-      kutuHtml("Sortino oranı",sayiFmt(rm.sortino),"yalnız aşağı yönlü riski ölçer",artEks(rm.sortino))+
-      kutuHtml("Calmar oranı",sayiFmt(rm.calmar),"yıllık getiri ÷ maks. düşüş",artEks(rm.calmar))+
-      kutuHtml("Oynaklık (yıllık)",rm.oynaklik!==null?("%"+fmt(rm.oynaklik,1)):"–")+
-      kutuHtml("Yıllıklandırılmış getiri",rm.yillik!==null?yuzdeFmt(rm.yillik):"–","",artEks(rm.yillik))+
-      kutuHtml("En derin düşüş",rm.maksDusus?("-%"+fmt(rm.maksDusus,2)):"–",rm.maksDususSuresi?(fmt(rm.maksDususSuresi,0)+" gün sürdü"):"","eks")+
-      '</div>'+
-      '<p class="olcut-not">Ölçütler '+rm.nokta+' günlük anlık görüntüden, yıllık %'+fmt(durumVeri.ayarlar.riskSiz||0,2)+
-      ' risksiz getiri varsayımıyla hesaplandı. Kısa seride bu oranlar oynak olur; birkaç hafta veri biriktikçe anlam kazanır.</p>'+
-      '</section>';
-  }
-
-  /* --- Sermaye eğrisi + düşüş --- */
-  h+='<section class="kart"><h2>Sermaye eğrisi</h2>'+
-     svgSermayeEgrisi(durumVeri.gecmis)+
-     svgDususGrafigi(durumVeri.gecmis)+
-     '</section>';
-
-  var aylikHtml=svgAylikCubuk(durumVeri.gecmis);
-  if(aylikHtml){
-    h+='<section class="kart"><h2>Aylık getiri</h2>'+aylikHtml+'</section>';
-  }
-
   if(st.kapananSayisi){
-    h+='<section class="kart"><h2>İşlem performansı <span class="skor '+orn.seviye+'" style="margin-left:auto">'+
-      st.kapananSayisi+' kapanan işlem · '+orn.metin+'</span></h2><div class="ist-izgara">'+
+    h+='<section class="kart"><h2>İşlem performansı</h2><div class="ist-izgara">'+
       kutuHtml("Başarı oranı","%"+fmt(st.basariOrani,1),st.kazananSayisi+" kazanan / "+st.kaybedenSayisi+" kaybeden")+
       kutuHtml("Kâr faktörü",st.karFaktoru!==null?fmt(st.karFaktoru,2):"–","brüt kâr ÷ brüt zarar")+
       kutuHtml("Beklenti",paraFmt(st.beklenti),"satış başına ortalama",artEks(st.beklenti))+
@@ -1877,6 +1320,7 @@ function istatistikCiz(){
     h+='</tbody></table></div></section>';
   }
 
+  h+='<section class="kart"><h2>Portföy değeri geçmişi</h2>'+grafikCiz(durumVeri.gecmis)+'</section>';
   h+='<p class="uyari">Hesaplamalar '+(y==="fifo"?"FIFO (ilk giren ilk çıkar)":"ağırlıklı ortalama maliyet")+
      ' yöntemine göre yapılır; yöntemi Ayarlar\'dan değiştirebilirsin. Ülkelerin vergi mevzuatı farklı yöntem zorunlu kılabilir — bu ekran vergi beyanı değil, kişisel takip amaçlıdır.</p>';
   c.innerHTML=h;
@@ -1892,24 +1336,15 @@ function fiyatlariKaydet(rows){
   depoKaydet();
 }
 function gecmiseKaydet(){
-  if(!durumVeri.islemler.length) return;
-  var y=durumVeri.ayarlar.maliyetYontemi||"fifo";
-  var st=istatistikHesapla(durumVeri.islemler,y,durumVeri.fiyatlar,[]);
-  var nakit=nakitHesapla(durumVeri.islemler,y);
-  /* Sermaye egrisi HESAP DEGERINI izler: nakit + acik pozisyonlarin guncel degeri.
-     Sadece pozisyon degeri kaydedilirse alim yapmak "buyume" gibi gorunurdu. */
-  var toplamVarlik=nakit+st.toplamDeger;
-  if(!(toplamVarlik>0)) return;
+  var st=istatistikHesapla(durumVeri.islemler,durumVeri.ayarlar.maliyetYontemi,durumVeri.fiyatlar,[]);
+  if(!durumVeri.islemler.length||!st.toplamDeger) return;
   var g=durumVeri.gecmis||[];
   var son=g[g.length-1];
-  var kayit={t:Date.now(),deger:toplamVarlik,nakit:nakit,pozisyon:st.toplamDeger,maliyet:st.acikMaliyet};
-  if(Number(durumVeri.kiyasSon)>0) kayit.kiyas=Number(durumVeri.kiyasSon);
   /* ayni gun icinde tek kayit tut */
   if(son&&new Date(son.t).toDateString()===new Date().toDateString()){
-    son.deger=kayit.deger; son.nakit=kayit.nakit; son.pozisyon=kayit.pozisyon; son.maliyet=kayit.maliyet;
-    if(kayit.kiyas) son.kiyas=kayit.kiyas;
+    son.deger=st.toplamDeger; son.maliyet=st.acikMaliyet;
   }else{
-    g.push(kayit);
+    g.push({t:Date.now(),deger:st.toplamDeger,maliyet:st.acikMaliyet});
   }
   if(g.length>400) g=g.slice(g.length-400);
   durumVeri.gecmis=g;
@@ -1935,7 +1370,6 @@ document.addEventListener("DOMContentLoaded",function(){
   depoYukle(); ayarlariForma(); portfoyuCiz();
   if(durumVeri.islemler.length) portfoyuIslemlerdenGuncelle();
   islemleriCiz();
-  try{ sanalKartCiz(); }catch(e){}
   if(durumVeri.sonRapor){ raporCiz(durumVeri.sonRapor); durum("Son rapor yüklendi · "+(durumVeri.sonRapor.zaman||""),""); }
 
   $("analizBtn").addEventListener("click",analiz);
@@ -1958,9 +1392,6 @@ document.addEventListener("DOMContentLoaded",function(){
   $("gozBtn").addEventListener("click",function(){
     var k=$("geminiKey"); k.type=(k.type==="password")?"text":"password";
   });
-  ["sermaye","butce","komisyon","kayma","azaltOrani","maksPozisyon","riskSiz"].forEach(function(id){
-    $(id).addEventListener("input",function(){ formuAyarlara(); try{ sanalKartCiz(); }catch(e){} });
-  });
   ["geminiKey","model","adaySayisi","haberSayisi","proxy"].forEach(function(id){
     $(id).addEventListener("input",formuAyarlara);
   });
@@ -1980,8 +1411,7 @@ document.addEventListener("DOMContentLoaded",function(){
     if(!h) return;
     var id=h.dataset.islemsil;
     durumVeri.islemler=durumVeri.islemler.filter(function(x){return x.id!==id;});
-    depoKaydet(); portfoyuIslemlerdenGuncelle(); islemleriCiz(); gecmiseKaydet();
-    try{ sanalKartCiz(); }catch(e){}
+    depoKaydet(); portfoyuIslemlerdenGuncelle(); islemleriCiz();
     durum("İşlem silindi.","");
   });
 
