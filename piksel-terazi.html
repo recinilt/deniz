@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Piksel Terazi — Görsel Sıkıştırma Aracı</title>
+<style>
+  :root{
+    --bg:#12151a;
+    --surface:#1a1e25;
+    --surface-2:#20252e;
+    --border:#2b313d;
+    --text:#eef1f5;
+    --text-dim:#8d97a6;
+    --accent:#f0a04b;
+    --accent-dim:#7a5a30;
+    --good:#59d9b3;
+    --warn:#f2705c;
+    --mono: ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    line-height:1.45;
+    min-height:100vh;
+  }
+  a{color:inherit;}
+  .wrap{
+    max-width:920px;
+    margin:0 auto;
+    padding:40px 20px 80px;
+  }
+  header{margin-bottom:28px;}
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--accent);
+    margin:0 0 8px;
+  }
+  h1{
+    font-size:28px;
+    margin:0 0 8px;
+    letter-spacing:-0.01em;
+  }
+  header p{
+    color:var(--text-dim);
+    margin:0;
+    font-size:14.5px;
+    max-width:60ch;
+  }
+
+  .panel{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:22px;
+    margin-bottom:20px;
+  }
+
+  .drop{
+    border:1.5px dashed var(--border);
+    border-radius:12px;
+    padding:36px 20px;
+    text-align:center;
+    cursor:pointer;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .drop:hover, .drop.drag{
+    border-color:var(--accent);
+    background:rgba(240,160,75,0.06);
+  }
+  .drop strong{display:block; font-size:15px; margin-bottom:4px;}
+  .drop span{font-size:13px; color:var(--text-dim);}
+  #fileInput{display:none;}
+
+  .options{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(190px, 1fr));
+    gap:18px;
+    margin-top:22px;
+  }
+  .field label{
+    display:block;
+    font-size:12.5px;
+    font-weight:600;
+    margin-bottom:6px;
+  }
+  .field .hint{
+    font-size:11.5px;
+    color:var(--text-dim);
+    margin-top:6px;
+    display:block;
+  }
+  .field input[type="number"],
+  .field select{
+    width:100%;
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    color:var(--text);
+    border-radius:8px;
+    padding:9px 10px;
+    font-family:var(--mono);
+    font-size:13.5px;
+  }
+  .field select{font-family:var(--sans);}
+  .range-row{display:flex; align-items:center; gap:10px;}
+  input[type="range"]{
+    flex:1;
+    accent-color:var(--accent);
+  }
+  .range-val{
+    font-family:var(--mono);
+    font-size:13px;
+    min-width:44px;
+    text-align:right;
+    color:var(--accent);
+  }
+  .field.disabled{opacity:.45; pointer-events:none;}
+
+  .actions{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-top:24px;
+    flex-wrap:wrap;
+  }
+  button{
+    font-family:var(--sans);
+    font-size:14px;
+    font-weight:600;
+    border-radius:9px;
+    padding:11px 18px;
+    border:1px solid transparent;
+    cursor:pointer;
+    transition:filter .12s ease, opacity .12s ease;
+  }
+  button:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+  button.primary{background:var(--accent); color:#1a1206;}
+  button.primary:hover{filter:brightness(1.08);}
+  button.primary:disabled{opacity:.4; cursor:not-allowed;}
+  button.ghost{background:transparent; border-color:var(--border); color:var(--text);}
+  button.ghost:hover{border-color:var(--text-dim);}
+  .status{font-family:var(--mono); font-size:12.5px; color:var(--text-dim);}
+
+  .results{display:flex; flex-direction:column; gap:12px;}
+  .empty-note{
+    color:var(--text-dim);
+    font-size:13.5px;
+    padding:14px 4px;
+  }
+
+  .row{
+    display:grid;
+    grid-template-columns:56px 1fr auto;
+    gap:16px;
+    align-items:center;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:14px 16px;
+  }
+  .thumb{
+    width:56px; height:56px;
+    border-radius:8px;
+    background:var(--surface-2);
+    object-fit:cover;
+    display:block;
+  }
+  .row .info{min-width:0;}
+  .row .name{
+    font-size:13.5px;
+    font-weight:600;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .meta{
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--text-dim);
+    margin-top:4px;
+    display:flex;
+    gap:6px;
+    flex-wrap:wrap;
+    align-items:center;
+  }
+  .meta b{color:var(--good); font-weight:600;}
+  .meta .worse{color:var(--warn);}
+
+  .meter{
+    height:5px;
+    border-radius:3px;
+    background:var(--surface-2);
+    margin-top:8px;
+    overflow:hidden;
+    max-width:320px;
+  }
+  .meter i{
+    display:block; height:100%;
+    background:linear-gradient(90deg, var(--accent), var(--good));
+  }
+
+  .warn-text{
+    color:var(--warn);
+    font-size:11.5px;
+    margin-top:6px;
+  }
+  .err-text{
+    color:var(--warn);
+    font-size:12.5px;
+  }
+
+  .row .side{display:flex; align-items:center; gap:10px;}
+  .dl{
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    color:var(--text);
+    border-radius:8px;
+    padding:8px 14px;
+    font-size:12.5px;
+    font-weight:600;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .dl:hover{border-color:var(--accent); color:var(--accent);}
+  .dl:disabled{opacity:.35; cursor:not-allowed;}
+  .spinner{
+    width:16px; height:16px;
+    border-radius:50%;
+    border:2px solid var(--border);
+    border-top-color:var(--accent);
+    animation:spin .7s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  footer{
+    margin-top:30px;
+    color:var(--text-dim);
+    font-size:12px;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.001ms !important; transition-duration:0.001ms !important;}
+  }
+  @media (max-width:560px){
+    .row{grid-template-columns:44px 1fr; grid-template-rows:auto auto;}
+    .row .side{grid-column:1 / -1; justify-content:flex-end; margin-top:8px;}
+    .thumb{width:44px; height:44px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">Tarayıcıda çalışır · sunucuya yükleme yok</p>
+    <h1>Piksel Terazi</h1>
+    <p>Görselleri cihazından çıkmadan sıkıştırır. Bir hedef dosya boyutu ver, aracı o boyuta sığan en yüksek kaliteyi kendisi bulur; istersen ölçeği de büyütüp küçültebilirsin.</p>
+  </header>
+
+  <section class="panel">
+    <div class="drop" id="dropZone">
+      <strong>Görselleri buraya sürükle ya da tıklayıp seç</strong>
+      <span>JPEG, PNG, WebP — birden fazla dosya seçebilirsin</span>
+      <input type="file" id="fileInput" accept="image/*" multiple>
+    </div>
+
+    <div class="options">
+      <div class="field" id="maxMBField">
+        <label for="maxMB">Hedef maksimum boyut (MB)</label>
+        <input type="number" id="maxMB" min="0.01" step="0.05" placeholder="Sınırsız (opsiyonel)">
+        <span class="hint">Girilirse kalite otomatik ayarlanır: bu boyuta sığan en yüksek kalite aranır.</span>
+      </div>
+
+      <div class="field" id="qualityField">
+        <label for="quality">Kalite</label>
+        <div class="range-row">
+          <input type="range" id="quality" min="1" max="100" value="90">
+          <span class="range-val" id="qualityVal">90%</span>
+        </div>
+        <span class="hint">Hedef boyut girilmediğinde kullanılır. PNG çıktısında bu ayarın etkisi yoktur.</span>
+      </div>
+
+      <div class="field">
+        <label for="scale">Ölçek</label>
+        <div class="range-row">
+          <input type="range" id="scale" min="10" max="400" step="5" value="100">
+          <span class="range-val" id="scaleVal">100%</span>
+        </div>
+        <span class="hint">100 = orijinal boyut. Üzerine çıkarmak piksel sayısını artırır, gerçek detay eklemez.</span>
+      </div>
+
+      <div class="field">
+        <label for="format">Çıktı formatı</label>
+        <select id="format">
+          <option value="auto">Otomatik</option>
+          <option value="webp">WebP</option>
+          <option value="jpeg">JPEG</option>
+          <option value="png">PNG</option>
+        </select>
+        <span class="hint">Otomatik: şeffaf PNG'ler WebP'ye taşınır, diğerleri mevcut formatta kalır.</span>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="primary" id="runBtn" disabled>Sıkıştır</button>
+      <button class="ghost" id="clearBtn" disabled>Listeyi temizle</button>
+      <button class="ghost" id="downloadAllBtn" style="display:none;">Tümünü indir</button>
+      <span class="status" id="statusText"></span>
+    </div>
+  </section>
+
+  <section class="results" id="results">
+    <p class="empty-note">Henüz görsel eklenmedi.</p>
+  </section>
+
+  <footer>Görseller hiçbir yere yüklenmez; tüm işlem bu sekmede, tarayıcının Canvas API'siyle yapılır.</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var els = {
+    dropZone: document.getElementById('dropZone'),
+    fileInput: document.getElementById('fileInput'),
+    maxMB: document.getElementById('maxMB'),
+    maxMBField: document.getElementById('maxMBField'),
+    quality: document.getElementById('quality'),
+    qualityVal: document.getElementById('qualityVal'),
+    qualityField: document.getElementById('qualityField'),
+    scale: document.getElementById('scale'),
+    scaleVal: document.getElementById('scaleVal'),
+    format: document.getElementById('format'),
+    runBtn: document.getElementById('runBtn'),
+    clearBtn: document.getElementById('clearBtn'),
+    downloadAllBtn: document.getElementById('downloadAllBtn'),
+    statusText: document.getElementById('statusText'),
+    results: document.getElementById('results')
+  };
+
+  var items = [];
+  var busy = false;
+  var uid = 0;
+
+  var webpSupportPromise = new Promise(function(resolve){
+    try{
+      var c = document.createElement('canvas');
+      c.width = 1; c.height = 1;
+      c.toBlob(function(blob){ resolve(!!(blob && blob.type === 'image/webp')); }, 'image/webp');
+    }catch(e){ resolve(false); }
+  });
+
+  function bytesToReadable(b){
+    if (b < 1024) return b + ' B';
+    if (b < 1024*1024) return (b/1024).toFixed(1) + ' KB';
+    return (b/(1024*1024)).toFixed(2) + ' MB';
+  }
+
+  function canvasToBlob(canvas, mime, quality){
+    return new Promise(function(resolve){
+      if (quality === undefined) canvas.toBlob(resolve, mime);
+      else canvas.toBlob(resolve, mime, quality);
+    });
+  }
+
+  function loadBitmap(file){
+    if (window.createImageBitmap){
+      return createImageBitmap(file, { imageOrientation: 'from-image' }).catch(function(){
+        return loadViaImageTag(file);
+      });
+    }
+    return loadViaImageTag(file);
+  }
+
+  function loadViaImageTag(file){
+    return new Promise(function(resolve, reject){
+      var img = new Image();
+      var url = URL.createObjectURL(file);
+      img.onload = function(){ resolve(img); };
+      img.onerror = function(){ URL.revokeObjectURL(url); reject(new Error('Görsel okunamadı')); };
+      img.src = url;
+    });
+  }
+
+  function detectAlpha(bitmap){
+    var size = 24;
+    var c = document.createElement('canvas');
+    c.width = size; c.height = size;
+    var ctx = c.getContext('2d');
+    ctx.drawImage(bitmap, 0, 0, size, size);
+    var data;
+    try{ data = ctx.getImageData(0,0,size,size).data; }
+    catch(e){ return false; }
+    for (var i = 3; i < data.length; i += 4){
+      if (data[i] < 255) return true;
+    }
+    return false;
+  }
+
+  function makeThumb(bitmap){
+    var maxSide = 120;
+    var scale = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height));
+    var w = Math.max(1, Math.round(bitmap.width*scale));
+    var h = Math.max(1, Math.round(bitmap.height*scale));
+    var c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    var ctx = c.getContext('2d');
+    ctx.drawImage(bitmap, 0, 0, w, h);
+    return c.toDataURL('image/jpeg', 0.7);
+  }
+
+  function resolveMime(formatOption, originalType, hasAlpha, webpOk){
+    if (formatOption === 'jpeg') return 'image/jpeg';
+    if (formatOption === 'webp') return webpOk ? 'image/webp' : 'image/jpeg';
+    if (formatOption === 'png') return 'image/png';
+    // auto
+    if (originalType === 'image/webp') return webpOk ? 'image/webp' : 'image/jpeg';
+    if (originalType === 'image/png') {
+      if (hasAlpha) return webpOk ? 'image/webp' : 'image/png';
+      return webpOk ? 'image/webp' : 'image/jpeg';
+    }
+    return 'image/jpeg';
+  }
+
+  function extFor(mime){
+    if (mime === 'image/webp') return 'webp';
+    if (mime === 'image/png') return 'png';
+    return 'jpg';
+  }
+
+  async function searchQualityForTarget(canvas, mime, maxBytes){
+    var lo = 0.02, hi = 0.98;
+    var best = null, bestQ = null;
+    for (var i = 0; i < 8; i++){
+      var mid = (lo + hi) / 2;
+      var blob = await canvasToBlob(canvas, mime, mid);
+      if (blob.size <= maxBytes){
+        best = blob; bestQ = mid; lo = mid;
+      } else {
+        hi = mid;
+      }
+    }
+    if (!best){
+      var fallback = await canvasToBlob(canvas, mime, lo);
+      return { blob: fallback, quality: lo, met: fallback.size <= maxBytes };
+    }
+    return { blob: best, quality: bestQ, met: true };
+  }
+
+  function readOptions(){
+    var raw = els.maxMB.value.trim();
+    var maxMBVal = parseFloat(raw);
+    var maxBytes = (raw !== '' && !isNaN(maxMBVal) && maxMBVal > 0)
+      ? Math.round(maxMBVal * 1024 * 1024) : null;
+    return {
+      maxBytes: maxBytes,
+      quality: parseInt(els.quality.value, 10),
+      scalePercent: parseInt(els.scale.value, 10),
+      format: els.format.value
+    };
+  }
+
+  async function compressItem(item, opts, webpOk){
+    item.status = 'processing';
+    item.error = null;
+    render();
+    try{
+      if (!item.bitmap) item.bitmap = await loadBitmap(item.file);
+      var bitmap = item.bitmap;
+      var scale = opts.scalePercent / 100;
+      var w = Math.max(1, Math.round(bitmap.width * scale));
+      var h = Math.max(1, Math.round(bitmap.height * scale));
+      var hasAlpha = (item.file.type === 'image/png') ? detectAlpha(bitmap) : false;
+      var mime = resolveMime(opts.format, item.file.type, hasAlpha, webpOk);
+
+      var canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      var ctx = canvas.getContext('2d');
+      if (mime === 'image/jpeg'){
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, w, h);
+      }
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(bitmap, 0, 0, w, h);
+
+      var blob, usedQuality = null, sizeMet = true;
+      if (mime === 'image/png'){
+        blob = await canvasToBlob(canvas, mime);
+        if (opts.maxBytes && blob.size > opts.maxBytes) sizeMet = false;
+      } else if (opts.maxBytes){
+        var r = await searchQualityForTarget(canvas, mime, opts.maxBytes);
+        blob = r.blob; usedQuality = r.quality; sizeMet = r.met;
+      } else {
+        usedQuality = opts.quality / 100;
+        blob = await canvasToBlob(canvas, mime, usedQuality);
+      }
+
+      item.status = 'done';
+      item.result = {
+        blob: blob, mime: mime, width: w, height: h,
+        quality: usedQuality, sizeMet: sizeMet, pngUnbounded: (mime === 'image/png' && opts.maxBytes)
+      };
+    }catch(err){
+      item.status = 'error';
+      item.error = (err && err.message) ? err.message : String(err);
+    }
+    render();
+  }
+
+  async function processAll(){
+    if (!items.length || busy) return;
+    busy = true;
+    setButtons();
+    var webpOk = await webpSupportPromise;
+    var opts = readOptions();
+    for (var i = 0; i < items.length; i++){
+      els.statusText.textContent = 'İşleniyor: ' + (i+1) + ' / ' + items.length;
+      await compressItem(items[i], opts, webpOk);
+      await new Promise(function(res){ setTimeout(res, 0); });
+    }
+    els.statusText.textContent = items.length + ' görsel işlendi.';
+    busy = false;
+    setButtons();
+  }
+
+  function addFiles(fileList){
+    var files = Array.prototype.filter.call(fileList, function(f){
+      return f.type.indexOf('image/') === 0;
+    });
+    files.forEach(function(file){
+      var item = {
+        id: 'f' + (++uid),
+        file: file,
+        name: file.name,
+        size: file.size,
+        bitmap: null,
+        thumb: null,
+        status: 'pending',
+        result: null,
+        error: null
+      };
+      items.push(item);
+      loadBitmap(file).then(function(bitmap){
+        item.bitmap = bitmap;
+        item.thumb = makeThumb(bitmap);
+        item.width = bitmap.width;
+        item.height = bitmap.height;
+        render();
+      }).catch(function(err){
+        item.error = 'Önizleme oluşturulamadı: ' + ((err && err.message) || err);
+        render();
+      });
+    });
+    render();
+    setButtons();
+  }
+
+  function setButtons(){
+    els.runBtn.disabled = busy || items.length === 0;
+    els.clearBtn.disabled = busy || items.length === 0;
+    var anyDone = items.some(function(i){ return i.status === 'done'; });
+    els.downloadAllBtn.style.display = anyDone ? 'inline-block' : 'none';
+  }
+
+  function downloadItem(item){
+    if (!item.result) return;
+    var url = URL.createObjectURL(item.result.blob);
+    var a = document.createElement('a');
+    var dot = item.name.lastIndexOf('.');
+    var base = dot > -1 ? item.name.slice(0, dot) : item.name;
+    a.href = url;
+    a.download = base + '-sikistirilmis.' + extFor(item.result.mime);
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+  }
+
+  function downloadAll(){
+    var done = items.filter(function(i){ return i.status === 'done'; });
+    done.forEach(function(item, idx){
+      setTimeout(function(){ downloadItem(item); }, idx * 200);
+    });
+  }
+
+  function render(){
+    if (!items.length){
+      els.results.innerHTML = '<p class="empty-note">Henüz görsel eklenmedi.</p>';
+      return;
+    }
+    var html = items.map(function(item){
+      var thumbSrc = item.thumb || '';
+      var meta = '';
+      var warn = '';
+
+      if (item.status === 'error'){
+        meta = '<span class="err-text">' + escapeHtml(item.error || 'Hata oluştu') + '</span>';
+      } else if (item.status === 'processing'){
+        meta = '<span>İşleniyor…</span>';
+      } else if (item.status === 'done'){
+        var r = item.result;
+        var reduced = item.size - r.blob.size;
+        var pct = item.size > 0 ? Math.round((reduced / item.size) * 100) : 0;
+        var pctClass = pct >= 0 ? '' : 'worse';
+        var pctLabel = pct >= 0 ? ('%' + pct + ' küçüldü') : ('%' + Math.abs(pct) + ' büyüdü');
+        var qLabel = (r.quality !== null && r.quality !== undefined) ? (' · kalite ' + Math.round(r.quality*100) + '%') : '';
+        meta = (item.width + '×' + item.height) + ' → ' + (r.width + '×' + r.height) +
+          '  ·  ' + bytesToReadable(item.size) + ' → ' + bytesToReadable(r.blob.size) +
+          '  ·  <b class="' + pctClass + '">' + pctLabel + '</b>' + qLabel +
+          '  ·  ' + r.mime.replace('image/','').toUpperCase();
+        var barPct = Math.max(0, Math.min(100, pct));
+        meta += '<div class="meter" style="max-width:220px;"><i style="width:' + barPct + '%"></i></div>';
+        if (r.sizeMet === false){
+          warn = '<div class="warn-text">Hedef boyuta bu ayarlarla ulaşılamadı (en düşük kalitede bile büyük). Ölçeği düşürmeyi dene.</div>';
+        } else if (r.pngUnbounded){
+          warn = '<div class="warn-text">PNG kayıpsızdır, kalite ile küçültülemez; hedefe ulaşmak için ölçeği düşür ya da formatı değiştir.</div>';
+        }
+      } else {
+        meta = item.width ? (item.width + '×' + item.height + '  ·  ' + bytesToReadable(item.size)) : bytesToReadable(item.size);
+      }
+
+      var sideHtml = item.status === 'processing'
+        ? '<div class="spinner"></div>'
+        : '<button class="dl" data-id="' + item.id + '" ' + (item.status === 'done' ? '' : 'disabled') + '>İndir</button>';
+
+      return '<div class="row">' +
+        '<img class="thumb" src="' + thumbSrc + '" alt="">' +
+        '<div class="info">' +
+          '<div class="name" title="' + escapeHtml(item.name) + '">' + escapeHtml(item.name) + '</div>' +
+          '<div class="meta">' + meta + '</div>' +
+          warn +
+        '</div>' +
+        '<div class="side">' + sideHtml + '</div>' +
+      '</div>';
+    }).join('');
+    els.results.innerHTML = html;
+
+    Array.prototype.forEach.call(els.results.querySelectorAll('.dl'), function(btn){
+      btn.addEventListener('click', function(){
+        var item = items.find(function(i){ return i.id === btn.getAttribute('data-id'); });
+        if (item) downloadItem(item);
+      });
+    });
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, function(c){
+      return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
+    });
+  }
+
+  // --- wiring ---
+  els.dropZone.addEventListener('click', function(){ els.fileInput.click(); });
+  els.fileInput.addEventListener('change', function(e){
+    addFiles(e.target.files);
+    els.fileInput.value = '';
+  });
+  ['dragenter','dragover'].forEach(function(evt){
+    els.dropZone.addEventListener(evt, function(e){
+      e.preventDefault(); els.dropZone.classList.add('drag');
+    });
+  });
+  ['dragleave','drop'].forEach(function(evt){
+    els.dropZone.addEventListener(evt, function(e){
+      e.preventDefault(); els.dropZone.classList.remove('drag');
+    });
+  });
+  els.dropZone.addEventListener('drop', function(e){
+    if (e.dataTransfer && e.dataTransfer.files) addFiles(e.dataTransfer.files);
+  });
+
+  els.quality.addEventListener('input', function(){
+    els.qualityVal.textContent = els.quality.value + '%';
+  });
+  els.scale.addEventListener('input', function(){
+    els.scaleVal.textContent = els.scale.value + '%';
+  });
+  els.maxMB.addEventListener('input', function(){
+    var has = els.maxMB.value.trim() !== '';
+    els.qualityField.classList.toggle('disabled', has);
+  });
+
+  els.runBtn.addEventListener('click', processAll);
+  els.clearBtn.addEventListener('click', function(){
+    items = [];
+    els.statusText.textContent = '';
+    render();
+    setButtons();
+  });
+  els.downloadAllBtn.addEventListener('click', downloadAll);
+
+  render();
+  setButtons();
+})();
+</script>
+</body>
+</html>
