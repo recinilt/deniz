@@ -1,0 +1,1368 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="auto">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Tablo Tezgâhı — CSV görüntüleyici</title>
+<style>
+:root{
+  color-scheme: light dark;
+  --ink:        light-dark(oklch(24% 0.02 262), oklch(93% 0.01 262));
+  --muted:      light-dark(oklch(50% 0.02 262), oklch(68% 0.02 262));
+  --faint:      light-dark(oklch(62% 0.02 262), oklch(56% 0.02 262));
+  --bg:         light-dark(oklch(96% 0.006 262), oklch(17% 0.014 262));
+  --panel:      light-dark(oklch(99.5% 0.002 262), oklch(21% 0.014 262));
+  --field:      light-dark(oklch(100% 0 0),       oklch(19.5% 0.012 262));
+  --stripe:     light-dark(oklch(97.6% 0.004 262), oklch(22.2% 0.013 262));
+  --line:       light-dark(oklch(90% 0.008 262),  oklch(28% 0.016 262));
+  --line-hard:  light-dark(oklch(80% 0.012 262),  oklch(36% 0.02 262));
+  --accent:     light-dark(oklch(50% 0.17 264),   oklch(74% 0.13 264));
+  --accent-ink: light-dark(oklch(99% 0 0),        oklch(18% 0.02 264));
+  --warn:       light-dark(oklch(56% 0.15 55),    oklch(78% 0.14 70));
+  --ok:         light-dark(oklch(50% 0.13 155),   oklch(75% 0.12 155));
+  --sel:        color-mix(in oklch, var(--accent) 22%, transparent);
+  --hit:        light-dark(oklch(92% 0.16 100), oklch(58% 0.14 100));
+  --rowbg: var(--field);
+  --ruler-h: 30px; --head-h: 36px; --filter-h: 30px;
+  --ui: "Bahnschrift","DIN Alternate","Roboto Condensed",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono: ui-monospace,"Cascadia Mono","SFMono-Regular",Menlo,Consolas,"Liberation Mono",monospace;
+  --radius: 9px;
+}
+[data-theme="light"]{ color-scheme: light }
+[data-theme="dark"]{ color-scheme: dark }
+
+.hue0{--colc:oklch(58% 0.15 264)} .hue1{--colc:oklch(58% 0.14 196)} .hue2{--colc:oklch(56% 0.14 152)}
+.hue3{--colc:oklch(60% 0.15 96)}  .hue4{--colc:oklch(62% 0.15 58)}  .hue5{--colc:oklch(58% 0.16 24)}
+.hue6{--colc:oklch(58% 0.16 340)} .hue7{--colc:oklch(56% 0.16 300)} .hue8{--colc:oklch(56% 0.14 224)}
+.hue9{--colc:oklch(58% 0.13 172)} .hue10{--colc:oklch(58% 0.14 128)} .hue11{--colc:oklch(62% 0.15 42)}
+
+*{ box-sizing:border-box }
+[hidden]{ display:none !important }
+html,body{ height:100% }
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:var(--ui); font-size:14px; line-height:1.45;
+  display:flex; flex-direction:column; overflow:hidden;
+}
+button,input,select{ font:inherit; color:inherit }
+:focus-visible{ outline:2px solid var(--accent); outline-offset:2px }
+.sr-only{ position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap }
+
+/* ---------- üst çubuk ---------- */
+.topbar{
+  display:flex; align-items:center; gap:10px; padding:9px 14px;
+  background:var(--panel); border-bottom:1px solid var(--line); flex:0 0 auto; flex-wrap:wrap;
+}
+.brand{ display:flex; align-items:center; gap:9px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; font-size:13.5px }
+.brand .mark{
+  width:22px; height:22px; display:grid; place-items:center; border-radius:6px;
+  background:var(--accent); color:var(--accent-ink); font-size:13px; letter-spacing:0;
+}
+.brand small{ text-transform:none; letter-spacing:0; font-weight:400; color:var(--faint); font-size:12px }
+.grow{ flex:1 1 auto }
+
+.btn{
+  background:var(--field); border:1px solid var(--line-hard); border-radius:var(--radius);
+  padding:5px 11px; cursor:pointer; white-space:nowrap; transition:background .12s, border-color .12s;
+}
+.btn:hover{ background:color-mix(in oklch, var(--accent) 10%, var(--field)); border-color:var(--accent) }
+.btn[aria-pressed="true"]{ background:var(--accent); color:var(--accent-ink); border-color:var(--accent) }
+.btn.primary{ background:var(--accent); color:var(--accent-ink); border-color:var(--accent); font-weight:600 }
+.btn.icon{ padding:5px 9px }
+
+.search{ position:relative; display:flex; align-items:center; min-width:200px; flex:0 1 320px }
+.search input{
+  width:100%; padding:6px 74px 6px 30px; border-radius:var(--radius);
+  border:1px solid var(--line-hard); background:var(--field);
+}
+.search::before{ content:"⌕"; position:absolute; left:10px; color:var(--faint); font-size:16px }
+.search .count{
+  position:absolute; right:9px; font-family:var(--mono); font-size:11.5px; color:var(--faint);
+  pointer-events:none; font-variant-numeric:tabular-nums;
+}
+.menu{ position:relative }
+.pop{
+  position:absolute; right:0; top:calc(100% + 6px); z-index:60; min-width:210px; padding:6px;
+  background:var(--panel); border:1px solid var(--line-hard); border-radius:var(--radius);
+  box-shadow:0 14px 34px light-dark(oklch(20% 0.02 262 / .16), oklch(2% 0 0 / .5));
+}
+.pop[hidden]{ display:none }
+.pop button{
+  display:flex; justify-content:space-between; gap:14px; width:100%; text-align:left; background:none;
+  border:0; border-radius:6px; padding:7px 9px; cursor:pointer;
+}
+.pop button:hover{ background:color-mix(in oklch, var(--accent) 14%, transparent) }
+.pop kbd{ font-family:var(--mono); font-size:11px; color:var(--faint) }
+
+/* ---------- seçenek şeridi ---------- */
+.options{
+  display:flex; align-items:center; gap:8px 16px; flex-wrap:wrap;
+  padding:7px 14px; background:var(--panel); border-bottom:1px solid var(--line); flex:0 0 auto;
+  font-size:12.5px;
+}
+.options label{ display:flex; align-items:center; gap:6px; color:var(--muted) }
+.options select{ padding:4px 7px; border-radius:7px; border:1px solid var(--line-hard); background:var(--field) }
+.options .sep{ width:1px; align-self:stretch; background:var(--line) }
+
+/* ---------- boş durum ---------- */
+.drop{
+  flex:1 1 auto; display:grid; place-items:center; padding:28px; text-align:center;
+}
+.drop.hot .dropcard{ border-color:var(--accent); background:color-mix(in oklch, var(--accent) 8%, var(--panel)) }
+.dropcard{
+  border:2px dashed var(--line-hard); border-radius:18px; background:var(--panel);
+  padding:44px 40px; max-width:620px; transition:border-color .15s, background .15s;
+}
+.dropcard h1{ font-size:26px; margin:0 0 6px; letter-spacing:.01em }
+.dropcard p{ margin:0 0 20px; color:var(--muted) }
+.dropcard .row{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap }
+.dropcard ul{
+  margin:24px 0 0; padding:0; list-style:none; display:grid; gap:6px 20px;
+  grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); text-align:left;
+  font-size:12.5px; color:var(--faint);
+}
+.dropcard li::before{ content:"—"; margin-right:7px; color:var(--accent) }
+
+/* ---------- ızgara ---------- */
+#workbench{ flex:1 1 auto; display:flex; flex-direction:column; min-height:0 }
+.scroll{ flex:1 1 auto; overflow:auto; background:var(--field); position:relative; contain:strict }
+table{
+  border-collapse:separate; border-spacing:0; table-layout:fixed;
+  font-family:var(--mono); font-size:12.5px; font-variant-numeric:tabular-nums;
+}
+thead th{ position:sticky; z-index:3; background:var(--panel); text-align:left; padding:0; font-weight:600 }
+thead .r-ruler th{ top:0; height:var(--ruler-h); z-index:4 }
+thead .r-head  th{ top:var(--ruler-h); height:var(--head-h); z-index:4 }
+thead .r-filter th{ top:calc(var(--ruler-h) + var(--head-h)); height:var(--filter-h); z-index:4 }
+thead th.pin{ z-index:6 }
+thead th, tbody td{ border-right:1px solid var(--line); border-bottom:1px solid var(--line) }
+thead .r-filter th{ border-bottom:1px solid var(--line-hard) }
+
+.sortbtn{
+  display:flex; align-items:center; gap:6px; width:100%; height:100%; padding:0 9px;
+  background:none; border:0; border-bottom:3px solid var(--colc,transparent); cursor:pointer;
+  font-family:var(--ui); font-size:13px; letter-spacing:.02em; text-align:left;
+}
+.no-colors .sortbtn{ border-bottom-color:var(--line-hard) }
+.sortbtn:hover{ background:color-mix(in oklch, var(--colc, var(--accent)) 16%, transparent) }
+.sortbtn .name{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1 1 auto }
+.sortbtn .dir{ font-size:11px; color:var(--accent); font-family:var(--mono) }
+.sortbtn .ord{
+  font-size:10px; background:var(--accent); color:var(--accent-ink);
+  border-radius:99px; padding:0 5px; font-family:var(--mono);
+}
+.resizer{
+  position:absolute; top:0; right:-3px; width:7px; height:100%; cursor:col-resize; z-index:7;
+}
+.resizer:hover{ background:color-mix(in oklch, var(--accent) 45%, transparent) }
+thead .r-head th{ overflow:visible }
+thead .r-head th > .wrap{ position:relative; height:100%; display:flex }
+
+.ruler{ display:flex; align-items:center; gap:7px; height:100%; padding:0 9px; color:var(--faint); font-size:11px }
+.ruler .glyph{
+  font-family:var(--mono); font-weight:700; font-size:10.5px; padding:1px 5px; border-radius:5px;
+  background:color-mix(in oklch, var(--colc, var(--muted)) 22%, transparent);
+  color:light-dark(oklch(30% 0.06 262), oklch(90% 0.03 262));
+}
+.no-colors .ruler .glyph{ background:color-mix(in oklch, var(--muted) 18%, transparent) }
+.ruler .bar{ flex:1 1 auto; height:6px; border-radius:99px; background:var(--line); overflow:hidden; min-width:16px }
+.ruler .bar i{ display:block; height:100%; background:var(--colc, var(--muted)); opacity:.75 }
+.ruler svg{ flex:1 1 auto; height:14px; min-width:16px }
+.ruler svg rect{ fill:var(--colc, var(--muted)); opacity:.8 }
+.ruler .pct{ font-family:var(--mono); font-size:10px }
+.rulerbtn{ background:none; border:0; padding:0; margin:0; width:100%; height:100%; cursor:pointer; text-align:left }
+.rulerbtn:hover{ background:color-mix(in oklch, var(--accent) 12%, transparent) }
+
+.r-filter input{
+  width:100%; height:100%; border:0; background:transparent; padding:0 9px;
+  font-family:var(--mono); font-size:12px;
+}
+.r-filter input::placeholder{ color:var(--faint) }
+.r-filter th:has(input:not(:placeholder-shown)){ background:color-mix(in oklch, var(--accent) 12%, var(--panel)) }
+
+tbody tr{ background:var(--rowbg) }
+tbody tr.alt{ --rowbg:var(--stripe) }
+tbody td{
+  padding:0 9px; height:var(--rowh); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  background:color-mix(in oklch, var(--colc,transparent) 7%, var(--rowbg));
+  vertical-align:middle;
+}
+.no-colors tbody td{ background:var(--rowbg) }
+.wrapcells tbody td{ white-space:normal; word-break:break-word; line-height:1.35; padding:4px 9px }
+tbody tr:hover td{ background:color-mix(in oklch, var(--accent) 9%, var(--rowbg)) }
+td.num{ text-align:right }
+td.bool{ text-align:center }
+td.empty::after{ content:"—"; color:var(--faint) }
+td.cursor{ box-shadow:inset 0 0 0 2px var(--accent); background:var(--sel) }
+mark{ background:var(--hit); color:inherit; border-radius:2px; padding:0 1px }
+.pin{ position:sticky; z-index:2; background:var(--rowbg) }
+tbody td.pin{ background:color-mix(in oklch, var(--colc,transparent) 7%, var(--rowbg)) }
+.no-colors tbody td.pin{ background:var(--rowbg) }
+.pin.last{ border-right:2px solid var(--line-hard) }
+.rownum{ color:var(--faint); text-align:right; font-size:11px; user-select:none }
+tbody tr.spacer td{ padding:0; border:0; background:transparent }
+
+/* ---------- durum çubuğu ---------- */
+.status{
+  flex:0 0 auto; display:flex; align-items:center; gap:8px 14px; flex-wrap:wrap;
+  padding:6px 14px; background:var(--panel); border-top:1px solid var(--line);
+  font-size:12px; color:var(--muted); font-family:var(--mono);
+}
+.chip{
+  padding:1px 8px; border-radius:99px; border:1px solid var(--line-hard); background:var(--field);
+  white-space:nowrap;
+}
+.chip.warn{ border-color:var(--warn); color:var(--warn); cursor:pointer }
+.chip b{ color:var(--ink); font-weight:600 }
+
+/* ---------- panel / diyalog ---------- */
+dialog{
+  border:1px solid var(--line-hard); border-radius:14px; background:var(--panel); color:var(--ink);
+  padding:0; max-width:min(760px, 94vw); max-height:86vh; box-shadow:0 20px 60px oklch(0% 0 0 / .35);
+}
+dialog::backdrop{ background:oklch(20% 0.02 262 / .45) }
+.dlg-head{
+  display:flex; align-items:center; gap:12px; padding:12px 16px; border-bottom:1px solid var(--line);
+  position:sticky; top:0; background:var(--panel); z-index:2;
+}
+.dlg-head h2{ margin:0; font-size:16px; flex:1 1 auto; letter-spacing:.01em }
+.dlg-body{ padding:14px 16px; overflow:auto; max-height:70vh }
+.cols-list{ display:grid; gap:4px }
+.cols-row{
+  display:flex; align-items:center; gap:8px; padding:5px 8px; border-radius:8px; border:1px solid transparent;
+}
+.cols-row:hover{ background:color-mix(in oklch, var(--accent) 8%, transparent) }
+.cols-row .swatch{ width:11px; height:11px; border-radius:3px; background:var(--colc, var(--muted)); flex:0 0 auto }
+.cols-row .nm{ flex:1 1 auto; overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
+.cols-row .ty{ font-family:var(--mono); font-size:11px; color:var(--faint) }
+.mini{ padding:2px 7px; font-size:11.5px; border-radius:6px }
+.statgrid{ display:grid; grid-template-columns:auto 1fr; gap:6px 18px; font-family:var(--mono); font-size:12.5px }
+.statgrid dt{ color:var(--muted) }
+.statgrid dd{ margin:0 }
+.toplist{ margin-top:16px; display:grid; gap:5px }
+.toplist .t{ display:grid; grid-template-columns:1fr auto; gap:10px; font-family:var(--mono); font-size:12px }
+.toplist .t .b{ grid-column:1/-1; height:5px; border-radius:99px; background:var(--line) }
+.toplist .t .b i{ display:block; height:100%; border-radius:99px; background:var(--accent) }
+.rowdetail{ display:grid; grid-template-columns:minmax(120px,26%) 1fr; gap:1px; background:var(--line) }
+.rowdetail dt{ background:var(--panel); padding:6px 10px; font-size:12.5px; color:var(--muted) }
+.rowdetail dd{ background:var(--field); padding:6px 10px; margin:0; font-family:var(--mono); font-size:12.5px; word-break:break-word }
+.issue-list{ font-family:var(--mono); font-size:12.5px; display:grid; gap:3px; max-height:300px; overflow:auto }
+
+/* ---------- yükleniyor ---------- */
+#loading{ position:fixed; inset:0; display:grid; place-items:center; background:oklch(20% 0.02 262 / .5); z-index:90 }
+#loading[hidden]{ display:none }
+.loadcard{ background:var(--panel); border-radius:14px; padding:22px 26px; min-width:280px; text-align:center }
+.pbar{ height:6px; border-radius:99px; background:var(--line); overflow:hidden; margin-top:12px }
+.pbar i{ display:block; height:100%; width:0; background:var(--accent); transition:width .1s linear }
+
+@media (max-width:720px){
+  .options{ font-size:12px }
+  .brand small{ display:none }
+  .search{ order:9; flex:1 1 100% }
+}
+@media (prefers-reduced-motion:reduce){ *{ transition:none !important; animation:none !important } }
+</style>
+</head>
+<body class="no-file">
+
+<header class="topbar">
+  <div class="brand"><span class="mark">▤</span>Tablo Tezgâhı <small>CSV görüntüleyici</small></div>
+  <span class="chip" id="fileChip" hidden></span>
+  <span class="grow"></span>
+  <div class="search">
+    <input id="q" type="search" placeholder="Tüm sütunlarda ara" aria-label="Tüm sütunlarda ara" autocomplete="off" disabled>
+    <span class="count" id="qCount"></span>
+  </div>
+  <button class="btn" id="colsBtn" disabled>Sütunlar</button>
+  <div class="menu">
+    <button class="btn" id="exportBtn" aria-haspopup="true" aria-expanded="false" disabled>Dışa aktar</button>
+    <div class="pop" id="exportPop" hidden>
+      <button data-x="csv">CSV olarak indir<kbd>.csv</kbd></button>
+      <button data-x="tsv">TSV olarak indir<kbd>.tsv</kbd></button>
+      <button data-x="json">JSON olarak indir<kbd>.json</kbd></button>
+      <button data-x="clip">Panoya kopyala<kbd>Ctrl+Shift+C</kbd></button>
+    </div>
+  </div>
+  <button class="btn icon" id="themeBtn" title="Açık / koyu tema" aria-label="Temayı değiştir">◐</button>
+</header>
+
+<section class="options" id="options" hidden>
+  <label>Kodlama
+    <select id="encSel">
+      <option value="auto">Otomatik</option>
+      <option value="utf-8">UTF-8</option>
+      <option value="windows-1254">Windows-1254 (Türkçe)</option>
+      <option value="iso-8859-9">ISO-8859-9</option>
+      <option value="windows-1252">Windows-1252</option>
+      <option value="utf-16le">UTF-16 LE</option>
+      <option value="utf-16be">UTF-16 BE</option>
+    </select>
+  </label>
+  <label>Ayraç
+    <select id="delSel">
+      <option value="auto">Otomatik</option>
+      <option value=",">Virgül ,</option>
+      <option value=";">Noktalı virgül ;</option>
+      <option value="&#9;">Sekme</option>
+      <option value="|">Dikey çizgi |</option>
+    </select>
+  </label>
+  <label><input type="checkbox" id="hdrChk" checked> İlk satır başlık</label>
+  <span class="sep"></span>
+  <label>Yoğunluk
+    <select id="densSel">
+      <option value="26">Sıkı</option>
+      <option value="32" selected>Normal</option>
+      <option value="42">Ferah</option>
+    </select>
+  </label>
+  <label><input type="checkbox" id="colorChk" checked> Sütun renkleri</label>
+  <label><input type="checkbox" id="wrapChk"> Metni sar</label>
+  <span class="sep"></span>
+  <button class="btn mini" id="resetBtn">Sıralama/filtreyi sıfırla</button>
+  <button class="btn mini" id="newFileBtn">Başka dosya</button>
+</section>
+
+<div class="drop" id="drop">
+  <div class="dropcard">
+    <h1>CSV dosyanı bırak</h1>
+    <p>Dosya tarayıcından çıkmaz: hiçbir sunucuya gönderilmez, internet bağlantısı gerekmez.</p>
+    <div class="row">
+      <button class="btn primary" id="pickBtn">Dosya seç</button>
+      <button class="btn" id="demoBtn">Örnek veriyle dene</button>
+    </div>
+    <ul>
+      <li>Tırnaklı alan, gömülü virgül ve satır sonu doğru okunur</li>
+      <li>UTF-8 / Windows-1254 otomatik algılanır, elle değiştirilebilir</li>
+      <li>Ayraç ( , ; sekme | ) otomatik bulunur</li>
+      <li>Başlığa tıkla sırala, Shift+tık ile çoklu sıralama</li>
+      <li>Sütun başına filtre: <code>&gt;100</code>, <code>10..20</code>, <code>=evet</code></li>
+      <li>Yüz binlerce satır sanal kaydırmayla akıcı</li>
+    </ul>
+  </div>
+</div>
+<input type="file" id="fileInput" accept=".csv,.tsv,.txt,text/csv,text/plain" hidden>
+
+<main id="workbench" hidden>
+  <div class="scroll" id="scroll" tabindex="0">
+    <table id="tbl" role="grid" aria-label="CSV verisi">
+      <colgroup id="cg"></colgroup>
+      <thead id="thead"></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+  <footer class="status">
+    <span id="countText"></span>
+    <span class="grow"></span>
+    <span class="chip" id="encChip"></span>
+    <span class="chip" id="delChip"></span>
+    <span class="chip" id="sizeChip"></span>
+    <span class="chip" id="timeChip"></span>
+    <span class="chip warn" id="issueChip" hidden></span>
+  </footer>
+</main>
+
+<div id="loading" hidden>
+  <div class="loadcard">
+    <div id="loadText">Okunuyor…</div>
+    <div class="pbar"><i id="loadBar"></i></div>
+  </div>
+</div>
+
+<div class="sr-only" id="live" aria-live="polite"></div>
+
+<dialog id="colsDlg">
+  <div class="dlg-head"><h2>Sütunlar</h2>
+    <button class="btn mini" id="showAllBtn">Hepsini göster</button>
+    <button class="btn mini" data-close>Kapat</button>
+  </div>
+  <div class="dlg-body"><div class="cols-list" id="colsList"></div></div>
+</dialog>
+
+<dialog id="statDlg">
+  <div class="dlg-head"><h2 id="statTitle">Sütun</h2><button class="btn mini" data-close>Kapat</button></div>
+  <div class="dlg-body" id="statBody"></div>
+</dialog>
+
+<dialog id="rowDlg">
+  <div class="dlg-head"><h2 id="rowTitle">Satır</h2>
+    <button class="btn mini" id="rowCopyBtn">Satırı kopyala</button>
+    <button class="btn mini" data-close>Kapat</button>
+  </div>
+  <div class="dlg-body"><dl class="rowdetail" id="rowBody"></dl></div>
+</dialog>
+
+<dialog id="issueDlg">
+  <div class="dlg-head"><h2>Düzensiz satırlar</h2><button class="btn mini" data-close>Kapat</button></div>
+  <div class="dlg-body">
+    <p id="issueIntro"></p>
+    <div class="issue-list" id="issueList"></div>
+  </div>
+</dialog>
+
+<script>
+"use strict";
+(function () {
+
+/* ===== sabitler ===== */
+var HUES = [264, 196, 152, 96, 58, 24, 340, 300, 224, 172, 128, 42];
+var DELIMS = [",", ";", "\t", "|"];
+var OVER = 8;
+var TYPE_GLYPH = { number: "#", date: "◷", bool: "✓", text: "T" };
+var TYPE_NAME = { number: "sayı", date: "tarih", bool: "evet/hayır", text: "metin" };
+var TR_FOLD = { "İ": "I", "ı": "i", "Ş": "S", "ş": "s", "Ğ": "G", "ğ": "g", "Ç": "C", "ç": "c", "Ö": "O", "ö": "o", "Ü": "U", "ü": "u", "Â": "A", "â": "a", "Î": "I", "î": "i", "Û": "U", "û": "u" };
+var TRUE_SET = ["evet", "true", "dogru", "doğru", "yes", "1", "var", "aktif", "e"];
+var FALSE_SET = ["hayir", "hayır", "false", "yanlis", "yanlış", "no", "0", "yok", "pasif", "h"];
+
+/* ===== durum ===== */
+var S = {
+  fileName: "", fileSize: 0, buffer: null,
+  encChoice: "auto", encUsed: "", delChoice: "auto", delUsed: ",", hasHeader: true,
+  headers: [], data: [], meta: [], issues: [], parseMs: 0,
+  view: [], sorts: [], query: "", filters: {},
+  hidden: {}, pinned: {}, order: [], widths: [],
+  rowH: 32, colors: true, wrap: false,
+  cursor: { r: -1, c: -1 }, blob: null, keys: {}
+};
+
+var $ = function (id) { return document.getElementById(id); };
+var scroll = $("scroll"), tbody = $("tbody"), thead = $("thead"), cg = $("cg"), tbl = $("tbl");
+var nf = new Intl.NumberFormat("tr-TR");
+var collator = new Intl.Collator("tr", { numeric: true, sensitivity: "base" });
+
+/* ===== metin yardımcıları ===== */
+function esc(s) {
+  return s.replace(/[&<>"]/g, function (c) {
+    return c === "&" ? "&amp;" : c === "<" ? "&lt;" : c === ">" ? "&gt;" : "&quot;";
+  });
+}
+function fold(s) {
+  return s.replace(/[İıŞşĞğÇçÖöÜüÂâÎîÛû]/g, function (c) { return TR_FOLD[c]; }).toLowerCase();
+}
+function fmtBytes(n) {
+  if (n < 1024) return n + " B";
+  if (n < 1048576) return (n / 1024).toFixed(1) + " KB";
+  return (n / 1048576).toFixed(1) + " MB";
+}
+function fmtNum(n) {
+  if (!isFinite(n)) return "—";
+  var abs = Math.abs(n);
+  var d = abs >= 1000 || Number.isInteger(n) ? 0 : abs >= 1 ? 2 : 4;
+  return n.toLocaleString("tr-TR", { maximumFractionDigits: d });
+}
+function fmtDate(ts) {
+  if (!isFinite(ts)) return "—";
+  var d = new Date(ts);
+  var p = function (x) { return (x < 10 ? "0" : "") + x; };
+  var s = p(d.getUTCDate()) + "." + p(d.getUTCMonth() + 1) + "." + d.getUTCFullYear();
+  if (d.getUTCHours() || d.getUTCMinutes()) s += " " + p(d.getUTCHours()) + ":" + p(d.getUTCMinutes());
+  return s;
+}
+
+/* ===== kodlama ===== */
+function sniffBom(buf) {
+  var b = new Uint8Array(buf, 0, Math.min(4, buf.byteLength));
+  if (b[0] === 0xEF && b[1] === 0xBB && b[2] === 0xBF) return { enc: "utf-8", skip: 3, label: "UTF-8 (BOM)" };
+  if (b[0] === 0xFF && b[1] === 0xFE) return { enc: "utf-16le", skip: 2, label: "UTF-16 LE" };
+  if (b[0] === 0xFE && b[1] === 0xFF) return { enc: "utf-16be", skip: 2, label: "UTF-16 BE" };
+  return null;
+}
+function decodeBuffer(buf, choice) {
+  var bom = sniffBom(buf);
+  if (choice && choice !== "auto") {
+    var skip = bom && (choice === "utf-8" || choice.indexOf("utf-16") === 0) ? bom.skip : 0;
+    return { text: new TextDecoder(choice).decode(new Uint8Array(buf, skip)), label: choice };
+  }
+  if (bom) return { text: new TextDecoder(bom.enc).decode(new Uint8Array(buf, bom.skip)), label: bom.label };
+  try {
+    return { text: new TextDecoder("utf-8", { fatal: true }).decode(buf), label: "UTF-8" };
+  } catch (e) {
+    return { text: new TextDecoder("windows-1254").decode(buf), label: "Windows-1254 (tahmin)" };
+  }
+}
+
+/* ===== CSV ayrıştırma (RFC 4180) ===== */
+function parseChunk(text, delim, st, deadline, maxRows) {
+  var D = delim.charCodeAt(0), Q = 34, CR = 13, LF = 10;
+  var len = text.length, i = st.i, row = st.row, rows = st.rows, val, c, guard = 0;
+  while (i < len) {
+    if (text.charCodeAt(i) === Q) {
+      i++;
+      var start = i, parts = null;
+      for (;;) {
+        var q = text.indexOf('"', i);
+        if (q < 0) { val = (parts ? parts.join("") : "") + text.slice(start); i = len; break; }
+        if (text.charCodeAt(q + 1) === Q) {
+          parts = parts || []; parts.push(text.slice(start, q + 1)); i = q + 2; start = i; continue;
+        }
+        val = (parts ? parts.join("") : "") + text.slice(start, q); i = q + 1; break;
+      }
+      while (i < len) { c = text.charCodeAt(i); if (c === D || c === CR || c === LF) break; i++; }
+    } else {
+      var s0 = i;
+      while (i < len) { c = text.charCodeAt(i); if (c === D || c === CR || c === LF) break; i++; }
+      val = text.slice(s0, i);
+    }
+    row.push(val);
+    c = i < len ? text.charCodeAt(i) : -1;
+    if (c === D) { i++; continue; }
+    if (c === CR) { i++; if (text.charCodeAt(i) === LF) i++; }
+    else if (c === LF) { i++; }
+    else { rows.push(row); row = []; break; }
+    if (row.length === 1 && row[0] === "") row = [];
+    else { rows.push(row); row = []; }
+    if (maxRows && rows.length >= maxRows) { st.i = i; st.row = row; return true; }
+    if (deadline && (++guard & 1023) === 0 && performance.now() > deadline) { st.i = i; st.row = row; return false; }
+  }
+  if (row.length) { rows.push(row); row = []; }
+  st.i = len; st.row = row;
+  return true;
+}
+function parseSync(text, delim, maxRows) {
+  var st = { i: 0, row: [], rows: [] };
+  parseChunk(text, delim, st, 0, maxRows || 0);
+  return st.rows;
+}
+function sniffDelim(text) {
+  var sample = text.slice(0, 65536), best = null;
+  for (var k = 0; k < DELIMS.length; k++) {
+    var rows = parseSync(sample, DELIMS[k], 26);
+    if (rows.length > 1) rows = rows.slice(0, rows.length - 1);
+    if (!rows.length) continue;
+    var first = rows[0].length;
+    if (first < 2) continue;
+    var same = 0;
+    for (var r = 0; r < rows.length; r++) if (rows[r].length === first) same++;
+    var score = first * (same / rows.length);
+    if (!best || score > best.score) best = { d: DELIMS[k], score: score };
+  }
+  return best ? best.d : ",";
+}
+
+/* ===== tip çözümleme ===== */
+function toNumber(v, tr) {
+  if (!v) return NaN;
+  var s = v.trim();
+  if (!s) return NaN;
+  var neg = false;
+  if (s.charCodeAt(0) === 40 && s.charCodeAt(s.length - 1) === 41) { neg = true; s = s.slice(1, -1); }
+  s = s.replace(/[%\s\u00A0₺$€£₼]/g, "");
+  if (s[0] === "-" || s[0] === "+") { if (s[0] === "-") neg = !neg; s = s.slice(1); }
+  if (!/^[\d.,]+(?:[eE][-+]?\d+)?$/.test(s) || !/\d/.test(s)) return NaN;
+  var lc = s.lastIndexOf(","), ld = s.lastIndexOf(".");
+  if (lc > -1 && ld > -1) {
+    s = lc > ld ? s.replace(/\./g, "").replace(",", ".") : s.replace(/,/g, "");
+  } else if (lc > -1) {
+    var g = s.split(",");
+    var thousand = g.length > 1 && g[0].length <= 3 && g.slice(1).every(function (x) { return /^\d{3}$/.test(x); });
+    s = (thousand && !tr) || (thousand && g.length > 2) ? s.replace(/,/g, "") : s.replace(",", ".");
+  } else if (ld > -1) {
+    var g2 = s.split(".");
+    var th2 = g2.length > 1 && g2[0].length <= 3 && g2.slice(1).every(function (x) { return /^\d{3}$/.test(x); });
+    if (th2 && (tr || g2.length > 2)) s = s.replace(/\./g, "");
+  }
+  var n = parseFloat(s);
+  return isNaN(n) ? NaN : (neg ? -n : n);
+}
+function toDate(v, monthFirst) {
+  if (!v) return NaN;
+  var s = v.trim();
+  if (s.length < 6) return NaN;
+  var m = /^(\d{4})-(\d{1,2})-(\d{1,2})(?:[T ](\d{1,2}):(\d{2})(?::(\d{2}))?)?/.exec(s);
+  if (m) return Date.UTC(+m[1], +m[2] - 1, +m[3], +(m[4] || 0), +(m[5] || 0), +(m[6] || 0));
+  m = /^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})(?:[T ](\d{1,2}):(\d{2})(?::(\d{2}))?)?$/.exec(s);
+  if (m) {
+    var a = +m[1], b = +m[2], d = monthFirst ? b : a, mo = monthFirst ? a : b;
+    if (d > 31 || mo > 12 || d < 1 || mo < 1) return NaN;
+    return Date.UTC(+m[3], mo - 1, d, +(m[4] || 0), +(m[5] || 0), +(m[6] || 0));
+  }
+  return NaN;
+}
+function boolOf(v) {
+  var s = fold(v.trim());
+  if (!s) return null;
+  if (TRUE_SET.indexOf(s) > -1) return true;
+  if (FALSE_SET.indexOf(s) > -1) return false;
+  return null;
+}
+function detectColumn(col) {
+  var n = S.data.length, step = n > 4000 ? Math.ceil(n / 4000) : 1;
+  var seen = 0, num = 0, dat = 0, bol = 0, trHint = 0, enHint = 0, dayFirst = 0, monthFirst = 0;
+  for (var i = 0; i < n; i += step) {
+    var v = S.data[i][col];
+    if (!v) continue;
+    var t = v.trim();
+    if (!t) continue;
+    seen++;
+    if (/^-?\d{1,3}(\.\d{3})+(,\d+)?$/.test(t) || /^-?\d+,\d+$/.test(t)) trHint++;
+    else if (/^-?\d{1,3}(,\d{3})+(\.\d+)?$/.test(t) || /^-?\d+\.\d+$/.test(t)) enHint++;
+    var dm = /^(\d{1,2})[.\/-](\d{1,2})[.\/-]\d{4}/.exec(t);
+    if (dm) { if (+dm[1] > 12) dayFirst++; else if (+dm[2] > 12) monthFirst++; }
+    if (seen > 600) break;
+  }
+  var tr = trHint >= enHint;
+  var mf = monthFirst > dayFirst;
+  seen = 0;
+  for (var j = 0; j < n; j += step) {
+    var w = S.data[j][col];
+    if (!w || !w.trim()) continue;
+    seen++;
+    if (!isNaN(toNumber(w, tr))) num++;
+    if (!isNaN(toDate(w, mf))) dat++;
+    if (boolOf(w) !== null) bol++;
+    if (seen > 600) break;
+  }
+  var type = "text";
+  if (seen === 0) type = "text";
+  else if (dat / seen >= 0.9 && dat >= num) type = "date";
+  else if (num / seen >= 0.9) type = "number";
+  else if (bol / seen >= 0.95) type = "bool";
+  return { type: type, tr: tr, monthFirst: mf };
+}
+function keyArray(col) {
+  if (S.keys[col]) return S.keys[col];
+  var m = S.meta[col], n = S.data.length, arr = new Float64Array(n);
+  for (var i = 0; i < n; i++) {
+    var v = S.data[i][col];
+    arr[i] = m.type === "number" ? toNumber(v, m.tr)
+      : m.type === "date" ? toDate(v, m.monthFirst)
+      : (function () { var b = boolOf(v || ""); return b === null ? NaN : (b ? 1 : 0); })();
+  }
+  S.keys[col] = arr;
+  return arr;
+}
+function computeStats(col) {
+  var m = S.meta[col];
+  if (m.stats) return m.stats;
+  var n = S.data.length, empty = 0, uniq = new Map(), vals = null;
+  if (m.type === "number" || m.type === "date") vals = [];
+  for (var i = 0; i < n; i++) {
+    var v = S.data[i][col] || "";
+    if (!v.trim()) { empty++; continue; }
+    if (uniq.size < 60000) uniq.set(v, (uniq.get(v) || 0) + 1);
+    if (vals) { var k = keyArray(col)[i]; if (isFinite(k)) vals.push(k); }
+  }
+  var st = { empty: empty, filled: n - empty, unique: uniq.size, capped: uniq.size >= 60000 };
+  var top = Array.from(uniq.entries()).sort(function (a, b) { return b[1] - a[1]; }).slice(0, 8);
+  st.top = top;
+  if (vals && vals.length) {
+    vals.sort(function (a, b) { return a - b; });
+    var sum = 0;
+    for (var j = 0; j < vals.length; j++) sum += vals[j];
+    st.min = vals[0]; st.max = vals[vals.length - 1]; st.sum = sum; st.avg = sum / vals.length;
+    st.median = vals.length % 2 ? vals[(vals.length - 1) / 2] : (vals[vals.length / 2 - 1] + vals[vals.length / 2]) / 2;
+    if (m.type === "number") {
+      var B = 14, hist = new Array(B).fill(0), span = st.max - st.min;
+      for (var q = 0; q < vals.length; q++) {
+        var idx = span ? Math.min(B - 1, Math.floor((vals[q] - st.min) / span * B)) : 0;
+        hist[idx]++;
+      }
+      st.hist = hist; st.histMax = Math.max.apply(null, hist);
+    }
+  }
+  m.stats = st;
+  return st;
+}
+
+/* ===== yükleme ===== */
+function showLoading(txt, pct) {
+  $("loading").hidden = false;
+  $("loadText").textContent = txt;
+  $("loadBar").style.width = (pct == null ? 8 : pct) + "%";
+}
+function hideLoading() { $("loading").hidden = true; }
+
+function openFile(file) {
+  S.fileName = file.name; S.fileSize = file.size;
+  showLoading("Dosya okunuyor…", 5);
+  file.arrayBuffer().then(function (buf) {
+    S.buffer = buf;
+    S.encChoice = $("encSel").value;
+    S.delChoice = $("delSel").value;
+    return build();
+  }).catch(function (err) {
+    hideLoading();
+    alert("Dosya okunamadı: " + err.message);
+  });
+}
+function build() {
+  var t0 = performance.now();
+  showLoading("Çözümleniyor…", 15);
+  var dec = decodeBuffer(S.buffer, S.encChoice);
+  S.encUsed = dec.label;
+  var text = dec.text;
+  S.delUsed = S.delChoice === "auto" ? sniffDelim(text) : S.delChoice;
+  var st = { i: 0, row: [], rows: [] };
+  var len = text.length || 1;
+  return new Promise(function (resolve) {
+    function step() {
+      var done = parseChunk(text, S.delUsed, st, performance.now() + 40, 0);
+      if (!done) {
+        showLoading("Satırlar ayrıştırılıyor…", 15 + Math.round(st.i / len * 70));
+        setTimeout(step, 0);
+        return;
+      }
+      finishParse(st.rows, t0);
+      resolve();
+    }
+    setTimeout(step, 0);
+  });
+}
+function finishParse(rows, t0) {
+  if (!rows.length) { hideLoading(); alert("Dosyada satır bulunamadı."); return; }
+  var headerRow = S.hasHeader ? rows.shift() : null;
+  var width = headerRow ? headerRow.length : 0;
+  for (var i = 0; i < rows.length; i++) if (rows[i].length > width) width = rows[i].length;
+  var headers = [];
+  for (var c = 0; c < width; c++) {
+    var h = headerRow && headerRow[c] != null ? headerRow[c].trim() : "";
+    headers.push(h || ("Sütun " + (c + 1)));
+  }
+  var seenNames = {};
+  for (var d = 0; d < headers.length; d++) {
+    if (seenNames[headers[d]]) { seenNames[headers[d]]++; headers[d] += " (" + seenNames[headers[d]] + ")"; }
+    else seenNames[headers[d]] = 1;
+  }
+  var expected = headerRow ? headerRow.length : width, issues = [];
+  for (var r = 0; r < rows.length; r++) {
+    if (rows[r].length !== expected) issues.push({ row: r + 1, got: rows[r].length });
+    while (rows[r].length < width) rows[r].push("");
+  }
+  S.headers = headers; S.data = rows; S.issues = issues;
+  S.meta = []; S.keys = {}; S.blob = null;
+  S.sorts = []; S.query = ""; S.filters = {}; S.hidden = {}; S.pinned = {};
+  S.order = headers.map(function (_, i2) { return i2; });
+  $("q").value = "";
+  showLoading("Sütunlar inceleniyor…", 92);
+  for (var m = 0; m < width; m++) S.meta.push(detectColumn(m));
+  S.widths = headers.map(function (h2, i3) { return measureWidth(h2, i3); });
+  S.parseMs = Math.round(performance.now() - t0);
+  document.body.classList.remove("no-file");
+  $("drop").hidden = true; $("workbench").hidden = false; $("options").hidden = false;
+  ["q", "colsBtn", "exportBtn"].forEach(function (id) { $(id).disabled = false; });
+  applyView();
+  layout();
+  hideLoading();
+  announce(nf.format(S.data.length) + " satır yüklendi");
+}
+function measureWidth(name, col) {
+  var max = name.length + 3, n = S.data.length, step = n > 300 ? Math.ceil(n / 300) : 1;
+  for (var i = 0; i < n; i += step) {
+    var v = S.data[i][col];
+    if (v && v.length > max) max = v.length;
+    if (max > 60) { max = 60; break; }
+  }
+  return Math.max(92, Math.min(420, Math.round(max * 7.3) + 26));
+}
+
+/* ===== görünüm (filtre + sıralama) ===== */
+function compileFilter(col, expr) {
+  var m = S.meta[col], raw = expr.trim();
+  if (!raw) return null;
+  if (m.type === "number" || m.type === "date") {
+    var keys = keyArray(col);
+    var range = /^(-?[\d.,]+)\s*\.\.\s*(-?[\d.,]+)$/.exec(raw);
+    if (range) {
+      var lo = toNumber(range[1], m.tr), hi = toNumber(range[2], m.tr);
+      if (m.type === "date") { lo = toDate(range[1], m.monthFirst); hi = toDate(range[2], m.monthFirst); }
+      if (isFinite(lo) && isFinite(hi)) return function (r) { var k = keys[r]; return isFinite(k) && k >= lo && k <= hi; };
+    }
+    var op = /^(>=|<=|!=|>|<|=)\s*(.+)$/.exec(raw);
+    if (op) {
+      var num = m.type === "date" ? toDate(op[2], m.monthFirst) : toNumber(op[2], m.tr);
+      if (isFinite(num)) {
+        var o = op[1];
+        return function (r) {
+          var k = keys[r];
+          if (!isFinite(k)) return false;
+          return o === ">" ? k > num : o === "<" ? k < num : o === ">=" ? k >= num
+            : o === "<=" ? k <= num : o === "=" ? k === num : k !== num;
+        };
+      }
+    }
+  }
+  if (raw === "*") return function (r) { return !!(S.data[r][col] || "").trim(); };
+  if (raw === "!*") return function (r) { return !(S.data[r][col] || "").trim(); };
+  var q = fold(raw), neg = false;
+  if (q[0] === "!") { neg = true; q = q.slice(1); }
+  return function (r) {
+    var hit = fold(S.data[r][col] || "").indexOf(q) > -1;
+    return neg ? !hit : hit;
+  };
+}
+function buildBlob() {
+  if (S.blob) return S.blob;
+  var n = S.data.length, arr = new Array(n);
+  for (var i = 0; i < n; i++) arr[i] = fold(S.data[i].join("\u0001"));
+  S.blob = arr;
+  return arr;
+}
+function applyView() {
+  var preds = [], cols = Object.keys(S.filters);
+  for (var i = 0; i < cols.length; i++) {
+    var p = compileFilter(+cols[i], S.filters[cols[i]]);
+    if (p) preds.push(p);
+  }
+  var q = fold(S.query.trim()), blob = q ? buildBlob() : null;
+  var view = [], n = S.data.length;
+  outer: for (var r = 0; r < n; r++) {
+    if (q && blob[r].indexOf(q) < 0) continue;
+    for (var k = 0; k < preds.length; k++) if (!preds[k](r)) continue outer;
+    view.push(r);
+  }
+  S.view = view;
+  sortView();
+  S.cursor = { r: -1, c: -1 };
+  updateStatus();
+}
+function sortView() {
+  if (!S.sorts.length) return;
+  var specs = S.sorts.map(function (s) {
+    var m = S.meta[s.col];
+    return { col: s.col, dir: s.dir, num: m.type !== "text", keys: m.type !== "text" ? keyArray(s.col) : null };
+  });
+  S.view.sort(function (a, b) {
+    for (var i = 0; i < specs.length; i++) {
+      var s = specs[i], d = 0;
+      if (s.num) {
+        var ka = s.keys[a], kb = s.keys[b];
+        var na = !isFinite(ka), nb = !isFinite(kb);
+        if (na && nb) d = 0; else if (na) return 1; else if (nb) return -1;
+        else d = ka < kb ? -1 : ka > kb ? 1 : 0;
+      } else {
+        var va = S.data[a][s.col] || "", vb = S.data[b][s.col] || "";
+        if (!va && !vb) d = 0; else if (!va) return 1; else if (!vb) return -1;
+        else d = collator.compare(va, vb);
+      }
+      if (d) return s.dir === "asc" ? d : -d;
+    }
+    return a - b;
+  });
+}
+function toggleSort(col, additive) {
+  var idx = -1;
+  for (var i = 0; i < S.sorts.length; i++) if (S.sorts[i].col === col) idx = i;
+  if (!additive) {
+    var cur = idx > -1 ? S.sorts[idx] : null;
+    S.sorts = !cur ? [{ col: col, dir: "asc" }] : cur.dir === "asc" ? [{ col: col, dir: "desc" }] : [];
+  } else if (idx < 0) S.sorts.push({ col: col, dir: "asc" });
+  else if (S.sorts[idx].dir === "asc") S.sorts[idx].dir = "desc";
+  else S.sorts.splice(idx, 1);
+  S.view = S.view.slice();
+  if (S.sorts.length) sortView(); else applyView();
+  renderHead(); renderBody();
+  announce(S.sorts.length ? S.headers[col] + " sütununa göre sıralandı" : "Sıralama kaldırıldı");
+}
+
+/* ===== yerleşim ===== */
+function displayCols() {
+  var pinned = [], rest = [];
+  for (var i = 0; i < S.order.length; i++) {
+    var c = S.order[i];
+    if (S.hidden[c]) continue;
+    (S.pinned[c] ? pinned : rest).push(c);
+  }
+  return pinned.concat(rest);
+}
+function layout() {
+  var cols = displayCols(), html = '<col style="width:64px">', total = 64;
+  for (var i = 0; i < cols.length; i++) {
+    html += '<col style="width:' + S.widths[cols[i]] + 'px">';
+    total += S.widths[cols[i]];
+  }
+  cg.innerHTML = html;
+  tbl.style.width = total + "px";
+  tbl.setAttribute("aria-colcount", cols.length + 1);
+  tbl.setAttribute("aria-rowcount", S.view.length + 1);
+  document.documentElement.style.setProperty("--rowh", S.rowH + "px");
+  renderHead();
+  renderBody();
+}
+function pinOffsets(cols) {
+  var offs = {}, x = 64, pinCount = 0;
+  for (var i = 0; i < cols.length; i++) {
+    if (!S.pinned[cols[i]]) break;
+    offs[cols[i]] = x; x += S.widths[cols[i]]; pinCount = i + 1;
+  }
+  return { offs: offs, count: pinCount };
+}
+function renderHead() {
+  var cols = displayCols(), po = pinOffsets(cols);
+  var r1 = '<tr class="r-ruler"><th class="pin' + (po.count === 0 ? " last" : "") + '" style="left:0"></th>';
+  var r2 = '<tr class="r-head" aria-rowindex="1"><th class="pin' + (po.count === 0 ? " last" : "") + '" style="left:0" scope="col" aria-colindex="1"><div class="ruler"><span class="pct">#</span></div></th>';
+  var r3 = '<tr class="r-filter"><th class="pin' + (po.count === 0 ? " last" : "") + '" style="left:0"></th>';
+  for (var i = 0; i < cols.length; i++) {
+    var c = cols[i], m = S.meta[c], hue = "hue" + (c % HUES.length);
+    var isPin = !!S.pinned[c], last = isPin && i === po.count - 1;
+    var pinCls = (isPin ? " pin" : "") + (last ? " last" : "");
+    var pinStyle = isPin ? ' style="left:' + po.offs[c] + 'px"' : "";
+    var st = computeStats(c);
+    var ratio = S.data.length ? st.filled / S.data.length : 0;
+    var viz;
+    if (st.hist) {
+      var bars = "";
+      for (var b = 0; b < st.hist.length; b++) {
+        var h = st.histMax ? Math.max(1, Math.round(st.hist[b] / st.histMax * 12)) : 1;
+        bars += '<rect x="' + (b * 7) + '" y="' + (13 - h) + '" width="5" height="' + h + '" rx="1"></rect>';
+      }
+      viz = '<svg viewBox="0 0 ' + (st.hist.length * 7) + ' 14" preserveAspectRatio="none" aria-hidden="true">' + bars + "</svg>";
+    } else {
+      viz = '<span class="bar" aria-hidden="true"><i style="width:' + Math.round(ratio * 100) + '%"></i></span>';
+    }
+    r1 += "<th class=\"" + hue + pinCls + "\"" + pinStyle + '><button class="rulerbtn" data-stat="' + c + '" title="' + esc(S.headers[c]) + " — " + TYPE_NAME[m.type] + ', istatistik için tıkla"><span class="ruler"><span class="glyph">' + TYPE_GLYPH[m.type] + "</span>" + viz + '<span class="pct">' + Math.round(ratio * 100) + "%</span></span></button></th>";
+
+    var srt = null, ord = 0;
+    for (var s = 0; s < S.sorts.length; s++) if (S.sorts[s].col === c) { srt = S.sorts[s]; ord = s + 1; }
+    var aria = srt ? (srt.dir === "asc" ? "ascending" : "descending") : "none";
+    r2 += "<th class=\"" + hue + pinCls + "\"" + pinStyle + ' scope="col" aria-colindex="' + (i + 2) + '" aria-sort="' + aria + '">' +
+      '<div class="wrap"><button class="sortbtn" data-sort="' + c + '"><span class="name">' + esc(S.headers[c]) + "</span>" +
+      (srt ? '<span class="dir">' + (srt.dir === "asc" ? "▲" : "▼") + "</span>" : "") +
+      (srt && S.sorts.length > 1 ? '<span class="ord">' + ord + "</span>" : "") +
+      '</button><span class="resizer" data-resize="' + c + '" role="separator" aria-hidden="true"></span></div></th>';
+
+    var ph = m.type === "number" ? ">100  10..20" : m.type === "date" ? ">01.01.2024" : "içerir…";
+    r3 += "<th class=\"" + hue + pinCls + "\"" + pinStyle + '><input data-filter="' + c + '" value="' + esc(S.filters[c] || "") + '" placeholder="' + ph + '" aria-label="' + esc(S.headers[c]) + ' sütununu filtrele" autocomplete="off"></th>';
+  }
+  thead.innerHTML = r1 + "</tr>" + r2 + "</tr>" + r3 + "</tr>";
+}
+function renderBody() {
+  var cols = displayCols(), po = pinOffsets(cols), total = S.view.length, rowH = S.rowH;
+  var h = scroll.clientHeight || 620;
+  var first = Math.max(0, Math.floor(scroll.scrollTop / rowH) - OVER);
+  var count = Math.max(0, Math.min(total - first, Math.ceil(h / rowH) + OVER * 2));
+  var q = fold(S.query.trim());
+  var span = cols.length + 1, out = [];
+  if (first > 0) out.push('<tr class="spacer" aria-hidden="true"><td colspan="' + span + '" style="height:' + (first * rowH) + 'px"></td></tr>');
+  for (var k = 0; k < count; k++) {
+    var vi = first + k, r = S.view[vi];
+    out.push('<tr data-vi="' + vi + '" aria-rowindex="' + (vi + 2) + '"' + (vi % 2 ? ' class="alt"' : "") + ">");
+    out.push('<td class="rownum pin' + (po.count === 0 ? " last" : "") + '" style="left:0" aria-colindex="1">' + (r + 1) + "</td>");
+    for (var i = 0; i < cols.length; i++) {
+      var c = cols[i], m = S.meta[c], v = S.data[r][c] || "";
+      var isPin = !!S.pinned[c], last = isPin && i === po.count - 1;
+      var cls = "hue" + (c % HUES.length) + (m.type === "number" ? " num" : m.type === "bool" ? " bool" : "") +
+        (isPin ? " pin" : "") + (last ? " last" : "") + (v ? "" : " empty") +
+        (S.cursor.r === vi && S.cursor.c === i ? " cursor" : "");
+      var style = isPin ? ' style="left:' + po.offs[c] + 'px"' : "";
+      out.push("<td class=\"" + cls + "\"" + style + ' aria-colindex="' + (i + 2) + '" title="' + esc(v.length > 60 ? v : "") + '">' + hilite(v, q) + "</td>");
+    }
+    out.push("</tr>");
+  }
+  var rest = total - first - count;
+  if (rest > 0) out.push('<tr class="spacer" aria-hidden="true"><td colspan="' + span + '" style="height:' + (rest * rowH) + 'px"></td></tr>');
+  tbody.innerHTML = out.join("");
+}
+function hilite(v, q) {
+  if (!v) return "";
+  if (!q) return esc(v);
+  var f = fold(v);
+  if (f.length !== v.length) return esc(v);
+  var i = f.indexOf(q);
+  if (i < 0) return esc(v);
+  var out = "", pos = 0;
+  while (i > -1) {
+    out += esc(v.slice(pos, i)) + "<mark>" + esc(v.slice(i, i + q.length)) + "</mark>";
+    pos = i + q.length;
+    i = f.indexOf(q, pos);
+  }
+  return out + esc(v.slice(pos));
+}
+function updateStatus() {
+  var n = S.data.length, v = S.view.length;
+  $("countText").textContent = nf.format(v) + (v === n ? "" : " / " + nf.format(n)) + " satır × " + nf.format(displayCols().length) + " sütun";
+  $("qCount").textContent = S.query ? nf.format(v) : "";
+  $("encChip").innerHTML = "kodlama <b>" + esc(S.encUsed) + "</b>";
+  $("delChip").innerHTML = "ayraç <b>" + (S.delUsed === "\t" ? "sekme" : esc(S.delUsed)) + "</b>";
+  $("sizeChip").innerHTML = "boyut <b>" + fmtBytes(S.fileSize) + "</b>";
+  $("timeChip").innerHTML = "ayrıştırma <b>" + S.parseMs + " ms</b>";
+  var ic = $("issueChip");
+  ic.hidden = !S.issues.length;
+  if (S.issues.length) ic.textContent = "⚠ " + nf.format(S.issues.length) + " düzensiz satır";
+  $("fileChip").hidden = !S.fileName;
+  $("fileChip").textContent = S.fileName;
+  tbl.setAttribute("aria-rowcount", v + 1);
+}
+function announce(msg) { $("live").textContent = msg; }
+
+/* ===== dışa aktarma ===== */
+function cellOut(v, d) {
+  if (v == null) v = "";
+  return /["\r\n]/.test(v) || v.indexOf(d) > -1 ? '"' + v.replace(/"/g, '""') + '"' : v;
+}
+function buildText(kind) {
+  var cols = displayCols(), i, k;
+  if (kind === "json") {
+    var arr = [];
+    for (i = 0; i < S.view.length; i++) {
+      var o = {};
+      for (k = 0; k < cols.length; k++) o[S.headers[cols[k]]] = S.data[S.view[i]][cols[k]] || "";
+      arr.push(o);
+    }
+    return JSON.stringify(arr, null, 2);
+  }
+  var d = kind === "tsv" ? "\t" : (S.delUsed === "\t" ? "," : S.delUsed);
+  var lines = [cols.map(function (c) { return cellOut(S.headers[c], d); }).join(d)];
+  for (i = 0; i < S.view.length; i++) {
+    var row = [];
+    for (k = 0; k < cols.length; k++) row.push(cellOut(S.data[S.view[i]][cols[k]], d));
+    lines.push(row.join(d));
+  }
+  return lines.join("\r\n");
+}
+function download(kind) {
+  var text = buildText(kind);
+  var base = (S.fileName || "veri").replace(/\.[^.]+$/, "");
+  var ext = kind === "json" ? ".json" : kind === "tsv" ? ".tsv" : ".csv";
+  var mime = kind === "json" ? "application/json" : "text/csv";
+  var parts = kind === "json" ? [text] : [new Uint8Array([0xEF, 0xBB, 0xBF]), text];
+  var url = URL.createObjectURL(new Blob(parts, { type: mime + ";charset=utf-8" }));
+  var a = document.createElement("a");
+  a.href = url; a.download = base + "-filtreli" + ext;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+  announce(ext + " indirildi");
+}
+function copyText(text, msg) {
+  var done = function () { announce(msg); flash(msg); };
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(done, function () { legacyCopy(text); done(); });
+  } else { legacyCopy(text); done(); }
+}
+function legacyCopy(text) {
+  var ta = document.createElement("textarea");
+  ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand("copy"); } catch (e) { /* pano engellendi */ }
+  ta.remove();
+}
+var flashTimer = null;
+function flash(msg) {
+  var el = $("countText");
+  if (!el) return;
+  clearTimeout(flashTimer);
+  var old = el.textContent;
+  el.textContent = msg;
+  flashTimer = setTimeout(function () { updateStatus(); }, 1600);
+}
+
+/* ===== diyaloglar ===== */
+function openDlg(d) { if (d.showModal) { try { d.showModal(); } catch (e) { d.setAttribute("open", ""); } } else d.setAttribute("open", ""); }
+function openStat(col) {
+  var m = S.meta[col], st = computeStats(col), n = S.data.length;
+  $("statTitle").textContent = S.headers[col];
+  var rows = [
+    ["tip", TYPE_NAME[m.type]],
+    ["dolu", nf.format(st.filled) + " (%" + Math.round(st.filled / (n || 1) * 100) + ")"],
+    ["boş", nf.format(st.empty)],
+    ["benzersiz", (st.capped ? "60.000+" : nf.format(st.unique))]
+  ];
+  if (st.min != null) {
+    var f = m.type === "date" ? fmtDate : fmtNum;
+    rows.push(["en küçük", f(st.min)], ["en büyük", f(st.max)], ["ortanca", f(st.median)]);
+    if (m.type === "number") rows.push(["ortalama", fmtNum(st.avg)], ["toplam", fmtNum(st.sum)]);
+  }
+  var html = '<dl class="statgrid">';
+  for (var i = 0; i < rows.length; i++) html += "<dt>" + rows[i][0] + "</dt><dd>" + esc(String(rows[i][1])) + "</dd>";
+  html += "</dl>";
+  if (st.top.length) {
+    html += '<div class="toplist"><strong style="font-family:var(--ui)">En sık değerler</strong>';
+    var maxc = st.top[0][1];
+    for (var t = 0; t < st.top.length; t++) {
+      var val = st.top[t][0], cnt = st.top[t][1];
+      html += '<div class="t"><span>' + esc(val.length > 42 ? val.slice(0, 42) + "…" : val) + "</span><span>" + nf.format(cnt) + '</span><span class="b"><i style="width:' + Math.round(cnt / maxc * 100) + '%"></i></span></div>';
+    }
+    html += "</div>";
+  }
+  html += '<p style="color:var(--muted);font-size:12px;margin-top:16px">Sayılar filtreden bağımsız, dosyanın tamamı üzerinden hesaplanır.</p>';
+  $("statBody").innerHTML = html;
+  openDlg($("statDlg"));
+}
+function openRow(vi) {
+  var r = S.view[vi];
+  if (r == null) return;
+  $("rowTitle").textContent = "Satır " + nf.format(r + 1);
+  var cols = displayCols(), html = "";
+  for (var i = 0; i < cols.length; i++) {
+    var v = S.data[r][cols[i]] || "";
+    html += "<dt>" + esc(S.headers[cols[i]]) + "</dt><dd>" + (v ? esc(v) : '<span style="color:var(--faint)">—</span>') + "</dd>";
+  }
+  $("rowBody").innerHTML = html;
+  $("rowDlg").dataset.row = r;
+  openDlg($("rowDlg"));
+}
+function renderCols() {
+  var html = "";
+  for (var i = 0; i < S.order.length; i++) {
+    var c = S.order[i], m = S.meta[c];
+    html += '<div class="cols-row hue' + (c % HUES.length) + '">' +
+      '<input type="checkbox" data-vis="' + c + '"' + (S.hidden[c] ? "" : " checked") + ' aria-label="' + esc(S.headers[c]) + ' sütununu göster">' +
+      '<span class="swatch"></span><span class="nm">' + esc(S.headers[c]) + '</span>' +
+      '<span class="ty">' + TYPE_NAME[m.type] + "</span>" +
+      '<button class="btn mini" data-pin="' + c + '" aria-pressed="' + (S.pinned[c] ? "true" : "false") + '">' + (S.pinned[c] ? "sabit" : "sabitle") + "</button>" +
+      '<button class="btn mini" data-stat2="' + c + '">istatistik</button></div>';
+  }
+  $("colsList").innerHTML = html;
+}
+
+/* ===== olaylar ===== */
+var rafPending = false;
+scroll.addEventListener("scroll", function () {
+  if (rafPending) return;
+  rafPending = true;
+  requestAnimationFrame(function () { rafPending = false; renderBody(); });
+}, { passive: true });
+
+thead.addEventListener("click", function (e) {
+  var sortBtn = e.target.closest ? e.target.closest("[data-sort]") : null;
+  if (sortBtn) { toggleSort(+sortBtn.dataset.sort, e.shiftKey); return; }
+  var statBtn = e.target.closest ? e.target.closest("[data-stat]") : null;
+  if (statBtn) openStat(+statBtn.dataset.stat);
+});
+var filterTimer = null;
+thead.addEventListener("input", function (e) {
+  var el = e.target;
+  if (!el.dataset || el.dataset.filter == null) return;
+  var col = +el.dataset.filter, val = el.value;
+  clearTimeout(filterTimer);
+  filterTimer = setTimeout(function () {
+    if (val.trim()) S.filters[col] = val; else delete S.filters[col];
+    applyView(); renderBody();
+    announce(nf.format(S.view.length) + " satır eşleşti");
+  }, 160);
+});
+tbody.addEventListener("click", function (e) {
+  var td = e.target.closest ? e.target.closest("td") : null;
+  if (!td || td.parentNode.classList.contains("spacer")) return;
+  var tr = td.parentNode, vi = +tr.dataset.vi;
+  if (td.classList.contains("rownum")) { openRow(vi); return; }
+  var idx = Array.prototype.indexOf.call(tr.children, td) - 1;
+  S.cursor = { r: vi, c: idx };
+  renderBody();
+});
+tbody.addEventListener("dblclick", function (e) {
+  var td = e.target.closest ? e.target.closest("td") : null;
+  if (!td || td.classList.contains("rownum")) return;
+  copyText(td.textContent, "Hücre kopyalandı");
+});
+
+var qTimer = null;
+$("q").addEventListener("input", function (e) {
+  var val = e.target.value;
+  clearTimeout(qTimer);
+  qTimer = setTimeout(function () {
+    S.query = val;
+    applyView(); renderBody();
+    announce(nf.format(S.view.length) + " satır eşleşti");
+  }, 180);
+});
+
+$("pickBtn").addEventListener("click", function () { $("fileInput").click(); });
+$("newFileBtn").addEventListener("click", function () { $("fileInput").click(); });
+$("fileInput").addEventListener("change", function (e) {
+  if (e.target.files && e.target.files[0]) openFile(e.target.files[0]);
+  e.target.value = "";
+});
+$("demoBtn").addEventListener("click", function () {
+  var text = demoCSV();
+  var bytes = new TextEncoder().encode(text);
+  S.fileName = "ornek-veri.csv"; S.fileSize = bytes.length; S.buffer = bytes.buffer;
+  S.encChoice = "auto"; S.delChoice = "auto";
+  build();
+});
+
+var dz = $("drop");
+["dragenter", "dragover"].forEach(function (t) {
+  document.addEventListener(t, function (e) { e.preventDefault(); dz.classList.add("hot"); });
+});
+["dragleave", "drop"].forEach(function (t) {
+  document.addEventListener(t, function (e) { e.preventDefault(); if (t === "dragleave" && e.relatedTarget) return; dz.classList.remove("hot"); });
+});
+document.addEventListener("drop", function (e) {
+  var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+  if (f) openFile(f);
+});
+
+$("encSel").addEventListener("change", function () { if (S.buffer) { S.encChoice = $("encSel").value; build(); } });
+$("delSel").addEventListener("change", function () { if (S.buffer) { S.delChoice = $("delSel").value; build(); } });
+$("hdrChk").addEventListener("change", function () { S.hasHeader = $("hdrChk").checked; if (S.buffer) build(); });
+$("densSel").addEventListener("change", function () { S.rowH = +$("densSel").value; layout(); });
+$("colorChk").addEventListener("change", function () {
+  S.colors = $("colorChk").checked;
+  document.body.classList.toggle("no-colors", !S.colors);
+});
+$("wrapChk").addEventListener("change", function () {
+  S.wrap = $("wrapChk").checked;
+  document.body.classList.toggle("wrapcells", S.wrap);
+  S.rowH = S.wrap ? Math.max(S.rowH, 44) : +$("densSel").value;
+  layout();
+});
+$("resetBtn").addEventListener("click", function () {
+  S.sorts = []; S.filters = {}; S.query = ""; $("q").value = "";
+  applyView(); layout();
+  announce("Sıralama ve filtreler sıfırlandı");
+});
+$("themeBtn").addEventListener("click", function () {
+  var cur = document.documentElement.dataset.theme;
+  var next = cur === "dark" ? "light" : cur === "light" ? "auto" : "dark";
+  document.documentElement.dataset.theme = next;
+  $("themeBtn").title = "Tema: " + (next === "auto" ? "sistem" : next === "dark" ? "koyu" : "açık");
+});
+
+$("colsBtn").addEventListener("click", function () { renderCols(); openDlg($("colsDlg")); });
+$("colsList").addEventListener("click", function (e) {
+  var t = e.target;
+  if (t.dataset.pin != null) {
+    var c = +t.dataset.pin;
+    if (S.pinned[c]) delete S.pinned[c]; else S.pinned[c] = true;
+    renderCols(); layout(); return;
+  }
+  if (t.dataset.stat2 != null) { openStat(+t.dataset.stat2); }
+});
+$("colsList").addEventListener("change", function (e) {
+  var t = e.target;
+  if (t.dataset.vis == null) return;
+  var c = +t.dataset.vis;
+  if (t.checked) delete S.hidden[c]; else S.hidden[c] = true;
+  layout(); updateStatus();
+});
+$("showAllBtn").addEventListener("click", function () { S.hidden = {}; renderCols(); layout(); updateStatus(); });
+
+$("exportBtn").addEventListener("click", function () {
+  var pop = $("exportPop");
+  pop.hidden = !pop.hidden;
+  $("exportBtn").setAttribute("aria-expanded", String(!pop.hidden));
+});
+document.addEventListener("click", function (e) {
+  if (!e.target.closest || !e.target.closest(".menu")) {
+    $("exportPop").hidden = true;
+    $("exportBtn").setAttribute("aria-expanded", "false");
+  }
+});
+$("exportPop").addEventListener("click", function (e) {
+  var b = e.target.closest ? e.target.closest("[data-x]") : null;
+  if (!b) return;
+  $("exportPop").hidden = true;
+  if (b.dataset.x === "clip") copyText(buildText("tsv"), "Pano: " + nf.format(S.view.length) + " satır");
+  else download(b.dataset.x);
+});
+$("issueChip").addEventListener("click", function () {
+  $("issueIntro").textContent = "Başlıktaki sütun sayısıyla uyuşmayan " + nf.format(S.issues.length) + " satır bulundu. Eksik alanlar boş bırakıldı, fazla alanlar için ek sütun açıldı; veri kaybı yok.";
+  var html = "";
+  for (var i = 0; i < Math.min(200, S.issues.length); i++) {
+    html += "<div>satır " + nf.format(S.issues[i].row) + " → " + S.issues[i].got + " alan</div>";
+  }
+  if (S.issues.length > 200) html += "<div>… ve " + nf.format(S.issues.length - 200) + " tane daha</div>";
+  $("issueList").innerHTML = html;
+  openDlg($("issueDlg"));
+});
+$("rowCopyBtn").addEventListener("click", function () {
+  var r = +$("rowDlg").dataset.row, cols = displayCols(), out = [];
+  for (var i = 0; i < cols.length; i++) out.push(S.headers[cols[i]] + ": " + (S.data[r][cols[i]] || ""));
+  copyText(out.join("\n"), "Satır kopyalandı");
+});
+document.addEventListener("click", function (e) {
+  var b = e.target.closest ? e.target.closest("[data-close]") : null;
+  if (b) { var d = b.closest("dialog"); if (d.close) d.close(); else d.removeAttribute("open"); }
+});
+
+/* sütun genişliği sürükleme */
+var drag = null;
+thead.addEventListener("pointerdown", function (e) {
+  var h = e.target.dataset && e.target.dataset.resize != null ? e.target : null;
+  if (!h) return;
+  e.preventDefault();
+  drag = { col: +h.dataset.resize, x: e.clientX, w: S.widths[+h.dataset.resize] };
+  h.setPointerCapture(e.pointerId);
+});
+thead.addEventListener("pointermove", function (e) {
+  if (!drag) return;
+  S.widths[drag.col] = Math.max(60, Math.min(900, drag.w + (e.clientX - drag.x)));
+  layout();
+});
+thead.addEventListener("pointerup", function () { drag = null; });
+thead.addEventListener("dblclick", function (e) {
+  var h = e.target.dataset && e.target.dataset.resize != null ? e.target : null;
+  if (!h) return;
+  var c = +h.dataset.resize;
+  S.widths[c] = measureWidth(S.headers[c], c);
+  layout();
+});
+
+/* klavye */
+document.addEventListener("keydown", function (e) {
+  var tag = (e.target.tagName || "").toLowerCase();
+  var typing = tag === "input" || tag === "select" || tag === "textarea";
+  if ((e.key === "f" && (e.ctrlKey || e.metaKey)) || (e.key === "/" && !typing)) {
+    e.preventDefault(); $("q").focus(); $("q").select(); return;
+  }
+  if (e.key === "c" && e.shiftKey && (e.ctrlKey || e.metaKey)) {
+    e.preventDefault(); copyText(buildText("tsv"), "Pano: " + nf.format(S.view.length) + " satır"); return;
+  }
+  if (e.key === "Escape" && typing && e.target.id === "q") { e.target.value = ""; S.query = ""; applyView(); renderBody(); return; }
+  if (typing || !S.data.length) return;
+  var cols = displayCols(), moved = false;
+  var cur = S.cursor.r < 0 ? { r: Math.floor(scroll.scrollTop / S.rowH), c: 0 } : { r: S.cursor.r, c: S.cursor.c };
+  var page = Math.max(1, Math.floor((scroll.clientHeight || 620) / S.rowH) - 1);
+  switch (e.key) {
+    case "ArrowDown": cur.r++; moved = true; break;
+    case "ArrowUp": cur.r--; moved = true; break;
+    case "ArrowRight": cur.c++; moved = true; break;
+    case "ArrowLeft": cur.c--; moved = true; break;
+    case "PageDown": cur.r += page; moved = true; break;
+    case "PageUp": cur.r -= page; moved = true; break;
+    case "Home": if (e.ctrlKey) cur.r = 0; cur.c = 0; moved = true; break;
+    case "End": if (e.ctrlKey) cur.r = S.view.length - 1; cur.c = cols.length - 1; moved = true; break;
+    case "Enter": if (S.cursor.r > -1) { openRow(S.cursor.r); e.preventDefault(); } return;
+    case "c": if (e.ctrlKey || e.metaKey) {
+      if (S.cursor.r > -1) copyText(S.data[S.view[S.cursor.r]][cols[S.cursor.c]] || "", "Hücre kopyalandı");
+    } return;
+    default: return;
+  }
+  if (!moved) return;
+  e.preventDefault();
+  cur.r = Math.max(0, Math.min(S.view.length - 1, cur.r));
+  cur.c = Math.max(0, Math.min(cols.length - 1, cur.c));
+  S.cursor = cur;
+  var top = cur.r * S.rowH, bottom = top + S.rowH, vh = scroll.clientHeight || 620;
+  if (top < scroll.scrollTop) scroll.scrollTop = top;
+  else if (bottom > scroll.scrollTop + vh) scroll.scrollTop = bottom - vh;
+  renderBody();
+});
+
+window.addEventListener("resize", function () { renderBody(); });
+
+/* ===== örnek veri ===== */
+function demoCSV() {
+  var ilce = ["Kadıköy", "Beşiktaş", "Şişli", "Üsküdar", "Bakırköy", "Ataşehir", "Beyoğlu", "Maltepe"];
+  var kanal = ["Mağaza", "Online", "Bayi", "Kurumsal"];
+  var urun = ["Kablosuz kulaklık", "Ergonomik sandalye", "USB-C hub", 'Monitör 27"', "Mekanik klavye", "Dizüstü standı"];
+  var durum = ["Evet", "Hayır"];
+  var out = ['siparis_no;musteri;ilce;kanal;urun;adet;birim_fiyat;toplam;tarih;teslim_edildi;not'];
+  var seed = 7;
+  function rnd() { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; }
+  for (var i = 1; i <= 420; i++) {
+    var adet = 1 + Math.floor(rnd() * 12);
+    var fiyat = Math.round((180 + rnd() * 4200) * 100) / 100;
+    var toplam = Math.round(adet * fiyat * 100) / 100;
+    var gun = 1 + Math.floor(rnd() * 28), ay = 1 + Math.floor(rnd() * 12);
+    var money = function (x) { return x.toFixed(2).replace(".", ",").replace(/\B(?=(\d{3})+(?!\d))/g, "."); };
+    var note = i % 17 === 0 ? '"Müşteri notu: ""acele"", kapıda ödeme"' : (i % 5 === 0 ? '"Adres: Çınar sok. 12/3, kat 4"' : "");
+    out.push([
+      "SP-" + (10230 + i),
+      ["Ayşe Yılmaz", "Mehmet Öztürk", "Zeynep Çakır", "Burak Şahin", "Elif Güneş", "Onur Kılıç"][i % 6],
+      ilce[i % ilce.length], kanal[i % kanal.length], urun[i % urun.length],
+      adet, money(fiyat), money(toplam),
+      (gun < 10 ? "0" : "") + gun + "." + (ay < 10 ? "0" : "") + ay + ".2026",
+      durum[rnd() > 0.35 ? 0 : 1], note
+    ].join(";"));
+  }
+  out.push('SP-99999;"Çok Satırlı A.Ş.";Kadıköy;Kurumsal;"Sunum ekranı\n(2. satır)";3;1.250,00;3.750,00;15.03.2026;Evet;"Tırnak içi ; ayraç testi"');
+  return out.join("\r\n");
+}
+
+document.body.classList.toggle("no-colors", !S.colors);
+})();
+</script>
+</body>
+</html>
