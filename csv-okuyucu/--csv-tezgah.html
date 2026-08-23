@@ -1137,11 +1137,13 @@ tbody.addEventListener("click", function (e) {
   var tr = td.parentNode, vi = +tr.dataset.vi;
   if (td.classList.contains("rownum")) { openRow(vi); return; }
   var idx = Array.prototype.indexOf.call(tr.children, td) - 1;
-  var value = S.data[S.view[vi]][displayCols()[idx]] || "";
   S.cursor = { r: vi, c: idx };
   renderBody();
-  if (!value) { flash("Boş hücre — kopyalanacak değer yok"); return; }
-  copyText(value, "Kopyalandı: " + (value.length > 40 ? value.slice(0, 40) + "…" : value));
+});
+tbody.addEventListener("dblclick", function (e) {
+  var td = e.target.closest ? e.target.closest("td") : null;
+  if (!td || td.classList.contains("rownum")) return;
+  copyText(td.textContent, "Hücre kopyalandı");
 });
 
 var qTimer = null;
