@@ -194,13 +194,12 @@ tbody tr:hover td{ background:color-mix(in oklch, var(--accent) 9%, var(--rowbg)
 td.num{ text-align:right }
 td.bool{ text-align:center }
 td.empty::after{ content:"—"; color:var(--faint) }
+td.cursor{ box-shadow:inset 0 0 0 2px var(--accent); background:var(--sel) }
 mark{ background:var(--hit); color:inherit; border-radius:2px; padding:0 1px }
 .pin{ position:sticky; z-index:2; background:var(--rowbg) }
 tbody td.pin{ background:color-mix(in oklch, var(--colc,transparent) 7%, var(--rowbg)) }
 .no-colors tbody td.pin{ background:var(--rowbg) }
 .pin.last{ border-right:2px solid var(--line-hard) }
-tbody tr td.sel, tbody tr:hover td.sel{ background:var(--sel); box-shadow:inset 0 0 0 1px color-mix(in oklch, var(--accent) 55%, transparent) }
-tbody tr td.cursor, tbody tr:hover td.cursor{ box-shadow:inset 0 0 0 2px var(--accent) }
 .rownum{ color:var(--faint); text-align:right; font-size:11px; user-select:none }
 tbody tr.spacer td{ padding:0; border:0; background:transparent }
 
@@ -424,7 +423,7 @@ var S = {
   view: [], sorts: [], query: "", filters: {},
   hidden: {}, pinned: {}, order: [], widths: [],
   rowH: 32, colors: true, wrap: false,
-  cursor: { r: -1, c: -1 }, sel: [], blob: null, keys: {}
+  cursor: { r: -1, c: -1 }, blob: null, keys: {}
 };
 
 var $ = function (id) { return document.getElementById(id); };
@@ -815,7 +814,6 @@ function applyView() {
   S.view = view;
   sortView();
   S.cursor = { r: -1, c: -1 };
-  S.sel = [];
   updateStatus();
 }
 function sortView() {
@@ -852,7 +850,6 @@ function toggleSort(col, additive) {
   else if (S.sorts[idx].dir === "asc") S.sorts[idx].dir = "desc";
   else S.sorts.splice(idx, 1);
   S.view = S.view.slice();
-  S.sel = []; S.cursor = { r: -1, c: -1 };
   if (S.sorts.length) sortView(); else applyView();
   renderHead(); renderBody();
   announce(S.sorts.length ? S.headers[col] + " sütununa göre sıralandı" : "Sıralama kaldırıldı");
@@ -935,8 +932,6 @@ function renderBody() {
   var first = Math.max(0, Math.floor(scroll.scrollTop / rowH) - OVER);
   var count = Math.max(0, Math.min(total - first, Math.ceil(h / rowH) + OVER * 2));
   var q = fold(S.query.trim());
-  var selMap = {};
-  for (var s = 0; s < S.sel.length; s++) selMap[S.sel[s].vi + ":" + S.sel[s].c] = 1;
   var span = cols.length + 1, out = [];
   if (first > 0) out.push('<tr class="spacer" aria-hidden="true"><td colspan="' + span + '" style="height:' + (first * rowH) + 'px"></td></tr>');
   for (var k = 0; k < count; k++) {
@@ -948,7 +943,6 @@ function renderBody() {
       var isPin = !!S.pinned[c], last = isPin && i === po.count - 1;
       var cls = "hue" + (c % HUES.length) + (m.type === "number" ? " num" : m.type === "bool" ? " bool" : "") +
         (isPin ? " pin" : "") + (last ? " last" : "") + (v ? "" : " empty") +
-        (selMap[vi + ":" + c] ? " sel" : "") +
         (S.cursor.r === vi && S.cursor.c === i ? " cursor" : "");
       var style = isPin ? ' style="left:' + po.offs[c] + 'px"' : "";
       out.push("<td class=\"" + cls + "\"" + style + ' aria-colindex="' + (i + 2) + '" title="' + esc(v.length > 60 ? v : "") + '">' + hilite(v, q) + "</td>");
@@ -992,29 +986,6 @@ function updateStatus() {
 function announce(msg) { $("live").textContent = msg; }
 
 /* ===== dışa aktarma ===== */
-function selectionText() {
-  if (!S.sel.length) return "";
-  var cols = displayCols(), pos = {}, i;
-  for (i = 0; i < cols.length; i++) pos[cols[i]] = i;
-  var items = S.sel.filter(function (it) { return pos[it.c] !== undefined; });
-  if (!items.length) return "";
-  items.sort(function (a, b) { return a.vi - b.vi || pos[a.c] - pos[b.c]; });
-  var out = [], line = [], curVi = items[0].vi;
-  for (i = 0; i < items.length; i++) {
-    if (items[i].vi !== curVi) { out.push(line.join("\t")); line = []; curVi = items[i].vi; }
-    line.push(S.data[items[i].r][items[i].c] || "");
-  }
-  out.push(line.join("\t"));
-  return out.join("\n");
-}
-function copySelection() {
-  var text = selectionText();
-  if (!text.replace(/[\t\n]/g, "")) { flash(S.sel.length > 1 ? "Seçili hücreler boş — kopyalanacak değer yok" : "Boş hücre — kopyalanacak değer yok"); return; }
-  var msg = S.sel.length > 1
-    ? nf.format(S.sel.length) + " hücre kopyalandı"
-    : "Kopyalandı: " + (text.length > 40 ? text.slice(0, 40) + "…" : text);
-  copyText(text, msg);
-}
 function cellOut(v, d) {
   if (v == null) v = "";
   return /["\r\n]/.test(v) || v.indexOf(d) > -1 ? '"' + v.replace(/"/g, '""') + '"' : v;
@@ -1166,18 +1137,11 @@ tbody.addEventListener("click", function (e) {
   var tr = td.parentNode, vi = +tr.dataset.vi;
   if (td.classList.contains("rownum")) { openRow(vi); return; }
   var idx = Array.prototype.indexOf.call(tr.children, td) - 1;
-  var col = displayCols()[idx], r = S.view[vi];
-  if (e.ctrlKey || e.metaKey) {
-    var found = -1;
-    for (var i = 0; i < S.sel.length; i++) if (S.sel[i].vi === vi && S.sel[i].c === col) found = i;
-    if (found > -1) S.sel.splice(found, 1); else S.sel.push({ vi: vi, r: r, c: col });
-  } else {
-    S.sel = [{ vi: vi, r: r, c: col }];
-  }
+  var value = S.data[S.view[vi]][displayCols()[idx]] || "";
   S.cursor = { r: vi, c: idx };
   renderBody();
-  if (!S.sel.length) { flash("Seçim temizlendi"); return; }
-  copySelection();
+  if (!value) { flash("Boş hücre — kopyalanacak değer yok"); return; }
+  copyText(value, "Kopyalandı: " + (value.length > 40 ? value.slice(0, 40) + "…" : value));
 });
 
 var qTimer = null;
@@ -1348,8 +1312,9 @@ document.addEventListener("keydown", function (e) {
     case "Home": if (e.ctrlKey) cur.r = 0; cur.c = 0; moved = true; break;
     case "End": if (e.ctrlKey) cur.r = S.view.length - 1; cur.c = cols.length - 1; moved = true; break;
     case "Enter": if (S.cursor.r > -1) { openRow(S.cursor.r); e.preventDefault(); } return;
-    case "c": if (e.ctrlKey || e.metaKey) { if (S.sel.length) copySelection(); } return;
-    case "Escape": if (S.sel.length) { S.sel = []; renderBody(); flash("Seçim temizlendi"); } return;
+    case "c": if (e.ctrlKey || e.metaKey) {
+      if (S.cursor.r > -1) copyText(S.data[S.view[S.cursor.r]][cols[S.cursor.c]] || "", "Hücre kopyalandı");
+    } return;
     default: return;
   }
   if (!moved) return;
@@ -1357,7 +1322,6 @@ document.addEventListener("keydown", function (e) {
   cur.r = Math.max(0, Math.min(S.view.length - 1, cur.r));
   cur.c = Math.max(0, Math.min(cols.length - 1, cur.c));
   S.cursor = cur;
-  S.sel = [{ vi: cur.r, r: S.view[cur.r], c: cols[cur.c] }];
   var top = cur.r * S.rowH, bottom = top + S.rowH, vh = scroll.clientHeight || 620;
   if (top < scroll.scrollTop) scroll.scrollTop = top;
   else if (bottom > scroll.scrollTop + vh) scroll.scrollTop = bottom - vh;
