@@ -1,0 +1,1861 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="auto">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Tablo Tezgâhı — JSON görüntüleyici</title>
+<style>
+:root{
+  color-scheme: light dark;
+  --ink:        light-dark(oklch(24% 0.02 262), oklch(93% 0.01 262));
+  --muted:      light-dark(oklch(50% 0.02 262), oklch(68% 0.02 262));
+  --faint:      light-dark(oklch(62% 0.02 262), oklch(56% 0.02 262));
+  --bg:         light-dark(oklch(96% 0.006 262), oklch(17% 0.014 262));
+  --panel:      light-dark(oklch(99.5% 0.002 262), oklch(21% 0.014 262));
+  --field:      light-dark(oklch(100% 0 0),       oklch(19.5% 0.012 262));
+  --stripe:     light-dark(oklch(97.6% 0.004 262), oklch(22.2% 0.013 262));
+  --line:       light-dark(oklch(90% 0.008 262),  oklch(28% 0.016 262));
+  --line-hard:  light-dark(oklch(80% 0.012 262),  oklch(36% 0.02 262));
+  --accent:     light-dark(oklch(50% 0.17 264),   oklch(74% 0.13 264));
+  --accent-ink: light-dark(oklch(99% 0 0),        oklch(18% 0.02 264));
+  --warn:       light-dark(oklch(56% 0.15 55),    oklch(78% 0.14 70));
+  --ok:         light-dark(oklch(50% 0.13 155),   oklch(75% 0.12 155));
+  --sel:        color-mix(in oklch, var(--accent) 22%, transparent);
+  --hit:        light-dark(oklch(92% 0.16 100), oklch(58% 0.14 100));
+  --rowbg: var(--field);
+  --ruler-h: 30px; --head-h: 36px; --filter-h: 30px;
+  --ui: "Bahnschrift","DIN Alternate","Roboto Condensed",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono: ui-monospace,"Cascadia Mono","SFMono-Regular",Menlo,Consolas,"Liberation Mono",monospace;
+  --radius: 9px;
+}
+[data-theme="light"]{ color-scheme: light }
+[data-theme="dark"]{ color-scheme: dark }
+
+.hue0{--colc:oklch(58% 0.15 264)} .hue1{--colc:oklch(58% 0.14 196)} .hue2{--colc:oklch(56% 0.14 152)}
+.hue3{--colc:oklch(60% 0.15 96)}  .hue4{--colc:oklch(62% 0.15 58)}  .hue5{--colc:oklch(58% 0.16 24)}
+.hue6{--colc:oklch(58% 0.16 340)} .hue7{--colc:oklch(56% 0.16 300)} .hue8{--colc:oklch(56% 0.14 224)}
+.hue9{--colc:oklch(58% 0.13 172)} .hue10{--colc:oklch(58% 0.14 128)} .hue11{--colc:oklch(62% 0.15 42)}
+
+*{ box-sizing:border-box }
+[hidden]{ display:none !important }
+html,body{ height:100% }
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:var(--ui); font-size:14px; line-height:1.45;
+  display:flex; flex-direction:column; overflow:hidden;
+}
+button,input,select{ font:inherit; color:inherit }
+:focus-visible{ outline:2px solid var(--accent); outline-offset:2px }
+.sr-only{ position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap }
+
+/* ---------- üst çubuk ---------- */
+.topbar{
+  display:flex; align-items:center; gap:10px; padding:9px 14px;
+  background:var(--panel); border-bottom:1px solid var(--line); flex:0 0 auto; flex-wrap:wrap;
+}
+.brand{ display:flex; align-items:center; gap:9px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; font-size:13.5px }
+.brand .mark{
+  width:22px; height:22px; display:grid; place-items:center; border-radius:6px;
+  background:var(--accent); color:var(--accent-ink); font-size:13px; letter-spacing:0;
+}
+.brand small{ text-transform:none; letter-spacing:0; font-weight:400; color:var(--faint); font-size:12px }
+.grow{ flex:1 1 auto }
+
+.btn{
+  background:var(--field); border:1px solid var(--line-hard); border-radius:var(--radius);
+  padding:5px 11px; cursor:pointer; white-space:nowrap; transition:background .12s, border-color .12s;
+}
+.btn:hover{ background:color-mix(in oklch, var(--accent) 10%, var(--field)); border-color:var(--accent) }
+.btn[aria-pressed="true"]{ background:var(--accent); color:var(--accent-ink); border-color:var(--accent) }
+.btn.primary{ background:var(--accent); color:var(--accent-ink); border-color:var(--accent); font-weight:600 }
+.btn.icon{ padding:5px 9px }
+
+.search{ position:relative; display:flex; align-items:center; min-width:200px; flex:0 1 320px }
+.search input{
+  width:100%; padding:6px 74px 6px 30px; border-radius:var(--radius);
+  border:1px solid var(--line-hard); background:var(--field);
+}
+.search::before{ content:"⌕"; position:absolute; left:10px; color:var(--faint); font-size:16px }
+.search .count{
+  position:absolute; right:9px; font-family:var(--mono); font-size:11.5px; color:var(--faint);
+  pointer-events:none; font-variant-numeric:tabular-nums;
+}
+.menu{ position:relative }
+.pop{
+  position:absolute; right:0; top:calc(100% + 6px); z-index:60; min-width:210px; padding:6px;
+  background:var(--panel); border:1px solid var(--line-hard); border-radius:var(--radius);
+  box-shadow:0 14px 34px light-dark(oklch(20% 0.02 262 / .16), oklch(2% 0 0 / .5));
+}
+.pop[hidden]{ display:none }
+.pop button{
+  display:flex; justify-content:space-between; gap:14px; width:100%; text-align:left; background:none;
+  border:0; border-radius:6px; padding:7px 9px; cursor:pointer;
+}
+.pop button:hover{ background:color-mix(in oklch, var(--accent) 14%, transparent) }
+.pop kbd{ font-family:var(--mono); font-size:11px; color:var(--faint) }
+
+/* ---------- seçenek şeridi ---------- */
+.options{
+  display:flex; align-items:center; gap:8px 16px; flex-wrap:wrap;
+  padding:7px 14px; background:var(--panel); border-bottom:1px solid var(--line); flex:0 0 auto;
+  font-size:12.5px;
+}
+.options label{ display:flex; align-items:center; gap:6px; color:var(--muted) }
+.options select{ padding:4px 7px; border-radius:7px; border:1px solid var(--line-hard); background:var(--field); max-width:min(46vw,520px); font-family:var(--mono); font-size:12px }
+.options .sep{ width:1px; align-self:stretch; background:var(--line) }
+
+/* ---------- boş durum ---------- */
+.drop{
+  flex:1 1 auto; display:grid; place-items:center; padding:28px; text-align:center;
+}
+.drop.hot .dropcard{ border-color:var(--accent); background:color-mix(in oklch, var(--accent) 8%, var(--panel)) }
+.dropcard{
+  border:2px dashed var(--line-hard); border-radius:18px; background:var(--panel);
+  padding:44px 40px; max-width:620px; transition:border-color .15s, background .15s;
+}
+.dropcard h1{ font-size:26px; margin:0 0 6px; letter-spacing:.01em }
+.dropcard p{ margin:0 0 20px; color:var(--muted) }
+.dropcard .row{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap }
+.dropcard ul{
+  margin:24px 0 0; padding:0; list-style:none; display:grid; gap:6px 20px;
+  grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); text-align:left;
+  font-size:12.5px; color:var(--faint);
+}
+.dropcard li::before{ content:"—"; margin-right:7px; color:var(--accent) }
+
+/* ---------- ızgara ---------- */
+#workbench{ flex:1 1 auto; display:flex; flex-direction:column; min-height:0 }
+.scroll{ flex:1 1 auto; overflow:auto; background:var(--field); position:relative; contain:strict }
+table{
+  border-collapse:separate; border-spacing:0; table-layout:fixed;
+  font-family:var(--mono); font-size:12.5px; font-variant-numeric:tabular-nums;
+}
+thead th{ position:sticky; z-index:3; background:var(--panel); text-align:left; padding:0; font-weight:600 }
+thead .r-ruler th{ top:0; height:var(--ruler-h); z-index:4 }
+thead .r-head  th{ top:var(--ruler-h); height:var(--head-h); z-index:4 }
+thead .r-filter th{ top:calc(var(--ruler-h) + var(--head-h)); height:var(--filter-h); z-index:4 }
+thead th.pin{ z-index:6 }
+thead th, tbody td{ border-right:1px solid var(--line); border-bottom:1px solid var(--line) }
+thead .r-filter th{ border-bottom:1px solid var(--line-hard) }
+
+.sortbtn{
+  display:flex; align-items:center; gap:6px; width:100%; height:100%; padding:0 9px;
+  background:none; border:0; border-bottom:3px solid var(--colc,transparent); cursor:pointer;
+  font-family:var(--ui); font-size:13px; letter-spacing:.02em; text-align:left;
+}
+.no-colors .sortbtn{ border-bottom-color:var(--line-hard) }
+.sortbtn:hover{ background:color-mix(in oklch, var(--colc, var(--accent)) 16%, transparent) }
+.sortbtn .name{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1 1 auto }
+.sortbtn .dir{ font-size:11px; color:var(--accent); font-family:var(--mono) }
+.sortbtn .ord{
+  font-size:10px; background:var(--accent); color:var(--accent-ink);
+  border-radius:99px; padding:0 5px; font-family:var(--mono);
+}
+.resizer{
+  position:absolute; top:0; right:-3px; width:7px; height:100%; cursor:col-resize; z-index:7;
+}
+.resizer:hover{ background:color-mix(in oklch, var(--accent) 45%, transparent) }
+thead .r-head th{ overflow:visible }
+thead .r-head th > .wrap{ position:relative; height:100%; display:flex }
+
+.ruler{ display:flex; align-items:center; gap:7px; height:100%; padding:0 9px; color:var(--faint); font-size:11px }
+.ruler .glyph{
+  font-family:var(--mono); font-weight:700; font-size:10.5px; padding:1px 5px; border-radius:5px;
+  background:color-mix(in oklch, var(--colc, var(--muted)) 22%, transparent);
+  color:light-dark(oklch(30% 0.06 262), oklch(90% 0.03 262));
+}
+.no-colors .ruler .glyph{ background:color-mix(in oklch, var(--muted) 18%, transparent) }
+.ruler .bar{ flex:1 1 auto; height:6px; border-radius:99px; background:var(--line); overflow:hidden; min-width:16px }
+.ruler .bar i{ display:block; height:100%; background:var(--colc, var(--muted)); opacity:.75 }
+.ruler svg{ flex:1 1 auto; height:14px; min-width:16px }
+.ruler svg rect{ fill:var(--colc, var(--muted)); opacity:.8 }
+.ruler .pct{ font-family:var(--mono); font-size:10px }
+.rulerbtn{ background:none; border:0; padding:0; margin:0; width:100%; height:100%; cursor:pointer; text-align:left }
+.rulerbtn:hover{ background:color-mix(in oklch, var(--accent) 12%, transparent) }
+
+.r-filter input{
+  width:100%; height:100%; border:0; background:transparent; padding:0 9px;
+  font-family:var(--mono); font-size:12px;
+}
+.r-filter input::placeholder{ color:var(--faint) }
+.r-filter th:has(input:not(:placeholder-shown)){ background:color-mix(in oklch, var(--accent) 12%, var(--panel)) }
+
+tbody tr{ background:var(--rowbg) }
+tbody tr.alt{ --rowbg:var(--stripe) }
+tbody td{
+  padding:0 9px; height:var(--rowh); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  background:color-mix(in oklch, var(--colc,transparent) 7%, var(--rowbg));
+  vertical-align:middle;
+}
+.no-colors tbody td{ background:var(--rowbg) }
+.wrapcells tbody td{ white-space:normal; word-break:break-word; line-height:1.35; padding:4px 9px }
+tbody tr:hover td{ background:color-mix(in oklch, var(--accent) 9%, var(--rowbg)) }
+td.num{ text-align:right }
+td.bool{ text-align:center }
+td.obj{ color:var(--muted) }
+td.nul::after{ content:"null"; color:var(--faint); font-style:italic }
+td.empty::after{ content:"—"; color:var(--faint) }
+mark{ background:var(--hit); color:inherit; border-radius:2px; padding:0 1px }
+.pin{ position:sticky; z-index:2; background:var(--rowbg) }
+tbody td.pin{ background:color-mix(in oklch, var(--colc,transparent) 7%, var(--rowbg)) }
+.no-colors tbody td.pin{ background:var(--rowbg) }
+.pin.last{ border-right:2px solid var(--line-hard) }
+tbody tr td.sel, tbody tr:hover td.sel{ background:var(--sel); box-shadow:inset 0 0 0 1px color-mix(in oklch, var(--accent) 55%, transparent) }
+tbody tr td.cursor, tbody tr:hover td.cursor{ box-shadow:inset 0 0 0 2px var(--accent) }
+.rownum{ color:var(--faint); text-align:right; font-size:11px; user-select:none }
+tbody tr.spacer td{ padding:0; border:0; background:transparent }
+
+/* ---------- durum çubuğu ---------- */
+.status{
+  flex:0 0 auto; display:flex; align-items:center; gap:8px 14px; flex-wrap:wrap;
+  padding:6px 14px; background:var(--panel); border-top:1px solid var(--line);
+  font-size:12px; color:var(--muted); font-family:var(--mono);
+}
+.chip{
+  padding:1px 8px; border-radius:99px; border:1px solid var(--line-hard); background:var(--field);
+  white-space:nowrap; max-width:48vw; overflow:hidden; text-overflow:ellipsis;
+}
+.chip.warn{ border-color:var(--warn); color:var(--warn); cursor:pointer }
+.chip b{ color:var(--ink); font-weight:600 }
+
+/* ---------- panel / diyalog ---------- */
+dialog{
+  border:1px solid var(--line-hard); border-radius:14px; background:var(--panel); color:var(--ink);
+  padding:0; max-width:min(760px, 94vw); max-height:86vh; box-shadow:0 20px 60px oklch(0% 0 0 / .35);
+}
+dialog.wide{ max-width:min(1040px, 96vw); width:min(1040px, 96vw) }
+dialog::backdrop{ background:oklch(20% 0.02 262 / .45) }
+.dlg-head{
+  display:flex; align-items:center; gap:12px; padding:12px 16px; border-bottom:1px solid var(--line);
+  position:sticky; top:0; background:var(--panel); z-index:2; flex-wrap:wrap;
+}
+.dlg-head h2{ margin:0; font-size:16px; flex:1 1 auto; letter-spacing:.01em }
+.dlg-body{ padding:14px 16px; overflow:auto; max-height:70vh }
+.cols-list{ display:grid; gap:4px }
+.cols-row{
+  display:flex; align-items:center; gap:8px; padding:5px 8px; border-radius:8px; border:1px solid transparent;
+}
+.cols-row:hover{ background:color-mix(in oklch, var(--accent) 8%, transparent) }
+.cols-row .swatch{ width:11px; height:11px; border-radius:3px; background:var(--colc, var(--muted)); flex:0 0 auto }
+.cols-row .nm{ flex:1 1 auto; overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
+.cols-row .ty{ font-family:var(--mono); font-size:11px; color:var(--faint) }
+.mini{ padding:2px 7px; font-size:11.5px; border-radius:6px }
+.statgrid{ display:grid; grid-template-columns:auto 1fr; gap:6px 18px; font-family:var(--mono); font-size:12.5px }
+.statgrid dt{ color:var(--muted) }
+.statgrid dd{ margin:0 }
+.toplist{ margin-top:16px; display:grid; gap:5px }
+.toplist .t{ display:grid; grid-template-columns:1fr auto; gap:10px; font-family:var(--mono); font-size:12px }
+.toplist .t .b{ grid-column:1/-1; height:5px; border-radius:99px; background:var(--line) }
+.toplist .t .b i{ display:block; height:100%; border-radius:99px; background:var(--accent) }
+.rowdetail{ display:grid; grid-template-columns:minmax(120px,26%) 1fr; gap:1px; background:var(--line) }
+.rowdetail dt{ background:var(--panel); padding:6px 10px; font-size:12.5px; color:var(--muted) }
+.rowdetail dd{ background:var(--field); padding:6px 10px; margin:0; font-family:var(--mono); font-size:12.5px; word-break:break-word; white-space:pre-wrap }
+.issue-list{ font-family:var(--mono); font-size:12.5px; display:grid; gap:3px; max-height:300px; overflow:auto }
+pre.json{
+  margin:14px 0 0; padding:10px 12px; background:var(--field); border:1px solid var(--line); border-radius:8px;
+  font-family:var(--mono); font-size:12px; white-space:pre-wrap; word-break:break-word; max-height:40vh; overflow:auto;
+}
+.hint{ color:var(--muted); font-size:12px; margin:0 0 10px }
+
+/* ---------- ağaç ---------- */
+.tree{ font-family:var(--mono); font-size:12.5px; line-height:1.6 }
+.tn{ display:flex; align-items:center; gap:6px; padding:1px 4px; border-radius:6px; min-width:0 }
+.tn:hover{ background:color-mix(in oklch, var(--accent) 8%, transparent) }
+.tn .tw{ width:18px; flex:0 0 18px; background:none; border:0; cursor:pointer; color:var(--faint); padding:0; font-size:11px; text-align:center }
+.tn .tw.leaf{ visibility:hidden }
+.tn .tk{ color:var(--accent); flex:0 0 auto }
+.tn .tv{ color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1 1 auto; min-width:0 }
+.tn .tv.s{ color:var(--ink) }
+.tn .tv.n{ color:light-dark(oklch(45% 0.15 155), oklch(78% 0.13 155)) }
+.tn .tv.b{ color:light-dark(oklch(50% 0.16 55), oklch(80% 0.14 70)) }
+.tn .tv.z{ color:var(--faint); font-style:italic }
+.tn .tsum{ color:var(--faint); font-size:11px; flex:0 0 auto }
+.tn .btn{ visibility:hidden; flex:0 0 auto }
+.tn:hover .btn, .tn:focus-within .btn{ visibility:visible }
+.tn.cur{ background:color-mix(in oklch, var(--accent) 16%, transparent) }
+.tc{ padding-left:20px; border-left:1px dotted var(--line-hard); margin-left:12px }
+.tmore{ margin:2px 0 2px 30px }
+.pathbox{
+  flex:1 1 260px; min-width:160px; padding:5px 9px; border-radius:7px; border:1px solid var(--line-hard);
+  background:var(--field); font-family:var(--mono); font-size:12px;
+}
+
+/* ---------- yükleniyor ---------- */
+#loading{ position:fixed; inset:0; display:grid; place-items:center; background:oklch(20% 0.02 262 / .5); z-index:90 }
+#loading[hidden]{ display:none }
+.loadcard{ background:var(--panel); border-radius:14px; padding:22px 26px; min-width:280px; text-align:center }
+.pbar{ height:6px; border-radius:99px; background:var(--line); overflow:hidden; margin-top:12px }
+.pbar i{ display:block; height:100%; width:0; background:var(--accent); transition:width .1s linear }
+
+@media (max-width:720px){
+  .options{ font-size:12px }
+  .brand small{ display:none }
+  .search{ order:9; flex:1 1 100% }
+}
+@media (prefers-reduced-motion:reduce){ *{ transition:none !important; animation:none !important } }
+</style>
+</head>
+<body class="no-file">
+
+<header class="topbar">
+  <div class="brand"><span class="mark">{}</span>Tablo Tezgâhı <small>JSON görüntüleyici</small></div>
+  <span class="chip" id="fileChip" hidden></span>
+  <span class="grow"></span>
+  <div class="search">
+    <input id="q" type="search" placeholder="Tüm sütunlarda ara" aria-label="Tüm sütunlarda ara" autocomplete="off" disabled>
+    <span class="count" id="qCount"></span>
+  </div>
+  <button class="btn" id="treeBtn" disabled>Ağaç</button>
+  <button class="btn" id="colsBtn" disabled>Sütunlar</button>
+  <div class="menu">
+    <button class="btn" id="exportBtn" aria-haspopup="true" aria-expanded="false" disabled>Dışa aktar</button>
+    <div class="pop" id="exportPop" hidden>
+      <button data-x="csv">CSV olarak indir<kbd>.csv</kbd></button>
+      <button data-x="tsv">TSV olarak indir<kbd>.tsv</kbd></button>
+      <button data-x="json">JSON olarak indir<kbd>.json</kbd></button>
+      <button data-x="jsonl">JSON Lines olarak indir<kbd>.jsonl</kbd></button>
+      <button data-x="clip">Panoya kopyala<kbd>Ctrl+Shift+C</kbd></button>
+    </div>
+  </div>
+  <button class="btn icon" id="themeBtn" title="Açık / koyu tema" aria-label="Temayı değiştir">◐</button>
+</header>
+
+<section class="options" id="options" hidden>
+  <label>Kodlama
+    <select id="encSel">
+      <option value="auto">Otomatik</option>
+      <option value="utf-8">UTF-8</option>
+      <option value="windows-1254">Windows-1254 (Türkçe)</option>
+      <option value="iso-8859-9">ISO-8859-9</option>
+      <option value="windows-1252">Windows-1252</option>
+      <option value="utf-16le">UTF-16 LE</option>
+      <option value="utf-16be">UTF-16 BE</option>
+    </select>
+  </label>
+  <label>Tablo
+    <select id="srcSel" aria-label="Tablo kaynağı (JSON içindeki dizi/nesne)"></select>
+  </label>
+  <label>Düzleştirme
+    <select id="depthSel">
+      <option value="0">Kapalı</option>
+      <option value="1">1 seviye</option>
+      <option value="2">2 seviye</option>
+      <option value="3">3 seviye</option>
+      <option value="99" selected>Sınırsız</option>
+    </select>
+  </label>
+  <label><input type="checkbox" id="arrChk"> Küçük dizileri sütuna aç</label>
+  <span class="sep"></span>
+  <label>Yoğunluk
+    <select id="densSel">
+      <option value="26">Sıkı</option>
+      <option value="32" selected>Normal</option>
+      <option value="42">Ferah</option>
+    </select>
+  </label>
+  <label><input type="checkbox" id="colorChk" checked> Sütun renkleri</label>
+  <label><input type="checkbox" id="wrapChk"> Metni sar</label>
+  <span class="sep"></span>
+  <button class="btn mini" id="resetBtn">Sıralama/filtreyi sıfırla</button>
+  <button class="btn mini" id="newFileBtn">Başka dosya</button>
+</section>
+
+<div class="drop" id="drop">
+  <div class="dropcard">
+    <h1>JSON dosyanı bırak</h1>
+    <p>Dosya tarayıcından çıkmaz: hiçbir sunucuya gönderilmez, internet bağlantısı gerekmez.</p>
+    <div class="row">
+      <button class="btn primary" id="pickBtn">Dosya seç</button>
+      <button class="btn" id="demoBtn">Örnek veriyle dene</button>
+    </div>
+    <ul>
+      <li>.json ve .jsonl / .ndjson (satır başına bir kayıt) okunur</li>
+      <li>İç içe nesneler <code>a.b.c</code> sütunlarına düzleştirilir</li>
+      <li>Dosyadaki her dizi / nesne ağaçtan seçilip tablo yapılır</li>
+      <li>Başlığa tıkla sırala, Shift+tık ile çoklu sıralama</li>
+      <li>Sütun başına filtre: <code>&gt;100</code>, <code>10..20</code>, <code>=evet</code></li>
+      <li>Yüz binlerce satır sanal kaydırmayla akıcı</li>
+    </ul>
+  </div>
+</div>
+<input type="file" id="fileInput" accept=".json,.jsonl,.ndjson,.txt,application/json,application/x-ndjson,text/plain" hidden>
+
+<main id="workbench" hidden>
+  <div class="scroll" id="scroll" tabindex="0">
+    <table id="tbl" role="grid" aria-label="JSON verisi">
+      <colgroup id="cg"></colgroup>
+      <thead id="thead"></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+  <footer class="status">
+    <span id="countText"></span>
+    <span class="grow"></span>
+    <span class="chip" id="encChip"></span>
+    <span class="chip" id="fmtChip"></span>
+    <span class="chip" id="srcChip" title=""></span>
+    <span class="chip" id="sizeChip"></span>
+    <span class="chip" id="timeChip"></span>
+    <span class="chip warn" id="issueChip" hidden></span>
+  </footer>
+</main>
+
+<div id="loading" hidden>
+  <div class="loadcard">
+    <div id="loadText">Okunuyor…</div>
+    <div class="pbar"><i id="loadBar"></i></div>
+  </div>
+</div>
+
+<div class="sr-only" id="live" aria-live="polite"></div>
+
+<dialog id="colsDlg">
+  <div class="dlg-head"><h2>Sütunlar</h2>
+    <button class="btn mini" id="showAllBtn">Hepsini göster</button>
+    <button class="btn mini" data-close>Kapat</button>
+  </div>
+  <div class="dlg-body"><div class="cols-list" id="colsList"></div></div>
+</dialog>
+
+<dialog id="statDlg">
+  <div class="dlg-head"><h2 id="statTitle">Sütun</h2><button class="btn mini" data-close>Kapat</button></div>
+  <div class="dlg-body" id="statBody"></div>
+</dialog>
+
+<dialog id="rowDlg">
+  <div class="dlg-head"><h2 id="rowTitle">Satır</h2>
+    <button class="btn mini" id="rowCopyBtn">Satırı kopyala</button>
+    <button class="btn mini" id="rowJsonBtn">JSON kopyala</button>
+    <button class="btn mini" data-close>Kapat</button>
+  </div>
+  <div class="dlg-body"><dl class="rowdetail" id="rowBody"></dl><pre class="json" id="rowJson"></pre></div>
+</dialog>
+
+<dialog id="issueDlg">
+  <div class="dlg-head"><h2>Uyarılar</h2><button class="btn mini" data-close>Kapat</button></div>
+  <div class="dlg-body">
+    <p id="issueIntro"></p>
+    <div class="issue-list" id="issueList"></div>
+  </div>
+</dialog>
+
+<dialog id="treeDlg" class="wide">
+  <div class="dlg-head"><h2>Ağaç</h2>
+    <input class="pathbox" id="pathBox" placeholder="yol: kanallar[0].videolar" aria-label="JSON yolu" autocomplete="off" spellcheck="false">
+    <button class="btn mini" id="pathGoBtn">Yola git</button>
+    <button class="btn mini" id="treeCopyBtn">Düğümü kopyala</button>
+    <button class="btn mini" data-close>Kapat</button>
+  </div>
+  <div class="dlg-body">
+    <p class="hint">Bir dizi ya da nesnenin yanındaki <b>tablo yap</b> düğmesi onu ızgaraya yükler. Nesnelere tıklamak açar/kapatır.</p>
+    <div class="tree" id="treeRoot"></div>
+  </div>
+</dialog>
+
+<script>
+"use strict";
+(function () {
+
+/* ===== sabitler ===== */
+var HUES = [264, 196, 152, 96, 58, 24, 340, 300, 224, 172, 128, 42];
+var OVER = 8;
+var TYPE_GLYPH = { number: "#", date: "◷", bool: "✓", text: "T" };
+var TYPE_NAME = { number: "sayı", date: "tarih", bool: "evet/hayır", text: "metin" };
+var TR_FOLD = { "İ": "I", "ı": "i", "Ş": "S", "ş": "s", "Ğ": "G", "ğ": "g", "Ç": "C", "ç": "c", "Ö": "O", "ö": "o", "Ü": "U", "ü": "u", "Â": "A", "â": "a", "Î": "I", "î": "i", "Û": "U", "û": "u" };
+var TRUE_SET = ["evet", "true", "dogru", "doğru", "yes", "1", "var", "aktif", "e"];
+var FALSE_SET = ["hayir", "hayır", "false", "yanlis", "yanlış", "no", "0", "yok", "pasif", "h"];
+var KIND_NAME = { objects: "nesne listesi", arrays: "dizi listesi", primitives: "değer listesi", mixed: "karışık liste", keyed: "anahtarlı nesneler", object: "anahtar/değer", merged: "birleşik liste" };
+var MAX_CANDIDATES = 400;
+var MAX_SCAN_ELEMS = 200;
+var SMALL_ARRAY = 24;
+var TREE_PAGE = 200;
+var BIG_FILE = 150 * 1048576;
+
+/* ===== durum ===== */
+var S = {
+  fileName: "", fileSize: 0, buffer: null, text: "",
+  encChoice: "auto", encUsed: "", format: "",
+  root: null, sources: [], srcIdx: -1, depth: 99, arrExpand: false,
+  headers: [], data: [], raw: [], orig: [], meta: [], issues: [], bigInts: 0, parseMs: 0,
+  view: [], sorts: [], query: "", filters: {},
+  hidden: {}, pinned: {}, order: [], widths: [],
+  rowH: 32, colors: true, wrap: false,
+  cursor: { r: -1, c: -1 }, sel: [], blob: null, keys: {},
+  treeCur: null
+};
+
+var $ = function (id) { return document.getElementById(id); };
+var scroll = $("scroll"), tbody = $("tbody"), thead = $("thead"), cg = $("cg"), tbl = $("tbl");
+var nf = new Intl.NumberFormat("tr-TR");
+var collator = new Intl.Collator("tr", { numeric: true, sensitivity: "base" });
+
+/* ===== metin yardımcıları ===== */
+function esc(s) {
+  return s.replace(/[&<>"]/g, function (c) {
+    return c === "&" ? "&amp;" : c === "<" ? "&lt;" : c === ">" ? "&gt;" : "&quot;";
+  });
+}
+function fold(s) {
+  return s.replace(/[İıŞşĞğÇçÖöÜüÂâÎîÛû]/g, function (c) { return TR_FOLD[c]; }).toLowerCase();
+}
+function fmtBytes(n) {
+  if (n < 1024) return n + " B";
+  if (n < 1048576) return (n / 1024).toFixed(1) + " KB";
+  return (n / 1048576).toFixed(1) + " MB";
+}
+function fmtNum(n) {
+  if (!isFinite(n)) return "—";
+  var abs = Math.abs(n);
+  var d = abs >= 1000 || Number.isInteger(n) ? 0 : abs >= 1 ? 2 : 4;
+  return n.toLocaleString("tr-TR", { maximumFractionDigits: d });
+}
+function fmtDate(ts) {
+  if (!isFinite(ts)) return "—";
+  var d = new Date(ts);
+  var p = function (x) { return (x < 10 ? "0" : "") + x; };
+  var s = p(d.getUTCDate()) + "." + p(d.getUTCMonth() + 1) + "." + d.getUTCFullYear();
+  if (d.getUTCHours() || d.getUTCMinutes()) s += " " + p(d.getUTCHours()) + ":" + p(d.getUTCMinutes());
+  return s;
+}
+function isObj(v) { return v !== null && typeof v === "object" && !Array.isArray(v); }
+function cellStr(v) {
+  if (v === undefined || v === null) return "";
+  if (typeof v === "string") return v;
+  if (typeof v === "number" || typeof v === "boolean") return String(v);
+  return JSON.stringify(v);
+}
+function segKey(k) { return /^[A-Za-z_$][\w$]*$/.test(k) ? "." + k : "[" + JSON.stringify(k) + "]"; }
+function pathStr(segs) {
+  var s = "";
+  for (var i = 0; i < segs.length; i++) s += typeof segs[i] === "number" ? "[" + segs[i] + "]" : (segs[i] === "*" ? "[*]" : segKey(segs[i]));
+  return s.charAt(0) === "." ? s.slice(1) : (s || "(kök)");
+}
+function parsePath(str) {
+  var s = str.trim(), segs = [], i = 0;
+  if (!s || s === "(kök)" || s === "$") return segs;
+  if (s.charAt(0) === "$") s = s.slice(1);
+  while (i < s.length) {
+    var c = s.charAt(i);
+    if (c === ".") { i++; continue; }
+    if (c === "[") {
+      var j = s.indexOf("]", i);
+      if (j < 0) return null;
+      var inner = s.slice(i + 1, j).trim();
+      if (inner === "*") segs.push("*");
+      else if (/^-?\d+$/.test(inner)) segs.push(+inner);
+      else if (/^["']/.test(inner)) { try { segs.push(JSON.parse(inner.replace(/^'(.*)'$/, function (_, x) { return JSON.stringify(x); }))); } catch (e) { return null; } }
+      else segs.push(inner);
+      i = j + 1; continue;
+    }
+    var k = i;
+    while (i < s.length && s.charAt(i) !== "." && s.charAt(i) !== "[") i++;
+    var seg = s.slice(k, i);
+    segs.push(/^\d+$/.test(seg) ? +seg : seg);
+  }
+  return segs;
+}
+function resolvePath(segs) {
+  var v = S.root;
+  for (var i = 0; i < segs.length; i++) {
+    if (segs[i] === "*") return undefined;
+    if (v === null || typeof v !== "object") return undefined;
+    v = v[segs[i]];
+  }
+  return v;
+}
+
+/* ===== kodlama ===== */
+function sniffBom(buf) {
+  var b = new Uint8Array(buf, 0, Math.min(4, buf.byteLength));
+  if (b[0] === 0xEF && b[1] === 0xBB && b[2] === 0xBF) return { enc: "utf-8", skip: 3, label: "UTF-8 (BOM)" };
+  if (b[0] === 0xFF && b[1] === 0xFE) return { enc: "utf-16le", skip: 2, label: "UTF-16 LE" };
+  if (b[0] === 0xFE && b[1] === 0xFF) return { enc: "utf-16be", skip: 2, label: "UTF-16 BE" };
+  return null;
+}
+function decodeBuffer(buf, choice) {
+  var bom = sniffBom(buf);
+  if (choice && choice !== "auto") {
+    var skip = bom && (choice === "utf-8" || choice.indexOf("utf-16") === 0) ? bom.skip : 0;
+    return { text: new TextDecoder(choice).decode(new Uint8Array(buf, skip)), label: choice };
+  }
+  if (bom) return { text: new TextDecoder(bom.enc).decode(new Uint8Array(buf, bom.skip)), label: bom.label };
+  try {
+    return { text: new TextDecoder("utf-8", { fatal: true }).decode(buf), label: "UTF-8" };
+  } catch (e) {
+    return { text: new TextDecoder("windows-1254").decode(buf), label: "Windows-1254 (tahmin)" };
+  }
+}
+
+/* ===== JSON / JSON Lines ayrıştırma ===== */
+function errorPos(msg, text) {
+  var m = /position\s+(\d+)/i.exec(msg);
+  if (!m) return "";
+  var pos = +m[1], line = 1, col = 1;
+  for (var i = 0; i < pos && i < text.length; i++) { if (text.charCodeAt(i) === 10) { line++; col = 1; } else col++; }
+  return " (satır " + nf.format(line) + ", sütun " + nf.format(col) + ")";
+}
+function looksLikeJsonl(text) {
+  var head = text.slice(0, 200000), lines = head.split(/\r?\n/), seen = 0, ok = 0;
+  for (var i = 0; i < lines.length && seen < 3; i++) {
+    var l = lines[i].trim();
+    if (!l) continue;
+    seen++;
+    try { JSON.parse(l); ok++; } catch (e) { if (i === lines.length - 1) seen--; }
+  }
+  return seen >= 2 && ok === seen;
+}
+function parseJsonlChunk(text, st, deadline) {
+  var len = text.length, i = st.i, guard = 0;
+  while (i < len) {
+    var nl = text.indexOf("\n", i);
+    if (nl < 0) nl = len;
+    var line = text.slice(i, nl).trim();
+    st.line++;
+    if (line) {
+      try { st.rows.push(JSON.parse(line)); }
+      catch (e) { st.bad.push({ line: st.line, msg: e.message }); }
+    }
+    i = nl + 1;
+    if (deadline && (++guard & 255) === 0 && performance.now() > deadline) { st.i = i; return false; }
+  }
+  st.i = len;
+  return true;
+}
+function countBigInts(v, acc, depth) {
+  if (depth > 40) return;
+  if (typeof v === "number") { if (Number.isInteger(v) && Math.abs(v) > Number.MAX_SAFE_INTEGER) acc.n++; return; }
+  if (v === null || typeof v !== "object") return;
+  if (Array.isArray(v)) { for (var i = 0; i < v.length; i++) countBigInts(v[i], acc, depth + 1); }
+  else for (var k in v) if (Object.prototype.hasOwnProperty.call(v, k)) countBigInts(v[k], acc, depth + 1);
+}
+
+/* ===== tablo kaynakları (dizi / nesne adayları) ===== */
+function classifyArray(arr) {
+  var objs = 0, arrs = 0, prims = 0, keys = 0, n = Math.min(arr.length, 2000);
+  for (var i = 0; i < n; i++) {
+    var v = arr[i];
+    if (isObj(v)) { objs++; keys += Object.keys(v).length; }
+    else if (Array.isArray(v)) arrs++;
+    else prims++;
+  }
+  if (objs === n) return { kind: "objects", cols: Math.max(1, Math.round(keys / n)) };
+  if (arrs === n) return { kind: "arrays", cols: Array.isArray(arr[0]) ? arr[0].length : 1 };
+  if (prims === n) return { kind: "primitives", cols: 1 };
+  return { kind: "mixed", cols: Math.max(1, Math.round(keys / Math.max(1, objs)) + 1) };
+}
+function findSources(root) {
+  var out = [], seen = new Set();
+  function add(src) {
+    if (out.length >= MAX_CANDIDATES) return;
+    var key = pathStr(src.segs);
+    if (seen.has(key)) return;
+    seen.add(key);
+    out.push(src);
+  }
+  function walk(v, segs, depth, parentLen) {
+    if (out.length >= MAX_CANDIDATES || depth > 10) return;
+    if (Array.isArray(v)) {
+      if (v.length) {
+        var c = classifyArray(v);
+        var perElem = parentLen > 0;
+        if (!perElem || (parentLen <= 3 && (c.kind === "objects" || c.kind === "mixed")))
+          add({ segs: segs.slice(), kind: c.kind, rows: v.length, cols: c.cols, score: v.length * c.cols * (c.kind === "objects" ? 4 : c.kind === "arrays" ? 2 : 1) });
+        if (c.kind === "objects" || c.kind === "mixed") {
+          var merged = {}, lim = Math.min(v.length, MAX_SCAN_ELEMS);
+          for (var i = 0; i < lim; i++) {
+            var el = v[i];
+            if (!isObj(el)) continue;
+            for (var k in el) if (Object.prototype.hasOwnProperty.call(el, k)) {
+              var cv = el[k];
+              if (Array.isArray(cv) && cv.length) {
+                var cc = classifyArray(cv);
+                if (!merged[k]) merged[k] = { rows: 0, cols: 0, n: 0, kinds: {} };
+                merged[k].rows += cv.length; merged[k].cols += cc.cols; merged[k].n++; merged[k].kinds[cc.kind] = 1;
+              }
+            }
+          }
+          for (var mk in merged) if (v.length > 1) {
+            var m = merged[mk], kinds = Object.keys(m.kinds);
+            var kind = kinds.length === 1 ? kinds[0] : "mixed";
+            add({ segs: segs.concat(["*", mk]), kind: "merged", sub: kind, rows: m.rows, cols: Math.round(m.cols / m.n) + 1, score: m.rows * (m.cols / m.n) * (kind === "objects" ? 3 : 0.5) });
+          }
+        }
+        for (var j = 0; j < Math.min(v.length, MAX_SCAN_ELEMS); j++) walk(v[j], segs.concat([j]), depth + 1, v.length);
+      }
+    } else if (isObj(v)) {
+      var ks = Object.keys(v);
+      if (ks.length) {
+        var allObj = ks.length >= 2, cols = 0;
+        for (var a = 0; a < ks.length; a++) { if (!isObj(v[ks[a]])) { allObj = false; break; } cols += Object.keys(v[ks[a]]).length; }
+        if (allObj && !(parentLen > 3)) add({ segs: segs.slice(), kind: "keyed", rows: ks.length, cols: Math.round(cols / ks.length) + 1, score: ks.length * (cols / ks.length) * 3 });
+        if (depth <= 1 && !parentLen) add({ segs: segs.slice(), kind: "object", rows: ks.length, cols: 3, score: ks.length * 0.5 });
+        for (var b = 0; b < ks.length; b++) walk(v[ks[b]], segs.concat([ks[b]]), depth + 1, parentLen > 3 ? parentLen : 0);
+      }
+    }
+  }
+  walk(root, [], 0, 0);
+  if (!out.length) out.push({ segs: [], kind: "object", rows: 1, cols: 3, score: 0 });
+  return out;
+}
+function kindName(src) { return src.kind === "merged" ? "birleşik " + KIND_NAME[src.sub || "objects"] : KIND_NAME[src.kind]; }
+function sourceFor(segs) {
+  var key = pathStr(segs);
+  for (var i = 0; i < S.sources.length; i++) if (pathStr(S.sources[i].segs) === key) return i;
+  var v = resolvePath(segs), src;
+  if (Array.isArray(v)) { var c = classifyArray(v); src = { segs: segs.slice(), kind: v.length ? c.kind : "primitives", rows: v.length, cols: c.cols, score: 0 }; }
+  else if (isObj(v)) src = { segs: segs.slice(), kind: "object", rows: Object.keys(v).length, cols: 3, score: 0 };
+  else return -1;
+  S.sources.push(src);
+  return S.sources.length - 1;
+}
+function collectRows(src) {
+  var kind = src.kind, segs = src.segs, rows = [];
+  if (kind === "merged") {
+    var parentSegs = segs.slice(0, segs.length - 2), key = segs[segs.length - 1];
+    var parent = resolvePath(parentSegs) || [];
+    for (var i = 0; i < parent.length; i++) {
+      var el = parent[i];
+      if (!isObj(el) || !Array.isArray(el[key])) continue;
+      for (var j = 0; j < el[key].length; j++) rows.push({ parent: i, val: el[key][j] });
+    }
+    return rows;
+  }
+  var v = resolvePath(segs);
+  if (kind === "keyed") {
+    for (var k in v) if (Object.prototype.hasOwnProperty.call(v, k)) rows.push({ key: k, val: v[k] });
+    return rows;
+  }
+  if (kind === "object") {
+    for (var k2 in v) if (Object.prototype.hasOwnProperty.call(v, k2)) rows.push({ key: k2, val: v[k2], kv: true });
+    return rows;
+  }
+  if (!Array.isArray(v)) return rows;
+  for (var a = 0; a < v.length; a++) rows.push({ val: v[a] });
+  return rows;
+}
+function typeLabel(v) {
+  if (v === null) return "null";
+  if (Array.isArray(v)) return "dizi[" + v.length + "]";
+  if (typeof v === "object") return "nesne{" + Object.keys(v).length + "}";
+  return typeof v === "number" ? "sayı" : typeof v === "boolean" ? "boolean" : "metin";
+}
+function flattenInto(map, v, prefix, depth) {
+  for (var k in v) if (Object.prototype.hasOwnProperty.call(v, k)) {
+    var name = prefix ? prefix + "." + k : k, cv = v[k];
+    if (depth > 0 && isObj(cv) && Object.keys(cv).length) { flattenInto(map, cv, name, depth - 1); continue; }
+    if (depth > 0 && S.arrExpand && Array.isArray(cv) && cv.length && cv.length <= SMALL_ARRAY) {
+      for (var i = 0; i < cv.length; i++) {
+        var an = name + "[" + i + "]";
+        if (isObj(cv[i]) && Object.keys(cv[i]).length) flattenInto(map, cv[i], an, depth - 1);
+        else putKey(map, an, cv[i]);
+      }
+      continue;
+    }
+    putKey(map, name, cv);
+  }
+}
+function putKey(map, name, v) {
+  var n = name, i = 2;
+  while (Object.prototype.hasOwnProperty.call(map, n)) n = name + " (" + (i++) + ")";
+  map[n] = v;
+}
+function buildTable() {
+  var src = S.sources[S.srcIdx], items = collectRows(src);
+  var colIdx = {}, headers = [], rawRows = [], issues = [], orig = [];
+  function col(name) {
+    if (!Object.prototype.hasOwnProperty.call(colIdx, name)) { colIdx[name] = headers.length; headers.push(name); }
+    return colIdx[name];
+  }
+  if (src.kind === "merged") col("_ebeveyn");
+  if (src.kind === "keyed" || src.kind === "object") col("_anahtar");
+  if (src.kind === "object") { col("değer"); col("tip"); }
+  for (var r = 0; r < items.length; r++) {
+    var it = items[r], v = it.val, map = {};
+    if (it.parent != null) map["_ebeveyn"] = it.parent;
+    if (it.key != null) map["_anahtar"] = it.key;
+    if (it.kv) { map["değer"] = v; map["tip"] = typeLabel(v); }
+    else if (isObj(v)) {
+      if (S.depth > 0) flattenInto(map, v, "", S.depth); else for (var k in v) if (Object.prototype.hasOwnProperty.call(v, k)) putKey(map, k, v[k]);
+      if (!Object.keys(v).length) issues.push({ row: r + 1, what: "boş nesne" });
+    } else if (Array.isArray(v)) {
+      for (var a = 0; a < v.length; a++) map[String(a + 1)] = v[a];
+    } else {
+      map["değer"] = v;
+      if (src.kind === "objects" || src.kind === "mixed" || (src.kind === "merged" && src.sub === "objects")) issues.push({ row: r + 1, what: "nesne değil: " + typeLabel(v) });
+    }
+    var row = {};
+    for (var name in map) row[col(name)] = map[name];
+    rawRows.push(row);
+    orig.push(v);
+  }
+  var width = headers.length, data = new Array(rawRows.length), raw = new Array(rawRows.length);
+  for (var i = 0; i < rawRows.length; i++) {
+    var dr = new Array(width), rr = new Array(width), missing = 0, rowMap = rawRows[i];
+    for (var c = 0; c < width; c++) {
+      if (Object.prototype.hasOwnProperty.call(rowMap, c)) { rr[c] = rowMap[c]; dr[c] = cellStr(rr[c]); }
+      else { rr[c] = undefined; dr[c] = ""; missing++; }
+    }
+    if (missing && (src.kind === "objects" || (src.kind === "merged" && src.sub !== "primitives") || src.kind === "keyed" || src.kind === "mixed")) issues.push({ row: i + 1, what: missing + " alan eksik" });
+    data[i] = dr; raw[i] = rr;
+  }
+  issues.sort(function (a, b) { return a.row - b.row; });
+  S.headers = headers; S.data = data; S.raw = raw; S.orig = orig; S.issues = issues;
+}
+
+/* ===== tip çözümleme ===== */
+function toNumber(v, tr) {
+  if (!v) return NaN;
+  var s = v.trim();
+  if (!s) return NaN;
+  var neg = false;
+  if (s.charCodeAt(0) === 40 && s.charCodeAt(s.length - 1) === 41) { neg = true; s = s.slice(1, -1); }
+  s = s.replace(/[%\s\u00A0₺$€£₼]/g, "");
+  if (s[0] === "-" || s[0] === "+") { if (s[0] === "-") neg = !neg; s = s.slice(1); }
+  if (!/^[\d.,]+(?:[eE][-+]?\d+)?$/.test(s) || !/\d/.test(s)) return NaN;
+  var lc = s.lastIndexOf(","), ld = s.lastIndexOf(".");
+  if (lc > -1 && ld > -1) {
+    s = lc > ld ? s.replace(/\./g, "").replace(",", ".") : s.replace(/,/g, "");
+  } else if (lc > -1) {
+    var g = s.split(",");
+    var thousand = g.length > 1 && g[0].length <= 3 && g.slice(1).every(function (x) { return /^\d{3}$/.test(x); });
+    s = (thousand && !tr) || (thousand && g.length > 2) ? s.replace(/,/g, "") : s.replace(",", ".");
+  } else if (ld > -1) {
+    var g2 = s.split(".");
+    var th2 = g2.length > 1 && g2[0].length <= 3 && g2.slice(1).every(function (x) { return /^\d{3}$/.test(x); });
+    if (th2 && (tr || g2.length > 2)) s = s.replace(/\./g, "");
+  }
+  var n = parseFloat(s);
+  return isNaN(n) ? NaN : (neg ? -n : n);
+}
+function toDate(v, monthFirst) {
+  if (!v) return NaN;
+  var s = v.trim();
+  if (s.length < 6) return NaN;
+  var m = /^(\d{4})-(\d{1,2})-(\d{1,2})(?:[T ](\d{1,2}):(\d{2})(?::(\d{2}))?)?/.exec(s);
+  if (m) return Date.UTC(+m[1], +m[2] - 1, +m[3], +(m[4] || 0), +(m[5] || 0), +(m[6] || 0));
+  m = /^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})(?:[T ](\d{1,2}):(\d{2})(?::(\d{2}))?)?$/.exec(s);
+  if (m) {
+    var a = +m[1], b = +m[2], d = monthFirst ? b : a, mo = monthFirst ? a : b;
+    if (d > 31 || mo > 12 || d < 1 || mo < 1) return NaN;
+    return Date.UTC(+m[3], mo - 1, d, +(m[4] || 0), +(m[5] || 0), +(m[6] || 0));
+  }
+  return NaN;
+}
+function boolOf(v) {
+  if (typeof v === "boolean") return v;
+  var s = fold(String(v).trim());
+  if (!s) return null;
+  if (TRUE_SET.indexOf(s) > -1) return true;
+  if (FALSE_SET.indexOf(s) > -1) return false;
+  return null;
+}
+function detectColumn(col) {
+  var n = S.data.length, step = n > 4000 ? Math.ceil(n / 4000) : 1;
+  var seen = 0, num = 0, dat = 0, bol = 0, trHint = 0, enHint = 0, dayFirst = 0, monthFirst = 0, nat = 0, natB = 0, str = 0;
+  for (var i = 0; i < n; i += step) {
+    var rv = S.raw[i][col];
+    if (rv === undefined || rv === null || rv === "") continue;
+    if (typeof rv === "number") { nat++; seen++; if (seen > 600) break; continue; }
+    if (typeof rv === "boolean") { natB++; seen++; if (seen > 600) break; continue; }
+    if (typeof rv !== "string") { seen++; if (seen > 600) break; continue; }
+    var t = rv.trim();
+    if (!t) continue;
+    seen++; str++;
+    if (/^-?\d{1,3}(\.\d{3})+(,\d+)?$/.test(t) || /^-?\d+,\d+$/.test(t)) trHint++;
+    else if (/^-?\d{1,3}(,\d{3})+(\.\d+)?$/.test(t) || /^-?\d+\.\d+$/.test(t)) enHint++;
+    var dm = /^(\d{1,2})[.\/-](\d{1,2})[.\/-]\d{4}/.exec(t);
+    if (dm) { if (+dm[1] > 12) dayFirst++; else if (+dm[2] > 12) monthFirst++; }
+    if (seen > 600) break;
+  }
+  var tr = str > 0 && trHint > enHint;
+  var mf = monthFirst > dayFirst;
+  seen = 0;
+  for (var j = 0; j < n; j += step) {
+    var w = S.raw[j][col];
+    if (w === undefined || w === null || w === "") continue;
+    if (typeof w === "number") { seen++; num++; if (seen > 600) break; continue; }
+    if (typeof w === "boolean") { seen++; bol++; if (seen > 600) break; continue; }
+    if (typeof w !== "string" || !w.trim()) { if (typeof w !== "string") seen++; if (seen > 600) break; continue; }
+    seen++;
+    if (!isNaN(toNumber(w, tr))) num++;
+    if (!isNaN(toDate(w, mf))) dat++;
+    if (boolOf(w) !== null) bol++;
+    if (seen > 600) break;
+  }
+  var type = "text";
+  if (seen === 0) type = "text";
+  else if (dat / seen >= 0.9 && dat >= num) type = "date";
+  else if (num / seen >= 0.9) type = "number";
+  else if (bol / seen >= 0.95) type = "bool";
+  return { type: type, tr: tr, monthFirst: mf };
+}
+function keyArray(col) {
+  if (S.keys[col]) return S.keys[col];
+  var m = S.meta[col], n = S.data.length, arr = new Float64Array(n);
+  for (var i = 0; i < n; i++) {
+    var v = S.raw[i][col];
+    if (m.type === "number") arr[i] = typeof v === "number" ? v : toNumber(cellStr(v), m.tr);
+    else if (m.type === "date") arr[i] = typeof v === "number" ? v : toDate(cellStr(v), m.monthFirst);
+    else { var b = v === undefined || v === null ? null : boolOf(v); arr[i] = b === null ? NaN : (b ? 1 : 0); }
+  }
+  S.keys[col] = arr;
+  return arr;
+}
+function computeStats(col) {
+  var m = S.meta[col];
+  if (m.stats) return m.stats;
+  var n = S.data.length, empty = 0, uniq = new Map(), vals = null;
+  if (m.type === "number" || m.type === "date") vals = [];
+  for (var i = 0; i < n; i++) {
+    var v = S.data[i][col] || "";
+    if (!v.trim()) { empty++; continue; }
+    if (uniq.size < 60000) uniq.set(v, (uniq.get(v) || 0) + 1);
+    if (vals) { var k = keyArray(col)[i]; if (isFinite(k)) vals.push(k); }
+  }
+  var st = { empty: empty, filled: n - empty, unique: uniq.size, capped: uniq.size >= 60000 };
+  var top = Array.from(uniq.entries()).sort(function (a, b) { return b[1] - a[1]; }).slice(0, 8);
+  st.top = top;
+  if (vals && vals.length) {
+    vals.sort(function (a, b) { return a - b; });
+    var sum = 0;
+    for (var j = 0; j < vals.length; j++) sum += vals[j];
+    st.min = vals[0]; st.max = vals[vals.length - 1]; st.sum = sum; st.avg = sum / vals.length;
+    st.median = vals.length % 2 ? vals[(vals.length - 1) / 2] : (vals[vals.length / 2 - 1] + vals[vals.length / 2]) / 2;
+    if (m.type === "number") {
+      var B = 14, hist = new Array(B).fill(0), span = st.max - st.min;
+      for (var q = 0; q < vals.length; q++) {
+        var idx = span ? Math.min(B - 1, Math.floor((vals[q] - st.min) / span * B)) : 0;
+        hist[idx]++;
+      }
+      st.hist = hist; st.histMax = Math.max.apply(null, hist);
+    }
+  }
+  m.stats = st;
+  return st;
+}
+
+/* ===== yükleme ===== */
+function showLoading(txt, pct) {
+  $("loading").hidden = false;
+  $("loadText").textContent = txt;
+  $("loadBar").style.width = (pct == null ? 8 : pct) + "%";
+}
+function hideLoading() { $("loading").hidden = true; }
+
+function openFile(file) {
+  if (file.size > BIG_FILE && !confirm("Dosya " + fmtBytes(file.size) + ". Bu boyutta JSON tarayıcıyı zorlayabilir; yine de açılsın mı?")) return;
+  S.fileName = file.name; S.fileSize = file.size;
+  showLoading("Dosya okunuyor…", 5);
+  file.arrayBuffer().then(function (buf) {
+    S.buffer = buf;
+    S.encChoice = $("encSel").value;
+    return build();
+  }).catch(function (err) {
+    hideLoading();
+    alert("Dosya okunamadı: " + err.message);
+  });
+}
+function build() {
+  var t0 = performance.now();
+  showLoading("Çözümleniyor…", 15);
+  var dec = decodeBuffer(S.buffer, S.encChoice);
+  S.encUsed = dec.label;
+  var text = dec.text;
+  S.text = text;
+  return new Promise(function (resolve) {
+    setTimeout(function () {
+      var trimmed = text.replace(/^\s+/, "");
+      var jsonl = looksLikeJsonl(trimmed);
+      if (!jsonl) {
+        try {
+          S.root = JSON.parse(text);
+          S.format = "JSON";
+        } catch (e) {
+          if (trimmed.charAt(0) === "{" && /\n\s*\{/.test(trimmed.slice(1))) jsonl = true;
+          else { hideLoading(); alert("JSON okunamadı: " + e.message + errorPos(e.message, text)); resolve(); return; }
+        }
+      }
+      if (jsonl) {
+        var st = { i: 0, line: 0, rows: [], bad: [] }, len = text.length || 1;
+        (function step() {
+          var done = parseJsonlChunk(text, st, performance.now() + 40);
+          if (!done) { showLoading("Satırlar ayrıştırılıyor…", 15 + Math.round(st.i / len * 60)); setTimeout(step, 0); return; }
+          if (!st.rows.length) { hideLoading(); alert("JSON okunamadı: geçerli satır yok" + (st.bad.length ? " (ilk hata satır " + st.bad[0].line + ": " + st.bad[0].msg + ")" : "")); resolve(); return; }
+          S.root = st.rows; S.format = "JSON Lines"; S.jsonlBad = st.bad;
+          finishParse(t0); resolve();
+        })();
+        return;
+      }
+      S.jsonlBad = [];
+      finishParse(t0); resolve();
+    }, 0);
+  });
+}
+function finishParse(t0) {
+  showLoading("Tablolar aranıyor…", 80);
+  var acc = { n: 0 };
+  countBigInts(S.root, acc, 0);
+  S.bigInts = acc.n;
+  S.sources = findSources(S.root);
+  var best = 0;
+  for (var i = 1; i < S.sources.length; i++) if (S.sources[i].score > S.sources[best].score) best = i;
+  S.srcIdx = best;
+  S.depth = +$("depthSel").value; S.arrExpand = $("arrChk").checked;
+  S.hidden = {}; S.pinned = {}; S.widths = [];
+  fillSrcSel();
+  S.parseMs = Math.round(performance.now() - t0);
+  loadTable(true);
+}
+function fillSrcSel() {
+  var sel = $("srcSel"), html = "";
+  for (var i = 0; i < S.sources.length; i++) {
+    var s = S.sources[i];
+    html += '<option value="' + i + '"' + (i === S.srcIdx ? " selected" : "") + ">" + esc(pathStr(s.segs)) + " — " + nf.format(s.rows) + " satır · " + kindName(s) + "</option>";
+  }
+  sel.innerHTML = html;
+}
+function loadTable(fresh) {
+  var t0 = performance.now();
+  showLoading("Tablo kuruluyor…", 88);
+  buildTable();
+  S.meta = []; S.keys = {}; S.blob = null;
+  S.sorts = []; S.query = ""; S.filters = {};
+  if (fresh) { S.hidden = {}; S.pinned = {}; }
+  S.order = S.headers.map(function (_, i2) { return i2; });
+  $("q").value = "";
+  var width = S.headers.length;
+  for (var m = 0; m < width; m++) S.meta.push(detectColumn(m));
+  S.widths = S.headers.map(function (h2, i3) { return measureWidth(h2, i3); });
+  if (!fresh) S.parseMs = Math.round(performance.now() - t0);
+  document.body.classList.remove("no-file");
+  $("drop").hidden = true; $("workbench").hidden = false; $("options").hidden = false;
+  ["q", "colsBtn", "exportBtn", "treeBtn"].forEach(function (id) { $(id).disabled = false; });
+  applyView();
+  layout();
+  scroll.scrollTop = 0;
+  hideLoading();
+  announce(nf.format(S.data.length) + " satır yüklendi: " + pathStr(S.sources[S.srcIdx].segs));
+}
+function measureWidth(name, col) {
+  var max = name.length + 3, n = S.data.length, step = n > 300 ? Math.ceil(n / 300) : 1;
+  for (var i = 0; i < n; i += step) {
+    var v = S.data[i][col];
+    if (v && v.length > max) max = v.length;
+    if (max > 60) { max = 60; break; }
+  }
+  return Math.max(92, Math.min(420, Math.round(max * 7.3) + 26));
+}
+
+/* ===== görünüm (filtre + sıralama) ===== */
+function compileFilter(col, expr) {
+  var m = S.meta[col], raw = expr.trim();
+  if (!raw) return null;
+  if (m.type === "number" || m.type === "date") {
+    var keys = keyArray(col);
+    var range = /^(-?[\d.,]+)\s*\.\.\s*(-?[\d.,]+)$/.exec(raw);
+    if (range) {
+      var lo = toNumber(range[1], m.tr), hi = toNumber(range[2], m.tr);
+      if (m.type === "date") { lo = toDate(range[1], m.monthFirst); hi = toDate(range[2], m.monthFirst); }
+      if (isFinite(lo) && isFinite(hi)) return function (r) { var k = keys[r]; return isFinite(k) && k >= lo && k <= hi; };
+    }
+    var op = /^(>=|<=|!=|>|<|=)\s*(.+)$/.exec(raw);
+    if (op) {
+      var num = m.type === "date" ? toDate(op[2], m.monthFirst) : toNumber(op[2], m.tr);
+      if (isFinite(num)) {
+        var o = op[1];
+        return function (r) {
+          var k = keys[r];
+          if (!isFinite(k)) return false;
+          return o === ">" ? k > num : o === "<" ? k < num : o === ">=" ? k >= num
+            : o === "<=" ? k <= num : o === "=" ? k === num : k !== num;
+        };
+      }
+    }
+  }
+  if (raw === "*") return function (r) { return !!(S.data[r][col] || "").trim(); };
+  if (raw === "!*") return function (r) { return !(S.data[r][col] || "").trim(); };
+  if (raw === "null") return function (r) { return S.raw[r][col] === null; };
+  var q = fold(raw), neg = false;
+  if (q[0] === "!") { neg = true; q = q.slice(1); }
+  if (q[0] === "=") { var exact = q.slice(1); return function (r) { var hit = fold(S.data[r][col] || "") === exact; return neg ? !hit : hit; }; }
+  return function (r) {
+    var hit = fold(S.data[r][col] || "").indexOf(q) > -1;
+    return neg ? !hit : hit;
+  };
+}
+function buildBlob() {
+  if (S.blob) return S.blob;
+  var n = S.data.length, arr = new Array(n);
+  for (var i = 0; i < n; i++) arr[i] = fold(S.data[i].join("\u0001"));
+  S.blob = arr;
+  return arr;
+}
+function applyView() {
+  var preds = [], cols = Object.keys(S.filters);
+  for (var i = 0; i < cols.length; i++) {
+    var p = compileFilter(+cols[i], S.filters[cols[i]]);
+    if (p) preds.push(p);
+  }
+  var q = fold(S.query.trim()), blob = q ? buildBlob() : null;
+  var view = [], n = S.data.length;
+  outer: for (var r = 0; r < n; r++) {
+    if (q && blob[r].indexOf(q) < 0) continue;
+    for (var k = 0; k < preds.length; k++) if (!preds[k](r)) continue outer;
+    view.push(r);
+  }
+  S.view = view;
+  sortView();
+  S.cursor = { r: -1, c: -1 };
+  S.sel = [];
+  updateStatus();
+}
+function sortView() {
+  if (!S.sorts.length) return;
+  var specs = S.sorts.map(function (s) {
+    var m = S.meta[s.col];
+    return { col: s.col, dir: s.dir, num: m.type !== "text", keys: m.type !== "text" ? keyArray(s.col) : null };
+  });
+  S.view.sort(function (a, b) {
+    for (var i = 0; i < specs.length; i++) {
+      var s = specs[i], d = 0;
+      if (s.num) {
+        var ka = s.keys[a], kb = s.keys[b];
+        var na = !isFinite(ka), nb = !isFinite(kb);
+        if (na && nb) d = 0; else if (na) return 1; else if (nb) return -1;
+        else d = ka < kb ? -1 : ka > kb ? 1 : 0;
+      } else {
+        var va = S.data[a][s.col] || "", vb = S.data[b][s.col] || "";
+        if (!va && !vb) d = 0; else if (!va) return 1; else if (!vb) return -1;
+        else d = collator.compare(va, vb);
+      }
+      if (d) return s.dir === "asc" ? d : -d;
+    }
+    return a - b;
+  });
+}
+function toggleSort(col, additive) {
+  var idx = -1;
+  for (var i = 0; i < S.sorts.length; i++) if (S.sorts[i].col === col) idx = i;
+  if (!additive) {
+    var cur = idx > -1 ? S.sorts[idx] : null;
+    S.sorts = !cur ? [{ col: col, dir: "asc" }] : cur.dir === "asc" ? [{ col: col, dir: "desc" }] : [];
+  } else if (idx < 0) S.sorts.push({ col: col, dir: "asc" });
+  else if (S.sorts[idx].dir === "asc") S.sorts[idx].dir = "desc";
+  else S.sorts.splice(idx, 1);
+  S.view = S.view.slice();
+  S.sel = []; S.cursor = { r: -1, c: -1 };
+  if (S.sorts.length) sortView(); else applyView();
+  renderHead(); renderBody();
+  announce(S.sorts.length ? S.headers[col] + " sütununa göre sıralandı" : "Sıralama kaldırıldı");
+}
+
+/* ===== yerleşim ===== */
+function displayCols() {
+  var pinned = [], rest = [];
+  for (var i = 0; i < S.order.length; i++) {
+    var c = S.order[i];
+    if (S.hidden[c]) continue;
+    (S.pinned[c] ? pinned : rest).push(c);
+  }
+  return pinned.concat(rest);
+}
+function layout() {
+  var cols = displayCols(), html = '<col style="width:64px">', total = 64;
+  for (var i = 0; i < cols.length; i++) {
+    html += '<col style="width:' + S.widths[cols[i]] + 'px">';
+    total += S.widths[cols[i]];
+  }
+  cg.innerHTML = html;
+  tbl.style.width = total + "px";
+  tbl.setAttribute("aria-colcount", cols.length + 1);
+  tbl.setAttribute("aria-rowcount", S.view.length + 1);
+  document.documentElement.style.setProperty("--rowh", S.rowH + "px");
+  renderHead();
+  renderBody();
+}
+function pinOffsets(cols) {
+  var offs = {}, x = 64, pinCount = 0;
+  for (var i = 0; i < cols.length; i++) {
+    if (!S.pinned[cols[i]]) break;
+    offs[cols[i]] = x; x += S.widths[cols[i]]; pinCount = i + 1;
+  }
+  return { offs: offs, count: pinCount };
+}
+function renderHead() {
+  var cols = displayCols(), po = pinOffsets(cols);
+  var r1 = '<tr class="r-ruler"><th class="pin' + (po.count === 0 ? " last" : "") + '" style="left:0"></th>';
+  var r2 = '<tr class="r-head" aria-rowindex="1"><th class="pin' + (po.count === 0 ? " last" : "") + '" style="left:0" scope="col" aria-colindex="1"><div class="ruler"><span class="pct">#</span></div></th>';
+  var r3 = '<tr class="r-filter"><th class="pin' + (po.count === 0 ? " last" : "") + '" style="left:0"></th>';
+  for (var i = 0; i < cols.length; i++) {
+    var c = cols[i], m = S.meta[c], hue = "hue" + (c % HUES.length);
+    var isPin = !!S.pinned[c], last = isPin && i === po.count - 1;
+    var pinCls = (isPin ? " pin" : "") + (last ? " last" : "");
+    var pinStyle = isPin ? ' style="left:' + po.offs[c] + 'px"' : "";
+    var st = computeStats(c);
+    var ratio = S.data.length ? st.filled / S.data.length : 0;
+    var viz;
+    if (st.hist) {
+      var bars = "";
+      for (var b = 0; b < st.hist.length; b++) {
+        var h = st.histMax ? Math.max(1, Math.round(st.hist[b] / st.histMax * 12)) : 1;
+        bars += '<rect x="' + (b * 7) + '" y="' + (13 - h) + '" width="5" height="' + h + '" rx="1"></rect>';
+      }
+      viz = '<svg viewBox="0 0 ' + (st.hist.length * 7) + ' 14" preserveAspectRatio="none" aria-hidden="true">' + bars + "</svg>";
+    } else {
+      viz = '<span class="bar" aria-hidden="true"><i style="width:' + Math.round(ratio * 100) + '%"></i></span>';
+    }
+    r1 += "<th class=\"" + hue + pinCls + "\"" + pinStyle + '><button class="rulerbtn" data-stat="' + c + '" title="' + esc(S.headers[c]) + " — " + TYPE_NAME[m.type] + ', istatistik için tıkla"><span class="ruler"><span class="glyph">' + TYPE_GLYPH[m.type] + "</span>" + viz + '<span class="pct">' + Math.round(ratio * 100) + "%</span></span></button></th>";
+
+    var srt = null, ord = 0;
+    for (var s = 0; s < S.sorts.length; s++) if (S.sorts[s].col === c) { srt = S.sorts[s]; ord = s + 1; }
+    var aria = srt ? (srt.dir === "asc" ? "ascending" : "descending") : "none";
+    r2 += "<th class=\"" + hue + pinCls + "\"" + pinStyle + ' scope="col" aria-colindex="' + (i + 2) + '" aria-sort="' + aria + '">' +
+      '<div class="wrap"><button class="sortbtn" data-sort="' + c + '" title="' + esc(S.headers[c]) + '"><span class="name">' + esc(S.headers[c]) + "</span>" +
+      (srt ? '<span class="dir">' + (srt.dir === "asc" ? "▲" : "▼") + "</span>" : "") +
+      (srt && S.sorts.length > 1 ? '<span class="ord">' + ord + "</span>" : "") +
+      '</button><span class="resizer" data-resize="' + c + '" role="separator" aria-hidden="true"></span></div></th>';
+
+    var ph = m.type === "number" ? ">100  10..20" : m.type === "date" ? ">01.01.2024" : m.type === "bool" ? "=true" : "içerir…";
+    r3 += "<th class=\"" + hue + pinCls + "\"" + pinStyle + '><input data-filter="' + c + '" value="' + esc(S.filters[c] || "") + '" placeholder="' + ph + '" aria-label="' + esc(S.headers[c]) + ' sütununu filtrele" autocomplete="off"></th>';
+  }
+  thead.innerHTML = r1 + "</tr>" + r2 + "</tr>" + r3 + "</tr>";
+}
+function renderBody() {
+  var cols = displayCols(), po = pinOffsets(cols), total = S.view.length, rowH = S.rowH;
+  var h = scroll.clientHeight || 620;
+  var first = Math.max(0, Math.floor(scroll.scrollTop / rowH) - OVER);
+  var count = Math.max(0, Math.min(total - first, Math.ceil(h / rowH) + OVER * 2));
+  var q = fold(S.query.trim());
+  var selMap = {};
+  for (var s = 0; s < S.sel.length; s++) selMap[S.sel[s].vi + ":" + S.sel[s].c] = 1;
+  var span = cols.length + 1, out = [];
+  if (first > 0) out.push('<tr class="spacer" aria-hidden="true"><td colspan="' + span + '" style="height:' + (first * rowH) + 'px"></td></tr>');
+  for (var k = 0; k < count; k++) {
+    var vi = first + k, r = S.view[vi];
+    out.push('<tr data-vi="' + vi + '" aria-rowindex="' + (vi + 2) + '"' + (vi % 2 ? ' class="alt"' : "") + ">");
+    out.push('<td class="rownum pin' + (po.count === 0 ? " last" : "") + '" style="left:0" aria-colindex="1">' + (r + 1) + "</td>");
+    for (var i = 0; i < cols.length; i++) {
+      var c = cols[i], m = S.meta[c], v = S.data[r][c] || "", rv = S.raw[r][c];
+      var isPin = !!S.pinned[c], last = isPin && i === po.count - 1;
+      var cls = "hue" + (c % HUES.length) + (m.type === "number" ? " num" : m.type === "bool" ? " bool" : "") +
+        (isPin ? " pin" : "") + (last ? " last" : "") +
+        (rv === null ? " nul" : v ? "" : " empty") +
+        (rv !== null && typeof rv === "object" ? " obj" : "") +
+        (selMap[vi + ":" + c] ? " sel" : "") +
+        (S.cursor.r === vi && S.cursor.c === i ? " cursor" : "");
+      var style = isPin ? ' style="left:' + po.offs[c] + 'px"' : "";
+      out.push("<td class=\"" + cls + "\"" + style + ' aria-colindex="' + (i + 2) + '" title="' + esc(v.length > 60 ? v.slice(0, 600) : "") + '">' + hilite(v, q) + "</td>");
+    }
+    out.push("</tr>");
+  }
+  var rest = total - first - count;
+  if (rest > 0) out.push('<tr class="spacer" aria-hidden="true"><td colspan="' + span + '" style="height:' + (rest * rowH) + 'px"></td></tr>');
+  tbody.innerHTML = out.join("");
+}
+function hilite(v, q) {
+  if (!v) return "";
+  if (!q) return esc(v);
+  var f = fold(v);
+  if (f.length !== v.length) return esc(v);
+  var i = f.indexOf(q);
+  if (i < 0) return esc(v);
+  var out = "", pos = 0;
+  while (i > -1) {
+    out += esc(v.slice(pos, i)) + "<mark>" + esc(v.slice(i, i + q.length)) + "</mark>";
+    pos = i + q.length;
+    i = f.indexOf(q, pos);
+  }
+  return out + esc(v.slice(pos));
+}
+function updateStatus() {
+  var n = S.data.length, v = S.view.length, src = S.sources[S.srcIdx];
+  $("countText").textContent = nf.format(v) + (v === n ? "" : " / " + nf.format(n)) + " satır × " + nf.format(displayCols().length) + " sütun";
+  $("qCount").textContent = S.query ? nf.format(v) : "";
+  $("encChip").innerHTML = "kodlama <b>" + esc(S.encUsed) + "</b>";
+  $("fmtChip").innerHTML = "biçim <b>" + esc(S.format) + "</b>";
+  $("srcChip").innerHTML = "tablo <b>" + esc(pathStr(src.segs)) + "</b>";
+  $("srcChip").title = pathStr(src.segs) + " · " + kindName(src);
+  $("sizeChip").innerHTML = "boyut <b>" + fmtBytes(S.fileSize) + "</b>";
+  $("timeChip").innerHTML = "ayrıştırma <b>" + S.parseMs + " ms</b>";
+  var ic = $("issueChip"), bad = (S.jsonlBad || []).length, warnCount = S.issues.length + bad + (S.bigInts ? 1 : 0);
+  ic.hidden = !warnCount;
+  if (warnCount) {
+    var parts = [];
+    if (S.issues.length) parts.push(nf.format(S.issues.length) + " düzensiz satır");
+    if (bad) parts.push(nf.format(bad) + " bozuk satır");
+    if (S.bigInts) parts.push("büyük tamsayı");
+    ic.textContent = "⚠ " + parts.join(" · ");
+  }
+  $("fileChip").hidden = !S.fileName;
+  $("fileChip").textContent = S.fileName;
+  tbl.setAttribute("aria-rowcount", v + 1);
+}
+function announce(msg) { $("live").textContent = msg; }
+
+/* ===== dışa aktarma ===== */
+function selectionText() {
+  if (!S.sel.length) return "";
+  var cols = displayCols(), pos = {}, i;
+  for (i = 0; i < cols.length; i++) pos[cols[i]] = i;
+  var items = S.sel.filter(function (it) { return pos[it.c] !== undefined; });
+  if (!items.length) return "";
+  items.sort(function (a, b) { return a.vi - b.vi || pos[a.c] - pos[b.c]; });
+  var out = [], line = [], curVi = items[0].vi;
+  for (i = 0; i < items.length; i++) {
+    if (items[i].vi !== curVi) { out.push(line.join("\t")); line = []; curVi = items[i].vi; }
+    line.push(S.data[items[i].r][items[i].c] || "");
+  }
+  out.push(line.join("\t"));
+  return out.join("\n");
+}
+function copySelection() {
+  var text = selectionText();
+  if (!text.replace(/[\t\n]/g, "")) { flash(S.sel.length > 1 ? "Seçili hücreler boş — kopyalanacak değer yok" : "Boş hücre — kopyalanacak değer yok"); return; }
+  var msg = S.sel.length > 1
+    ? nf.format(S.sel.length) + " hücre kopyalandı"
+    : "Kopyalandı: " + (text.length > 40 ? text.slice(0, 40) + "…" : text);
+  copyText(text, msg);
+}
+function cellOut(v, d) {
+  if (v == null) v = "";
+  return /["\r\n]/.test(v) || v.indexOf(d) > -1 ? '"' + v.replace(/"/g, '""') + '"' : v;
+}
+function rowObject(r, cols) {
+  var o = {};
+  for (var k = 0; k < cols.length; k++) {
+    var rv = S.raw[r][cols[k]];
+    o[S.headers[cols[k]]] = rv === undefined ? null : rv;
+  }
+  return o;
+}
+function buildText(kind) {
+  var cols = displayCols(), i, k;
+  if (kind === "json") {
+    var arr = [];
+    for (i = 0; i < S.view.length; i++) arr.push(rowObject(S.view[i], cols));
+    return JSON.stringify(arr, null, 2);
+  }
+  if (kind === "jsonl") {
+    var ls = [];
+    for (i = 0; i < S.view.length; i++) ls.push(JSON.stringify(rowObject(S.view[i], cols)));
+    return ls.join("\n") + "\n";
+  }
+  var d = kind === "tsv" ? "\t" : ";";
+  var lines = [cols.map(function (c) { return cellOut(S.headers[c], d); }).join(d)];
+  for (i = 0; i < S.view.length; i++) {
+    var row = [];
+    for (k = 0; k < cols.length; k++) row.push(cellOut(S.data[S.view[i]][cols[k]], d));
+    lines.push(row.join(d));
+  }
+  return lines.join("\r\n");
+}
+function download(kind) {
+  var text = buildText(kind);
+  var base = (S.fileName || "veri").replace(/\.[^.]+$/, "");
+  var ext = kind === "json" ? ".json" : kind === "jsonl" ? ".jsonl" : kind === "tsv" ? ".tsv" : ".csv";
+  var mime = kind === "json" ? "application/json" : kind === "jsonl" ? "application/x-ndjson" : "text/csv";
+  var parts = kind === "json" || kind === "jsonl" ? [text] : [new Uint8Array([0xEF, 0xBB, 0xBF]), text];
+  var url = URL.createObjectURL(new Blob(parts, { type: mime + ";charset=utf-8" }));
+  var a = document.createElement("a");
+  a.href = url; a.download = base + "-filtreli" + ext;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+  announce(ext + " indirildi");
+}
+function copyText(text, msg) {
+  var done = function () { announce(msg); flash(msg); };
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(done, function () { legacyCopy(text); done(); });
+  } else { legacyCopy(text); done(); }
+}
+function legacyCopy(text) {
+  var ta = document.createElement("textarea");
+  ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand("copy"); } catch (e) { /* pano engellendi */ }
+  ta.remove();
+}
+var flashTimer = null;
+function flash(msg) {
+  var el = $("countText");
+  if (!el) return;
+  clearTimeout(flashTimer);
+  var old = el.textContent;
+  el.textContent = msg;
+  flashTimer = setTimeout(function () { updateStatus(); }, 1600);
+}
+
+/* ===== diyaloglar ===== */
+function openDlg(d) { if (d.showModal) { try { d.showModal(); } catch (e) { d.setAttribute("open", ""); } } else d.setAttribute("open", ""); }
+function openStat(col) {
+  var m = S.meta[col], st = computeStats(col), n = S.data.length;
+  $("statTitle").textContent = S.headers[col];
+  var rows = [
+    ["tip", TYPE_NAME[m.type]],
+    ["dolu", nf.format(st.filled) + " (%" + Math.round(st.filled / (n || 1) * 100) + ")"],
+    ["boş", nf.format(st.empty)],
+    ["benzersiz", (st.capped ? "60.000+" : nf.format(st.unique))]
+  ];
+  if (st.min != null) {
+    var f = m.type === "date" ? fmtDate : fmtNum;
+    rows.push(["en küçük", f(st.min)], ["en büyük", f(st.max)], ["ortanca", f(st.median)]);
+    if (m.type === "number") rows.push(["ortalama", fmtNum(st.avg)], ["toplam", fmtNum(st.sum)]);
+  }
+  var html = '<dl class="statgrid">';
+  for (var i = 0; i < rows.length; i++) html += "<dt>" + rows[i][0] + "</dt><dd>" + esc(String(rows[i][1])) + "</dd>";
+  html += "</dl>";
+  if (st.top.length) {
+    html += '<div class="toplist"><strong style="font-family:var(--ui)">En sık değerler</strong>';
+    var maxc = st.top[0][1];
+    for (var t = 0; t < st.top.length; t++) {
+      var val = st.top[t][0], cnt = st.top[t][1];
+      html += '<div class="t"><span>' + esc(val.length > 42 ? val.slice(0, 42) + "…" : val) + "</span><span>" + nf.format(cnt) + '</span><span class="b"><i style="width:' + Math.round(cnt / maxc * 100) + '%"></i></span></div>';
+    }
+    html += "</div>";
+  }
+  html += '<p style="color:var(--muted);font-size:12px;margin-top:16px">Sayılar filtreden bağımsız, tablonun tamamı üzerinden hesaplanır.</p>';
+  $("statBody").innerHTML = html;
+  openDlg($("statDlg"));
+}
+function openRow(vi) {
+  var r = S.view[vi];
+  if (r == null) return;
+  $("rowTitle").textContent = "Satır " + nf.format(r + 1);
+  var cols = displayCols(), html = "";
+  for (var i = 0; i < cols.length; i++) {
+    var v = S.data[r][cols[i]] || "", rv = S.raw[r][cols[i]];
+    var shown = rv !== null && typeof rv === "object" ? JSON.stringify(rv, null, 2) : v;
+    html += "<dt>" + esc(S.headers[cols[i]]) + "</dt><dd>" + (rv === null ? '<span style="color:var(--faint);font-style:italic">null</span>' : shown ? esc(shown) : '<span style="color:var(--faint)">—</span>') + "</dd>";
+  }
+  $("rowBody").innerHTML = html;
+  var pretty = JSON.stringify(S.orig[r], null, 2);
+  $("rowJson").textContent = pretty.length > 200000 ? pretty.slice(0, 200000) + "\n… (kısaltıldı)" : pretty;
+  $("rowDlg").dataset.row = r;
+  openDlg($("rowDlg"));
+}
+function renderCols() {
+  var html = "";
+  for (var i = 0; i < S.order.length; i++) {
+    var c = S.order[i], m = S.meta[c];
+    html += '<div class="cols-row hue' + (c % HUES.length) + '">' +
+      '<input type="checkbox" data-vis="' + c + '"' + (S.hidden[c] ? "" : " checked") + ' aria-label="' + esc(S.headers[c]) + ' sütununu göster">' +
+      '<span class="swatch"></span><span class="nm" title="' + esc(S.headers[c]) + '">' + esc(S.headers[c]) + '</span>' +
+      '<span class="ty">' + TYPE_NAME[m.type] + "</span>" +
+      '<button class="btn mini" data-pin="' + c + '" aria-pressed="' + (S.pinned[c] ? "true" : "false") + '">' + (S.pinned[c] ? "sabit" : "sabitle") + "</button>" +
+      '<button class="btn mini" data-stat2="' + c + '">istatistik</button></div>';
+  }
+  $("colsList").innerHTML = html;
+}
+
+/* ===== ağaç ===== */
+function summary(v) {
+  if (Array.isArray(v)) return "[" + nf.format(v.length) + "]";
+  if (isObj(v)) return "{" + nf.format(Object.keys(v).length) + "}";
+  return "";
+}
+function leafHtml(v) {
+  if (v === null) return '<span class="tv z">null</span>';
+  if (typeof v === "string") { var s = v.length > 160 ? v.slice(0, 160) + "…" : v; return '<span class="tv s">' + esc(JSON.stringify(s)) + "</span>"; }
+  if (typeof v === "number") return '<span class="tv n">' + esc(String(v)) + "</span>";
+  if (typeof v === "boolean") return '<span class="tv b">' + v + "</span>";
+  return '<span class="tv z">' + esc(String(v)) + "</span>";
+}
+function nodeHtml(key, v, segs) {
+  var container = v !== null && typeof v === "object";
+  var isCur = S.srcIdx > -1 && pathStr(S.sources[S.srcIdx].segs) === pathStr(segs);
+  var h = '<div class="tn' + (isCur ? " cur" : "") + '" data-p="' + esc(JSON.stringify(segs)) + '">' +
+    '<button class="tw' + (container && (Array.isArray(v) ? v.length : Object.keys(v).length) ? "" : " leaf") + '" aria-label="aç/kapat">▸</button>' +
+    '<span class="tk">' + esc(key) + (container ? "" : ":") + "</span>";
+  if (container) {
+    h += '<span class="tsum">' + summary(v) + "</span>";
+    if (Array.isArray(v) ? v.length : Object.keys(v).length) h += '<button class="btn mini" data-mk>tablo yap</button>';
+  } else h += leafHtml(v);
+  h += "</div>";
+  if (container) h += '<div class="tc" hidden></div>';
+  return h;
+}
+function childrenHtml(v, segs, from) {
+  var h = "", keys = Array.isArray(v) ? null : Object.keys(v), n = keys ? keys.length : v.length, to = Math.min(n, from + TREE_PAGE);
+  for (var i = from; i < to; i++) {
+    var k = keys ? keys[i] : i;
+    h += nodeHtml(keys ? k : "[" + i + "]", v[k], segs.concat([k]));
+  }
+  if (to < n) h += '<button class="btn mini tmore" data-more="' + to + '">' + nf.format(n - to) + " öğe daha…</button>";
+  return h;
+}
+function renderTree() {
+  $("treeRoot").innerHTML = nodeHtml("(kök)", S.root, []);
+  var first = $("treeRoot").querySelector(".tn");
+  if (first) expandNode(first, true);
+  S.treeCur = [];
+  $("pathBox").value = "";
+  revealPath(S.sources[S.srcIdx].segs);
+}
+function expandNode(tn, open) {
+  var tc = tn.nextElementSibling, tw = tn.querySelector(".tw");
+  if (!tc || !tc.classList.contains("tc")) return;
+  var segs = JSON.parse(tn.dataset.p);
+  if (open == null) open = tc.hidden;
+  if (open && !tc.dataset.built) { tc.innerHTML = childrenHtml(resolvePath(segs), segs, 0); tc.dataset.built = "1"; }
+  tc.hidden = !open;
+  tw.textContent = open ? "▾" : "▸";
+}
+function revealPath(segs) {
+  var tn = $("treeRoot").querySelector(".tn"), i;
+  if (!tn) return null;
+  for (i = 0; i < segs.length; i++) {
+    if (segs[i] === "*") break;
+    expandNode(tn, true);
+    var tc = tn.nextElementSibling, want = JSON.stringify(segs.slice(0, i + 1)), next = null;
+    var kids = tc.querySelectorAll(":scope > .tn");
+    for (var k = 0; k < kids.length; k++) if (kids[k].dataset.p === want) { next = kids[k]; break; }
+    while (!next) {
+      var more = tc.querySelector(":scope > [data-more]");
+      if (!more) break;
+      loadMore(more);
+      kids = tc.querySelectorAll(":scope > .tn");
+      for (var k2 = 0; k2 < kids.length; k2++) if (kids[k2].dataset.p === want) { next = kids[k2]; break; }
+    }
+    if (!next) break;
+    tn = next;
+  }
+  var old = $("treeRoot").querySelector(".tn.cur");
+  if (old) old.classList.remove("cur");
+  tn.classList.add("cur");
+  S.treeCur = JSON.parse(tn.dataset.p);
+  $("pathBox").value = pathStr(S.treeCur);
+  tn.scrollIntoView({ block: "center" });
+  return tn;
+}
+function loadMore(btn) {
+  var tc = btn.parentNode, segs = JSON.parse(tc.previousElementSibling.dataset.p), from = +btn.dataset.more;
+  var tmp = document.createElement("div");
+  tmp.innerHTML = childrenHtml(resolvePath(segs), segs, from);
+  btn.remove();
+  while (tmp.firstChild) tc.appendChild(tmp.firstChild);
+}
+function makeTableFrom(segs) {
+  var idx = sourceFor(segs);
+  if (idx < 0) { flash("Bu düğüm tablo yapılamaz"); return; }
+  S.srcIdx = idx;
+  fillSrcSel();
+  var d = $("treeDlg"); if (d.open) d.close();
+  loadTable(true);
+}
+
+/* ===== olaylar ===== */
+var rafPending = false;
+scroll.addEventListener("scroll", function () {
+  if (rafPending) return;
+  rafPending = true;
+  requestAnimationFrame(function () { rafPending = false; renderBody(); });
+}, { passive: true });
+
+thead.addEventListener("click", function (e) {
+  var sortBtn = e.target.closest ? e.target.closest("[data-sort]") : null;
+  if (sortBtn) { toggleSort(+sortBtn.dataset.sort, e.shiftKey); return; }
+  var statBtn = e.target.closest ? e.target.closest("[data-stat]") : null;
+  if (statBtn) openStat(+statBtn.dataset.stat);
+});
+var filterTimer = null;
+thead.addEventListener("input", function (e) {
+  var el = e.target;
+  if (!el.dataset || el.dataset.filter == null) return;
+  var col = +el.dataset.filter, val = el.value;
+  clearTimeout(filterTimer);
+  filterTimer = setTimeout(function () {
+    if (val.trim()) S.filters[col] = val; else delete S.filters[col];
+    applyView(); renderBody();
+    announce(nf.format(S.view.length) + " satır eşleşti");
+  }, 160);
+});
+tbody.addEventListener("click", function (e) {
+  var td = e.target.closest ? e.target.closest("td") : null;
+  if (!td || td.parentNode.classList.contains("spacer")) return;
+  var tr = td.parentNode, vi = +tr.dataset.vi;
+  if (td.classList.contains("rownum")) { openRow(vi); return; }
+  var idx = Array.prototype.indexOf.call(tr.children, td) - 1;
+  var col = displayCols()[idx], r = S.view[vi];
+  if (e.ctrlKey || e.metaKey) {
+    var found = -1;
+    for (var i = 0; i < S.sel.length; i++) if (S.sel[i].vi === vi && S.sel[i].c === col) found = i;
+    if (found > -1) S.sel.splice(found, 1); else S.sel.push({ vi: vi, r: r, c: col });
+  } else {
+    S.sel = [{ vi: vi, r: r, c: col }];
+  }
+  S.cursor = { r: vi, c: idx };
+  renderBody();
+  if (!S.sel.length) { flash("Seçim temizlendi"); return; }
+  copySelection();
+});
+
+var qTimer = null;
+$("q").addEventListener("input", function (e) {
+  var val = e.target.value;
+  clearTimeout(qTimer);
+  qTimer = setTimeout(function () {
+    S.query = val;
+    applyView(); renderBody();
+    announce(nf.format(S.view.length) + " satır eşleşti");
+  }, 180);
+});
+
+$("pickBtn").addEventListener("click", function () { $("fileInput").click(); });
+$("newFileBtn").addEventListener("click", function () { $("fileInput").click(); });
+$("fileInput").addEventListener("change", function (e) {
+  if (e.target.files && e.target.files[0]) openFile(e.target.files[0]);
+  e.target.value = "";
+});
+$("demoBtn").addEventListener("click", function () {
+  var text = demoJSON();
+  var bytes = new TextEncoder().encode(text);
+  S.fileName = "ornek-veri.json"; S.fileSize = bytes.length; S.buffer = bytes.buffer;
+  S.encChoice = "auto";
+  build();
+});
+
+var dz = $("drop");
+["dragenter", "dragover"].forEach(function (t) {
+  document.addEventListener(t, function (e) { e.preventDefault(); dz.classList.add("hot"); });
+});
+["dragleave", "drop"].forEach(function (t) {
+  document.addEventListener(t, function (e) { e.preventDefault(); if (t === "dragleave" && e.relatedTarget) return; dz.classList.remove("hot"); });
+});
+document.addEventListener("drop", function (e) {
+  var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+  if (f) openFile(f);
+});
+
+$("encSel").addEventListener("change", function () { if (S.buffer) { S.encChoice = $("encSel").value; build(); } });
+$("srcSel").addEventListener("change", function () { if (S.root == null) return; S.srcIdx = +$("srcSel").value; loadTable(true); });
+$("depthSel").addEventListener("change", function () { S.depth = +$("depthSel").value; if (S.root != null) loadTable(false); });
+$("arrChk").addEventListener("change", function () { S.arrExpand = $("arrChk").checked; if (S.root != null) loadTable(false); });
+$("densSel").addEventListener("change", function () { S.rowH = +$("densSel").value; layout(); });
+$("colorChk").addEventListener("change", function () {
+  S.colors = $("colorChk").checked;
+  document.body.classList.toggle("no-colors", !S.colors);
+});
+$("wrapChk").addEventListener("change", function () {
+  S.wrap = $("wrapChk").checked;
+  document.body.classList.toggle("wrapcells", S.wrap);
+  S.rowH = S.wrap ? Math.max(S.rowH, 44) : +$("densSel").value;
+  layout();
+});
+$("resetBtn").addEventListener("click", function () {
+  S.sorts = []; S.filters = {}; S.query = ""; $("q").value = "";
+  applyView(); layout();
+  announce("Sıralama ve filtreler sıfırlandı");
+});
+$("themeBtn").addEventListener("click", function () {
+  var cur = document.documentElement.dataset.theme;
+  var next = cur === "dark" ? "light" : cur === "light" ? "auto" : "dark";
+  document.documentElement.dataset.theme = next;
+  $("themeBtn").title = "Tema: " + (next === "auto" ? "sistem" : next === "dark" ? "koyu" : "açık");
+});
+
+$("colsBtn").addEventListener("click", function () { renderCols(); openDlg($("colsDlg")); });
+$("colsList").addEventListener("click", function (e) {
+  var t = e.target;
+  if (t.dataset.pin != null) {
+    var c = +t.dataset.pin;
+    if (S.pinned[c]) delete S.pinned[c]; else S.pinned[c] = true;
+    renderCols(); layout(); return;
+  }
+  if (t.dataset.stat2 != null) { openStat(+t.dataset.stat2); }
+});
+$("colsList").addEventListener("change", function (e) {
+  var t = e.target;
+  if (t.dataset.vis == null) return;
+  var c = +t.dataset.vis;
+  if (t.checked) delete S.hidden[c]; else S.hidden[c] = true;
+  layout(); updateStatus();
+});
+$("showAllBtn").addEventListener("click", function () { S.hidden = {}; renderCols(); layout(); updateStatus(); });
+
+$("treeBtn").addEventListener("click", function () { openDlg($("treeDlg")); renderTree(); });
+$("treeRoot").addEventListener("click", function (e) {
+  var mk = e.target.closest ? e.target.closest("[data-mk]") : null;
+  if (mk) { makeTableFrom(JSON.parse(mk.closest(".tn").dataset.p)); return; }
+  var more = e.target.closest ? e.target.closest("[data-more]") : null;
+  if (more) { loadMore(more); return; }
+  var tn = e.target.closest ? e.target.closest(".tn") : null;
+  if (!tn) return;
+  var old = $("treeRoot").querySelector(".tn.cur");
+  if (old) old.classList.remove("cur");
+  tn.classList.add("cur");
+  S.treeCur = JSON.parse(tn.dataset.p);
+  $("pathBox").value = pathStr(S.treeCur);
+  expandNode(tn);
+});
+$("pathGoBtn").addEventListener("click", function () {
+  var segs = parsePath($("pathBox").value);
+  if (!segs || resolvePath(segs) === undefined) { flash("Yol bulunamadı: " + $("pathBox").value); $("pathBox").focus(); return; }
+  revealPath(segs);
+});
+$("pathBox").addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); $("pathGoBtn").click(); } });
+$("treeCopyBtn").addEventListener("click", function () {
+  var v = resolvePath(S.treeCur || []);
+  var text = JSON.stringify(v, null, 2);
+  if (text == null) { flash("Düğüm bulunamadı"); return; }
+  copyText(text, "Kopyalandı: " + pathStr(S.treeCur || []) + " (" + fmtBytes(text.length) + ")");
+});
+
+$("exportBtn").addEventListener("click", function () {
+  var pop = $("exportPop");
+  pop.hidden = !pop.hidden;
+  $("exportBtn").setAttribute("aria-expanded", String(!pop.hidden));
+});
+document.addEventListener("click", function (e) {
+  if (!e.target.closest || !e.target.closest(".menu")) {
+    $("exportPop").hidden = true;
+    $("exportBtn").setAttribute("aria-expanded", "false");
+  }
+});
+$("exportPop").addEventListener("click", function (e) {
+  var b = e.target.closest ? e.target.closest("[data-x]") : null;
+  if (!b) return;
+  $("exportPop").hidden = true;
+  if (b.dataset.x === "clip") copyText(buildText("tsv"), "Pano: " + nf.format(S.view.length) + " satır");
+  else download(b.dataset.x);
+});
+$("issueChip").addEventListener("click", function () {
+  var intro = [], html = "", bad = S.jsonlBad || [];
+  if (S.issues.length) intro.push("Sütun birleşimiyle uyuşmayan " + nf.format(S.issues.length) + " satır bulundu. Eksik alanlar boş bırakıldı; veri kaybı yok.");
+  if (bad.length) intro.push(nf.format(bad.length) + " satır geçerli JSON değil ve atlandı.");
+  if (S.bigInts) intro.push(nf.format(S.bigInts) + " tamsayı 2^53'ten büyük: JavaScript bu değerleri yuvarlamış olabilir, hassas kimlikler için kaynak dosyaya bakın.");
+  $("issueIntro").textContent = intro.join(" ");
+  for (var i = 0; i < Math.min(200, S.issues.length); i++) html += "<div>satır " + nf.format(S.issues[i].row) + " → " + esc(S.issues[i].what) + "</div>";
+  if (S.issues.length > 200) html += "<div>… ve " + nf.format(S.issues.length - 200) + " tane daha</div>";
+  for (var j = 0; j < Math.min(100, bad.length); j++) html += "<div>dosya satırı " + nf.format(bad[j].line) + " → " + esc(bad[j].msg) + "</div>";
+  if (bad.length > 100) html += "<div>… ve " + nf.format(bad.length - 100) + " bozuk satır daha</div>";
+  $("issueList").innerHTML = html;
+  openDlg($("issueDlg"));
+});
+$("rowCopyBtn").addEventListener("click", function () {
+  var r = +$("rowDlg").dataset.row, cols = displayCols(), out = [];
+  for (var i = 0; i < cols.length; i++) out.push(S.headers[cols[i]] + ": " + (S.data[r][cols[i]] || ""));
+  copyText(out.join("\n"), "Satır kopyalandı");
+});
+$("rowJsonBtn").addEventListener("click", function () {
+  var r = +$("rowDlg").dataset.row;
+  copyText(JSON.stringify(S.orig[r], null, 2), "Satır JSON olarak kopyalandı");
+});
+document.addEventListener("click", function (e) {
+  var b = e.target.closest ? e.target.closest("[data-close]") : null;
+  if (b) { var d = b.closest("dialog"); if (d.close) d.close(); else d.removeAttribute("open"); }
+});
+
+/* sütun genişliği sürükleme */
+var drag = null;
+thead.addEventListener("pointerdown", function (e) {
+  var h = e.target.dataset && e.target.dataset.resize != null ? e.target : null;
+  if (!h) return;
+  e.preventDefault();
+  drag = { col: +h.dataset.resize, x: e.clientX, w: S.widths[+h.dataset.resize] };
+  h.setPointerCapture(e.pointerId);
+});
+thead.addEventListener("pointermove", function (e) {
+  if (!drag) return;
+  S.widths[drag.col] = Math.max(60, Math.min(900, drag.w + (e.clientX - drag.x)));
+  layout();
+});
+thead.addEventListener("pointerup", function () { drag = null; });
+thead.addEventListener("dblclick", function (e) {
+  var h = e.target.dataset && e.target.dataset.resize != null ? e.target : null;
+  if (!h) return;
+  var c = +h.dataset.resize;
+  S.widths[c] = measureWidth(S.headers[c], c);
+  layout();
+});
+
+/* klavye */
+document.addEventListener("keydown", function (e) {
+  var tag = (e.target.tagName || "").toLowerCase();
+  var typing = tag === "input" || tag === "select" || tag === "textarea";
+  var inDlg = !!(e.target.closest && e.target.closest("dialog[open]"));
+  if ((e.key === "f" && (e.ctrlKey || e.metaKey)) || (e.key === "/" && !typing)) {
+    e.preventDefault(); $("q").focus(); $("q").select(); return;
+  }
+  if (e.key === "c" && e.shiftKey && (e.ctrlKey || e.metaKey)) {
+    e.preventDefault(); copyText(buildText("tsv"), "Pano: " + nf.format(S.view.length) + " satır"); return;
+  }
+  if (e.key === "Escape" && typing && e.target.id === "q") { e.target.value = ""; S.query = ""; applyView(); renderBody(); return; }
+  if (typing || inDlg || !S.data.length) return;
+  var cols = displayCols(), moved = false;
+  var cur = S.cursor.r < 0 ? { r: Math.floor(scroll.scrollTop / S.rowH), c: 0 } : { r: S.cursor.r, c: S.cursor.c };
+  var page = Math.max(1, Math.floor((scroll.clientHeight || 620) / S.rowH) - 1);
+  switch (e.key) {
+    case "ArrowDown": cur.r++; moved = true; break;
+    case "ArrowUp": cur.r--; moved = true; break;
+    case "ArrowRight": cur.c++; moved = true; break;
+    case "ArrowLeft": cur.c--; moved = true; break;
+    case "PageDown": cur.r += page; moved = true; break;
+    case "PageUp": cur.r -= page; moved = true; break;
+    case "Home": if (e.ctrlKey) cur.r = 0; cur.c = 0; moved = true; break;
+    case "End": if (e.ctrlKey) cur.r = S.view.length - 1; cur.c = cols.length - 1; moved = true; break;
+    case "Enter": if (S.cursor.r > -1) { openRow(S.cursor.r); e.preventDefault(); } return;
+    case "c": if (e.ctrlKey || e.metaKey) { if (S.sel.length) copySelection(); } return;
+    case "Escape": if (S.sel.length) { S.sel = []; renderBody(); flash("Seçim temizlendi"); } return;
+    default: return;
+  }
+  if (!moved) return;
+  e.preventDefault();
+  cur.r = Math.max(0, Math.min(S.view.length - 1, cur.r));
+  cur.c = Math.max(0, Math.min(cols.length - 1, cur.c));
+  S.cursor = cur;
+  S.sel = [{ vi: cur.r, r: S.view[cur.r], c: cols[cur.c] }];
+  var top = cur.r * S.rowH, bottom = top + S.rowH, vh = scroll.clientHeight || 620;
+  if (top < scroll.scrollTop) scroll.scrollTop = top;
+  else if (bottom > scroll.scrollTop + vh) scroll.scrollTop = bottom - vh;
+  renderBody();
+});
+
+window.addEventListener("resize", function () { renderBody(); });
+
+/* ===== örnek veri ===== */
+function demoJSON() {
+  var ilce = ["Kadıköy", "Beşiktaş", "Şişli", "Üsküdar", "Bakırköy", "Ataşehir", "Beyoğlu", "Maltepe"];
+  var kanal = ["Mağaza", "Online", "Bayi", "Kurumsal"];
+  var urun = ["Kablosuz kulaklık", "Ergonomik sandalye", "USB-C hub", 'Monitör 27"', "Mekanik klavye", "Dizüstü standı"];
+  var musteri = ["Ayşe Yılmaz", "Mehmet Öztürk", "Zeynep Çakır", "Burak Şahin", "Elif Güneş", "Onur Kılıç"];
+  var seed = 7;
+  function rnd() { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; }
+  var siparisler = [];
+  for (var i = 1; i <= 420; i++) {
+    var adet = 1 + Math.floor(rnd() * 12);
+    var fiyat = Math.round((180 + rnd() * 4200) * 100) / 100;
+    var gun = 1 + Math.floor(rnd() * 28), ay = 1 + Math.floor(rnd() * 12);
+    var o = {
+      siparis_no: "SP-" + (10230 + i),
+      musteri: { ad: musteri[i % 6], ilce: ilce[i % ilce.length], vip: i % 9 === 0 },
+      kanal: kanal[i % kanal.length],
+      urun: urun[i % urun.length],
+      adet: adet, birim_fiyat: fiyat, toplam: Math.round(adet * fiyat * 100) / 100,
+      tarih: "2026-" + (ay < 10 ? "0" : "") + ay + "-" + (gun < 10 ? "0" : "") + gun,
+      teslim_edildi: rnd() > 0.35,
+      etiketler: i % 4 === 0 ? ["acele", "kapıda ödeme"] : i % 7 === 0 ? ["hediye"] : [],
+      not: i % 17 === 0 ? 'Müşteri notu: "acele", kapıda ödeme' : (i % 5 === 0 ? "Adres: Çınar sok. 12/3, kat 4" : null)
+    };
+    siparisler.push(o);
+  }
+  siparisler.push({ siparis_no: "SP-99999", musteri: { ad: "Çok Satırlı A.Ş.", ilce: "Kadıköy" }, kanal: "Kurumsal", urun: "Sunum ekranı\n(2. satır)", adet: 3, birim_fiyat: 1250, toplam: 3750, tarih: "2026-03-15", teslim_edildi: true, etiketler: [], not: "Çöğüş işini böyle yapmışsın 🎬" });
+  var doc = {
+    schema_version: "1.0",
+    uretim: { arac: "Tablo Tezgâhı örnek", zaman_utc: "2026-09-09T10:00:00+00:00", bolge: "TR" },
+    ozet: { siparis_sayisi: siparisler.length, kanal_sayisi: kanal.length, para_birimi: "TRY" },
+    kanallar: kanal.map(function (k, idx) {
+      return { ad: k, aktif: idx !== 3, hedef: 100000 * (idx + 1), aylik: [12, 18, 9, 21, 30, 25].map(function (x) { return x * (idx + 1); }) };
+    }),
+    siparisler: siparisler,
+    ayarlar: { "tema.varsayilan": "auto", tema: { varsayilan: "koyu" }, limitler: { satir: 500000, sutun: 400 } },
+    notlar: ["Bu örnek dosya, iç içe nesne ve dizilerin nasıl tabloya dönüştüğünü gösterir.", "Ağaç düğmesiyle diğer dizileri seçebilirsin."]
+  };
+  return JSON.stringify(doc, null, 2);
+}
+
+document.body.classList.toggle("no-colors", !S.colors);
+})();
+</script>
+</body>
+</html>
