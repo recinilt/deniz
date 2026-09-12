@@ -298,12 +298,7 @@
           <option value="local">Cihazdaki model — sesten algılar, tek seferlik indirme</option>
           <option value="gemini">Gemini — sesten algılar, anahtar ve internet ister</option>
         </select>
-        <button class="btn" id="dlLid">Cihaz modelini şimdi indir</button>
-        <label for="lidModel" style="margin-top:10px">Cihaz modeli boyutu</label>
-        <select id="lidModel">
-          <option value="tiny">Whisper tiny — küçük, hızlı, aksanlı konuşmada daha zayıf</option>
-          <option value="base">Whisper base — iki kat büyük ve yavaş, aksana daha dayanıklı</option>
-        </select>
+        <button class="btn" id="dlLid">Cihaz modelini şimdi indir (~38 MB)</button>
         <p class="note" id="lidNote"></p>
         <p class="note">Tarayıcının ses tanıması dili önceden ister ve sesten dil
         ayırt edemez. “Cihazdaki model” seçeneği her cümlenin ham sesini Whisper'a
@@ -383,12 +378,12 @@ function langLabel(code){
 const DEFAULTS = {
   v:2, a:"tr", b:"en", rate:1, voiceA:"", voiceB:"",
   endpoint:1200, confth:0.55, cont:0, prov:"auto", email:"", proxy:"",
-  gkey:"", gemkey:"", gemmodel:"gemini-3.6-flash", lid:"text", lidModel:"tiny"
+  gkey:"", gemkey:"", gemmodel:"gemini-3.6-flash", lid:"text"
 };
 
 // Cihazda çalışan dil algılama modeli (yalnız cfg.lid === "local" iken iner).
-const LID_CDN = "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3/dist/transformers.min.js";
-function lidModelId(){ return "Xenova/whisper-" + (cfg.lidModel === "base" ? "base" : "tiny"); }
+const LID_CDN   = "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3/dist/transformers.min.js";
+const LID_MODEL = "Xenova/whisper-tiny";
 
 let cfg = load();
 
@@ -544,14 +539,9 @@ function langScore(text, l){
 }
 // Dönüş: l1, l2 ya da "" (karar yok).
 function guessPair(text, l1, l2){
-  return guessPairDetail(text, l1, l2).lang;
-}
-// Dönüş: {lang, margin}. margin = iki dilin puan farkı; 2+ ise en az bir sık
-// kelime ya da birkaç dile özgü harf yakalanmış demektir.
-function guessPairDetail(text, l1, l2){
   const a = langScore(text, l1), b = langScore(text, l2);
-  if(a === b) return {lang:"", margin:0};
-  return {lang: a > b ? l1 : l2, margin: Math.abs(a - b)};
+  if(a === b) return "";
+  return a > b ? l1 : l2;
 }
 
 /* ============================ 4 · Çeviri katmanları ====================== */
@@ -740,8 +730,7 @@ function lidProgress(txt){
   if(el) el.textContent = txt;
 }
 
-// Ses klibini modelin istediği biçime getir: 16 kHz, tek kanal, Float32,
-// baştaki ve sondaki sessizlik atılmış.
+// Ses klibini modelin istediği biçime getir: 16 kHz, tek kanal, Float32.
 async function blobTo16kMono(blob){
   const buf = await blob.arrayBuffer();
   const Ctx = window.AudioContext || window.webkitAudioContext;
@@ -757,36 +746,11 @@ async function blobTo16kMono(blob){
   src.connect(off.destination);
   src.start();
   const out = await off.startRendering();
-  return trimSilence(out.getChannelData(0), target);
-}
-
-// Enerji tabanlı kırpma: 20 ms pencerelerde RMS ölç, tepe RMS'in %8'inin
-// üstündeki ilk ve son pencere arasını tut, iki yana 150 ms pay bırak.
-// Whisper sessizlik ağırlıklı pencerede dil tespitinde yanılıyor; bu yüzden
-// modele yalnız konuşulan kısım gidiyor. Sonra son 12 saniyeye indir.
-function trimSilence(data, sr){
-  const win = Math.round(sr * 0.02);
-  const n = Math.floor(data.length / win);
-  if(n < 3) return data;
-  const rms = new Float32Array(n);
-  let peak = 0;
-  for(let i = 0; i < n; i++){
-    let s = 0;
-    for(let j = i*win; j < (i+1)*win; j++) s += data[j]*data[j];
-    rms[i] = Math.sqrt(s / win);
-    if(rms[i] > peak) peak = rms[i];
-  }
-  if(peak < 1e-4) return data;              // tamamen sessiz: olduğu gibi ver
-  const th = peak * 0.08;
-  let first = 0, last = n - 1;
-  while(first < n && rms[first] < th) first++;
-  while(last > first && rms[last] < th) last--;
-  const pad = Math.round(sr * 0.15);
-  const a = Math.max(0, first*win - pad), b = Math.min(data.length, (last+1)*win + pad);
-  let seg = data.slice(a, b);
-  const maxLen = 12 * sr;
-  if(seg.length > maxLen) seg = seg.slice(seg.length - maxLen);
-  return seg;
+  const data = out.getChannelData(0);
+  // Whisper ilk 30 saniyeye bakar; konuşma klibin SONUNDADIR (öncesi bekleme
+  // sessizliği). Uzun klipte baştan değil sondan kes.
+  const maxLen = 12 * target;
+  return data.length > maxLen ? data.slice(data.length - maxLen) : data;
 }
 
 // Whisper'ın dil belirteçleri ("<|tr|>") sözlükte tek bir kimliğe karşılık gelir.
@@ -813,20 +777,12 @@ function lidTokenId(tok){
   return -1;
 }
 
-let lidDevice = "", lidLoadedId = "";
-
-// Model boyutu değişince yüklü olanı unut; bir sonraki kullanımda yenisi iner.
-function resetLID(){
-  lidModel = null; lidProc = null; lidTok = null; lidLoading = null; lidIds = {}; lidLoadedId = "";
-}
-
 async function loadLID(onProgress){
-  if(lidModel && lidLoadedId === lidModelId()) return true;
+  if(lidModel) return true;
   if(lidLoading) return lidLoading;
-  const modelId = lidModelId();
   lidLoading = (async () => {
     lidProgress("Kütüphane yükleniyor…");
-    lidLib = lidLib || await import(/* webpackIgnore: true */ LID_CDN);
+    lidLib = await import(/* webpackIgnore: true */ LID_CDN);
     const {env, AutoProcessor, AutoTokenizer, WhisperForConditionalGeneration} = lidLib;
     env.allowLocalModels = false;      // model yalnız Hugging Face'ten gelsin
 
@@ -834,13 +790,6 @@ async function loadLID(onProgress){
     try{
       if(navigator.gpu && await navigator.gpu.requestAdapter()) device = "webgpu";
     }catch(e){}
-    lidDevice = device;
-
-    // Hassasiyet cihaza göre: WebGPU'da q8 üç kat yavaş ve Whisper'da bozuk
-    // çıktı verebiliyor (kütüphane hata kaydı); orada fp16, WASM'da q8.
-    const dtype = device === "webgpu"
-      ? {encoder_model:"fp16", decoder_model_merged:"fp16"}
-      : {encoder_model:"q8",   decoder_model_merged:"q8"};
 
     const monitor = p => {
       if(p && p.status === "progress" && p.total){
@@ -851,15 +800,15 @@ async function loadLID(onProgress){
       }
     };
 
-    lidProc = await AutoProcessor.from_pretrained(modelId, {progress_callback:monitor});
-    lidTok  = await AutoTokenizer.from_pretrained(modelId, {progress_callback:monitor});
-    lidModel = await WhisperForConditionalGeneration.from_pretrained(modelId, {dtype, device, progress_callback:monitor});
-    lidIds = {};
+    lidProc = await AutoProcessor.from_pretrained(LID_MODEL, {progress_callback:monitor});
+    lidTok  = await AutoTokenizer.from_pretrained(LID_MODEL, {progress_callback:monitor});
+    lidModel = await WhisperForConditionalGeneration.from_pretrained(LID_MODEL, {
+      dtype:{encoder_model:"q8", decoder_model_merged:"q8"},
+      device, progress_callback:monitor
+    });
     lidIds.sot = lidTokenId("<|startoftranscript|>");
     if(lidIds.sot < 0) throw new Error("başlangıç belirteci bulunamadı");
-    lidLoadedId = modelId;
-    lidProgress("Model hazır: " + modelId.replace("Xenova/","") + " · " + device + " · "
-      + (device === "webgpu" ? "fp16" : "q8") + ". Bir kez indi, artık önbellekte.");
+    lidProgress("Model hazır (" + device + "). Bir kez indi, artık önbellekte.");
     return true;
   })().catch(e => {
     lidLoading = null; lidModel = null;
@@ -1155,13 +1104,12 @@ async function handleUtterance(text, conf, audioBlob){
 
   // Yol 1a — cihazdaki model: ham sesi Whisper'ın dil belirteçlerine karşı ölç.
   // İnternet, anahtar, kota yok; yalnız ilk kullanımda model iniyor.
-  let lidScore = 0;
   if(audioBlob && cfg.lid === "local"){
     setHint("Dil algılanıyor…");
     try{
       const r = await detectLangLocal(audioBlob, cfg.a, cfg.b);
-      lidLang = r.lang; lidScore = r.score;
-      lidTag = "cihazda " + r.ms + " ms · ayrım " + r.score.toFixed(2);
+      lidLang = r.lang;
+      lidTag = "cihazda " + r.ms + " ms";
     }catch(e){
       lidTag = "cihazda algılanamadı (" + (e && e.message ? e.message : "hata") + ")";
     }
@@ -1187,18 +1135,8 @@ async function handleUtterance(text, conf, audioBlob){
 
   // Yol 2 — metin tabanlı tahmin: cihazdaki dedektör/istatistik + tanıyıcı güveni.
   const d = caps.localDetect ? await localDetect(text) : "";
-  const gd = guessPairDetail(text, cfg.a, cfg.b);
-  const gTxt = (d === cfg.a || d === cfg.b) ? d : gd.lang;
-  const txtStrong = (d === cfg.a || d === cfg.b) || gd.margin >= 2;
-
-  // Birleştirme: ses kararı kesinse (ayrım ≥ 0,75) o kazanır. Kararsızsa ve
-  // metin güçlü bir şey söylüyorsa metin kazanır: "I'm fine" metnen kesin
-  // İngilizcedir, aksanlı seste Whisper'ın tereddüdü bunu ezmemeli.
-  if(lidLang && lidScore < 0.75 && gTxt && gTxt !== lidLang && txtStrong){
-    lidTag += " → metin: " + gTxt;
-    lidLang = "";
-  }
-  const g = lidLang || gTxt;     // sesten gelen kesin karar metin tahminini ezer
+  const gTxt = (d === cfg.a || d === cfg.b) ? d : guessPair(text, cfg.a, cfg.b);
+  const g = lidLang || gTxt;     // sesten gelen karar metin tahminini ezer
   const words = text.split(/\s+/).filter(Boolean).length;
   const lowConf = (typeof conf === "number") && conf < Number(cfg.confth || 0.55);
   const highConf = (typeof conf !== "number") || conf >= 0.8;
@@ -1572,11 +1510,6 @@ $("#dlLid").addEventListener("click", () => {
   $("#dlLid").disabled = true;
   loadLID().catch(()=>{}).finally(() => { $("#dlLid").disabled = !!lidModel; });
 });
-$("#lidModel").addEventListener("change", () => {
-  cfg.lidModel = $("#lidModel").value; save();
-  resetLID(); paintLID();
-  if(cfg.lid === "local") loadLID().catch(()=>{});
-});
 $("#rate").addEventListener("input", () => {
   cfg.rate = Number($("#rate").value);
   $("#rateVal").textContent = cfg.rate.toFixed(1).replace(".", ",");
@@ -1628,11 +1561,9 @@ function paintLID(){
     : "Gemini — önce aşağıya anahtar gir";
   if(cfg.lid === "gemini" && !cfg.gemkey) cfg.lid = "text";
   sel.value = cfg.lid;
-  $("#lidModel").value = (cfg.lidModel === "base") ? "base" : "tiny";
-  $("#lidModel").style.display = (cfg.lid === "local") ? "block" : "none";
   btn.style.display = (cfg.lid === "local") ? "block" : "none";
-  btn.disabled = !!lidModel && lidLoadedId === lidModelId();
-  if(cfg.lid === "local" && lidModel && lidLoadedId === lidModelId()) note.textContent = "Model hazır.";
+  btn.disabled = !!lidModel;
+  if(cfg.lid === "local" && lidModel) note.textContent = "Model hazır.";
   else if(cfg.lid !== "local") note.textContent = "";
 }
 
