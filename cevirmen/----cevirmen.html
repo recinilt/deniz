@@ -982,10 +982,6 @@ let rec = null;
 let recActive = false;     // tanıma oturumu şu an açık mı (start ile onEnd arası)
 let resultBase = 0;        // bu oturumda zaten tüketilmiş sonuç sayısı
 let lastResultsLen = 0;
-let turnGen = 0;           // stopAll artırır; uçuştaki tur bunu görünce kendini bırakır
-let recStartedAt = 0;      // startRec çağrı anı
-let recGotStart = false;   // Chrome "start" olayını gerçekten yolladı mı
-let lastAudioAt = 0;       // son ses/sonuç olayı (bekçi köpeği için)
 let running = false;       // kullanıcı dinlemeyi açtı
 let busy = false;          // çeviri/okuma sürüyor
 let listenLang = cfg.a;    // sıradaki dinleme dili
@@ -1081,29 +1077,8 @@ function ensureRec(){
   rec.onresult = onResult;
   rec.onerror  = onError;
   rec.onend    = onEnd;
-  rec.onstart  = () => { recGotStart = true; lastAudioAt = performance.now(); };
-  rec.onaudiostart = () => { lastAudioAt = performance.now(); };
-  rec.onsoundstart = () => { lastAudioAt = performance.now(); };
   return rec;
 }
-
-// Tanıma örneğini çöpe at ve sıfırdan başlat. Chrome bazen oturumu ne sonuç
-// ne "end" yollamadan askıda bırakıyor; tek çıkış yeni bir örnek.
-function recycleRec(why){
-  console.warn("tanıma yenileniyor:", why);
-  try{ rec && rec.abort(); }catch(e){}
-  rec = null; recActive = false; recGotStart = false;
-  clearTimeout(restartTimer);
-  if(running && !busy) restartTimer = setTimeout(startRec, 200);
-}
-
-// Bekçi köpeği: dinlediğini söyleyip dinlemeyen oturumu yakalar.
-setInterval(() => {
-  if(!running || busy || !recActive) return;
-  const now = performance.now();
-  if(!recGotStart && now - recStartedAt > 4000) recycleRec("4 sn içinde start olayı gelmedi");
-  else if(recGotStart && now - lastAudioAt > 90000) recycleRec("90 sn'dir hiç ses olayı yok");
-}, 1000);
 
 function startRec(){
   if(!SR || !running || busy) return;
@@ -1117,7 +1092,6 @@ function startRec(){
     r.lang = LANGS[listenLang].asr;
     if(caps.localAsr){ try{ r.processLocally = true; }catch(e){} }
     resultBase = 0; lastResultsLen = 0;
-    recGotStart = false; recStartedAt = performance.now(); lastAudioAt = recStartedAt;
     r.start();
     recActive = true;
     micBtn.classList.add("on");
@@ -1133,48 +1107,29 @@ function startRec(){
   }
 }
 
-// Android Chrome, aynı cümlenin büyüyen anlık görüntülerini ("how", "how old",
-// "how old are you") ayrı sonuç kayıtları olarak yollayabiliyor. Art arda
-// eklenince "how how old how old are you" çıkıyor. Yeni parça bir öncekinin
-// devamıysa (öncekiyle başlıyorsa) eklemek yerine onun yerine geçmeli.
-function mergeSnapshots(parts){
-  const out = [];
-  for(const raw of parts){
-    const p = String(raw || "").trim();
-    if(!p) continue;
-    const prev = out.length ? out[out.length - 1] : "";
-    if(prev && p.toLowerCase().startsWith(prev.toLowerCase())) out[out.length - 1] = p;
-    else if(prev && prev.toLowerCase().startsWith(p.toLowerCase())) { /* daha kısası: at */ }
-    else out.push(p);
-  }
-  return out.join(" ");
-}
-
 function onResult(ev){
   lastResultsLen = ev.results.length;
-  lastAudioAt = performance.now();
   // Okuma/çeviri sürerken gelen ses (kulaklık modunda hoparlör yankısı ya da
   // erken konuşma) bu tura ait değil: at ve tabanı ileri al, bir sonraki turla
   // birleşmesin.
   if(busy){ resultBase = ev.results.length; return; }
-  // Biriktirme yok: metin her seferinde oturumun tüketilmemiş kısmından
-  // sıfırdan kurulur; büyüyen anlık görüntüler mergeSnapshots'ta birleşir.
-  const finals = [], interims = [];
-  let conf = null;
+  // Biriktirme yok: Chrome Android aynı parçayı birden çok kez "final" olarak
+  // yolluyor; metni her seferinde oturumun tüketilmemiş kısmından sıfırdan kuruyoruz.
+  let final = "", interim = "", conf = null;
   for(let i = resultBase; i < ev.results.length; i++){
     const alt = ev.results[i][0];
     if(ev.results[i].isFinal){
-      finals.push(alt.transcript);
+      final += alt.transcript + " ";
       // Chrome Android confidence'ı genelde 0 döndürür: 0'ı "çok düşük güven"
       // sanmamak için yalnız gerçek değerleri sayıyoruz, yoksa bilinmiyor.
       if(typeof alt.confidence === "number" && alt.confidence > 0){
         confSupported = true;
         conf = (conf === null) ? alt.confidence : Math.min(conf, alt.confidence);
       }
-    }else interims.push(alt.transcript);
+    }else interim += alt.transcript;
   }
-  turnFinal = mergeSnapshots(finals);
-  turnInterim = mergeSnapshots(interims);
+  turnFinal = final;
+  turnInterim = interim;
   turnConf = conf;
   errStreak = 0;
   const live = (turnFinal + " " + interim).replace(/\s+/g, " ").trim();
@@ -1255,27 +1210,19 @@ function onEnd(){
 
 async function handleUtterance(text, conf, audioBlob){
   busy = true;
-  const gen = turnGen;
   // Gövdenin TAMAMI tek try/finally içinde: ortada atılan bir hata busy'yi
   // kalıcı true bırakırsa dinleme bir daha başlamaz, uygulama kilitlenir.
   try{
-    await runUtterance(text, conf, audioBlob, gen);
+    await runUtterance(text, conf, audioBlob);
   }catch(err){
-    if(gen !== turnGen) return;              // Durdur'dan sonra: sessizce bırak
     console.error("tur işlenemedi:", err);
     setHint("Tur işlenemedi: " + (err && err.message ? err.message : err));
   }finally{
-    // Durdur bu turu geçersiz kıldıysa (turnGen değişti) busy'yi stopAll
-    // zaten sıfırladı ve yeni bir tur başlamış olabilir: ona dokunma.
-    if(gen === turnGen) finishTurn();
+    finishTurn();
   }
 }
 
-// Durdur'a basıldı mı: her await'ten sonra bakılır, bakılmazsa çeviri "Durdu"
-// yazısının altında balon doldurup sesli okumaya devam eder.
-const stale = gen => gen !== turnGen;
-
-async function runUtterance(text, conf, audioBlob, gen){
+async function runUtterance(text, conf, audioBlob){
   setHint("Çeviriyor…");
 
   const heard = listenLang;
@@ -1289,7 +1236,6 @@ async function runUtterance(text, conf, audioBlob, gen){
     setHint("Dil algılanıyor…");
     try{
       const r = await detectLangLocal(audioBlob, cfg.a, cfg.b);
-      if(stale(gen)) return;
       lidLang = r.lang; lidScore = r.score;
       lidTag = "cihazda " + r.ms + " ms · ayrım " + r.score.toFixed(2);
     }catch(e){
@@ -1302,7 +1248,6 @@ async function runUtterance(text, conf, audioBlob, gen){
     setHint("Sesten dil algılanıyor…");
     try{
       const g = await viaGeminiAudio(audioBlob, cfg.a, cfg.b);
-      if(stale(gen)) return;
       const target = (g.lang === cfg.a) ? cfg.b : cfg.a;
       const bub = addBubble(g.lang, g.transcript, null);
       setTranslation(bub, g.translation, target, "Gemini ses");
@@ -1318,7 +1263,6 @@ async function runUtterance(text, conf, audioBlob, gen){
 
   // Yol 2 — metin tabanlı tahmin: cihazdaki dedektör/istatistik + tanıyıcı güveni.
   const d = caps.localDetect ? await localDetect(text) : "";
-  if(stale(gen)) return;
   const gd = guessPairDetail(text, cfg.a, cfg.b);
   const gTxt = (d === cfg.a || d === cfg.b) ? d : gd.lang;
   const txtStrong = (d === cfg.a || d === cfg.b) || gd.margin >= 2;
@@ -1379,14 +1323,12 @@ async function runUtterance(text, conf, audioBlob, gen){
 
   try{
     let r = await translate(text, from, target);
-    if(stale(gen)) return;
 
     // Sağlayıcı kaynak dili biliyorsa ve bizimle çelişiyorsa ona uy, bir kez daha çevir.
     if(r.detected && r.detected === base(target) && base(target) !== base(from)){
       const fixedTarget = (base(target) === cfg.a) ? cfg.b : cfg.a;
       try{
         r = await translate(text, r.detected, fixedTarget);
-        if(stale(gen)) return;
         from = (fixedTarget === cfg.a) ? cfg.b : cfg.a;
         target = fixedTarget;
         setBubbleSide(bub, from);
@@ -1401,11 +1343,9 @@ async function runUtterance(text, conf, audioBlob, gen){
     // konuşursa metinden anlaşılır ve dil yine buradan düzelir.
     setTurn(from, false);
 
-    if(stale(gen)) return;
     setHint("Okuyor…");
     await speak(r.text, target);
   }catch(err){
-    if(stale(gen)) return;
     setTranslation(bub, null, target, null, err.message);
     setHint("Çeviri başarısız.");
   }
@@ -1435,8 +1375,6 @@ function stopAll(reason){
   running = false;
   stopReason = reason || "";
   speakGen++;                                  // süren okuma döngüsü bir sonraki parçada durur
-  turnGen++;                                   // uçuştaki tur her await'ten sonra kendini bırakır
-  busy = false;                                // yeniden Başlat'a basılınca beklemeden dinlesin
   clearTimeout(restartTimer);
   clearTurn();
   try{ rec && rec.abort(); }catch(e){}
