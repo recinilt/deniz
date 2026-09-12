@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#161A20">
 <title>Çevirmen</title>
@@ -147,7 +147,7 @@
 
 <div id="bar">
   <span id="dot"></span>
-  <span id="engine" aria-live="polite">Hazırlanıyor…</span>
+  <span id="engine">Hazırlanıyor…</span>
   <button id="gear" aria-label="Ayarlar">⚙</button>
 </div>
 
@@ -167,7 +167,7 @@
     <button id="pb">English</button>
   </div>
   <button id="mic" aria-label="Dinlemeyi başlat">🎙</button>
-  <div id="hint" aria-live="polite" role="status">Başlamak için dokun</div>
+  <div id="hint">Başlamak için dokun</div>
 </div>
 
 <div id="sheet">
@@ -201,7 +201,7 @@
       <div class="row">
         <label for="confth">Uydurma süzgeci: güven eşiği <span id="confVal">0,55</span></label>
         <input type="range" id="confth" min="0.3" max="0.8" step="0.05">
-        <p class="note" id="confNote">Tanıyıcı bir cümleye bu değerin altında güven veriyorsa cümle
+        <p class="note">Tanıyıcı bir cümleye bu değerin altında güven veriyorsa cümle
         okunmaz, karşı dile geçilir ve tekrar istenir. Doğru cümleler de eleniyorsa
         düşür; saçma cümleler okunuyorsa yükselt. Her balonun altında ölçülen güven yazar.</p>
       </div>
@@ -244,15 +244,13 @@
       <div class="row">
         <label for="prov">Kullanılacak kaynak</label>
         <select id="prov">
-          <option value="auto">Otomatik (yerel varsa yerel, yoksa Google, sonra yedekler)</option>
+          <option value="auto">Otomatik (yerel varsa yerel, yoksa Google)</option>
           <option value="local">Yalnız yerel model (çevrimdışı)</option>
           <option value="gtx">Google, anahtarsız</option>
           <option value="mymemory">MyMemory</option>
           <option value="gcloud">Google Cloud Translation (anahtar)</option>
           <option value="gemini">Gemini (anahtar)</option>
         </select>
-        <p class="note">Otomatik dışında bir kaynak seçersen yalnız o kullanılır:
-        hata alırsa metnin başka bir sağlayıcıya gönderilmez, çeviri başarısız olur.</p>
       </div>
 
       <div class="row">
@@ -708,11 +706,9 @@ const STEPS = {
   mymemory:viaMyMemory, gcloud:viaGCloud, gemini:viaGemini
 };
 
-// Açıkça bir sağlayıcı seçildiyse YALNIZ o kullanılır: başka bir sağlayıcıya
-// sessizce düşmek, kullanıcının metnini seçmediği bir yere göndermek olur.
-// Yedek zinciri yalnız "otomatik" seçiminde devreye girer.
 function chain(){
-  if(cfg.prov !== "auto") return [cfg.prov];
+  if(cfg.prov === "local")  return ["local"];
+  if(cfg.prov !== "auto")   return [cfg.prov, "gtx", "proxy", "mymemory"].filter((v,i,a)=>a.indexOf(v)===i);
   const c = [];
   if(caps.localTrans) c.push("local");
   c.push("gtx", "proxy", "mymemory");
@@ -819,12 +815,10 @@ function lidTokenId(tok){
   return -1;
 }
 
-let lidDevice = "", lidLoadedId = "", lidGen = 0;
+let lidDevice = "", lidLoadedId = "";
 
-// Model boyutu değişince yüklü olanı unut ve SÜREN yüklemeyi geçersiz kıl:
-// nesil damgası değişince eski yükleme sonucu atılır, iki yükleme yarışmaz.
+// Model boyutu değişince yüklü olanı unut; bir sonraki kullanımda yenisi iner.
 function resetLID(){
-  lidGen++;
   lidModel = null; lidProc = null; lidTok = null; lidLoading = null; lidIds = {}; lidLoadedId = "";
 }
 
@@ -832,8 +826,6 @@ async function loadLID(onProgress){
   if(lidModel && lidLoadedId === lidModelId()) return true;
   if(lidLoading) return lidLoading;
   const modelId = lidModelId();
-  const gen = lidGen;
-  const alive = () => gen === lidGen;
   lidLoading = (async () => {
     lidProgress("Kütüphane yükleniyor…");
     lidLib = lidLib || await import(/* webpackIgnore: true */ LID_CDN);
@@ -844,6 +836,7 @@ async function loadLID(onProgress){
     try{
       if(navigator.gpu && await navigator.gpu.requestAdapter()) device = "webgpu";
     }catch(e){}
+    lidDevice = device;
 
     // Hassasiyet cihaza göre. WebGPU'da resmi Whisper örneklerinin birleşimi:
     // kodlayıcı fp32, kod çözücü q4. fp16 kodlayıcının WebGPU'da bozuk çıktı
@@ -853,7 +846,6 @@ async function loadLID(onProgress){
       : {encoder_model:"q8",   decoder_model_merged:"q8"};
 
     const monitor = p => {
-      if(!alive()) return;
       if(p && p.status === "progress" && p.total){
         const mb = (p.loaded/1048576).toFixed(1), tot = (p.total/1048576).toFixed(1);
         const msg = "İniyor: " + (p.file || "") + " " + mb + " / " + tot + " MB";
@@ -862,12 +854,9 @@ async function loadLID(onProgress){
       }
     };
 
-    const proc  = await AutoProcessor.from_pretrained(modelId, {progress_callback:monitor});
-    const tok   = await AutoTokenizer.from_pretrained(modelId, {progress_callback:monitor});
-    const model = await WhisperForConditionalGeneration.from_pretrained(modelId, {dtype, device, progress_callback:monitor});
-    if(!alive()) throw new Error("model değişti, bu yükleme atıldı");
-
-    lidProc = proc; lidTok = tok; lidModel = model; lidDevice = device;
+    lidProc = await AutoProcessor.from_pretrained(modelId, {progress_callback:monitor});
+    lidTok  = await AutoTokenizer.from_pretrained(modelId, {progress_callback:monitor});
+    lidModel = await WhisperForConditionalGeneration.from_pretrained(modelId, {dtype, device, progress_callback:monitor});
     lidIds = {};
     lidIds.sot = lidTokenId("<|startoftranscript|>");
     if(lidIds.sot < 0) throw new Error("başlangıç belirteci bulunamadı");
@@ -876,10 +865,8 @@ async function loadLID(onProgress){
       + dtype.encoder_model + "+" + dtype.decoder_model_merged + ". Bir kez indi, artık önbellekte.");
     return true;
   })().catch(e => {
-    if(alive()){
-      lidLoading = null; lidModel = null;
-      lidProgress("Model yüklenemedi: " + (e && e.message ? e.message : e));
-    }
+    lidLoading = null; lidModel = null;
+    lidProgress("Model yüklenemedi: " + (e && e.message ? e.message : e));
     throw e;
   });
   return lidLoading;
@@ -948,9 +935,7 @@ function speakChunk(text, code, voice){
     let done = false;
     const fin = () => { if(!done){ done = true; resolve(); } };
     u.onend = fin; u.onerror = fin;
-    // Ses motoru sessizce takılırsa: yalnız beklemeyi bitirmek yetmez, konuşmayı
-    // da iptal et, yoksa sonraki parça üstüne biner.
-    setTimeout(() => { if(!done){ try{ speechSynthesis.cancel(); }catch(e){} fin(); } }, 20000);
+    setTimeout(fin, 20000);          // ses motoru sessizce takılırsa akış durmasın
     speechSynthesis.speak(u);
   });
 }
@@ -979,8 +964,7 @@ let restartTimer = null;
 
 let turnFinal = "";        // bu turda kesinleşen metin
 let turnInterim = "";      // son ara metin
-let turnConf = null;       // kesinleşen parçaların en düşük güveni; yoksa null
-let confSupported = false; // tarayıcı gerçek güven değeri veriyor mu (Android: genelde vermiyor)
+let turnConf = 1;          // kesinleşen parçaların en düşük güveni (0-1)
 let turnActive = false;    // bu tur için ses birikimi başladı mı
 let junkStreak = 0;        // aynı dilde üst üste tanınamayan tur sayısı
 let silenceTimer = null;
@@ -1090,17 +1074,12 @@ function startRec(){
 function onResult(ev){
   // Biriktirme yok: Chrome Android aynı parçayı birden çok kez "final" olarak
   // yolluyor; metni her seferinde tüm sonuç listesinden sıfırdan kuruyoruz.
-  let final = "", interim = "", conf = null;
+  let final = "", interim = "", conf = 1;
   for(let i = 0; i < ev.results.length; i++){
     const alt = ev.results[i][0];
     if(ev.results[i].isFinal){
       final += alt.transcript + " ";
-      // Chrome Android confidence'ı genelde 0 döndürür: 0'ı "çok düşük güven"
-      // sanmamak için yalnız gerçek değerleri sayıyoruz, yoksa bilinmiyor.
-      if(typeof alt.confidence === "number" && alt.confidence > 0){
-        confSupported = true;
-        conf = (conf === null) ? alt.confidence : Math.min(conf, alt.confidence);
-      }
+      if(typeof alt.confidence === "number" && alt.confidence > 0) conf = Math.min(conf, alt.confidence);
     }else interim += alt.transcript;
   }
   turnFinal = final;
@@ -1118,36 +1097,24 @@ function onResult(ev){
 // Sessizlik sayacı: son sesten sonra cfg.endpoint kadar yeni şey gelmezse tur biter.
 function armSilence(){
   clearTimeout(silenceTimer);
-  if(busy) return;                 // okuma/çeviri sürerken tur bitirme kurmayız
   silenceTimer = setTimeout(endTurn, Number(cfg.endpoint) || 1200);
 }
 function clearTurn(){
   clearTimeout(silenceTimer);
-  turnFinal = ""; turnInterim = ""; turnConf = null; turnActive = false;
+  turnFinal = ""; turnInterim = ""; turnConf = 1; turnActive = false;
   resetAudioRec();
   clearLive();
 }
 async function endTurn(){
   clearTimeout(silenceTimer);
-  if(busy) return;                 // kulaklık modunda ikinci tur iç içe girmesin
   const text = (turnFinal + " " + turnInterim).replace(/\s+/g, " ").trim();
   const conf = turnConf;
-  turnFinal = ""; turnInterim = ""; turnConf = null; turnActive = false;
+  turnFinal = ""; turnInterim = ""; turnConf = 1; turnActive = false;
   clearLive();
+  if(!text){ resetAudioRec(); return; }
   // Yalnız gerçek gürültüyü ele: en az iki harf/rakam yoksa yok say.
-  if(!text || text.replace(/[^\p{L}\p{N}]/gu, "").length < 2){ resetAudioRec(); return; }
-
-  // busy AWAIT'TEN ÖNCE kapanır: kaydı almak ~yarım saniye sürüyor ve o pencerede
-  // onEnd yeniden dinlemeye başlayıp hemen kesilmesine yol açıyordu.
-  busy = true;
-  clearTimeout(restartTimer);
-  micBtn.classList.remove("on"); micBtn.classList.add("busy");
-  if(!cfg.cont){ try{ rec && rec.abort(); }catch(e){} }
-
-  let audioBlob = null;
-  if(audioCaptureWanted()){
-    try{ audioBlob = await grabTurnAudio(); }catch(e){ console.warn("ses klibi alınamadı:", e); }
-  }
+  if(text.replace(/[^\p{L}\p{N}]/gu, "").length < 2){ resetAudioRec(); return; }
+  const audioBlob = audioCaptureWanted() ? await grabTurnAudio() : null;
   handleUtterance(text, conf, audioBlob);
 }
 
@@ -1182,20 +1149,10 @@ function onEnd(){
 
 async function handleUtterance(text, conf, audioBlob){
   busy = true;
-  // Gövdenin TAMAMI tek try/finally içinde: ortada atılan bir hata busy'yi
-  // kalıcı true bırakırsa dinleme bir daha başlamaz, uygulama kilitlenir.
-  try{
-    await runUtterance(text, conf, audioBlob);
-  }catch(err){
-    console.error("tur işlenemedi:", err);
-    setHint("Tur işlenemedi: " + (err && err.message ? err.message : err));
-  }finally{
-    finishTurn();
-  }
-}
-
-async function runUtterance(text, conf, audioBlob){
+  clearTimeout(silenceTimer);
+  micBtn.classList.remove("on"); micBtn.classList.add("busy");
   setHint("Çeviriyor…");
+  if(!cfg.cont){ try{ rec && rec.abort(); }catch(e){} }
 
   const heard = listenLang;
   let lidTag = "";        // balonda gösterilecek ölçüm etiketi
@@ -1223,10 +1180,10 @@ async function runUtterance(text, conf, audioBlob){
       const target = (g.lang === cfg.a) ? cfg.b : cfg.a;
       const bub = addBubble(g.lang, g.transcript, null);
       setTranslation(bub, g.translation, target, "Gemini ses");
-      lastSource = "Gemini ses"; paintEngine();
       setTurn(g.lang, false);
       setHint("Okuyor…");
       await speak(g.translation, target);
+      finishTurn();
       return;
     }catch(e){
       // ses yolu düştü: elimizdeki ASR metniyle aşağıdaki normal akışa devam
@@ -1238,9 +1195,6 @@ async function runUtterance(text, conf, audioBlob){
   const gd = guessPairDetail(text, cfg.a, cfg.b);
   const gTxt = (d === cfg.a || d === cfg.b) ? d : gd.lang;
   const txtStrong = (d === cfg.a || d === cfg.b) || gd.margin >= 2;
-  const words = text.split(/\s+/).filter(Boolean).length;
-  const lowConf = (typeof conf === "number") && conf < Number(cfg.confth || 0.55);
-  const highConf = (typeof conf !== "number") || conf >= 0.8;
 
   // Birleştirme: ses kararı kesinse (ayrım ≥ 0,75) o kazanır. Kararsızsa ve
   // metin güçlü bir şey söylüyorsa metin kazanır: "I'm fine" metnen kesin
@@ -1255,8 +1209,8 @@ async function runUtterance(text, conf, audioBlob){
   // derse desin öteki dile geç: yanlış bir dil kararı yoksa oturumu kilitliyor
   // (yanlış dilde dinlenen konuşma hep çöp metin üretir, çöp metin de kararı
   // düzeltemez).
-  const junk = !txtStrong && !gTxt && words >= 2 && (conf === null ? true : !highConf);
-  if(junk && (lidLang === heard || !lidLang)) junkStreak++;
+  const junk = !txtStrong && !gTxt && !highConf;
+  if(junk && lidLang === heard) junkStreak++;
   else if(!junk) junkStreak = 0;
 
   if(junkStreak >= 2){
@@ -1268,10 +1222,14 @@ async function runUtterance(text, conf, audioBlob){
       "üst üste anlaşılmadı — dil kilidi kırıldı, şimdi " + LANGS[other].n + " dinliyorum");
     if(navigator.vibrate) navigator.vibrate([80,60,80]);
     setTurn(other, false);
+    finishTurn();
     return;
   }
 
   const g = lidLang || gTxt;     // sesten gelen kesin karar metin tahminini ezer
+  const words = text.split(/\s+/).filter(Boolean).length;
+  const lowConf = (typeof conf === "number") && conf < Number(cfg.confth || 0.55);
+  const highConf = (typeof conf !== "number") || conf >= 0.8;
 
   // Sesten karar verildiyse "anlaşılmadı" süzgecini atla: dil zaten biliniyor,
   // metin saçmaysa bile doğru tarafa yazıp doğru yöne çevirmek daha iyi.
@@ -1284,6 +1242,7 @@ async function runUtterance(text, conf, audioBlob){
       + " — şimdi " + LANGS[other].n + " dinliyorum, tekrar söyler misin?");
     if(navigator.vibrate) navigator.vibrate(120);
     setTurn(other, false);
+    finishTurn();
     return;
   }
 
@@ -1318,6 +1277,8 @@ async function runUtterance(text, conf, audioBlob){
   }catch(err){
     setTranslation(bub, null, target, null, err.message);
     setHint("Çeviri başarısız.");
+  }finally{
+    finishTurn();
   }
 }
 
@@ -1429,11 +1390,7 @@ function setTurn(lang, byUser){
 $("#pa").addEventListener("click", () => setTurn(cfg.a, true));
 $("#pb").addEventListener("click", () => setTurn(cfg.b, true));
 $("#swap").addEventListener("click", async () => {
-  const t = cfg.a; cfg.a = cfg.b; cfg.b = t;
-  // Sesler dile bağlı: diller yer değişirken seçili sesler de değişmeli,
-  // yoksa seçtiğin ses sessizce kaybolur.
-  const v = cfg.voiceA; cfg.voiceA = cfg.voiceB; cfg.voiceB = v;
-  save();
+  const t = cfg.a; cfg.a = cfg.b; cfg.b = t; save();
   translators.clear();
   setTurn(cfg.a, running);
   fillLangSelects(); paintVoiceSelects();
@@ -1558,7 +1515,7 @@ $("#lidTest").addEventListener("click", lidTest);
 const sheet = $("#sheet");
 function openSheet(){ sheet.classList.add("open"); }
 function closeSheet(){ sheet.classList.remove("open"); }
-$("#gear").addEventListener("click", () => { paintConfSupport(); openSheet(); });
+$("#gear").addEventListener("click", openSheet);
 $("#close").addEventListener("click", closeSheet);
 sheet.addEventListener("click", e => { if(e.target === sheet) closeSheet(); });
 
@@ -1719,25 +1676,16 @@ $("#gemkey").addEventListener("input", () => {
 });
 bindText("#gemmodel", "gemmodel");
 
-// Boş ekran metni tek yerden üretilir: temizledikten sonra da ilk açılıştaki
-// açıklamanın tamamı görünsün.
-function emptyBlock(){
+$("#clearScreen").addEventListener("click", () => {
+  feed.innerHTML = "";
+  liveBub = null;
   const d = document.createElement("div");
   d.id = "empty";
   const s = document.createElement("strong");
   s.textContent = "Konuşmaya başla";
   d.appendChild(s);
-  d.appendChild(document.createTextNode(
-    "Mikrofona dokun, konuş. Sustuğunda dilini anlar, karşı dile çevirip okur. "
-    + "Sıra yok: arka arkaya aynı dilde de konuşulabilir. Yanlış anlaşılırsa alttaki "
-    + "dil düğmesine dokunup dili kendin seçebilirsin."));
-  return d;
-}
-
-$("#clearScreen").addEventListener("click", () => {
-  feed.innerHTML = "";
-  liveBub = null;
-  feed.appendChild(emptyBlock());
+  d.appendChild(document.createTextNode("Mikrofona dokun, konuş."));
+  feed.appendChild(d);
   closeSheet();
 });
 $("#resetAll").addEventListener("click", () => {
@@ -1746,20 +1694,6 @@ $("#resetAll").addEventListener("click", () => {
   location.reload();
 });
 
-// Tarayıcı güven değeri vermiyorsa (Android'de olağan) bunu söyle: kaydırak
-// duruyor ama hiçbir şey ölçmüyor, kullanıcı sanmasın ki süzgeç çalışıyor.
-function paintConfSupport(){
-  const el = document.getElementById("confNote");
-  if(!el) return;
-  const base = el.dataset.base || (el.dataset.base = el.textContent);
-  el.textContent = confSupported
-    ? base
-    : "Bu tarayıcı henüz güven değeri vermedi (Android Chrome genelde vermiyor). "
-      + "Öyleyse bu süzgeç çalışmaz; yanlış dil kilidi yine de metinden kırılır. "
-      + "Bir cümle söyledikten sonra burayı tekrar aç.";
-  el.style.color = confSupported ? "" : "var(--a)";
-}
-
 function paintLID(){
   const sel = $("#lid"), btn = $("#dlLid"), note = $("#lidNote");
   const gem = sel.querySelector('option[value="gemini"]');
@@ -1767,7 +1701,7 @@ function paintLID(){
   gem.textContent = cfg.gemkey
     ? "Gemini — sesten algılar, anahtar ve internet ister"
     : "Gemini — önce aşağıya anahtar gir";
-  if(cfg.lid === "gemini" && !cfg.gemkey){ cfg.lid = "text"; save(); }
+  if(cfg.lid === "gemini" && !cfg.gemkey) cfg.lid = "text";
   sel.value = cfg.lid;
   $("#lidModel").value = (cfg.lidModel === "base") ? "base" : "tiny";
   $("#lidModel").style.display = (cfg.lid === "local") ? "block" : "none";
@@ -1788,7 +1722,6 @@ function paintSettings(){
   $("#endpVal").textContent = (Number(cfg.endpoint) / 1000).toFixed(1).replace(".", ",");
   $("#confth").value = cfg.confth;
   $("#confVal").textContent = Number(cfg.confth).toFixed(2).replace(".", ",");
-  paintConfSupport();
   $("#cont").value = String(cfg.cont);
   $("#prov").value = cfg.prov;
   $("#email").value = cfg.email;
