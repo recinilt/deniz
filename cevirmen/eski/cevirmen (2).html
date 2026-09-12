@@ -539,21 +539,8 @@ function langScore(text, l){
   if(SCRIPT[l] && SCRIPT[l].test(text)) s += 5;
   if(DIACR[l]){ const m = text.match(DIACR[l]); if(m) s += m.length * 1.5; }
   if(STOPSET[l]){
-    // toLowerCase() Türkçe'de bozuyor: "İ" -> "i" + U+0307 (birleşik nokta),
-    // sonraki temizlik noktayı boşluğa çevirince "İyi" -> "i yi" oluyor ve
-    // yapayalnız kalan "i" İngilizce'ye oy veriyordu.
-    // Noktalama da kelimeyi BÖLMEMELİ: "İstanbul'a" -> "a" tek başına kalınca
-    // İngilizce sık-kelime listesine takılıyordu. Kelimeler yalnız boşlukta
-    // ayrılır, noktalama uçlardan kırpılır; kesme işaretli İngilizce biçimler
-    // için ("I'm") ayrıca kesmeden önceki kök de denenir.
-    const words = text.toLocaleLowerCase("tr").split(/\s+/);
-    for(const raw of words){
-      const w = raw.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, "");
-      if(!w) continue;
-      if(STOPSET[l].has(w)){ s += 2; continue; }
-      const apos = w.split(/['’]/)[0];
-      if(apos !== w && apos && STOPSET[l].has(apos)) s += 2;
-    }
+    const words = text.toLowerCase().replace(/[^\p{L}\p{N}\s]/gu, " ").split(/\s+/).filter(Boolean);
+    for(const w of words) if(STOPSET[l].has(w)) s += 2;
   }
   return s;
 }
@@ -1095,43 +1082,27 @@ function ensureRec(){
   rec.onerror  = onError;
   rec.onend    = onEnd;
   rec.onstart  = () => { recGotStart = true; lastAudioAt = performance.now(); };
-  rec.onaudiostart = () => { recGotAudio = true; lastAudioAt = performance.now(); };
-  rec.onsoundstart = () => { recGotAudio = true; lastAudioAt = performance.now(); };
+  rec.onaudiostart = () => { lastAudioAt = performance.now(); };
+  rec.onsoundstart = () => { lastAudioAt = performance.now(); };
   return rec;
-}
-
-function detachRec(r){
-  if(!r) return;
-  r.onresult = null; r.onerror = null; r.onend = null;
-  r.onstart = null; r.onaudiostart = null; r.onsoundstart = null;
 }
 
 // Tanıma örneğini çöpe at ve sıfırdan başlat. Chrome bazen oturumu ne sonuç
 // ne "end" yollamadan askıda bırakıyor; tek çıkış yeni bir örnek.
 function recycleRec(why){
   console.warn("tanıma yenileniyor:", why);
-  // Dinleyicileri ÖNCE sök: abort'un asenkron "end" olayı geç gelirse yeni
-  // oturumu kapalı sanıp start() çağırıyor ve InvalidStateError döngüsü açıyordu.
-  detachRec(rec);
   try{ rec && rec.abort(); }catch(e){}
-  rec = null; recActive = false; recGotStart = false; recGotAudio = false;
+  rec = null; recActive = false; recGotStart = false;
   clearTimeout(restartTimer);
   if(running && !busy) restartTimer = setTimeout(startRec, 200);
 }
 
-// Bekçi köpeği: dinlediğini söyleyip dinlemeyen oturumu yakalar. Uzun sessizlik
-// normaldir (iki kişi menü okuyor olabilir), o yüzden ölçüt "ses geldi mi" değil,
-// mikrofonun hiç açılmamış olması: start olayı gelmemesi ya da onaudiostart'ın
-// hiç gelmemesi. Bir kez ses akışı başladıysa sessizlik nedeniyle yenilemeyiz.
-let recGotAudio = false;
+// Bekçi köpeği: dinlediğini söyleyip dinlemeyen oturumu yakalar.
 setInterval(() => {
   if(!running || busy || !recActive) return;
   const now = performance.now();
-  if(!recGotStart && now - recStartedAt > 4000){
-    recycleRec("4 sn içinde start olayı gelmedi");
-  }else if(recGotStart && !recGotAudio && now - recStartedAt > 8000){
-    recycleRec("8 sn'dir mikrofon akışı açılmadı (onaudiostart yok)");
-  }
+  if(!recGotStart && now - recStartedAt > 4000) recycleRec("4 sn içinde start olayı gelmedi");
+  else if(recGotStart && now - lastAudioAt > 90000) recycleRec("90 sn'dir hiç ses olayı yok");
 }, 1000);
 
 function startRec(){
@@ -1146,8 +1117,7 @@ function startRec(){
     r.lang = LANGS[listenLang].asr;
     if(caps.localAsr){ try{ r.processLocally = true; }catch(e){} }
     resultBase = 0; lastResultsLen = 0;
-    recGotStart = false; recGotAudio = false;
-    recStartedAt = performance.now(); lastAudioAt = recStartedAt;
+    recGotStart = false; recStartedAt = performance.now(); lastAudioAt = recStartedAt;
     r.start();
     recActive = true;
     micBtn.classList.add("on");
@@ -1166,48 +1136,15 @@ function startRec(){
 // Android Chrome, aynı cümlenin büyüyen anlık görüntülerini ("how", "how old",
 // "how old are you") ayrı sonuç kayıtları olarak yollayabiliyor. Art arda
 // eklenince "how how old how old are you" çıkıyor. Yeni parça bir öncekinin
-// devamıysa ya da onun düzeltilmiş hali ise ("nerede" -> "nereye gidiyorsun")
-// eklemek yerine yerine geçmeli.
-const lc = s => String(s || "").toLocaleLowerCase("tr");
-
-// İki metnin ortak kelime öneki oranı: son kelime sık revize edildiği için
-// karşılaştırma ondan önceki kelimeler üzerinden yapılır.
-function prefixRatio(a, b){
-  const A = lc(a).split(/\s+/).filter(Boolean);
-  const B = lc(b).split(/\s+/).filter(Boolean);
-  if(!A.length || !B.length) return 0;
-  const stem = A.slice(0, Math.max(0, A.length - 1));   // eskinin son kelimesi hariç
-  if(!stem.length) return 0;
-  let i = 0;
-  while(i < stem.length && i < B.length && stem[i] === B[i]) i++;
-  return i / stem.length;
-}
-
-// Tek kelimelik bir parçanın revize edilmiş hali mi? Android son kelimeyi sık
-// düzeltiyor ("nerede" -> "nereye"). Ölçüt dar tutuldu: ilk kelimeler AYNI
-// UZUNLUKTA olmalı ve yalnız son 2 harfte ayrılmalı. Böylece gerçekten farklı
-// bir kelime ("kaç" -> "kalem") yutulmuyor; yanlış birleştirme kullanıcının
-// sözünü silmek demek, yanlış ayırma ise yalnız fazladan kelime bırakmak.
-function isRevision(prev, next){
-  const p = lc(prev).split(/\s+/).filter(Boolean)[0] || "";
-  const n = lc(next).split(/\s+/).filter(Boolean)[0] || "";
-  if(!p || !n || p.length !== n.length || p.length < 4 || p === n) return false;
-  let i = 0;
-  while(i < p.length && p[i] === n[i]) i++;
-  return p.length - i <= 2;
-}
-
+// devamıysa (öncekiyle başlıyorsa) eklemek yerine onun yerine geçmeli.
 function mergeSnapshots(parts){
   const out = [];
   for(const raw of parts){
     const p = String(raw || "").trim();
     if(!p) continue;
     const prev = out.length ? out[out.length - 1] : "";
-    if(!prev){ out.push(p); continue; }
-    if(lc(p).startsWith(lc(prev))) out[out.length - 1] = p;          // uzatma
-    else if(lc(prev).startsWith(lc(p))) { /* daha kısası: at */ }
-    else if(p.length >= prev.length &&
-            (prefixRatio(prev, p) >= 0.7 || isRevision(prev, p))) out[out.length - 1] = p;
+    if(prev && p.toLowerCase().startsWith(prev.toLowerCase())) out[out.length - 1] = p;
+    else if(prev && prev.toLowerCase().startsWith(p.toLowerCase())) { /* daha kısası: at */ }
     else out.push(p);
   }
   return out.join(" ");
@@ -1273,9 +1210,6 @@ async function endTurn(){
   // busy AWAIT'TEN ÖNCE kapanır: kaydı almak ~yarım saniye sürüyor ve o pencerede
   // onEnd yeniden dinlemeye başlayıp hemen kesilmesine yol açıyordu.
   busy = true;
-  // Nesli BURADA yakala: kaydı almak ~600 ms sürüyor ve o pencerede Durdur'a
-  // basılırsa handleUtterance güncel nesli alıp kendini geçerli sanıyordu.
-  const gen = turnGen;
   resultBase = lastResultsLen;         // bu turun sonuçları tüketildi
   clearTimeout(restartTimer);
   micBtn.classList.remove("on"); micBtn.classList.add("busy");
@@ -1286,8 +1220,7 @@ async function endTurn(){
   if(audioCaptureWanted()){
     try{ audioBlob = await grabTurnAudio(); }catch(e){ console.warn("ses klibi alınamadı:", e); }
   }
-  if(gen !== turnGen) return;          // kayıt alınırken Durdur'a basıldı
-  handleUtterance(text, conf, audioBlob, gen);
+  handleUtterance(text, conf, audioBlob);
 }
 
 function onError(ev){
@@ -1320,9 +1253,9 @@ function onEnd(){
   restartTimer = setTimeout(startRec, 250);
 }
 
-async function handleUtterance(text, conf, audioBlob, gen){
+async function handleUtterance(text, conf, audioBlob){
   busy = true;
-  if(gen === undefined) gen = turnGen;
+  const gen = turnGen;
   // Gövdenin TAMAMI tek try/finally içinde: ortada atılan bir hata busy'yi
   // kalıcı true bırakırsa dinleme bir daha başlamaz, uygulama kilitlenir.
   try{
@@ -1446,14 +1379,14 @@ async function runUtterance(text, conf, audioBlob, gen){
 
   try{
     let r = await translate(text, from, target);
-    if(stale(gen)){ bub.remove(); return; }
+    if(stale(gen)) return;
 
     // Sağlayıcı kaynak dili biliyorsa ve bizimle çelişiyorsa ona uy, bir kez daha çevir.
     if(r.detected && r.detected === base(target) && base(target) !== base(from)){
       const fixedTarget = (base(target) === cfg.a) ? cfg.b : cfg.a;
       try{
         r = await translate(text, r.detected, fixedTarget);
-        if(stale(gen)){ bub.remove(); return; }
+        if(stale(gen)) return;
         from = (fixedTarget === cfg.a) ? cfg.b : cfg.a;
         target = fixedTarget;
         setBubbleSide(bub, from);
@@ -1466,13 +1399,13 @@ async function runUtterance(text, conf, audioBlob, gen){
 
     // Sıra yok: bir sonraki turu, az önce konuşulan dilde dinle. Karşı taraf
     // konuşursa metinden anlaşılır ve dil yine buradan düzelir.
-    if(!stale(gen)) setTurn(from, false);
+    setTurn(from, false);
 
-    if(stale(gen)){ bub.remove(); return; }
+    if(stale(gen)) return;
     setHint("Okuyor…");
     await speak(r.text, target);
   }catch(err){
-    if(stale(gen)){ bub.remove(); return; }
+    if(stale(gen)) return;
     setTranslation(bub, null, target, null, err.message);
     setHint("Çeviri başarısız.");
   }
