@@ -292,18 +292,16 @@
       </div>
 
       <div class="row">
-        <label for="lid">Konuşulan dili nasıl algılasın</label>
-        <select id="lid">
-          <option value="text">Metinden tahmin — anında, internetsiz, bazen yanılır</option>
-          <option value="local">Cihazdaki model — sesten algılar, tek seferlik indirme</option>
-          <option value="gemini">Gemini — sesten algılar, anahtar ve internet ister</option>
+        <label for="audioLID">Gerçek ses tabanlı dil algılama (deneysel)</label>
+        <select id="audioLID">
+          <option value="0">Kapalı — dili metinden tahmin et</option>
+          <option value="1">Açık — her cümlenin ham sesini Gemini'ye gönder</option>
         </select>
-        <button class="btn" id="dlLid">Cihaz modelini şimdi indir (~38 MB)</button>
-        <p class="note" id="lidNote"></p>
-        <p class="note">Tarayıcının ses tanıması dili önceden ister ve sesten dil
-        ayırt edemez. “Cihazdaki model” seçeneği her cümlenin ham sesini Whisper'a
-        verip yalnız dil skorlarını okur; model bir kez inip önbellekte kalır, sonrası
-        internetsiz ve ücretsizdir. Her balonda o turun gerçek algılama süresi yazar.</p>
+        <p class="note">Chrome'un ses tanıması dili önceden ister ve sesin kendisinden
+        dil ayırt edemez; metinden tahmin bazen yanılır. Bu açıkken her cümlenin ham
+        sesi ayrıca kaydedilip Gemini'ye gönderiliyor, hangi dilin konuşulduğu sesten
+        soruluyor. Daha doğru ama her cümlede ekstra gecikme, veri kullanımı ve Gemini
+        kotası tüketir; ikinci bir mikrofon izni isteyebilir. Gemini anahtarı gerektirir.</p>
       </div>
 
       <h3>Ekran</h3>
@@ -378,12 +376,8 @@ function langLabel(code){
 const DEFAULTS = {
   v:2, a:"tr", b:"en", rate:1, voiceA:"", voiceB:"",
   endpoint:1200, confth:0.55, cont:0, prov:"auto", email:"", proxy:"",
-  gkey:"", gemkey:"", gemmodel:"gemini-3.6-flash", lid:"text"
+  gkey:"", gemkey:"", gemmodel:"gemini-3.6-flash", audioLID:false
 };
-
-// Cihazda çalışan dil algılama modeli (yalnız cfg.lid === "local" iken iner).
-const LID_CDN   = "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3/dist/transformers.min.js";
-const LID_MODEL = "Xenova/whisper-tiny";
 
 let cfg = load();
 
@@ -720,126 +714,6 @@ async function translate(text, from, to){
   throw new Error(failures.join(" | ") || "kaynak yok");
 }
 
-/* ============ 4b · Cihazda dil algılama (Whisper, tek ileri geçiş) ======== */
-
-let lidLib = null, lidModel = null, lidProc = null, lidTok = null;
-let lidLoading = null, lidIds = {};
-
-function lidProgress(txt){
-  const el = document.getElementById("lidNote");
-  if(el) el.textContent = txt;
-}
-
-// Ses klibini modelin istediği biçime getir: 16 kHz, tek kanal, Float32.
-async function blobTo16kMono(blob){
-  const buf = await blob.arrayBuffer();
-  const Ctx = window.AudioContext || window.webkitAudioContext;
-  const tmp = new Ctx();
-  let decoded;
-  try{ decoded = await tmp.decodeAudioData(buf); }
-  finally{ try{ tmp.close(); }catch(e){} }
-  const target = 16000;
-  const frames = Math.max(1, Math.round(decoded.duration * target));
-  const off = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(1, frames, target);
-  const src = off.createBufferSource();
-  src.buffer = decoded;
-  src.connect(off.destination);
-  src.start();
-  const out = await off.startRendering();
-  return out.getChannelData(0);
-}
-
-// Whisper'ın dil belirteçleri ("<|tr|>") sözlükte tek bir kimliğe karşılık gelir.
-// Kütüphane sürümleri bu haritayı farklı yerlerde tuttuğu için üç yol deniyoruz.
-function lidTokenId(tok){
-  try{
-    const m = lidTok && lidTok.model && lidTok.model.tokens_to_ids;
-    if(m && typeof m.get === "function"){
-      const v = m.get(tok);
-      if(typeof v === "number") return v;
-    }
-  }catch(e){}
-  try{
-    const added = lidTok && (lidTok.added_tokens || (lidTok.model && lidTok.model.added_tokens));
-    if(Array.isArray(added)){
-      const hit = added.find(t => t && (t.content === tok || t.token === tok));
-      if(hit && typeof hit.id === "number") return hit.id;
-    }
-  }catch(e){}
-  try{
-    const enc = lidTok.encode(tok, {add_special_tokens:false});
-    if(Array.isArray(enc) && enc.length === 1) return enc[0];
-  }catch(e){}
-  return -1;
-}
-
-async function loadLID(onProgress){
-  if(lidModel) return true;
-  if(lidLoading) return lidLoading;
-  lidLoading = (async () => {
-    lidProgress("Kütüphane yükleniyor…");
-    lidLib = await import(/* webpackIgnore: true */ LID_CDN);
-    const {env, AutoProcessor, AutoTokenizer, WhisperForConditionalGeneration} = lidLib;
-    env.allowLocalModels = false;      // model yalnız Hugging Face'ten gelsin
-
-    let device = "wasm";
-    try{
-      if(navigator.gpu && await navigator.gpu.requestAdapter()) device = "webgpu";
-    }catch(e){}
-
-    const monitor = p => {
-      if(p && p.status === "progress" && p.total){
-        const mb = (p.loaded/1048576).toFixed(1), tot = (p.total/1048576).toFixed(1);
-        const msg = "İniyor: " + (p.file || "") + " " + mb + " / " + tot + " MB";
-        lidProgress(msg);
-        if(onProgress) onProgress(msg);
-      }
-    };
-
-    lidProc = await AutoProcessor.from_pretrained(LID_MODEL, {progress_callback:monitor});
-    lidTok  = await AutoTokenizer.from_pretrained(LID_MODEL, {progress_callback:monitor});
-    lidModel = await WhisperForConditionalGeneration.from_pretrained(LID_MODEL, {
-      dtype:{encoder_model:"q8", decoder_model_merged:"q8"},
-      device, progress_callback:monitor
-    });
-    lidIds.sot = lidTokenId("<|startoftranscript|>");
-    if(lidIds.sot < 0) throw new Error("başlangıç belirteci bulunamadı");
-    lidProgress("Model hazır (" + device + "). Bir kez indi, artık önbellekte.");
-    return true;
-  })().catch(e => {
-    lidLoading = null; lidModel = null;
-    lidProgress("Model yüklenemedi: " + (e && e.message ? e.message : e));
-    throw e;
-  });
-  return lidLoading;
-}
-
-// Dönüş: {lang, score, ms}. İki dilin skorunu karşılaştırır, tüm dilleri değil.
-async function detectLangLocal(blob, l1, l2){
-  if(!blob) throw new Error("ses klibi yok");
-  await loadLID();
-  const t0 = performance.now();
-  const audio = await blobTo16kMono(blob);
-  if(audio.length < 3200) throw new Error("ses klibi çok kısa");
-
-  const id1 = lidIds[l1] !== undefined ? lidIds[l1] : (lidIds[l1] = lidTokenId("<|" + l1 + "|>"));
-  const id2 = lidIds[l2] !== undefined ? lidIds[l2] : (lidIds[l2] = lidTokenId("<|" + l2 + "|>"));
-  if(id1 < 0 || id2 < 0) throw new Error("bu dil çifti modelde yok");
-
-  const inputs = await lidProc(audio);
-  const dec = new lidLib.Tensor("int64", new BigInt64Array([BigInt(lidIds.sot)]), [1,1]);
-  // Üretim değil tek ileri geçiş: ilk konumdaki dil belirteci skorları yeterli.
-  const out = await lidModel({input_features: inputs.input_features, decoder_input_ids: dec});
-  const logits = out && out.logits && out.logits.data;
-  if(!logits) throw new Error("model çıktısı okunamadı");
-
-  const a = logits[id1], b = logits[id2];
-  if(!isFinite(a) || !isFinite(b)) throw new Error("skor okunamadı");
-  const lang = a >= b ? l1 : l2;
-  const score = 1 / (1 + Math.exp(-Math.abs(a - b)));   // iki dil arasındaki ayrım gücü
-  return {lang, score, ms: Math.round(performance.now() - t0)};
-}
-
 /* ============================ 5 · Seslendirme ============================ */
 
 let voices = [];
@@ -916,9 +790,7 @@ let silenceTimer = null;
 // tur bittiğinde o klibi metinle birlikte tutuyoruz.
 let audioStream = null, audioRec = null, audioChunks = [], audioChunkStart = 0;
 
-function audioCaptureWanted(){
-  return cfg.lid === "local" || (cfg.lid === "gemini" && !!cfg.gemkey);
-}
+function audioCaptureWanted(){ return !!(cfg.audioLID && cfg.gemkey); }
 
 async function startAudioCapture(){
   if(!audioCaptureWanted()) return;
@@ -1067,24 +939,11 @@ async function handleUtterance(text, conf, audioBlob){
   if(!cfg.cont){ try{ rec && rec.abort(); }catch(e){} }
 
   const heard = listenLang;
-  let lidTag = "";        // balonda gösterilecek ölçüm etiketi
-  let lidLang = "";       // sesten belirlenen dil (varsa)
 
-  // Yol 1a — cihazdaki model: ham sesi Whisper'ın dil belirteçlerine karşı ölç.
-  // İnternet, anahtar, kota yok; yalnız ilk kullanımda model iniyor.
-  if(audioBlob && cfg.lid === "local"){
-    setHint("Dil algılanıyor…");
-    try{
-      const r = await detectLangLocal(audioBlob, cfg.a, cfg.b);
-      lidLang = r.lang;
-      lidTag = "cihazda " + r.ms + " ms";
-    }catch(e){
-      lidTag = "cihazda algılanamadı (" + (e && e.message ? e.message : "hata") + ")";
-    }
-  }
-
-  // Yol 1b — gerçek ses tabanlı tespit + çeviri tek çağrıda (Gemini).
-  if(audioBlob && cfg.lid === "gemini"){
+  // Yol 1 — gerçek ses tabanlı tespit (deneysel, isteğe bağlı): ham klip
+  // Gemini'ye gidiyor, hangi dilin konuşulduğunu sesten söylüyor. Web Speech
+  // API'nin veremediği tek şey bu; başarısız olursa aşağıdaki metin yoluna düşer.
+  if(audioBlob){
     setHint("Sesten dil algılanıyor…");
     try{
       const g = await viaGeminiAudio(audioBlob, cfg.a, cfg.b);
@@ -1103,15 +962,15 @@ async function handleUtterance(text, conf, audioBlob){
 
   // Yol 2 — metin tabanlı tahmin: cihazdaki dedektör/istatistik + tanıyıcı güveni.
   const d = caps.localDetect ? await localDetect(text) : "";
-  const gTxt = (d === cfg.a || d === cfg.b) ? d : guessPair(text, cfg.a, cfg.b);
-  const g = lidLang || gTxt;     // sesten gelen karar metin tahminini ezer
+  const g = (d === cfg.a || d === cfg.b) ? d : guessPair(text, cfg.a, cfg.b);
   const words = text.split(/\s+/).filter(Boolean).length;
   const lowConf = (typeof conf === "number") && conf < Number(cfg.confth || 0.55);
   const highConf = (typeof conf !== "number") || conf >= 0.8;
 
-  // Sesten karar verildiyse "anlaşılmadı" süzgecini atla: dil zaten biliniyor,
-  // metin saçmaysa bile doğru tarafa yazıp doğru yöne çevirmek daha iyi.
-  if(!lidLang && ((g === "" && words >= 2 && !highConf) || lowConf)){
+  // Yanlış dilde dinlenmiş konuşma, tanıyıcıdan anlamsız kelimeler olarak çıkar
+  // ("position position listen"). İki dile de benzemiyorsa VE tanıyıcı da emin
+  // değilse, ya da güven eşiğin altındaysa konuşturma: öteki dile geç, tekrar iste.
+  if((g === "" && words >= 2 && !highConf) || lowConf){
     const other = (heard === cfg.a) ? cfg.b : cfg.a;
     const bub = addBubble(heard, text, null);
     bub.classList.add("live");
@@ -1143,8 +1002,7 @@ async function handleUtterance(text, conf, audioBlob){
     }
 
     const confTxt = (typeof conf === "number" && conf < 1) ? " · güven " + conf.toFixed(2) : "";
-    setTranslation(bub, r.text, target,
-      r.source + confTxt + (lidTag ? " · " + lidTag : "") + (r.note ? " · düşen: " + r.note : ""));
+    setTranslation(bub, r.text, target, r.source + confTxt + (r.note ? " · düşen: " + r.note : ""));
 
     // Sıra yok: bir sonraki turu, az önce konuşulan dilde dinle. Karşı taraf
     // konuşursa metinden anlaşılır ve dil yine buradan düzelir.
@@ -1469,14 +1327,7 @@ bindSelect("#vB", "voiceB");
 bindSelect("#prov", "prov");
 
 $("#cont").addEventListener("change", () => { cfg.cont = Number($("#cont").value); save(); });
-$("#lid").addEventListener("change", () => {
-  cfg.lid = $("#lid").value; save(); paintLID();
-  if(cfg.lid === "local") loadLID().catch(()=>{});   // seçer seçmez indirmeye başla
-});
-$("#dlLid").addEventListener("click", () => {
-  $("#dlLid").disabled = true;
-  loadLID().catch(()=>{}).finally(() => { $("#dlLid").disabled = !!lidModel; });
-});
+$("#audioLID").addEventListener("change", () => { cfg.audioLID = $("#audioLID").value === "1"; save(); });
 $("#rate").addEventListener("input", () => {
   cfg.rate = Number($("#rate").value);
   $("#rateVal").textContent = cfg.rate.toFixed(1).replace(".", ",");
@@ -1497,7 +1348,7 @@ bindText("#email", "email");
 bindText("#proxy", "proxy");
 bindText("#gkey", "gkey");
 $("#gemkey").addEventListener("input", () => {
-  cfg.gemkey = $("#gemkey").value.trim(); save(); paintLID();
+  cfg.gemkey = $("#gemkey").value.trim(); save(); paintAudioLID();
 });
 bindText("#gemmodel", "gemmodel");
 
@@ -1519,19 +1370,12 @@ $("#resetAll").addEventListener("click", () => {
   location.reload();
 });
 
-function paintLID(){
-  const sel = $("#lid"), btn = $("#dlLid"), note = $("#lidNote");
-  const gem = sel.querySelector('option[value="gemini"]');
-  gem.disabled = !cfg.gemkey;
-  gem.textContent = cfg.gemkey
-    ? "Gemini — sesten algılar, anahtar ve internet ister"
-    : "Gemini — önce aşağıya anahtar gir";
-  if(cfg.lid === "gemini" && !cfg.gemkey) cfg.lid = "text";
-  sel.value = cfg.lid;
-  btn.style.display = (cfg.lid === "local") ? "block" : "none";
-  btn.disabled = !!lidModel;
-  if(cfg.lid === "local" && lidModel) note.textContent = "Model hazır.";
-  else if(cfg.lid !== "local") note.textContent = "";
+function paintAudioLID(){
+  const sel = $("#audioLID");
+  const ok = !!cfg.gemkey;
+  sel.disabled = !ok;
+  if(!ok){ sel.value = "0"; }
+  else sel.value = cfg.audioLID ? "1" : "0";
 }
 
 function paintSettings(){
@@ -1550,7 +1394,7 @@ function paintSettings(){
   $("#gkey").value = cfg.gkey;
   $("#gemkey").value = cfg.gemkey;
   $("#gemmodel").value = cfg.gemmodel;
-  paintLID();
+  paintAudioLID();
 }
 
 /* ============================ 11 · Açılış =============================== */
