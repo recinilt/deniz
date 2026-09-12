@@ -291,19 +291,6 @@
         güncel adı yaz.</p>
       </div>
 
-      <div class="row">
-        <label for="audioLID">Gerçek ses tabanlı dil algılama (deneysel)</label>
-        <select id="audioLID">
-          <option value="0">Kapalı — dili metinden tahmin et</option>
-          <option value="1">Açık — her cümlenin ham sesini Gemini'ye gönder</option>
-        </select>
-        <p class="note">Chrome'un ses tanıması dili önceden ister ve sesin kendisinden
-        dil ayırt edemez; metinden tahmin bazen yanılır. Bu açıkken her cümlenin ham
-        sesi ayrıca kaydedilip Gemini'ye gönderiliyor, hangi dilin konuşulduğu sesten
-        soruluyor. Daha doğru ama her cümlede ekstra gecikme, veri kullanımı ve Gemini
-        kotası tüketir; ikinci bir mikrofon izni isteyebilir. Gemini anahtarı gerektirir.</p>
-      </div>
-
       <h3>Ekran</h3>
       <div class="row">
         <button class="btn" id="clearScreen">Ekranı temizle</button>
@@ -376,7 +363,7 @@ function langLabel(code){
 const DEFAULTS = {
   v:2, a:"tr", b:"en", rate:1, voiceA:"", voiceB:"",
   endpoint:1200, confth:0.55, cont:0, prov:"auto", email:"", proxy:"",
-  gkey:"", gemkey:"", gemmodel:"gemini-3.6-flash", audioLID:false
+  gkey:"", gemkey:"", gemmodel:"gemini-3.6-flash"
 };
 
 let cfg = load();
@@ -639,50 +626,6 @@ async function viaGemini(text, from, to){
   return {text:out, detected:(from || ""), source:"Gemini"};
 }
 
-function blobToBase64(blob){
-  return new Promise((resolve, reject) => {
-    const r = new FileReader();
-    r.onload = () => resolve(String(r.result).split(",")[1] || "");
-    r.onerror = () => reject(new Error("ses okunamadı"));
-    r.readAsDataURL(blob);
-  });
-}
-
-// Gerçek sesten dil tespiti: metin ipuçlarına değil, ham sese bakar. Chrome'un
-// kendi tanıması hangi dilde dinlediğini önceden bilmek zorunda ve sesten dil
-// ayırt edemiyor; bunu yapabilen tek katman burası, çünkü ses klibinin tamamını
-// Gemini'ye gönderip "bu iki dilden hangisi" diye soruyor.
-async function viaGeminiAudio(blob, l1, l2){
-  if(!cfg.gemkey) throw new Error("Gemini anahtarı yok");
-  if(!blob || blob.size < 800) throw new Error("ses klibi çok kısa");
-  const model = (cfg.gemmodel || DEFAULTS.gemmodel).trim();
-  const b64 = await blobToBase64(blob);
-  const prompt = "This audio contains one utterance in either " + LANGS[l1].n + " (code \"" + l1
-    + "\") or " + LANGS[l2].n + " (code \"" + l2 + "\"). Identify which of these two languages was "
-    + "actually spoken, write an exact transcript in that language, then translate the transcript "
-    + "into the other language. Reply with ONLY compact JSON, no markdown fences, no extra text: "
-    + '{"lang":"' + l1 + '|' + l2 + '","transcript":"...","translation":"..."}';
-  const j = await getJSON("https://generativelanguage.googleapis.com/v1beta/models/"
-      + encodeURIComponent(model) + ":generateContent", {
-    method:"POST",
-    headers:{"Content-Type":"application/json","x-goog-api-key":cfg.gemkey},
-    body: JSON.stringify({contents:[{parts:[
-      {text:prompt},
-      {inlineData:{mimeType: blob.type || "audio/webm", data:b64}}
-    ]}]})
-  });
-  const parts = j && j.candidates && j.candidates[0] && j.candidates[0].content && j.candidates[0].content.parts;
-  const raw = parts && parts.map(p=>p.text||"").join("").trim();
-  if(!raw) throw new Error("boş yanıt");
-  let parsed;
-  try{ parsed = JSON.parse(raw.replace(/^```(json)?/i, "").replace(/```$/, "").trim()); }
-  catch(e){ throw new Error("yanıt JSON değil"); }
-  if(!parsed || !parsed.transcript || !parsed.translation || (parsed.lang !== l1 && parsed.lang !== l2)){
-    throw new Error("yanıtta eksik alan");
-  }
-  return parsed;
-}
-
 const STEPS = {
   local:viaLocal, gtx:viaGtx, proxy:viaProxy,
   mymemory:viaMyMemory, gcloud:viaGCloud, gemini:viaGemini
@@ -780,48 +723,7 @@ let restartTimer = null;
 let turnFinal = "";        // bu turda kesinleşen metin
 let turnInterim = "";      // son ara metin
 let turnConf = 1;          // kesinleşen parçaların en düşük güveni (0-1)
-let turnActive = false;    // bu tur için ses birikimi başladı mı
 let silenceTimer = null;
-
-/* ---- Paralel ham ses kaydı: yalnız "gerçek dil algılama" açıkken çalışır ---- */
-// SpeechRecognition metne çevirip yollar ama hangi dilde konuşulduğunu asla
-// söylemez. Ham sesin kendisini Gemini'ye göndermek, sesten gerçek dil
-// tespitine ulaşmanın tek yolu; bu yüzden ayrı bir mikrofon akışıyla klip alıp
-// tur bittiğinde o klibi metinle birlikte tutuyoruz.
-let audioStream = null, audioRec = null, audioChunks = [], audioChunkStart = 0;
-
-function audioCaptureWanted(){ return !!(cfg.audioLID && cfg.gemkey); }
-
-async function startAudioCapture(){
-  if(!audioCaptureWanted()) return;
-  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || typeof MediaRecorder === "undefined") return;
-  try{
-    audioStream = await navigator.mediaDevices.getUserMedia({
-      audio:{echoCancellation:true, noiseSuppression:true, autoGainControl:true}
-    });
-    const mime = ["audio/webm;codecs=opus","audio/webm","audio/ogg;codecs=opus"]
-      .find(m => MediaRecorder.isTypeSupported(m)) || "";
-    audioRec = mime ? new MediaRecorder(audioStream, {mimeType:mime}) : new MediaRecorder(audioStream);
-    audioChunks = []; audioChunkStart = 0;
-    audioRec.ondataavailable = e => { if(e.data && e.data.size > 0) audioChunks.push(e.data); };
-    audioRec.start(250);
-  }catch(e){
-    audioStream = null; audioRec = null;   // izin verilmedi ya da desteklenmiyor: metin yoluna düş
-  }
-}
-function stopAudioCapture(){
-  try{ audioRec && audioRec.state !== "inactive" && audioRec.stop(); }catch(e){}
-  try{ audioStream && audioStream.getTracks().forEach(t => t.stop()); }catch(e){}
-  audioRec = null; audioStream = null; audioChunks = []; audioChunkStart = 0;
-}
-function markTurnAudioStart(){ audioChunkStart = audioChunks.length; }
-function grabTurnAudio(){
-  if(!audioRec) return null;
-  const slice = audioChunks.slice(audioChunkStart);
-  audioChunks.length = 0; audioChunkStart = 0;
-  if(!slice.length) return null;
-  return new Blob(slice, {type: audioRec.mimeType || "audio/webm"});
-}
 
 // Tek örnek ömür boyu korunur: her turda yeni SpeechRecognition üretmek
 // yakalamayı baştan kurar ve izin sorusunu tekrarlatır.
@@ -873,10 +775,7 @@ function onResult(ev){
   turnConf = conf;
   errStreak = 0;
   const live = (turnFinal + " " + interim).replace(/\s+/g, " ").trim();
-  if(live){
-    if(!turnActive){ turnActive = true; markTurnAudioStart(); }
-    showLive(live);
-  }
+  if(live) showLive(live);
   armSilence();
 }
 
@@ -887,21 +786,19 @@ function armSilence(){
 }
 function clearTurn(){
   clearTimeout(silenceTimer);
-  turnFinal = ""; turnInterim = ""; turnConf = 1; turnActive = false;
-  if(audioRec) grabTurnAudio();   // biriktirileni at, yeni tur temiz başlasın
+  turnFinal = ""; turnInterim = ""; turnConf = 1;
   clearLive();
 }
 function endTurn(){
   clearTimeout(silenceTimer);
   const text = (turnFinal + " " + turnInterim).replace(/\s+/g, " ").trim();
   const conf = turnConf;
-  const audioBlob = audioCaptureWanted() ? grabTurnAudio() : null;
-  turnFinal = ""; turnInterim = ""; turnConf = 1; turnActive = false;
+  turnFinal = ""; turnInterim = ""; turnConf = 1;
   clearLive();
   if(!text) return;
   // Yalnız gerçek gürültüyü ele: en az iki harf/rakam yoksa yok say.
   if(text.replace(/[^\p{L}\p{N}]/gu, "").length < 2) return;
-  handleUtterance(text, conf, audioBlob);
+  handleUtterance(text, conf);
 }
 
 function onError(ev){
@@ -931,7 +828,7 @@ function onEnd(){
   restartTimer = setTimeout(startRec, 250);
 }
 
-async function handleUtterance(text, conf, audioBlob){
+async function handleUtterance(text, conf){
   busy = true;
   clearTimeout(silenceTimer);
   micBtn.classList.remove("on"); micBtn.classList.add("busy");
@@ -940,27 +837,7 @@ async function handleUtterance(text, conf, audioBlob){
 
   const heard = listenLang;
 
-  // Yol 1 — gerçek ses tabanlı tespit (deneysel, isteğe bağlı): ham klip
-  // Gemini'ye gidiyor, hangi dilin konuşulduğunu sesten söylüyor. Web Speech
-  // API'nin veremediği tek şey bu; başarısız olursa aşağıdaki metin yoluna düşer.
-  if(audioBlob){
-    setHint("Sesten dil algılanıyor…");
-    try{
-      const g = await viaGeminiAudio(audioBlob, cfg.a, cfg.b);
-      const target = (g.lang === cfg.a) ? cfg.b : cfg.a;
-      const bub = addBubble(g.lang, g.transcript, null);
-      setTranslation(bub, g.translation, target, "Gemini ses");
-      setTurn(g.lang, false);
-      setHint("Okuyor…");
-      await speak(g.translation, target);
-      finishTurn();
-      return;
-    }catch(e){
-      // ses yolu düştü: elimizdeki ASR metniyle aşağıdaki normal akışa devam
-    }
-  }
-
-  // Yol 2 — metin tabanlı tahmin: cihazdaki dedektör/istatistik + tanıyıcı güveni.
+  // Konuşulan dili çeviriden ÖNCE cihazda belirle: dinleme diline güvenme.
   const d = caps.localDetect ? await localDetect(text) : "";
   const g = (d === cfg.a || d === cfg.b) ? d : guessPair(text, cfg.a, cfg.b);
   const words = text.split(/\s+/).filter(Boolean).length;
@@ -1032,7 +909,6 @@ async function startAll(){
   unlockTTS();
   requestWakeLock();
   await warmLocal();
-  await startAudioCapture();
   startRec();
 }
 function stopAll(){
@@ -1041,7 +917,6 @@ function stopAll(){
   clearTurn();
   try{ rec && rec.abort(); }catch(e){}
   try{ speechSynthesis.cancel(); }catch(e){}
-  stopAudioCapture();
   micBtn.classList.remove("on","busy");
   releaseWakeLock();
   setHint("Başlamak için dokun");
@@ -1327,7 +1202,6 @@ bindSelect("#vB", "voiceB");
 bindSelect("#prov", "prov");
 
 $("#cont").addEventListener("change", () => { cfg.cont = Number($("#cont").value); save(); });
-$("#audioLID").addEventListener("change", () => { cfg.audioLID = $("#audioLID").value === "1"; save(); });
 $("#rate").addEventListener("input", () => {
   cfg.rate = Number($("#rate").value);
   $("#rateVal").textContent = cfg.rate.toFixed(1).replace(".", ",");
@@ -1347,9 +1221,7 @@ $("#confth").addEventListener("input", () => {
 bindText("#email", "email");
 bindText("#proxy", "proxy");
 bindText("#gkey", "gkey");
-$("#gemkey").addEventListener("input", () => {
-  cfg.gemkey = $("#gemkey").value.trim(); save(); paintAudioLID();
-});
+bindText("#gemkey", "gemkey");
 bindText("#gemmodel", "gemmodel");
 
 $("#clearScreen").addEventListener("click", () => {
@@ -1370,14 +1242,6 @@ $("#resetAll").addEventListener("click", () => {
   location.reload();
 });
 
-function paintAudioLID(){
-  const sel = $("#audioLID");
-  const ok = !!cfg.gemkey;
-  sel.disabled = !ok;
-  if(!ok){ sel.value = "0"; }
-  else sel.value = cfg.audioLID ? "1" : "0";
-}
-
 function paintSettings(){
   fillLangSelects();
   paintVoiceSelects();
@@ -1394,7 +1258,6 @@ function paintSettings(){
   $("#gkey").value = cfg.gkey;
   $("#gemkey").value = cfg.gemkey;
   $("#gemmodel").value = cfg.gemmodel;
-  paintAudioLID();
 }
 
 /* ============================ 11 · Açılış =============================== */
