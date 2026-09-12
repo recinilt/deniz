@@ -257,17 +257,6 @@
         </select>
         <p class="note">Otomatik dışında bir kaynak seçersen yalnız o kullanılır:
         hata alırsa metnin başka bir sağlayıcıya gönderilmez, çeviri başarısız olur.</p>
-        <p class="note" id="detNote"></p>
-        <label for="netDetect" style="margin-top:10px">Dil tespiti için ağa çıkma</label>
-        <select id="netDetect">
-          <option value="online">Çeviri zaten çevrimiçi yapıldıysa (varsayılan)</option>
-          <option value="always">Her zaman (cihazda çeviri yapılsa bile)</option>
-          <option value="never">Asla — dil tespiti için metni dışarı gönderme</option>
-        </select>
-        <p class="note">Sağlayıcın konuşulan dili bildirmiyorsa, dili anlamak için
-        metnin Google'a gönderilmesi gerekiyor. Çeviri cihazda yapılıyorsa bu yeni
-        bir dışarı çıkış demektir; varsayılan bunu engeller. Tespit için ağa çıkıldığı
-        her turda balonda “dil tespiti: …” yazar.</p>
       </div>
 
       <div class="row">
@@ -403,7 +392,7 @@ function langLabel(code){
 // Konuşma geçmişi BİLEREK saklanmıyor: sayfa her açılışta boş başlar.
 const DEFAULTS = {
   v:2, a:"tr", b:"en", rate:1, voiceA:"", voiceB:"",
-  endpoint:1200, confth:0.55, cont:0, follow:"last", prov:"auto", netDetect:"online", email:"", proxy:"",
+  endpoint:1200, confth:0.55, cont:0, follow:"last", prov:"auto", email:"", proxy:"",
   gkey:"", gemkey:"", gemmodel:"gemini-3.6-flash", lid:"text", lidModel:"tiny"
 };
 
@@ -524,15 +513,11 @@ function proxied(url){
 // Hata gövdesi okunmadan atılırsa kullanıcıya yalnız "HTTP 429" kalır; oysa
 // gövdede "ne kadar bekle" (RetryInfo.retryDelay) ve "hangi kota" (QuotaFailure)
 // yazıyor. Bunlar olmadan "30 saniye bekle" ile "yarına kadar bitti" ayırt edilemez.
-// Kota TİPİ tek yerde belirlenir; hem kullanıcıya yazılan süre hem soğuma süresi
-// o karardan çıkar. Google günlük kota dolduğunda gövdeye ayrıca kısa bir
-// retryDelay de koyuyor; ona bakıp "31 sn sonra" demek kullanıcıyı yanıltıyordu.
 function parseHttpError(status, headers, bodyText){
   const err = new Error("HTTP " + status);
   err.status = status;
   err.retryAfter = 0;
   err.quotaId = "";
-  err.daily = false;
   const ra = headers && headers.get && headers.get("retry-after");
   if(ra && /^\d+$/.test(ra.trim())) err.retryAfter = Number(ra.trim());
   let j = null;
@@ -549,16 +534,10 @@ function parseHttpError(status, headers, bodyText){
       err.quotaId = v.quotaId || v.quotaMetric || "";
     }
   }
-  err.daily = /per_?day|RequestsPerDay/i.test(err.quotaId);
-  const rateLimited = (status === 429 || status === 403);
-  // Günlük hak Pasifik gece yarısı sıfırlanıyor: saatlik yeniden deneme her
-  // seferinde bir istek yakıp yine 429 alır. Bekleme değil, yol gösterilir.
-  err.coolSeconds = (!rateLimited || err.daily) ? 0 : (err.retryAfter || 45);
-
   const parts = ["HTTP " + status];
   if(err.quotaId) parts.push("kota: " + err.quotaId);
-  if(err.daily) parts.push("günlük hak bitti, bugün bu kaynak kullanılamaz");
-  else if(err.coolSeconds) parts.push(err.coolSeconds + " sn sonra");
+  if(err.retryAfter) parts.push(err.retryAfter + " sn sonra");
+  else if(status === 429 && /per_day|PerDay|RequestsPerDay/i.test(err.quotaId)) parts.push("günlük hak bitti");
   const msg = (j && j.error && j.error.message) ? String(j.error.message).slice(0, 120) : "";
   if(msg && !err.quotaId) parts.push(msg);
   err.message = parts.join(" · ");
@@ -583,46 +562,15 @@ async function getJSON(url, opts){
 // denenmez. Yoksa her tekrar kayan pencereye bir istek daha ekleyip sınırdan
 // çıkışı geciktiriyor.
 const cooldowns = {};
-const disabledToday = {};
 function coolLeft(name){
-  if(disabledToday[name] && Date.now() < disabledToday[name]) return -1;   // günlük hak bitti
   const until = cooldowns[name] || 0;
   return Math.max(0, Math.ceil((until - Date.now()) / 1000));
 }
-function coolReason(name){
-  const left = coolLeft(name);
-  if(left < 0) return "günlük hak bitti";
-  if(left > 0) return "sınıra takıldı, " + left + " sn bekleniyor";
-  return "";
-}
-// Google'ın günlük kotası Pasifik gece yarısı sıfırlanıyor; cihazın yerel gece
-// yarısını kullanmak Türkiye'de kilidi 10 saat erken açıyordu. Pasifik saatini
-// Intl ile hesaplıyoruz, böylece yaz saati geçişi de kendiliğinden doğru olur.
-function msUntilPacificMidnight(){
-  try{
-    const now = new Date();
-    const f = new Intl.DateTimeFormat("en-US", {
-      timeZone:"America/Los_Angeles", hour12:false,
-      hour:"2-digit", minute:"2-digit", second:"2-digit"
-    });
-    const p = {};
-    for(const part of f.formatToParts(now)) if(part.type !== "literal") p[part.type] = Number(part.value);
-    const h = p.hour === 24 ? 0 : p.hour;
-    const elapsed = ((h * 60 + p.minute) * 60 + p.second) * 1000;
-    return 24 * 3600 * 1000 - elapsed;
-  }catch(e){
-    return 8 * 3600 * 1000;      // saat dilimi verisi yoksa muhafazakâr pencere
-  }
-}
-
 function noteFailure(name, e){
   if(!e || (e.status !== 429 && e.status !== 403)) return;
-  if(e.daily){
-    // Bugün bir daha denemenin anlamı yok, her deneme bir istek daha yakar.
-    disabledToday[name] = Date.now() + msUntilPacificMidnight();
-    return;
-  }
-  cooldowns[name] = Date.now() + (e.coolSeconds || 45) * 1000;
+  const daily = /per_day|PerDay|RequestsPerDay/i.test(e.quotaId || "");
+  const secs = daily ? 3600 : (e.retryAfter || 45);
+  cooldowns[name] = Date.now() + secs * 1000;
 }
 
 /* ---- Cihazda dil kararı: seçili İKİ dil arasında, sağlayıcıya bağımlı olmadan ---- */
@@ -708,27 +656,13 @@ async function warmLocal(){
   await detectCaps();
 }
 
-// Chrome'un Language Detector'ı sıralı bir liste döndürüyor: her öğe
-// {detectedLanguage, confidence}. Yalnız ilk öğeyi almak iki şeyi kaybettiriyordu:
-// aradığımız dil ikinci sıradaysa cevap çöpe gidiyordu ("und" ya da komşu bir dil
-// başa geçebiliyor), ve güven okunmadığı için 0,3'lük bir tahmin 0,99'luk bir ses
-// ölçümünü iptal edebiliyordu. Artık listede yalnız seçili iki dil aranıyor ve
-// güven birlikte döndürülüyor.
 async function localDetect(text){
-  if(!detector) return {lang:"", score:0};
+  if(!detector) return "";
   try{
     const res = await detector.detect(text);
-    if(!Array.isArray(res)) return {lang:"", score:0};
-    let best = {lang:"", score:0};
-    for(const item of res){
-      const l = base(item && item.detectedLanguage);
-      if(l !== cfg.a && l !== cfg.b) continue;
-      const c = (typeof item.confidence === "number") ? item.confidence : 0;
-      if(c > best.score) best = {lang:l, score:c};
-    }
-    return best;
+    if(res && res.length && res[0].detectedLanguage) return base(res[0].detectedLanguage);
   }catch(e){}
-  return {lang:"", score:0};
+  return "";
 }
 
 async function viaLocal(text, from, to){
@@ -736,8 +670,7 @@ async function viaLocal(text, from, to){
   if(!tr) throw new Error("yerel model yok");
   const out = await tr.translate(text);
   if(!out) throw new Error("yerel model boş döndü");
-  // detected: kendisine verilen dili geri vermek "tespit" değil. Bilmiyorsa "".
-  return {text:out, detected:"", source:"cihazda"};
+  return {text:out, detected:from, source:"cihazda"};
 }
 
 function gtxURL(text, from, to){
@@ -775,7 +708,7 @@ async function viaMyMemory(text, from, to){
   const j = await getJSON(u);
   const out = j && j.responseData && j.responseData.translatedText;
   if(!out || /MYMEMORY WARNING|QUERY LENGTH LIMIT/i.test(out)) throw new Error("MyMemory kotası dolu");
-  return {text:out, detected:"", source:"MyMemory"};   // MyMemory dil tespiti yapmıyor
+  return {text:out, detected:(from || ""), source:"MyMemory"};
 }
 async function viaGCloud(text, from, to){
   if(!cfg.gkey) throw new Error("Google Cloud anahtarı yok");
@@ -802,7 +735,7 @@ async function viaGemini(text, from, to){
   const parts = j && j.candidates && j.candidates[0] && j.candidates[0].content && j.candidates[0].content.parts;
   const out = parts && parts.map(p=>p.text||"").join("").trim();
   if(!out) throw new Error("boş yanıt");
-  return {text:out, detected:"", source:"Gemini"};     // yalnız çeviri istedik, tespit değil
+  return {text:out, detected:(from || ""), source:"Gemini"};
 }
 
 function blobToBase64(blob){
@@ -849,35 +782,6 @@ async function viaGeminiAudio(blob, l1, l2){
   return parsed;
 }
 
-// Sağlayıcıların çoğu (yerel model, MyMemory, Gemini) kaynak dili bildirmiyor.
-// O durumda dil kilidi hiç kırılamıyordu. Tespit için yalnız kullanıcının
-// izin verdiği kaynağı kullanırız: gtx ya da Google Cloud zincirde yoksa
-// tespit yapılmaz, tahmin de üretilmez. Kullanılan kaynak dışarı bildirilir ki
-// balonda görünsün: çeviri cihazda yapılmışken tespitin ağa çıktığı gizli kalmasın.
-async function detectViaProvider(text, l1, l2){
-  const steps = chain();
-  const tried = [];
-  for(const name of ["gtx", "gcloud"]){
-    if(!steps.includes(name) || coolReason(name)) continue;
-    tried.push(name === "gtx" ? "Google" : "Google Cloud");
-    try{
-      const r = await STEPS[name](text, "", l2);
-      const d = base(r.detected || "");
-      if(d === base(l1) || d === base(l2)) return {lang:d, source:r.source, tried:tried.join("+")};
-    }catch(e){ noteFailure(name, e); }
-  }
-  // tried: metnin gerçekten gönderildiği kaynaklar. Sonuç boş olsa da bildirilir.
-  return {lang:"", source:"", tried:tried.join("+")};
-}
-
-// Tespit için ağa çıkmak yeni bir ifşa: çeviri cihazda yapıldıysa metin hiç
-// dışarı gitmemişti. Varsayılan, çeviri zaten çevrimiçi yapıldıysa izin vermek.
-function netDetectAllowed(usedOffline){
-  if(cfg.netDetect === "never") return false;
-  if(cfg.netDetect === "always") return true;
-  return !usedOffline;
-}
-
 const STEPS = {
   local:viaLocal, gtx:viaGtx,
   mymemory:viaMyMemory, gcloud:viaGCloud, gemini:viaGemini
@@ -901,8 +805,8 @@ async function translate(text, from, to){
   const failures = [];
   const steps = chain();
   for(const name of steps){
-    const reason = coolReason(name);
-    if(reason){ failures.push(name + ": " + reason); continue; }
+    const left = coolLeft(name);
+    if(left){ failures.push(name + ": sınıra takıldı, " + left + " sn bekleniyor"); continue; }
     try{
       const r = await STEPS[name](text, from, to);
       lastSource = r.source; paintEngine();
@@ -1548,7 +1452,7 @@ async function runUtterance(text, conf, audioBlob, gen){
   }
 
   // Yol 1b — gerçek ses tabanlı tespit + çeviri tek çağrıda (Gemini).
-  if(audioBlob && cfg.lid === "gemini" && !coolReason("gemini")){
+  if(audioBlob && cfg.lid === "gemini" && !coolLeft("gemini")){
     setHint("Sesten dil algılanıyor…");
     try{
       const g = await viaGeminiAudio(audioBlob, cfg.a, cfg.b);
@@ -1570,15 +1474,11 @@ async function runUtterance(text, conf, audioBlob, gen){
   }
 
   // Yol 2 — metin tabanlı tahmin: cihazdaki dedektör/istatistik + tanıyıcı güveni.
-  const dres = caps.localDetect ? await localDetect(text) : {lang:"", score:0};
+  const d = caps.localDetect ? await localDetect(text) : "";
   if(stale(gen)) return;
-  // Cihaz dedektörünün kararı da ses tarafıyla aynı eşiği geçmeli (0,75).
-  // Eşiğin altındaki tahmin "karar" sayılmaz, yalnız zayıf bir ipucudur.
-  const DET_TH = 0.75;
-  const d = (dres.lang && dres.score >= DET_TH) ? dres.lang : "";
   const gd = guessPairDetail(text, cfg.a, cfg.b);
-  const gTxt = d || gd.lang;
-  const txtStrong = !!d || gd.margin >= 2;
+  const gTxt = (d === cfg.a || d === cfg.b) ? d : gd.lang;
+  const txtStrong = (d === cfg.a || d === cfg.b) || gd.margin >= 2;
   const words = text.split(/\s+/).filter(Boolean).length;
   const lowConf = (typeof conf === "number") && conf < Number(cfg.confth || 0.55);
   const highConf = (typeof conf !== "number") || conf >= 0.8;
@@ -1586,12 +1486,8 @@ async function runUtterance(text, conf, audioBlob, gen){
   // Birleştirme: ses kararı kesinse (ayrım ≥ 0,75) o kazanır. Kararsızsa ve
   // metin güçlü bir şey söylüyorsa metin kazanır: "I'm fine" metnen kesin
   // İngilizcedir, aksanlı seste Whisper'ın tereddüdü bunu ezmemeli.
-  // Birleştirme: iki kaynak çelişiyorsa güveni yüksek olan kazanır. Metin
-  // tarafının güveni yoksa (istatistik tahmini) sabit bir değer varsayılır;
-  // ses kararı eşiği geçmişse metin onu ezemez.
-  const txtScore = dres.lang ? dres.score : (gd.margin >= 4 ? 0.7 : 0.5);
-  if(lidLang && lidScore < 0.75 && gTxt && gTxt !== lidLang && txtStrong && txtScore > lidScore){
-    lidTag += " → metin: " + gTxt + " (güven " + txtScore.toFixed(2) + ")";
+  if(lidLang && lidScore < 0.75 && gTxt && gTxt !== lidLang && txtStrong){
+    lidTag += " → metin: " + gTxt;
     lidLang = "";
   }
 
@@ -1603,85 +1499,24 @@ async function runUtterance(text, conf, audioBlob, gen){
   // Güvenden BAĞIMSIZ: Chrome masaüstünde yanlış dilde dinlenen konuşmaya bile
   // yüksek güven verebiliyor; güvene bağlamak sayacı orada hiç artırmıyordu.
   const junk = !txtStrong && !gTxt && words >= 2;
-
-  // "Seçtiğim dilde kal" modunda dil zaten biliniyor: tahmin de eleme de
-  // gereksiz. Aşağıdaki bloklar cümleyi çevirmeden atıyor ve üstüne "öteki dile
-  // geçtim" diye yanlış bilgi veriyordu — oysa sabit modda hiçbir yere
-  // geçilmiyor. Kısa işlevsel ifadeler ("otel rezervasyonu", "two coffees")
-  // hiçbir sık-kelime listesine takılmadığı için tam da en çok gereken cümleler
-  // kayboluyordu.
-  const fixedLang = cfg.follow === "fixed";
-
-  if(!fixedLang){
-    if(junk && (lidLang === heard || !lidLang)) junkStreak++;
-    else if(!junk) junkStreak = 0;
+  if(junk && (lidLang === heard || !lidLang)) junkStreak++;
+  else if(!junk) junkStreak = 0;
 
   // Tanınamayan turda beklemenin faydası yok: saçma metni çevirip yüksek sesle
   // okumak hem 2-4 saniye harcıyor hem de kullanıcıyı yanıltıyordu. İLK turda
   // dili değiştir, okuma yapma. (Ses tabanlı algılama açıkken bu yola hiç
   // girilmiyor: dil zaten sesten biliniyor.)
   if(junkStreak >= 1 && !lidLang){
-      junkStreak = 0;
-      const other = (heard === cfg.a) ? cfg.b : cfg.a;
-      // Cümleyi ATMIYORUZ: "otel rezervasyonu", "two coffees", "boarding pass"
-      // gibi kısa işlevsel ifadeler hiçbir sık-kelime listesine takılmaz ve tam
-      // da en çok gereken cümlelerdir. Dinlenen dille çevirip ekrana koyuyoruz,
-      // ama SESLİ OKUMUYORUZ (yanlış dilse saçma metni okumak 2-4 saniye harcar).
-      //
-      // Dinleme dilini burada DEĞİŞTİRMİYORUZ: "listeye takılmadı" ölçütü
-      // "dil yanlış" demek değil, "bilmiyorum" demek. Geçerli her kısa ifadede
-      // dili ters çevirmek, bir sonraki cümleyi bedel olarak alıyordu. Dil
-      // ancak gerçek kanıtla değişir: ses tabanlı algılama (lidLang) ya da
-      // sağlayıcının döndürdüğü detected alanı (aşağıda).
-      const bub = addBubble(heard, text, null);
-      const tgt = other;
-      try{
-        const r = await translate(text, heard, tgt);
-        if(stale(gen)){ bub.remove(); return; }
-        let det = r.detected && (r.detected === base(cfg.a) || r.detected === base(cfg.b))
-          ? r.detected : "";
-        let detNote = "";
-        if(!det && netDetectAllowed(r.source === "cihazda")){
-          // Sağlayıcı dil bildirmiyorsa tek seferlik bağımsız tespit.
-          // Not, çağrının SONUCUNA değil YAPILMIŞ OLMASINA bağlı: metin dışarı
-          // çıktıysa kullanıcı bunu her turda görmeli, tespit başarısız olsa bile.
-          const dr = await detectViaProvider(text, cfg.a, cfg.b);
-          if(stale(gen)){ bub.remove(); return; }
-          det = dr.lang;
-          detNote = dr.tried
-            ? " · dil tespiti: " + dr.tried + (det ? "" : " (sonuç yok)")
-            : "";
-        }
-
-        if(det && det !== base(heard)){
-          // Kanıt var, dil YANLIŞ: yukarıdaki çeviri metni kendi diline çevirmiş
-          // olur (kaynak = hedef), kullanıcı hiçbir çeviri görmez. Doğru yöne
-          // yeniden çevirip sesli okuyoruz.
-          const newTarget = (det === base(cfg.a)) ? cfg.b : cfg.a;
-          const r2 = await translate(text, det, newTarget);
-          if(stale(gen)){ bub.remove(); return; }
-          setBubbleSide(bub, det);
-          setTranslation(bub, r2.text, newTarget,
-            r2.source + detNote + " · dili " + LANGS[det].n + " olarak algıladı");
-          if(cfg.follow !== "fixed") setTurn(det, false);
-          setHint("Okuyor…");
-          await speak(r2.text, newTarget);
-        }else if(det){
-          // Kanıt var, dil DOĞRU: burası en sık durum. "Belirsiz" demek yanlış
-          // olur ve sessiz kalmak çevirmenin tek işini yapmaması demektir.
-          setTranslation(bub, r.text, tgt, r.source + detNote + " · dil doğrulandı");
-          setHint("Okuyor…");
-          await speak(r.text, tgt);
-        }else{
-          // Kanıt YOK: çeviri gösterilir ama okunmaz, dinleme dili korunur.
-          setTranslation(bub, r.text, tgt, r.source + " · dil belirsiz, okunmadı");
-        }
-      }catch(e){
-        if(stale(gen)){ bub.remove(); return; }
-        setTranslation(bub, null, tgt, null, e.message);
-      }
-      return;
-    }
+    junkStreak = 0;
+    const other = (heard === cfg.a) ? cfg.b : cfg.a;
+    const bub = addBubble(heard, text, null);
+    bub.classList.add("live");
+    setTranslation(bub, null, other, null,
+      "anlaşılmadı — " + LANGS[other].n + " dinlemeye geçtim, tekrar söyler misin?");
+    if(navigator.vibrate) navigator.vibrate([80,60,80]);
+    if(cfg.follow !== "fixed") setTurn(other, false);   // "sabit kal" burada da geçerli
+    return;
+  }
 
   // Bu blok ÖLÜ DEĞİL: yalnız ses tabanlı algılama açıkken (lidLang dolu)
   // buraya gelinir, çünkü yukarıdaki >=1 kısayolu "!lidLang" koşuluyla korunuyor.
@@ -1689,24 +1524,22 @@ async function runUtterance(text, conf, audioBlob, gen){
   // metin modunda tek tur yetiyor. Ölçüm: 4 çöp turda metin modu 4 kez >=1'e,
   // ses modu 2 kez >=2'ye giriyor.
   if(junkStreak >= 2){
-      junkStreak = 0;
-      const other = (heard === cfg.a) ? cfg.b : cfg.a;
-      const bub = addBubble(heard, text, null);
-      bub.classList.add("live");
-      setTranslation(bub, null, other, null,
-        "üst üste anlaşılmadı — dil kilidi kırıldı, şimdi " + LANGS[other].n + " dinliyorum");
-      if(navigator.vibrate) navigator.vibrate([80,60,80]);
-      setTurn(other, false);
-      return;
-    }
+    junkStreak = 0;
+    const other = (heard === cfg.a) ? cfg.b : cfg.a;
+    const bub = addBubble(heard, text, null);
+    bub.classList.add("live");
+    setTranslation(bub, null, other, null,
+      "üst üste anlaşılmadı — dil kilidi kırıldı, şimdi " + LANGS[other].n + " dinliyorum");
+    if(navigator.vibrate) navigator.vibrate([80,60,80]);
+    if(cfg.follow !== "fixed") setTurn(other, false);
+    return;
   }
 
   const g = lidLang || gTxt;     // sesten gelen kesin karar metin tahminini ezer
 
   // Sesten karar verildiyse "anlaşılmadı" süzgecini atla: dil zaten biliniyor,
   // metin saçmaysa bile doğru tarafa yazıp doğru yöne çevirmek daha iyi.
-  // Sabit dil modunda da atlanır: orada dil kullanıcı tarafından verilmiştir.
-  if(!fixedLang && !lidLang && ((g === "" && words >= 2 && !highConf) || lowConf)){
+  if(!lidLang && ((g === "" && words >= 2 && !highConf) || lowConf)){
     const other = (heard === cfg.a) ? cfg.b : cfg.a;
     const bub = addBubble(heard, text, null);
     bub.classList.add("live");
@@ -1714,12 +1547,11 @@ async function runUtterance(text, conf, audioBlob, gen){
       "anlaşılmadı" + (typeof conf === "number" ? " (güven " + conf.toFixed(2) + ")" : "")
       + " — şimdi " + LANGS[other].n + " dinliyorum, tekrar söyler misin?");
     if(navigator.vibrate) navigator.vibrate(120);
-    setTurn(other, false);
+    if(cfg.follow !== "fixed") setTurn(other, false);
     return;
   }
 
-  // Sabit modda kaynak dil tartışmasız: kullanıcının seçtiği dinleme dili.
-  let from = fixedLang ? listenLang : ((g === cfg.a || g === cfg.b) ? g : heard);
+  let from = (g === cfg.a || g === cfg.b) ? g : heard;
   let target = (from === cfg.a) ? cfg.b : cfg.a;
   const bub = addBubble(from, text, null);
 
@@ -1728,24 +1560,10 @@ async function runUtterance(text, conf, audioBlob, gen){
     if(stale(gen)){ bub.remove(); return; }
 
     // Sağlayıcı kaynak dili biliyorsa ve bizimle çelişiyorsa ona uy, bir kez daha çevir.
-    // Sabit modda dil kullanıcının beyanıdır: sağlayıcı tahmini onu ezmez.
-    // Sağlayıcı dil bildirmiyorsa (yerel model, MyMemory, Gemini) ve metin
-    // tahmini de karar verememişse bağımsız tespit denenir; yoksa bu kurulumda
-    // yanlış dil kilidi hiç kırılmıyordu.
-    let detected = r.detected;
-    let detNote = "";
-    if(!fixedLang && !detected && !gTxt && !lidLang && netDetectAllowed(r.source === "cihazda")){
-      const dr = await detectViaProvider(text, cfg.a, cfg.b);
-      if(stale(gen)){ bub.remove(); return; }
-      detected = dr.lang;
-      detNote = dr.tried
-        ? " · dil tespiti: " + dr.tried + (detected ? "" : " (sonuç yok)")
-        : "";
-    }
-    if(!fixedLang && detected && detected === base(target) && base(target) !== base(from)){
+    if(r.detected && r.detected === base(target) && base(target) !== base(from)){
       const fixedTarget = (base(target) === cfg.a) ? cfg.b : cfg.a;
       try{
-        r = await translate(text, detected, fixedTarget);
+        r = await translate(text, r.detected, fixedTarget);
         if(stale(gen)){ bub.remove(); return; }
         from = (fixedTarget === cfg.a) ? cfg.b : cfg.a;
         target = fixedTarget;
@@ -1755,8 +1573,7 @@ async function runUtterance(text, conf, audioBlob, gen){
 
     const confTxt = (typeof conf === "number" && conf < 1) ? " · güven " + conf.toFixed(2) : "";
     setTranslation(bub, r.text, target,
-      r.source + confTxt + detNote + (lidTag ? " · " + lidTag : "")
-      + (r.note ? " · düşen: " + r.note : ""));
+      r.source + confTxt + (lidTag ? " · " + lidTag : "") + (r.note ? " · düşen: " + r.note : ""));
 
     // Sıra yok: bir sonraki turu, az önce konuşulan dilde dinle. Karşı taraf
     // konuşursa metinden anlaşılır ve dil yine buradan düzelir. "Sabit kal"
@@ -2145,11 +1962,10 @@ bindSelect("#selB", "b", async () => {
 });
 bindSelect("#vA", "voiceA");
 bindSelect("#vB", "voiceB");
-bindSelect("#prov", "prov", async () => { paintDetNote(); });
+bindSelect("#prov", "prov");
 
 $("#cont").addEventListener("change", () => { cfg.cont = Number($("#cont").value); save(); });
 $("#follow").addEventListener("change", () => { cfg.follow = $("#follow").value; save(); });
-$("#netDetect").addEventListener("change", () => { cfg.netDetect = $("#netDetect").value; save(); paintDetNote(); });
 $("#lid").addEventListener("change", () => {
   cfg.lid = $("#lid").value; save(); paintLID();
   if(cfg.lid === "local") loadLID().catch(()=>{});   // seçer seçmez indirmeye başla
@@ -2162,7 +1978,6 @@ $("#lidModel").addEventListener("change", () => {
   cfg.lidModel = $("#lidModel").value; save();
   resetLID(); paintLID();
   if(cfg.lid === "local") loadLID().catch(()=>{});
-  paintDetNote();
 });
 // İndirme sürerken model boyutu değiştirilemez: kütüphanenin from_pretrained'i
 // için doğrulanmış bir iptal yolu yok; iki modelin paralel inmesini kaynağında
@@ -2225,47 +2040,6 @@ $("#resetAll").addEventListener("click", () => {
 
 // Tarayıcı güven değeri vermiyorsa (Android'de olağan) bunu söyle: kaydırak
 // duruyor ama hiçbir şey ölçmüyor, kullanıcı sanmasın ki süzgeç çalışıyor.
-// Yanlış dil kilidinin otomatik kırılması yalnız iki yoldan biriyle mümkün:
-// ses tabanlı algılama, ya da kaynak dili gerçekten bildiren bir sağlayıcı
-// (Google anahtarsız / Google Cloud). Bu bağımlılık panelde görünmeliydi.
-function paintDetNote(){
-  const el = document.getElementById("detNote");
-  if(!el) return;
-  if(cfg.lid !== "text"){
-    el.textContent = "Dil algılama sesten yapılıyor; çeviri kaynağından bağımsız.";
-    el.style.color = "";
-    return;
-  }
-  const steps = (cfg.prov === "auto") ? ["gtx"] : [cfg.prov];
-  const canDetect = steps.includes("gtx") || steps.includes("gcloud");
-  const localFirst = (cfg.prov === "local") || (cfg.prov === "auto" && caps.localTrans);
-
-  if(localFirst){
-    // Çeviri cihazda yapılıyor: tespit için ağa çıkmak yeni bir dışarı çıkıştır.
-    if(cfg.prov === "local" || cfg.netDetect === "never"){
-      el.textContent = "Çeviri cihazda ve dil tespiti için dışarı çıkılmıyor: "
-        + "yanlış dilde dinlenirse düzeltmeyi alttaki dil düğmesiyle sen yapmalısın.";
-      el.style.color = "var(--a)";
-    }else if(cfg.netDetect === "always"){
-      el.textContent = "Çeviri cihazda yapılsa bile dili anlamak için metin Google'a "
-        + "gönderiliyor. Olduğu turlarda balonda “dil tespiti” yazar.";
-      el.style.color = "var(--a)";
-    }else{
-      el.textContent = "Çeviri cihazda yapıldığı turlarda dil tespiti için dışarı "
-        + "çıkılmaz; çeviri çevrimiçi yapıldıysa dil de oradan öğrenilir.";
-      el.style.color = "";
-    }
-    return;
-  }
-
-  el.textContent = canDetect
-    ? "Bu kaynak konuşulan dili bildiriyor; yanlış dil kendiliğinden düzeltilebiliyor."
-    : "Dikkat: bu kaynak konuşulan dili bildirmiyor. Yanlış dilde dinlenirse "
-      + "düzeltme için alttaki dil düğmesine kendin dokunman gerekir; otomatik "
-      + "düzeltme istiyorsan yukarıdan “Cihazdaki model”i seç.";
-  el.style.color = canDetect ? "" : "var(--a)";
-}
-
 function paintConfSupport(){
   const el = document.getElementById("confNote");
   if(!el) return;
@@ -2309,7 +2083,6 @@ function paintSettings(){
   paintConfSupport();
   $("#cont").value = String(cfg.cont);
   $("#follow").value = cfg.follow;
-  $("#netDetect").value = cfg.netDetect;
   $("#prov").value = cfg.prov;
   $("#email").value = cfg.email;
   $("#proxy").value = cfg.proxy;
