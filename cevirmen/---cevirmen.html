@@ -154,9 +154,8 @@
 <div id="feed">
   <div id="empty">
     <strong>Konuşmaya başla</strong>
-    Mikrofona dokun, konuş. Sustuğunda dilini anlar, karşı dile çevirip okur.
-    Sıra yok: arka arkaya aynı dilde de konuşulabilir. Yanlış anlaşılırsa alttaki dil
-    düğmesine dokunup dili kendin seçebilirsin.
+    Mikrofona dokun, konuş. Sustuğunda çevirip sesli okur, sonra sırayı karşı tarafa
+    verir. Sıra şaşarsa alttaki dil düğmesine dokunup kendin verebilirsin.
   </div>
 </div>
 
@@ -196,14 +195,6 @@
         <input type="range" id="endp" min="600" max="2500" step="100">
         <p class="note">Cümlen ortadan kesiliyorsa uzat. Çeviri geç başlıyor gibi
         geliyorsa kısalt. Gürültülü ortamda uzun taraf daha güvenli.</p>
-      </div>
-
-      <div class="row">
-        <label for="confth">Uydurma süzgeci: güven eşiği <span id="confVal">0,55</span></label>
-        <input type="range" id="confth" min="0.3" max="0.8" step="0.05">
-        <p class="note">Tanıyıcı bir cümleye bu değerin altında güven veriyorsa cümle
-        okunmaz, karşı dile geçilir ve tekrar istenir. Doğru cümleler de eleniyorsa
-        düşür; saçma cümleler okunuyorsa yükselt. Her balonun altında ölçülen güven yazar.</p>
       </div>
 
       <div class="row">
@@ -305,9 +296,8 @@
         (file://) açarsan tarayıcı mikrofon iznini hatırlamaz, her cümlede yeniden sorar.<br><br>
         Yerel çeviri ve yerel ses tanıma yalnız masaüstü Chrome/Edge’de var. Telefonda ses
         tanıma Google’ın sunucusuna gider, yani internet ister.<br><br>
-        Tarayıcı ses tanıması dili önceden ister; sesten dil tespiti yapamaz. Uygulama son
-        konuşulan dilde dinler, çıkan metinden dili anlar ve balonu doğru tarafa koyar.
-        Yanlış dilde dinlenip saçma kelime çıkarsa okumaz, öteki dile geçer ve tekrar ister.
+        Sesten dil tespiti tarayıcıda mümkün değil: uygulama sırayla dinler. Yanlış dilde
+        konuşulursa metinden anlayıp çeviri yönünü düzeltir.
       </p>
 
     </div>
@@ -362,7 +352,7 @@ function langLabel(code){
 // Konuşma geçmişi BİLEREK saklanmıyor: sayfa her açılışta boş başlar.
 const DEFAULTS = {
   v:2, a:"tr", b:"en", rate:1, voiceA:"", voiceB:"",
-  endpoint:1200, confth:0.55, cont:0, prov:"auto", email:"", proxy:"",
+  endpoint:1200, cont:0, prov:"auto", email:"", proxy:"",
   gkey:"", gemkey:"", gemmodel:"gemini-3.6-flash"
 };
 
@@ -722,7 +712,6 @@ let restartTimer = null;
 
 let turnFinal = "";        // bu turda kesinleşen metin
 let turnInterim = "";      // son ara metin
-let turnConf = 1;          // kesinleşen parçaların en düşük güveni (0-1)
 let silenceTimer = null;
 
 // Tek örnek ömür boyu korunur: her turda yeni SpeechRecognition üretmek
@@ -762,17 +751,14 @@ function startRec(){
 function onResult(ev){
   // Biriktirme yok: Chrome Android aynı parçayı birden çok kez "final" olarak
   // yolluyor; metni her seferinde tüm sonuç listesinden sıfırdan kuruyoruz.
-  let final = "", interim = "", conf = 1;
+  let final = "", interim = "";
   for(let i = 0; i < ev.results.length; i++){
-    const alt = ev.results[i][0];
-    if(ev.results[i].isFinal){
-      final += alt.transcript + " ";
-      if(typeof alt.confidence === "number" && alt.confidence > 0) conf = Math.min(conf, alt.confidence);
-    }else interim += alt.transcript;
+    const t = ev.results[i][0].transcript;
+    if(ev.results[i].isFinal) final += t + " ";
+    else interim += t;
   }
   turnFinal = final;
   turnInterim = interim;
-  turnConf = conf;
   errStreak = 0;
   const live = (turnFinal + " " + interim).replace(/\s+/g, " ").trim();
   if(live) showLive(live);
@@ -786,19 +772,19 @@ function armSilence(){
 }
 function clearTurn(){
   clearTimeout(silenceTimer);
-  turnFinal = ""; turnInterim = ""; turnConf = 1;
+  turnFinal = ""; turnInterim = "";
   clearLive();
 }
 function endTurn(){
   clearTimeout(silenceTimer);
   const text = (turnFinal + " " + turnInterim).replace(/\s+/g, " ").trim();
-  const conf = turnConf;
-  turnFinal = ""; turnInterim = ""; turnConf = 1;
+  turnFinal = ""; turnInterim = "";
   clearLive();
   if(!text) return;
   // Yalnız gerçek gürültüyü ele: en az iki harf/rakam yoksa yok say.
+  // (Uzunluk eşiği "tamam", "hello", "evet" gibi geçerli tek kelimelik turları yutuyordu.)
   if(text.replace(/[^\p{L}\p{N}]/gu, "").length < 2) return;
-  handleUtterance(text, conf);
+  handleUtterance(text);
 }
 
 function onError(ev){
@@ -828,40 +814,22 @@ function onEnd(){
   restartTimer = setTimeout(startRec, 250);
 }
 
-async function handleUtterance(text, conf){
+async function handleUtterance(text){
   busy = true;
   clearTimeout(silenceTimer);
   micBtn.classList.remove("on"); micBtn.classList.add("busy");
   setHint("Çeviriyor…");
   if(!cfg.cont){ try{ rec && rec.abort(); }catch(e){} }
 
-  const heard = listenLang;
+  const spokenGuess = listenLang;
 
   // Konuşulan dili çeviriden ÖNCE cihazda belirle: dinleme diline güvenme.
+  let from = spokenGuess;
   const d = caps.localDetect ? await localDetect(text) : "";
   const g = (d === cfg.a || d === cfg.b) ? d : guessPair(text, cfg.a, cfg.b);
-  const words = text.split(/\s+/).filter(Boolean).length;
-  const lowConf = (typeof conf === "number") && conf < Number(cfg.confth || 0.55);
-  const highConf = (typeof conf !== "number") || conf >= 0.8;
-
-  // Yanlış dilde dinlenmiş konuşma, tanıyıcıdan anlamsız kelimeler olarak çıkar
-  // ("position position listen"). İki dile de benzemiyorsa VE tanıyıcı da emin
-  // değilse, ya da güven eşiğin altındaysa konuşturma: öteki dile geç, tekrar iste.
-  if((g === "" && words >= 2 && !highConf) || lowConf){
-    const other = (heard === cfg.a) ? cfg.b : cfg.a;
-    const bub = addBubble(heard, text, null);
-    bub.classList.add("live");
-    setTranslation(bub, null, other, null,
-      "anlaşılmadı" + (typeof conf === "number" ? " (güven " + conf.toFixed(2) + ")" : "")
-      + " — şimdi " + LANGS[other].n + " dinliyorum, tekrar söyler misin?");
-    if(navigator.vibrate) navigator.vibrate(120);
-    setTurn(other, false);
-    finishTurn();
-    return;
-  }
-
-  let from = (g === cfg.a || g === cfg.b) ? g : heard;
+  if(g === cfg.a || g === cfg.b) from = g;
   let target = (from === cfg.a) ? cfg.b : cfg.a;
+
   const bub = addBubble(from, text, null);
 
   try{
@@ -878,28 +846,20 @@ async function handleUtterance(text, conf){
       }catch(e){ /* düzeltme başarısızsa ilk çeviriyle devam */ }
     }
 
-    const confTxt = (typeof conf === "number" && conf < 1) ? " · güven " + conf.toFixed(2) : "";
-    setTranslation(bub, r.text, target, r.source + confTxt + (r.note ? " · düşen: " + r.note : ""));
-
-    // Sıra yok: bir sonraki turu, az önce konuşulan dilde dinle. Karşı taraf
-    // konuşursa metinden anlaşılır ve dil yine buradan düzelir.
-    setTurn(from, false);
+    setTranslation(bub, r.text, target, r.source + (r.note ? " · düşen: " + r.note : ""));
 
     setHint("Okuyor…");
     await speak(r.text, target);
+    setTurn(target, false);          // sıra karşı tarafa geçer
   }catch(err){
     setTranslation(bub, null, target, null, err.message);
     setHint("Çeviri başarısız.");
   }finally{
-    finishTurn();
+    busy = false;
+    micBtn.classList.remove("busy");
+    if(running){ clearTimeout(restartTimer); restartTimer = setTimeout(startRec, 300); }
+    else setHint("Başlamak için dokun");
   }
-}
-
-function finishTurn(){
-  busy = false;
-  micBtn.classList.remove("busy");
-  if(running){ clearTimeout(restartTimer); restartTimer = setTimeout(startRec, 300); }
-  else setHint("Başlamak için dokun");
 }
 
 async function startAll(){
@@ -1212,11 +1172,6 @@ $("#endp").addEventListener("input", () => {
   $("#endpVal").textContent = (cfg.endpoint / 1000).toFixed(1).replace(".", ",");
   save();
 });
-$("#confth").addEventListener("input", () => {
-  cfg.confth = Number($("#confth").value);
-  $("#confVal").textContent = cfg.confth.toFixed(2).replace(".", ",");
-  save();
-});
 
 bindText("#email", "email");
 bindText("#proxy", "proxy");
@@ -1249,8 +1204,6 @@ function paintSettings(){
   $("#rateVal").textContent = Number(cfg.rate).toFixed(1).replace(".", ",");
   $("#endp").value = cfg.endpoint;
   $("#endpVal").textContent = (Number(cfg.endpoint) / 1000).toFixed(1).replace(".", ",");
-  $("#confth").value = cfg.confth;
-  $("#confVal").textContent = Number(cfg.confth).toFixed(2).replace(".", ",");
   $("#cont").value = String(cfg.cont);
   $("#prov").value = cfg.prov;
   $("#email").value = cfg.email;
