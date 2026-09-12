@@ -200,17 +200,6 @@
       </div>
 
       <div class="row">
-        <label for="follow">Dinleme dili</label>
-        <select id="follow">
-          <option value="last">Son konuşana uy (iki kişi karşılıklı konuşuyor)</option>
-          <option value="fixed">Seçtiğim dilde kal (hep aynı kişi konuşuyor)</option>
-        </select>
-        <p class="note">"Son konuşana uy" her tur sonunda dinleme dilini o turda
-        konuşulan dile çeviriyor. Hep sen konuşuyorsan "sabit kal" daha hızlı:
-        tanıma oturumu her turda yeniden başlamıyor.</p>
-      </div>
-
-      <div class="row">
         <label for="cont">Kendi sesini duyma</label>
         <select id="cont">
           <option value="0">Okurken mikrofonu kapat (hoparlör)</option>
@@ -392,7 +381,7 @@ function langLabel(code){
 // Konuşma geçmişi BİLEREK saklanmıyor: sayfa her açılışta boş başlar.
 const DEFAULTS = {
   v:2, a:"tr", b:"en", rate:1, voiceA:"", voiceB:"",
-  endpoint:1200, confth:0.55, cont:0, follow:"last", prov:"auto", email:"", proxy:"",
+  endpoint:1200, confth:0.55, cont:0, prov:"auto", email:"", proxy:"",
   gkey:"", gemkey:"", gemmodel:"gemini-3.6-flash", lid:"text", lidModel:"tiny"
 };
 
@@ -1007,7 +996,6 @@ let recActive = false;     // tanıma oturumu şu an açık mı (start ile onEnd
 let resultBase = 0;        // bu oturumda zaten tüketilmiş sonuç sayısı
 let lastResultsLen = 0;
 let turnGen = 0;           // stopAll artırır; uçuştaki tur bunu görünce kendini bırakır
-let relangPending = false; // tur biterken dil değişti: oturum yeni dille açılmalı
 let recStartedAt = 0;      // startRec çağrı anı
 let recGotStart = false;   // Chrome "start" olayını gerçekten yolladı mı
 let lastAudioAt = 0;       // son ses/sonuç olayı (bekçi köpeği için)
@@ -1148,22 +1136,11 @@ setInterval(() => {
 
 function startRec(){
   if(!SR || !running || busy) return;
-  if(recActive){
-    // Oturum açık ama dili eski: SpeechRecognition dili yalnız start() anında
-    // okuduğu için oturumu kapatmadan dil değiştirilemiyor.
-    if(relangPending || (rec && rec.lang !== LANGS[listenLang].asr)){
-      relangPending = false;
-      detachRec(rec);
-      try{ rec && rec.abort(); }catch(e){}
-      rec = null; recActive = false; recGotStart = false; recGotAudio = false;
-      // aşağıdaki normal başlatma yolundan yeni dille açılır
-    }else{
-      micBtn.classList.add("on");
-      setHint("Dinliyorum · " + LANGS[listenLang].n);
-      return;
-    }
+  if(recActive){                       // kulaklık modunda oturum hiç kapanmadı
+    micBtn.classList.add("on");
+    setHint("Dinliyorum · " + LANGS[listenLang].n);
+    return;
   }
-  relangPending = false;
   try{
     const r = ensureRec();
     r.lang = LANGS[listenLang].asr;
@@ -1239,8 +1216,6 @@ function mergeSnapshots(parts){
 function onResult(ev){
   lastResultsLen = ev.results.length;
   lastAudioAt = performance.now();
-  recGotAudio = true;      // sonuç geliyorsa mikrofon açıktır: onaudiostart
-                           // yollamayan tarayıcıda bekçi yanlış alarm vermesin
   // Okuma/çeviri sürerken gelen ses (kulaklık modunda hoparlör yankısı ya da
   // erken konuşma) bu tura ait değil: at ve tabanı ileri al, bir sonraki turla
   // birleşmesin.
@@ -1437,22 +1412,6 @@ async function runUtterance(text, conf, audioBlob, gen){
   if(junk && (lidLang === heard || !lidLang)) junkStreak++;
   else if(!junk) junkStreak = 0;
 
-  // Tanınamayan turda beklemenin faydası yok: saçma metni çevirip yüksek sesle
-  // okumak hem 2-4 saniye harcıyor hem de kullanıcıyı yanıltıyordu. İLK turda
-  // dili değiştir, okuma yapma. (Ses tabanlı algılama açıkken bu yola hiç
-  // girilmiyor: dil zaten sesten biliniyor.)
-  if(junkStreak >= 1 && !lidLang){
-    junkStreak = 0;
-    const other = (heard === cfg.a) ? cfg.b : cfg.a;
-    const bub = addBubble(heard, text, null);
-    bub.classList.add("live");
-    setTranslation(bub, null, other, null,
-      "anlaşılmadı — " + LANGS[other].n + " dinlemeye geçtim, tekrar söyler misin?");
-    if(navigator.vibrate) navigator.vibrate([80,60,80]);
-    setTurn(other, false);
-    return;
-  }
-
   if(junkStreak >= 2){
     junkStreak = 0;
     const other = (heard === cfg.a) ? cfg.b : cfg.a;
@@ -1506,9 +1465,8 @@ async function runUtterance(text, conf, audioBlob, gen){
       r.source + confTxt + (lidTag ? " · " + lidTag : "") + (r.note ? " · düşen: " + r.note : ""));
 
     // Sıra yok: bir sonraki turu, az önce konuşulan dilde dinle. Karşı taraf
-    // konuşursa metinden anlaşılır ve dil yine buradan düzelir. "Sabit kal"
-    // seçiliyse dinleme dili kullanıcının seçtiği yerde kalır.
-    if(!stale(gen) && cfg.follow !== "fixed") setTurn(from, false);
+    // konuşursa metinden anlaşılır ve dil yine buradan düzelir.
+    if(!stale(gen)) setTurn(from, false);
 
     if(stale(gen)){ bub.remove(); return; }
     setHint("Okuyor…");
@@ -1551,7 +1509,6 @@ function stopAll(reason){
   try{ rec && rec.abort(); }catch(e){}
   try{ speechSynthesis.cancel(); }catch(e){}
   stopAudioCapture();
-  relangPending = false;
   micBtn.classList.remove("on","busy");
   releaseWakeLock();
   setHint(reason ? ("Durdu: " + reason) : "Başlamak için dokun");
@@ -1622,21 +1579,14 @@ function paintPair(){
   $("#pb").classList.toggle("turn", listenLang === cfg.b);
 }
 
-// Sırayı ver. Dil GERÇEKTEN değiştiyse tanıma oturumu yeniden başlatılmalı:
-// SpeechRecognition dili yalnız start() anında okuyor, değişkeni güncellemek
-// davranışı değiştirmiyordu (kulaklık modunda oturum hiç kapanmadığı için dil
-// hiç değişmiyor, ekran "İngilizce dinliyorum" derken Chrome Türkçe tanıyordu).
+// Sırayı ver. byUser=true ise dinlemeyi hemen o dile çevirir.
 function setTurn(lang, byUser){
-  const changed = lang !== listenLang;
   listenLang = lang;
   paintPair();
-  if(!changed && !byUser) return;
-  if(byUser) setHint("Sıra sende · " + LANGS[lang].n);
-  if(running && !busy){
+  if(byUser && running && !busy){
     clearTurn();
     try{ rec && rec.abort(); }catch(e){}   // onEnd yeni dille yeniden başlatır
-  }else if(running && busy){
-    relangPending = true;                  // tur bitince startRec yeni dille açar
+    setHint("Sıra sende · " + LANGS[lang].n);
   }
 }
 $("#pa").addEventListener("click", () => setTurn(cfg.a, true));
@@ -1895,7 +1845,6 @@ bindSelect("#vB", "voiceB");
 bindSelect("#prov", "prov");
 
 $("#cont").addEventListener("change", () => { cfg.cont = Number($("#cont").value); save(); });
-$("#follow").addEventListener("change", () => { cfg.follow = $("#follow").value; save(); });
 $("#lid").addEventListener("change", () => {
   cfg.lid = $("#lid").value; save(); paintLID();
   if(cfg.lid === "local") loadLID().catch(()=>{});   // seçer seçmez indirmeye başla
@@ -2012,7 +1961,6 @@ function paintSettings(){
   $("#confVal").textContent = Number(cfg.confth).toFixed(2).replace(".", ",");
   paintConfSupport();
   $("#cont").value = String(cfg.cont);
-  $("#follow").value = cfg.follow;
   $("#prov").value = cfg.prov;
   $("#email").value = cfg.email;
   $("#proxy").value = cfg.proxy;
