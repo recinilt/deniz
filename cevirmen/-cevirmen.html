@@ -305,8 +305,6 @@
           <option value="base">Whisper base — iki kat büyük ve yavaş, aksana daha dayanıklı</option>
         </select>
         <p class="note" id="lidNote"></p>
-        <button class="btn" id="lidTest">Dil algılamayı sına (3 sn konuş)</button>
-        <p class="note" id="lidTestOut"></p>
         <p class="note">Tarayıcının ses tanıması dili önceden ister ve sesten dil
         ayırt edemez. “Cihazdaki model” seçeneği her cümlenin ham sesini Whisper'a
         verip yalnız dil skorlarını okur; model bir kez inip önbellekte kalır, sonrası
@@ -838,11 +836,10 @@ async function loadLID(onProgress){
     }catch(e){}
     lidDevice = device;
 
-    // Hassasiyet cihaza göre. WebGPU'da resmi Whisper örneklerinin birleşimi:
-    // kodlayıcı fp32, kod çözücü q4. fp16 kodlayıcının WebGPU'da bozuk çıktı
-    // verdiği kütüphanede açık bir hata kaydı; q8 kod çözücü de aynı şekilde.
+    // Hassasiyet cihaza göre: WebGPU'da q8 üç kat yavaş ve Whisper'da bozuk
+    // çıktı verebiliyor (kütüphane hata kaydı); orada fp16, WASM'da q8.
     const dtype = device === "webgpu"
-      ? {encoder_model:"fp32", decoder_model_merged:"q4"}
+      ? {encoder_model:"fp16", decoder_model_merged:"fp16"}
       : {encoder_model:"q8",   decoder_model_merged:"q8"};
 
     const monitor = p => {
@@ -862,7 +859,7 @@ async function loadLID(onProgress){
     if(lidIds.sot < 0) throw new Error("başlangıç belirteci bulunamadı");
     lidLoadedId = modelId;
     lidProgress("Model hazır: " + modelId.replace("Xenova/","") + " · " + device + " · "
-      + dtype.encoder_model + "+" + dtype.decoder_model_merged + ". Bir kez indi, artık önbellekte.");
+      + (device === "webgpu" ? "fp16" : "q8") + ". Bir kez indi, artık önbellekte.");
     return true;
   })().catch(e => {
     lidLoading = null; lidModel = null;
@@ -895,8 +892,7 @@ async function detectLangLocal(blob, l1, l2){
   if(!isFinite(a) || !isFinite(b)) throw new Error("skor okunamadı");
   const lang = a >= b ? l1 : l2;
   const score = 1 / (1 + Math.exp(-Math.abs(a - b)));   // iki dil arasındaki ayrım gücü
-  return {lang, score, ms: Math.round(performance.now() - t0),
-          raw:{[l1]:a, [l2]:b}, seconds:+(audio.length/16000).toFixed(2)};
+  return {lang, score, ms: Math.round(performance.now() - t0)};
 }
 
 /* ============================ 5 · Seslendirme ============================ */
@@ -966,7 +962,6 @@ let turnFinal = "";        // bu turda kesinleşen metin
 let turnInterim = "";      // son ara metin
 let turnConf = 1;          // kesinleşen parçaların en düşük güveni (0-1)
 let turnActive = false;    // bu tur için ses birikimi başladı mı
-let junkStreak = 0;        // aynı dilde üst üste tanınamayan tur sayısı
 let silenceTimer = null;
 
 /* ---- Paralel ham ses kaydı: yalnız "gerçek dil algılama" açıkken çalışır ---- */
@@ -1203,29 +1198,6 @@ async function handleUtterance(text, conf, audioBlob){
     lidTag += " → metin: " + gTxt;
     lidLang = "";
   }
-
-  // Kilit kaçışı: metin hiçbir dile uymuyor ve tanıyıcı da emin değilse bu tur
-  // "tanınamadı" sayılır. Aynı dilde üst üste ikinci kez olursa, ses kararı ne
-  // derse desin öteki dile geç: yanlış bir dil kararı yoksa oturumu kilitliyor
-  // (yanlış dilde dinlenen konuşma hep çöp metin üretir, çöp metin de kararı
-  // düzeltemez).
-  const junk = !txtStrong && !gTxt && !highConf;
-  if(junk && lidLang === heard) junkStreak++;
-  else if(!junk) junkStreak = 0;
-
-  if(junkStreak >= 2){
-    junkStreak = 0;
-    const other = (heard === cfg.a) ? cfg.b : cfg.a;
-    const bub = addBubble(heard, text, null);
-    bub.classList.add("live");
-    setTranslation(bub, null, other, null,
-      "üst üste anlaşılmadı — dil kilidi kırıldı, şimdi " + LANGS[other].n + " dinliyorum");
-    if(navigator.vibrate) navigator.vibrate([80,60,80]);
-    setTurn(other, false);
-    finishTurn();
-    return;
-  }
-
   const g = lidLang || gTxt;     // sesten gelen kesin karar metin tahminini ezer
   const words = text.split(/\s+/).filter(Boolean).length;
   const lowConf = (typeof conf === "number") && conf < Number(cfg.confth || 0.55);
@@ -1463,53 +1435,6 @@ function finishTest(peak){
 }
 $("#micTest").addEventListener("click", micTest);
 
-// Dil algılamayı tek başına sına: 3 saniye kaydeder, modele verir, iki dilin
-// HAM skorunu yazar. Bir arıza olduğunda tahmin yürütmek yerine sayıya bakmak için.
-async function lidTest(){
-  const btn = $("#lidTest"), out = $("#lidTestOut");
-  if(running){ out.textContent = "Önce dinlemeyi durdur."; return; }
-  if(cfg.lid !== "local"){ out.textContent = "Bu sınama yalnız cihaz modeli seçiliyken çalışır."; return; }
-  btn.disabled = true;
-  let stream = null;
-  try{
-    out.textContent = "Model hazırlanıyor…";
-    await loadLID();
-    stream = await navigator.mediaDevices.getUserMedia({
-      audio:{echoCancellation:true, noiseSuppression:true, autoGainControl:true}
-    });
-    const mime = ["audio/webm;codecs=opus","audio/webm","audio/ogg;codecs=opus"]
-      .find(m => MediaRecorder.isTypeSupported(m)) || "";
-    const r = mime ? new MediaRecorder(stream, {mimeType:mime}) : new MediaRecorder(stream);
-    const chunks = [];
-    r.ondataavailable = e => { if(e.data && e.data.size > 0) chunks.push(e.data); };
-    const blob = await new Promise(resolve => {
-      r.onstop = () => resolve(new Blob(chunks, {type:r.mimeType || "audio/webm"}));
-      r.start(250);
-      let left = 3;
-      out.textContent = "Konuş… " + left;
-      const tick = setInterval(() => {
-        left--;
-        if(left > 0){ out.textContent = "Konuş… " + left; }
-        else { clearInterval(tick); out.textContent = "İşleniyor…"; try{ r.stop(); }catch(e){} }
-      }, 1000);
-    });
-    const res = await detectLangLocal(blob, cfg.a, cfg.b);
-    const l1 = cfg.a, l2 = cfg.b;
-    out.textContent = "Sonuç: " + LANGS[res.lang].n
-      + " · ayrım " + res.score.toFixed(2)
-      + " · " + res.ms + " ms"
-      + " · konuşma " + res.seconds + " sn"
-      + " · ham skor " + l1 + "=" + res.raw[l1].toFixed(2) + " / " + l2 + "=" + res.raw[l2].toFixed(2)
-      + " · " + lidDevice;
-  }catch(e){
-    out.textContent = "Sınama başarısız: " + (e && e.message ? e.message : e);
-  }finally{
-    if(stream) stream.getTracks().forEach(t => t.stop());
-    btn.disabled = false;
-  }
-}
-$("#lidTest").addEventListener("click", lidTest);
-
 /* ============================ 10 · Ayarlar ekranı ======================== */
 
 const sheet = $("#sheet");
@@ -1706,8 +1631,6 @@ function paintLID(){
   $("#lidModel").value = (cfg.lidModel === "base") ? "base" : "tiny";
   $("#lidModel").style.display = (cfg.lid === "local") ? "block" : "none";
   btn.style.display = (cfg.lid === "local") ? "block" : "none";
-  $("#lidTest").style.display = (cfg.lid === "local") ? "block" : "none";
-  if(cfg.lid !== "local") $("#lidTestOut").textContent = "";
   btn.disabled = !!lidModel && lidLoadedId === lidModelId();
   if(cfg.lid === "local" && lidModel && lidLoadedId === lidModelId()) note.textContent = "Model hazır.";
   else if(cfg.lid !== "local") note.textContent = "";
