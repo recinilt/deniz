@@ -746,11 +746,7 @@ async function blobTo16kMono(blob){
   src.connect(off.destination);
   src.start();
   const out = await off.startRendering();
-  const data = out.getChannelData(0);
-  // Whisper ilk 30 saniyeye bakar; konuşma klibin SONUNDADIR (öncesi bekleme
-  // sessizliği). Uzun klipte baştan değil sondan kes.
-  const maxLen = 12 * target;
-  return data.length > maxLen ? data.slice(data.length - maxLen) : data;
+  return out.getChannelData(0);
 }
 
 // Whisper'ın dil belirteçleri ("<|tr|>") sözlükte tek bir kimliğe karşılık gelir.
@@ -918,23 +914,10 @@ let silenceTimer = null;
 // söylemez. Ham sesin kendisini Gemini'ye göndermek, sesten gerçek dil
 // tespitine ulaşmanın tek yolu; bu yüzden ayrı bir mikrofon akışıyla klip alıp
 // tur bittiğinde o klibi metinle birlikte tutuyoruz.
-let audioStream = null, audioRec = null, audioMime = "";
+let audioStream = null, audioRec = null, audioChunks = [], audioChunkStart = 0;
 
 function audioCaptureWanted(){
   return cfg.lid === "local" || (cfg.lid === "gemini" && !!cfg.gemkey);
-}
-
-// Her tur için ayrı bir kaydedici: WebM'in başlığı yalnız ilk parçada olduğu
-// için akışın ortasından kesilen dilimler açılamıyor. Bunun yerine tur bitince
-// kaydediciyi kapatıp yenisini açıyoruz; böylece her klip tam bir dosya oluyor.
-function newRecorder(){
-  if(!audioStream) return null;
-  const chunks = [];
-  const r = audioMime ? new MediaRecorder(audioStream, {mimeType:audioMime}) : new MediaRecorder(audioStream);
-  r.ondataavailable = e => { if(e.data && e.data.size > 0) chunks.push(e.data); };
-  r._chunks = chunks;
-  try{ r.start(250); }catch(e){ return null; }
-  return r;
 }
 
 async function startAudioCapture(){
@@ -944,41 +927,28 @@ async function startAudioCapture(){
     audioStream = await navigator.mediaDevices.getUserMedia({
       audio:{echoCancellation:true, noiseSuppression:true, autoGainControl:true}
     });
-    audioMime = ["audio/webm;codecs=opus","audio/webm","audio/ogg;codecs=opus"]
+    const mime = ["audio/webm;codecs=opus","audio/webm","audio/ogg;codecs=opus"]
       .find(m => MediaRecorder.isTypeSupported(m)) || "";
-    audioRec = newRecorder();
+    audioRec = mime ? new MediaRecorder(audioStream, {mimeType:mime}) : new MediaRecorder(audioStream);
+    audioChunks = []; audioChunkStart = 0;
+    audioRec.ondataavailable = e => { if(e.data && e.data.size > 0) audioChunks.push(e.data); };
+    audioRec.start(250);
   }catch(e){
-    console.warn("ses kaydı açılamadı:", e);
     audioStream = null; audioRec = null;   // izin verilmedi ya da desteklenmiyor: metin yoluna düş
   }
 }
 function stopAudioCapture(){
   try{ audioRec && audioRec.state !== "inactive" && audioRec.stop(); }catch(e){}
   try{ audioStream && audioStream.getTracks().forEach(t => t.stop()); }catch(e){}
-  audioRec = null; audioStream = null;
+  audioRec = null; audioStream = null; audioChunks = []; audioChunkStart = 0;
 }
-// Biriktirileni at, temiz kayda başla (okuma bittikten sonra hoparlör sesi klibe girmesin).
-function resetAudioRec(){
-  if(!audioStream) return;
-  try{ audioRec && audioRec.state !== "inactive" && audioRec.stop(); }catch(e){}
-  audioRec = newRecorder();
-}
-// O ana kadarki kaydı tam dosya olarak al, yeni kayda geç.
+function markTurnAudioStart(){ audioChunkStart = audioChunks.length; }
 function grabTurnAudio(){
-  const r = audioRec;
-  if(!r) return Promise.resolve(null);
-  audioRec = newRecorder();
-  return new Promise(resolve => {
-    let done = false;
-    const fin = () => {
-      if(done) return; done = true;
-      const b = new Blob(r._chunks, {type: r.mimeType || audioMime || "audio/webm"});
-      resolve(b.size > 0 ? b : null);
-    };
-    r.onstop = fin;
-    setTimeout(fin, 600);          // onstop gelmezse elde ne varsa onunla devam
-    try{ r.state !== "inactive" ? r.stop() : fin(); }catch(e){ fin(); }
-  });
+  if(!audioRec) return null;
+  const slice = audioChunks.slice(audioChunkStart);
+  audioChunks.length = 0; audioChunkStart = 0;
+  if(!slice.length) return null;
+  return new Blob(slice, {type: audioRec.mimeType || "audio/webm"});
 }
 
 // Tek örnek ömür boyu korunur: her turda yeni SpeechRecognition üretmek
@@ -1032,7 +1002,7 @@ function onResult(ev){
   errStreak = 0;
   const live = (turnFinal + " " + interim).replace(/\s+/g, " ").trim();
   if(live){
-    turnActive = true;
+    if(!turnActive){ turnActive = true; markTurnAudioStart(); }
     showLive(live);
   }
   armSilence();
@@ -1046,31 +1016,28 @@ function armSilence(){
 function clearTurn(){
   clearTimeout(silenceTimer);
   turnFinal = ""; turnInterim = ""; turnConf = 1; turnActive = false;
-  resetAudioRec();
+  if(audioRec) grabTurnAudio();   // biriktirileni at, yeni tur temiz başlasın
   clearLive();
 }
-async function endTurn(){
+function endTurn(){
   clearTimeout(silenceTimer);
   const text = (turnFinal + " " + turnInterim).replace(/\s+/g, " ").trim();
   const conf = turnConf;
+  const audioBlob = audioCaptureWanted() ? grabTurnAudio() : null;
   turnFinal = ""; turnInterim = ""; turnConf = 1; turnActive = false;
   clearLive();
-  if(!text){ resetAudioRec(); return; }
+  if(!text) return;
   // Yalnız gerçek gürültüyü ele: en az iki harf/rakam yoksa yok say.
-  if(text.replace(/[^\p{L}\p{N}]/gu, "").length < 2){ resetAudioRec(); return; }
-  const audioBlob = audioCaptureWanted() ? await grabTurnAudio() : null;
+  if(text.replace(/[^\p{L}\p{N}]/gu, "").length < 2) return;
   handleUtterance(text, conf, audioBlob);
 }
 
 function onError(ev){
   const e = ev.error;
-  console.warn("ses tanıma hatası:", e, ev.message || "");
   if(e === "no-speech" || e === "aborted") return;             // normal, döngü devam
   if(e === "not-allowed" || e === "service-not-allowed"){
-    stopAll("Mikrofon izni yok. Sayfayı https üzerinden aç ve izin ver."); return;
-  }
-  if(e === "audio-capture"){
-    stopAll("Mikrofon ele geçirilemedi (audio-capture). Başka bir uygulama kullanıyor olabilir."); return;
+    setHint("Mikrofon izni yok. Sayfayı https üzerinden aç ve izin ver.");
+    stopAll(); return;
   }
   if(e === "language-not-supported" && caps.localAsr){
     caps.localAsr = false; paintEngine();                       // cihaz paketi yoksa çevrimiçine düş
@@ -1078,7 +1045,8 @@ function onError(ev){
   }
   errStreak++;
   if(errStreak >= 3){
-    stopAll("Ses tanıma üst üste hata verdi (" + e + "). İnternet bağlantını kontrol et.");
+    setHint("Ses tanıma sürekli hata veriyor (" + e + "). İnternet bağlantını kontrol et.");
+    stopAll();
   }
 }
 
@@ -1195,7 +1163,6 @@ async function handleUtterance(text, conf, audioBlob){
 function finishTurn(){
   busy = false;
   micBtn.classList.remove("busy");
-  resetAudioRec();
   if(running){ clearTimeout(restartTimer); restartTimer = setTimeout(startRec, 300); }
   else setHint("Başlamak için dokun");
 }
@@ -1210,7 +1177,7 @@ async function startAll(){
   await startAudioCapture();
   startRec();
 }
-function stopAll(reason){
+function stopAll(){
   running = false;
   clearTimeout(restartTimer);
   clearTurn();
@@ -1219,7 +1186,7 @@ function stopAll(reason){
   stopAudioCapture();
   micBtn.classList.remove("on","busy");
   releaseWakeLock();
-  setHint(reason ? ("Durdu: " + reason) : "Başlamak için dokun");
+  setHint("Başlamak için dokun");
 }
 
 micBtn.addEventListener("click", () => {
