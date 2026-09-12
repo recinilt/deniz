@@ -1177,7 +1177,7 @@ function onResult(ev){
   turnInterim = mergeSnapshots(interims);
   turnConf = conf;
   errStreak = 0;
-  const live = (turnFinal + " " + turnInterim).replace(/\s+/g, " ").trim();
+  const live = (turnFinal + " " + interim).replace(/\s+/g, " ").trim();
   if(live){
     turnActive = true;
     showLive(live);
