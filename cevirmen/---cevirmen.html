@@ -151,7 +151,14 @@
   <button id="gear" aria-label="Ayarlar">⚙</button>
 </div>
 
-<div id="feed"></div>
+<div id="feed">
+  <div id="empty">
+    <strong>Konuşmaya başla</strong>
+    Mikrofona dokun, konuş. Sustuğunda dilini anlar, karşı dile çevirip okur.
+    Sıra yok: arka arkaya aynı dilde de konuşulabilir. Yanlış anlaşılırsa alttaki dil
+    düğmesine dokunup dili kendin seçebilirsin.
+  </div>
+</div>
 
 <div id="dock">
   <div id="pair">
@@ -237,7 +244,7 @@
       <div class="row">
         <label for="prov">Kullanılacak kaynak</label>
         <select id="prov">
-          <option value="auto">Otomatik (cihazda → anahtar girdiklerin → Google → MyMemory)</option>
+          <option value="auto">Otomatik (yerel varsa yerel, yoksa Google, sonra yedekler)</option>
           <option value="local">Yalnız yerel model (çevrimdışı)</option>
           <option value="gtx">Google, anahtarsız</option>
           <option value="mymemory">MyMemory</option>
@@ -262,10 +269,8 @@
       <div class="row">
         <label for="proxy">CORS proxy adresi (isteğe bağlı)</label>
         <input type="text" id="proxy" placeholder="https://proxy.ornek.workers.dev/?url={url}">
-        <p class="note">Yalnız "Google, anahtarsız" kaynağı için: doğrudan istek
-        engellenirse aynı istek bu adres üzerinden yinelenir (otomatik seçimde de geçerli).
-        Adreste <strong>{url}</strong> yazan yere hedef adres konur; {url} yoksa adresin
-        sonuna eklenir.</p>
+        <p class="note">Google doğrudan erişimi engellenirse devreye girer. Adreste
+        <strong>{url}</strong> yazan yere hedef adres konur; {url} yoksa adresin sonuna eklenir.</p>
       </div>
 
       <div class="row">
@@ -422,13 +427,10 @@ const dot = $("#dot"), engineTxt = $("#engine"), feed = $("#feed"),
 async function detectCaps(){
   caps.localTrans = false; caps.transState = "";
   if("Translator" in self){
-    // Sohbet iki yönlü: "cihazda" diyebilmek için her iki yönün de inmiş olması gerek.
     try{
-      const s1 = await Translator.availability({sourceLanguage:cfg.a, targetLanguage:cfg.b});
-      const s2 = await Translator.availability({sourceLanguage:cfg.b, targetLanguage:cfg.a});
-      const rank = {unavailable:0, downloadable:1, downloading:2, available:3};
-      caps.transState = (rank[s1] ?? 0) <= (rank[s2] ?? 0) ? s1 : s2;   // en zayıf yön belirler
-      caps.localTrans = s1 === "available" && s2 === "available";
+      const s = await Translator.availability({sourceLanguage:cfg.a, targetLanguage:cfg.b});
+      caps.transState = s;
+      caps.localTrans = s === "available";
     }catch(e){ caps.transState = "hata"; }
   }
   caps.localDetect = false;
@@ -609,19 +611,15 @@ function gtxParse(j){
   if(!text) throw new Error("boş çeviri");
   return {text, detected: base(j[2] || "")};
 }
-// Proxy ayrı bir sağlayıcı değil, Google'ın ikinci yolu: doğrudan istek
-// düşerse (CORS/engel) aynı istek proxy üzerinden yinelenir.
 async function viaGtx(text, from, to){
-  const url = gtxURL(text, "auto", to);
-  let r;
-  try{ r = gtxParse(await getJSON(url)); }
-  catch(e){
-    const u = proxied(url);
-    if(!u) throw e;
-    r = gtxParse(await getJSON(u));
-    return {text:r.text, detected:r.detected, source:"Google (proxy)"};
-  }
+  const r = gtxParse(await getJSON(gtxURL(text, "auto", to)));
   return {text:r.text, detected:r.detected, source:"Google"};
+}
+async function viaProxy(text, from, to){
+  const u = proxied(gtxURL(text, "auto", to));
+  if(!u) throw new Error("proxy tanımlı değil");
+  const r = gtxParse(await getJSON(u));
+  return {text:r.text, detected:r.detected, source:"proxy"};
 }
 async function viaMyMemory(text, from, to){
   if(text.length > 480) throw new Error("MyMemory 500 bayttan uzun metni almıyor");
@@ -706,21 +704,20 @@ async function viaGeminiAudio(blob, l1, l2){
 }
 
 const STEPS = {
-  local:viaLocal, gtx:viaGtx,
+  local:viaLocal, gtx:viaGtx, proxy:viaProxy,
   mymemory:viaMyMemory, gcloud:viaGCloud, gemini:viaGemini
 };
 
 // Açıkça bir sağlayıcı seçildiyse YALNIZ o kullanılır: başka bir sağlayıcıya
 // sessizce düşmek, kullanıcının metnini seçmediği bir yere göndermek olur.
-// "Otomatik"te sıra: cihazdaki model → anahtar girilmiş kaynaklar (anahtar
-// girmek bir tercihtir) → anahtarsız Google → MyMemory.
+// Yedek zinciri yalnız "otomatik" seçiminde devreye girer.
 function chain(){
   if(cfg.prov !== "auto") return [cfg.prov];
   const c = [];
   if(caps.localTrans) c.push("local");
+  c.push("gtx", "proxy", "mymemory");
   if(cfg.gkey)   c.push("gcloud");
   if(cfg.gemkey) c.push("gemini");
-  c.push("gtx", "mymemory");
   return c;
 }
 
@@ -838,7 +835,6 @@ async function loadLID(onProgress){
   const gen = lidGen;
   const alive = () => gen === lidGen;
   lidLoading = (async () => {
-    paintLidBusy();
     lidProgress("Kütüphane yükleniyor…");
     lidLib = lidLib || await import(/* webpackIgnore: true */ LID_CDN);
     const {env, AutoProcessor, AutoTokenizer, WhisperForConditionalGeneration} = lidLib;
@@ -885,7 +881,7 @@ async function loadLID(onProgress){
       lidProgress("Model yüklenemedi: " + (e && e.message ? e.message : e));
     }
     throw e;
-  }).finally(() => { if(alive()) paintLidBusy(); });
+  });
   return lidLoading;
 }
 
@@ -958,16 +954,11 @@ function speakChunk(text, code, voice){
     speechSynthesis.speak(u);
   });
 }
-let speakGen = 0;   // stopAll artırır; döngü her parçada kontrol eder
 async function speak(text, code){
   if(!caps.tts) return;
   speechSynthesis.cancel();
-  const gen = ++speakGen;
   const voice = pickVoice(code, code === cfg.a ? cfg.voiceA : cfg.voiceB);
-  for(const part of chunk(text)){
-    if(gen !== speakGen) return;     // Durdur'a basıldı: kalan parçaları okuma
-    await speakChunk(part, code, voice);
-  }
+  for(const part of chunk(text)) await speakChunk(part, code, voice);
 }
 function unlockTTS(){
   if(!caps.tts) return;
@@ -979,9 +970,6 @@ function unlockTTS(){
 /* ==================== 6 · Ses tanıma ve tur bitirme ====================== */
 
 let rec = null;
-let recActive = false;     // tanıma oturumu şu an açık mı (start ile onEnd arası)
-let resultBase = 0;        // bu oturumda zaten tüketilmiş sonuç sayısı
-let lastResultsLen = 0;
 let running = false;       // kullanıcı dinlemeyi açtı
 let busy = false;          // çeviri/okuma sürüyor
 let listenLang = cfg.a;    // sıradaki dinleme dili
@@ -1024,7 +1012,6 @@ function newRecorder(){
 async function startAudioCapture(){
   if(!audioCaptureWanted()) return;
   if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || typeof MediaRecorder === "undefined") return;
-  stopAudioCapture();                    // eski akış açık kalmasın (durdur→başlat sızıntısı)
   try{
     audioStream = await navigator.mediaDevices.getUserMedia({
       audio:{echoCancellation:true, noiseSuppression:true, autoGainControl:true}
@@ -1082,18 +1069,11 @@ function ensureRec(){
 
 function startRec(){
   if(!SR || !running || busy) return;
-  if(recActive){                       // kulaklık modunda oturum hiç kapanmadı
-    micBtn.classList.add("on");
-    setHint("Dinliyorum · " + LANGS[listenLang].n);
-    return;
-  }
   try{
     const r = ensureRec();
     r.lang = LANGS[listenLang].asr;
     if(caps.localAsr){ try{ r.processLocally = true; }catch(e){} }
-    resultBase = 0; lastResultsLen = 0;
     r.start();
-    recActive = true;
     micBtn.classList.add("on");
     setHint("Dinliyorum · " + LANGS[listenLang].n);
   }catch(e){
@@ -1108,15 +1088,10 @@ function startRec(){
 }
 
 function onResult(ev){
-  lastResultsLen = ev.results.length;
-  // Okuma/çeviri sürerken gelen ses (kulaklık modunda hoparlör yankısı ya da
-  // erken konuşma) bu tura ait değil: at ve tabanı ileri al, bir sonraki turla
-  // birleşmesin.
-  if(busy){ resultBase = ev.results.length; return; }
   // Biriktirme yok: Chrome Android aynı parçayı birden çok kez "final" olarak
-  // yolluyor; metni her seferinde oturumun tüketilmemiş kısmından sıfırdan kuruyoruz.
+  // yolluyor; metni her seferinde tüm sonuç listesinden sıfırdan kuruyoruz.
   let final = "", interim = "", conf = null;
-  for(let i = resultBase; i < ev.results.length; i++){
+  for(let i = 0; i < ev.results.length; i++){
     const alt = ev.results[i][0];
     if(ev.results[i].isFinal){
       final += alt.transcript + " ";
@@ -1165,10 +1140,8 @@ async function endTurn(){
   // busy AWAIT'TEN ÖNCE kapanır: kaydı almak ~yarım saniye sürüyor ve o pencerede
   // onEnd yeniden dinlemeye başlayıp hemen kesilmesine yol açıyordu.
   busy = true;
-  resultBase = lastResultsLen;         // bu turun sonuçları tüketildi
   clearTimeout(restartTimer);
   micBtn.classList.remove("on"); micBtn.classList.add("busy");
-  setHint("Kaydediliyor…");
   if(!cfg.cont){ try{ rec && rec.abort(); }catch(e){} }
 
   let audioBlob = null;
@@ -1199,7 +1172,6 @@ function onError(ev){
 }
 
 function onEnd(){
-  recActive = false;
   micBtn.classList.remove("on");
   if(!running || busy) return;
   // Chrome uzun sessizlikte oturumu kendisi kapatır: elde kalan metni harca, sonra yeniden aç
@@ -1283,9 +1255,7 @@ async function runUtterance(text, conf, audioBlob){
   // derse desin öteki dile geç: yanlış bir dil kararı yoksa oturumu kilitliyor
   // (yanlış dilde dinlenen konuşma hep çöp metin üretir, çöp metin de kararı
   // düzeltemez).
-  // Güvenden BAĞIMSIZ: Chrome masaüstünde yanlış dilde dinlenen konuşmaya bile
-  // yüksek güven verebiliyor; güvene bağlamak sayacı orada hiç artırmıyordu.
-  const junk = !txtStrong && !gTxt && words >= 2;
+  const junk = !txtStrong && !gTxt && words >= 2 && (conf === null ? true : !highConf);
   if(junk && (lidLang === heard || !lidLang)) junkStreak++;
   else if(!junk) junkStreak = 0;
 
@@ -1356,13 +1326,12 @@ function finishTurn(){
   micBtn.classList.remove("busy");
   resetAudioRec();
   if(running){ clearTimeout(restartTimer); restartTimer = setTimeout(startRec, 300); }
-  else if(!stopReason) setHint("Başlamak için dokun");
+  else setHint("Başlamak için dokun");
 }
 
 async function startAll(){
   if(!caps.asr){ setHint("Bu tarayıcı ses tanımayı desteklemiyor. Chrome dene."); return; }
   running = true;
-  stopReason = "";
   errStreak = 0;
   unlockTTS();
   requestWakeLock();
@@ -1370,11 +1339,8 @@ async function startAll(){
   await startAudioCapture();
   startRec();
 }
-let stopReason = "";
 function stopAll(reason){
   running = false;
-  stopReason = reason || "";
-  speakGen++;                                  // süren okuma döngüsü bir sonraki parçada durur
   clearTimeout(restartTimer);
   clearTurn();
   try{ rec && rec.abort(); }catch(e){}
@@ -1729,14 +1695,6 @@ $("#lidModel").addEventListener("change", () => {
   resetLID(); paintLID();
   if(cfg.lid === "local") loadLID().catch(()=>{});
 });
-// İndirme sürerken model boyutu değiştirilemez: kütüphanenin from_pretrained'i
-// için doğrulanmış bir iptal yolu yok; iki modelin paralel inmesini kaynağında
-// engellemek, iptal edebiliyormuş gibi davranmaktan daha dürüst.
-function paintLidBusy(){
-  const loading = !!lidLoading && !(lidModel && lidLoadedId === lidModelId());
-  $("#lidModel").disabled = loading;
-  $("#lid").disabled = loading;
-}
 $("#rate").addEventListener("input", () => {
   cfg.rate = Number($("#rate").value);
   $("#rateVal").textContent = cfg.rate.toFixed(1).replace(".", ",");
@@ -1847,7 +1805,6 @@ function paintSettings(){
   if(!LANGS[cfg.a]) cfg.a = DEFAULTS.a;
   if(!LANGS[cfg.b]) cfg.b = DEFAULTS.b;
   listenLang = cfg.a;
-  feed.appendChild(emptyBlock());
   paintSettings();
   paintPair();
   if(location.protocol === "file:"){
