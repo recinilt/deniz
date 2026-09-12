@@ -510,67 +510,14 @@ function proxied(url){
     : cfg.proxy + url;
 }
 
-// Hata gövdesi okunmadan atılırsa kullanıcıya yalnız "HTTP 429" kalır; oysa
-// gövdede "ne kadar bekle" (RetryInfo.retryDelay) ve "hangi kota" (QuotaFailure)
-// yazıyor. Bunlar olmadan "30 saniye bekle" ile "yarına kadar bitti" ayırt edilemez.
-function parseHttpError(status, headers, bodyText){
-  const err = new Error("HTTP " + status);
-  err.status = status;
-  err.retryAfter = 0;
-  err.quotaId = "";
-  const ra = headers && headers.get && headers.get("retry-after");
-  if(ra && /^\d+$/.test(ra.trim())) err.retryAfter = Number(ra.trim());
-  let j = null;
-  try{ j = JSON.parse(bodyText); }catch(e){}
-  const details = (j && j.error && j.error.details) || [];
-  for(const d of details){
-    const type = String(d["@type"] || "");
-    if(type.includes("RetryInfo") && d.retryDelay){
-      const m = String(d.retryDelay).match(/([\d.]+)\s*s/);
-      if(m) err.retryAfter = Math.max(err.retryAfter, Math.ceil(Number(m[1])));
-    }
-    if(type.includes("QuotaFailure") && Array.isArray(d.violations) && d.violations.length){
-      const v = d.violations[0];
-      err.quotaId = v.quotaId || v.quotaMetric || "";
-    }
-  }
-  const parts = ["HTTP " + status];
-  if(err.quotaId) parts.push("kota: " + err.quotaId);
-  if(err.retryAfter) parts.push(err.retryAfter + " sn sonra");
-  else if(status === 429 && /per_day|PerDay|RequestsPerDay/i.test(err.quotaId)) parts.push("günlük hak bitti");
-  const msg = (j && j.error && j.error.message) ? String(j.error.message).slice(0, 120) : "";
-  if(msg && !err.quotaId) parts.push(msg);
-  err.message = parts.join(" · ");
-  return err;
-}
-
 async function getJSON(url, opts){
   const ctrl = new AbortController();
   const t = setTimeout(()=>ctrl.abort(), 12000);
   try{
     const r = await fetch(url, Object.assign({signal:ctrl.signal}, opts||{}));
-    if(!r.ok){
-      let body = "";
-      try{ body = await r.text(); }catch(e){}
-      throw parseHttpError(r.status, r.headers, body);
-    }
+    if(!r.ok) throw new Error("HTTP " + r.status);
     return await r.json();
   } finally { clearTimeout(t); }
-}
-
-// Sınıra takılan sağlayıcı için soğuma: bekleme süresi dolana kadar o adım hiç
-// denenmez. Yoksa her tekrar kayan pencereye bir istek daha ekleyip sınırdan
-// çıkışı geciktiriyor.
-const cooldowns = {};
-function coolLeft(name){
-  const until = cooldowns[name] || 0;
-  return Math.max(0, Math.ceil((until - Date.now()) / 1000));
-}
-function noteFailure(name, e){
-  if(!e || (e.status !== 429 && e.status !== 403)) return;
-  const daily = /per_day|PerDay|RequestsPerDay/i.test(e.quotaId || "");
-  const secs = daily ? 3600 : (e.retryAfter || 45);
-  cooldowns[name] = Date.now() + secs * 1000;
 }
 
 /* ---- Cihazda dil kararı: seçili İKİ dil arasında, sağlayıcıya bağımlı olmadan ---- */
@@ -803,25 +750,17 @@ function chain(){
 
 async function translate(text, from, to){
   const failures = [];
-  const steps = chain();
-  for(const name of steps){
-    const left = coolLeft(name);
-    if(left){ failures.push(name + ": sınıra takıldı, " + left + " sn bekleniyor"); continue; }
+  for(const name of chain()){
     try{
       const r = await STEPS[name](text, from, to);
       lastSource = r.source; paintEngine();
       r.note = failures.join(", ");       // öncekiler neden düştü, balonda görünsün
       return r;
     }catch(e){
-      noteFailure(name, e);
       failures.push(name + ": " + (e && e.message ? e.message : "hata"));
     }
   }
-  let msg = failures.join(" | ") || "kaynak yok";
-  if(steps.length === 1 && cfg.prov !== "auto"){
-    msg += " — yalnız bu kaynak seçili; ayarlardan \u201cOtomatik\u201d'e alırsan yedekler devreye girer";
-  }
-  throw new Error(msg);
+  throw new Error(failures.join(" | ") || "kaynak yok");
 }
 
 /* ============ 4b · Cihazda dil algılama (Whisper, tek ileri geçiş) ======== */
@@ -1188,7 +1127,6 @@ function recycleRec(why){
   detachRec(rec);
   try{ rec && rec.abort(); }catch(e){}
   rec = null; recActive = false; recGotStart = false; recGotAudio = false;
-  relangPending = false;
   clearTimeout(restartTimer);
   if(running && !busy) restartTimer = setTimeout(startRec, 200);
 }
@@ -1452,7 +1390,7 @@ async function runUtterance(text, conf, audioBlob, gen){
   }
 
   // Yol 1b — gerçek ses tabanlı tespit + çeviri tek çağrıda (Gemini).
-  if(audioBlob && cfg.lid === "gemini" && !coolLeft("gemini")){
+  if(audioBlob && cfg.lid === "gemini"){
     setHint("Sesten dil algılanıyor…");
     try{
       const g = await viaGeminiAudio(audioBlob, cfg.a, cfg.b);
@@ -1461,15 +1399,12 @@ async function runUtterance(text, conf, audioBlob, gen){
       const bub = addBubble(g.lang, g.transcript, null);
       setTranslation(bub, g.translation, target, "Gemini ses");
       lastSource = "Gemini ses"; paintEngine();
-      if(cfg.follow !== "fixed") setTurn(g.lang, false);
+      setTurn(g.lang, false);
       setHint("Okuyor…");
       await speak(g.translation, target);
       return;
     }catch(e){
-      // Ses yolu düştü: aynı sınıra takıldıysak metin yolu da aynı kotayı
-      // harcayacağı için soğumayı burada işaretliyoruz.
-      noteFailure("gemini", e);
-      lidTag = "Gemini ses: " + (e && e.message ? e.message : "hata");
+      // ses yolu düştü: elimizdeki ASR metniyle aşağıdaki normal akışa devam
     }
   }
 
@@ -1514,15 +1449,10 @@ async function runUtterance(text, conf, audioBlob, gen){
     setTranslation(bub, null, other, null,
       "anlaşılmadı — " + LANGS[other].n + " dinlemeye geçtim, tekrar söyler misin?");
     if(navigator.vibrate) navigator.vibrate([80,60,80]);
-    if(cfg.follow !== "fixed") setTurn(other, false);   // "sabit kal" burada da geçerli
+    setTurn(other, false);
     return;
   }
 
-  // Bu blok ÖLÜ DEĞİL: yalnız ses tabanlı algılama açıkken (lidLang dolu)
-  // buraya gelinir, çünkü yukarıdaki >=1 kısayolu "!lidLang" koşuluyla korunuyor.
-  // Ses kararı metin tahmininden güvenilir olduğu için orada iki tur bekliyoruz;
-  // metin modunda tek tur yetiyor. Ölçüm: 4 çöp turda metin modu 4 kez >=1'e,
-  // ses modu 2 kez >=2'ye giriyor.
   if(junkStreak >= 2){
     junkStreak = 0;
     const other = (heard === cfg.a) ? cfg.b : cfg.a;
@@ -1531,7 +1461,7 @@ async function runUtterance(text, conf, audioBlob, gen){
     setTranslation(bub, null, other, null,
       "üst üste anlaşılmadı — dil kilidi kırıldı, şimdi " + LANGS[other].n + " dinliyorum");
     if(navigator.vibrate) navigator.vibrate([80,60,80]);
-    if(cfg.follow !== "fixed") setTurn(other, false);
+    setTurn(other, false);
     return;
   }
 
@@ -1547,7 +1477,7 @@ async function runUtterance(text, conf, audioBlob, gen){
       "anlaşılmadı" + (typeof conf === "number" ? " (güven " + conf.toFixed(2) + ")" : "")
       + " — şimdi " + LANGS[other].n + " dinliyorum, tekrar söyler misin?");
     if(navigator.vibrate) navigator.vibrate(120);
-    if(cfg.follow !== "fixed") setTurn(other, false);
+    setTurn(other, false);
     return;
   }
 
