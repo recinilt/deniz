@@ -68,8 +68,7 @@
   .bub .src{margin:0;font-size:14px;color:var(--muted)}
   .bub .dst{margin:3px 0 0;font-size:20px;font-weight:500}
   .bub .dst.fail{color:var(--bad);font-size:16px;font-weight:400}
-  .bub.live{opacity:.6;border-left-style:dashed}
-  .bub.live .src{font-size:17px;color:var(--muted)}
+  .bub.live{opacity:.65}
   .bub .tag{font-size:11px;color:var(--muted);letter-spacing:.02em}
 
   /* --- alt panel --- */
@@ -79,12 +78,10 @@
     display:flex;flex-direction:column;align-items:center;gap:10px;
   }
   #pair{display:flex;align-items:center;gap:10px;font-size:15px}
-  #pair button{padding:6px 14px;border-radius:999px;background:var(--surface);border:1px solid var(--line)}
+  #pair button{padding:6px 12px;border-radius:999px;background:var(--surface);border:1px solid var(--line)}
   #pa{color:var(--a)}
   #pb{color:var(--b)}
-  #pa.turn{border-color:var(--a);background:#2E2A22}
-  #pb.turn{border-color:var(--b);background:#222C33}
-  #swap{color:var(--muted);padding:6px 8px;font-size:18px;background:none;border:none}
+  #swap{color:var(--muted);padding:6px 8px;font-size:18px}
   #mic{
     width:104px;height:104px;border-radius:50%;
     background:var(--surface2);border:2px solid var(--line);
@@ -103,7 +100,10 @@
   #hint{font-size:14px;color:var(--muted);min-height:1.4em;text-align:center}
 
   /* --- ayarlar --- */
-  #sheet{position:fixed;inset:0;background:rgba(10,13,17,.6);display:none;z-index:20}
+  #sheet{
+    position:fixed;inset:0;background:rgba(10,13,17,.6);
+    display:none;z-index:20;
+  }
   #sheet.open{display:block}
   #panel{
     position:absolute;left:0;right:0;bottom:0;max-height:88%;
@@ -137,9 +137,7 @@
   .note a{color:var(--b)}
   h3{font-size:13px;color:var(--muted);font-weight:600;margin:22px 0 10px;
      padding-top:14px;border-top:1px solid var(--line)}
-  #lvlBar{height:10px;border-radius:6px;background:var(--surface2);
-          border:1px solid var(--line);overflow:hidden;margin-top:10px}
-  #lvlFill{height:100%;width:0%;background:var(--b);transition:width .06s linear}
+  .hide{display:none}
   :focus-visible{outline:2px solid var(--b);outline-offset:2px}
 </style>
 </head>
@@ -154,15 +152,15 @@
 <div id="feed">
   <div id="empty">
     <strong>Konuşmaya başla</strong>
-    Mikrofona dokun, konuş. Sustuğunda çevirip sesli okur, sonra sırayı karşı tarafa
-    verir. Sıra şaşarsa alttaki dil düğmesine dokunup kendin verebilirsin.
+    Mikrofona dokun, konuş. Duyduğunu karşı dile çevirip sesli okur, sonra sırayı
+    karşı tarafa verir. Telefonu ikinizin arasına koyman yeterli.
   </div>
 </div>
 
 <div id="dock">
   <div id="pair">
     <button id="pa">Türkçe</button>
-    <button id="swap" aria-label="Dilleri yer değiştir">⇄</button>
+    <button id="swap" aria-label="Dilleri değiştir">⇄</button>
     <button id="pb">English</button>
   </div>
   <button id="mic" aria-label="Dinlemeyi başlat">🎙</button>
@@ -188,35 +186,8 @@
         </div>
       </div>
 
-      <h3>Dinleme</h3>
-
       <div class="row">
-        <label for="endp">Turu bitirme süresi: <span id="endpVal">1,2</span> sn sessizlik</label>
-        <input type="range" id="endp" min="600" max="2500" step="100">
-        <p class="note">Cümlen ortadan kesiliyorsa uzat. Çeviri geç başlıyor gibi
-        geliyorsa kısalt. Gürültülü ortamda uzun taraf daha güvenli.</p>
-      </div>
-
-      <div class="row">
-        <label for="cont">Kendi sesini duyma</label>
-        <select id="cont">
-          <option value="0">Okurken mikrofonu kapat (hoparlör)</option>
-          <option value="1">Okurken de dinle (kulaklık)</option>
-        </select>
-        <p class="note">Hoparlörden çalıştırırken ilkinde kal; yoksa telefon kendi
-        sesini duyup kendini çevirmeye başlar.</p>
-      </div>
-
-      <div class="row">
-        <button class="btn" id="micTest">Mikrofon seviyesini ölç (5 sn)</button>
-        <div id="lvlBar"><div id="lvlFill"></div></div>
-        <p class="note" id="lvlTxt">Düğmeye bas ve normal ses tonunla konuş.</p>
-      </div>
-
-      <h3>Ses</h3>
-
-      <div class="row">
-        <label for="rate">Okuma hızı: <span id="rateVal">1,0</span>×</label>
+        <label for="rate">Konuşma hızı: <span id="rateVal">1.0</span>×</label>
         <input type="range" id="rate" min="0.6" max="1.6" step="0.1">
       </div>
 
@@ -229,6 +200,16 @@
           <label for="vB">2. dil sesi</label>
           <select id="vB"></select>
         </div>
+      </div>
+
+      <div class="row">
+        <label for="cont">Dinleme davranışı</label>
+        <select id="cont">
+          <option value="0">Konuşurken mikrofonu kapat (hoparlör)</option>
+          <option value="1">Konuşurken de dinle (kulaklık)</option>
+        </select>
+        <p class="note">Hoparlörden çalıştırırken ilk seçenekte kal; yoksa telefon
+        kendi sesini duyup kendini çevirmeye başlar.</p>
       </div>
 
       <h3>Çeviri kaynağı</h3>
@@ -258,8 +239,9 @@
       <div class="row">
         <label for="proxy">CORS proxy adresi (isteğe bağlı)</label>
         <input type="text" id="proxy" placeholder="https://proxy.ornek.workers.dev/?url={url}">
-        <p class="note">Google doğrudan erişimi engellenirse devreye girer. Adreste
-        <strong>{url}</strong> yazan yere hedef adres konur; {url} yoksa adresin sonuna eklenir.</p>
+        <p class="note">Google doğrudan erişimi engellenirse devreye girer.
+        Adreste <strong>{url}</strong> yazan yere hedef adres konur; {url} yoksa adresin
+        sonuna eklenir.</p>
       </div>
 
       <div class="row">
@@ -267,8 +249,9 @@
         <input type="password" id="gkey" placeholder="AIza…" autocomplete="off">
         <p class="note">Anahtar:
         <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener">console.cloud.google.com/apis/credentials</a>
-        → API anahtarı oluştur → “Cloud Translation API”yi etkinleştir. Aylık ilk 500.000
-        karakter Google’ın kredisiyle karşılanıyor, sonrası ücretli; fatura kartı istiyor.</p>
+        → API anahtarı oluştur → “Cloud Translation API”yi etkinleştir. Aylık ilk
+        500.000 karakter Google’ın kredisiyle karşılanıyor, sonrası ücretli; fatura
+        kartı istiyor.</p>
       </div>
 
       <div class="row">
@@ -278,26 +261,25 @@
         <input type="text" id="gemmodel" placeholder="gemini-3.6-flash">
         <p class="note">Anahtar:
         <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>
-        → “Create API key”. Ücretsiz kotası var. Model adı zamanla değişiyor; hata alırsan
-        güncel adı yaz.</p>
+        → “Create API key”. Ücretsiz kotası var. Model adı zamanla değişiyor; hata
+        alırsan güncel adı yaz.</p>
       </div>
 
-      <h3>Ekran</h3>
+      <h3>Geçmiş</h3>
       <div class="row">
-        <button class="btn" id="clearScreen">Ekranı temizle</button>
+        <button class="btn" id="clearHist">Konuşma geçmişini sil</button>
         <button class="btn" id="resetAll">Tüm ayarları sıfırla</button>
-        <p class="note">Konuşmalar hiçbir yere kaydedilmiyor: sayfayı yenilediğinde
-        kendiliğinden siliniyor. Yalnız ayarlar bu cihazda saklanıyor.</p>
       </div>
 
       <h3>Bilinmesi gerekenler</h3>
       <p class="note">
         Sayfa <strong>https://</strong> üzerinden açılmalı; dosyaya çift tıklayarak
-        (file://) açarsan tarayıcı mikrofon iznini hatırlamaz, her cümlede yeniden sorar.<br><br>
-        Yerel çeviri ve yerel ses tanıma yalnız masaüstü Chrome/Edge’de var. Telefonda ses
-        tanıma Google’ın sunucusuna gider, yani internet ister.<br><br>
-        Sesten dil tespiti tarayıcıda mümkün değil: uygulama sırayla dinler. Yanlış dilde
-        konuşulursa metinden anlayıp çeviri yönünü düzeltir.
+        (file://) açarsan tarayıcı mikrofona izin vermez.<br><br>
+        Yerel çeviri ve yerel ses tanıma yalnız masaüstü Chrome/Edge’de var. Telefonda
+        ses tanıma Google’ın sunucusuna gider, yani internet ister.<br><br>
+        Sesten dil tespiti tarayıcıda mümkün değil: uygulama sırayla dinler. Sen
+        konuşunca sıra karşı tarafa geçer. Yanlış dilde konuşulursa metinden anlayıp
+        çeviri yönünü düzeltir.
       </p>
 
     </div>
@@ -309,7 +291,7 @@
 
 /* ============================ 1 · Yapılandırma ============================ */
 
-const KEY = "cevirmen_v2";
+const KEY = "cevirmen_v1";
 
 const LANGS = {
   tr:{n:"Türkçe",     asr:"tr-TR"},
@@ -343,11 +325,10 @@ const LANGS = {
   zh:{n:"中文",        asr:"zh-CN"}
 };
 
-// Konuşma geçmişi BİLEREK saklanmıyor: sayfa her açılışta boş başlar.
 const DEFAULTS = {
-  v:2, a:"tr", b:"en", rate:1, voiceA:"", voiceB:"",
-  endpoint:1200, cont:0, prov:"auto", email:"", proxy:"",
-  gkey:"", gemkey:"", gemmodel:"gemini-3.6-flash"
+  v:1, a:"tr", b:"en", rate:1, voiceA:"", voiceB:"",
+  cont:0, prov:"auto", email:"", proxy:"",
+  gkey:"", gemkey:"", gemmodel:"gemini-3.6-flash", history:[]
 };
 
 let cfg = load();
@@ -358,16 +339,13 @@ function load(){
     if(!raw) return {...DEFAULTS};
     const o = JSON.parse(raw);
     if(o.v !== DEFAULTS.v) return {...DEFAULTS};
-    const merged = {...DEFAULTS, ...o};
-    delete merged.history;          // eski sürümden kalmışsa at
-    return merged;
+    return {...DEFAULTS, ...o};
   }catch(e){ return {...DEFAULTS}; }
 }
 function save(){
   try{ localStorage.setItem(KEY, JSON.stringify(cfg)); }
   catch(e){ /* özel sekmede yazma engelli olabilir; ayarlar oturumluk kalır */ }
 }
-try{ localStorage.removeItem("cevirmen_v1"); }catch(e){}
 
 /* ============================ 2 · Yetenek tespiti ========================= */
 
@@ -417,8 +395,8 @@ function paintEngine(){
   }
   const parts = [];
   parts.push(caps.localAsr ? "Ses: cihazda" : "Ses: çevrimiçi");
-  parts.push(lastSource ? ("Çeviri: " + lastSource)
-                        : (caps.localTrans ? "Çeviri: cihazda" : "Çeviri: çevrimiçi"));
+  if(lastSource) parts.push("Çeviri: " + lastSource);
+  else parts.push(caps.localTrans ? "Çeviri: cihazda" : "Çeviri: çevrimiçi");
   engineTxt.textContent = parts.join(" · ");
   dot.className = (caps.localAsr && caps.localTrans) ? "ok" : "warn";
 }
@@ -436,6 +414,7 @@ function chunk(text, limit){
   const push = s => { if(s.trim()) out.push(s.trim()); };
   for(let s of sentences){
     if(s.length > limit){
+      // cümle tek başına uzun: ; : , sınırında böl
       const parts = s.match(/[^;:,]+[;:,]\s*|[^;:,]+$/g) || [s];
       for(const p of parts){
         if((buf + p).length > limit){ push(buf); buf = p; }
@@ -498,6 +477,8 @@ async function localDetect(text){
   }catch(e){}
   return "";
 }
+
+// Her katman {text, detected, source} döndürür ya da hata fırlatır.
 
 async function viaLocal(text, from, to){
   const tr = translators.get(from + ">" + to);
@@ -584,8 +565,9 @@ function chain(){
   return c;
 }
 
+const failures = [];
 async function translate(text, from, to){
-  const failures = [];
+  failures.length = 0;
   for(const name of chain()){
     try{
       const r = await STEPS[name](text, from, to);
@@ -625,6 +607,7 @@ function pickVoice(code, wanted){
   }
   return list.find(v => v.localService) || list[0];
 }
+
 function speakChunk(text, code, voice){
   return new Promise(resolve => {
     const u = new SpeechSynthesisUtterance(text);
@@ -651,26 +634,22 @@ function unlockTTS(){
   speechSynthesis.speak(u);        // ilk speak kullanıcı dokunuşu içinde olmalı
 }
 
-/* ==================== 6 · Ses tanıma ve tur bitirme ====================== */
+/* ============================ 6 · Ses tanıma döngüsü ===================== */
 
 let rec = null;
-let running = false;       // kullanıcı dinlemeyi açtı
-let busy = false;          // çeviri/okuma sürüyor
-let listenLang = cfg.a;    // sıradaki dinleme dili
+let running = false;      // kullanıcı dinlemeyi açtı
+let busy = false;         // çeviri/seslendirme sürüyor
+let listenLang = cfg.a;   // sıradaki dinleme dili
 let liveBub = null;
 let errStreak = 0;
 let restartTimer = null;
 
-let turnFinal = "";        // bu turda kesinleşen metin
-let turnInterim = "";      // son ara metin
-let silenceTimer = null;
-
 // Tek örnek ömür boyu korunur: her turda yeni SpeechRecognition üretmek
-// yakalamayı baştan kurar ve izin sorusunu tekrarlatır.
+// yakalamayı baştan kurar ve kalıcı olmayan kaynaklarda izin sorusunu tekrarlatır.
 function ensureRec(){
   if(rec) return rec;
   rec = new SR();
-  rec.continuous = true;     // turu Chrome değil biz bitiriyoruz
+  rec.continuous = false;
   rec.interimResults = true;
   rec.maxAlternatives = 1;
   rec.onresult = onResult;
@@ -690,8 +669,9 @@ function startRec(){
     setHint("Dinliyorum · " + LANGS[listenLang].n);
   }catch(e){
     if(e && e.name === "InvalidStateError"){
+      // önceki oturum henüz kapanmamış; onend yeniden deneyecek
       clearTimeout(restartTimer);
-      restartTimer = setTimeout(startRec, 400);   // önceki oturum henüz kapanmadı
+      restartTimer = setTimeout(startRec, 400);
       return;
     }
     setHint("Mikrofon başlatılamadı: " + e.message);
@@ -700,46 +680,25 @@ function startRec(){
 }
 
 function onResult(ev){
-  let interim = "";
+  let interim = "", final = "";
   for(let i = ev.resultIndex; i < ev.results.length; i++){
     const t = ev.results[i][0].transcript;
-    if(ev.results[i].isFinal) turnFinal += t + " ";
-    else interim += t;
+    if(ev.results[i].isFinal) final += t; else interim += t;
   }
-  turnInterim = interim;
-  errStreak = 0;
-  const live = (turnFinal + " " + interim).replace(/\s+/g, " ").trim();
-  if(live) showLive(live);
-  armSilence();
-}
-
-// Sessizlik sayacı: son sesten sonra cfg.endpoint kadar yeni şey gelmezse tur biter.
-function armSilence(){
-  clearTimeout(silenceTimer);
-  silenceTimer = setTimeout(endTurn, Number(cfg.endpoint) || 1200);
-}
-function clearTurn(){
-  clearTimeout(silenceTimer);
-  turnFinal = ""; turnInterim = "";
-  clearLive();
-}
-function endTurn(){
-  clearTimeout(silenceTimer);
-  const text = (turnFinal + " " + turnInterim).replace(/\s+/g, " ").trim();
-  turnFinal = ""; turnInterim = "";
-  clearLive();
-  if(!text) return;
-  // Yalnız gerçek gürültüyü ele: en az iki harf/rakam yoksa yok say.
-  // (Uzunluk eşiği "tamam", "hello", "evet" gibi geçerli tek kelimelik turları yutuyordu.)
-  if(text.replace(/[^\p{L}\p{N}]/gu, "").length < 2) return;
-  handleUtterance(text);
+  if(interim) showLive(interim);
+  if(final.trim()){
+    errStreak = 0;
+    clearLive();
+    handleUtterance(final.trim());
+    try{ rec.stop(); }catch(e){}
+  }
 }
 
 function onError(ev){
   const e = ev.error;
   if(e === "no-speech" || e === "aborted") return;             // normal, döngü devam
   if(e === "not-allowed" || e === "service-not-allowed"){
-    setHint("Mikrofon izni yok. Sayfayı https üzerinden aç ve izin ver.");
+    setHint("Mikrofon izni yok. Adres çubuğundaki kilitten izin ver, sayfayı https üzerinden aç.");
     stopAll(); return;
   }
   if(e === "language-not-supported" && caps.localAsr){
@@ -756,15 +715,12 @@ function onError(ev){
 function onEnd(){
   micBtn.classList.remove("on");
   if(!running || busy) return;
-  // Chrome uzun sessizlikte oturumu kendisi kapatır: elde kalan metni harca, sonra yeniden aç
-  if((turnFinal + turnInterim).trim()) endTurn();
   clearTimeout(restartTimer);
   restartTimer = setTimeout(startRec, 250);
 }
 
 async function handleUtterance(text){
   busy = true;
-  clearTimeout(silenceTimer);
   micBtn.classList.remove("on"); micBtn.classList.add("busy");
   setHint("Çeviriyor…");
   if(!cfg.cont){ try{ rec && rec.abort(); }catch(e){} }
@@ -790,10 +746,11 @@ async function handleUtterance(text){
 
     setBubbleSide(bub, (base(target) === cfg.a) ? cfg.b : cfg.a);
     setTranslation(bub, r.text, target, r.source);
+    remember(text, r.text, spokenGuess, target, r.source);
 
     setHint("Okuyor…");
     await speak(r.text, target);
-    setTurn(target, false);          // sıra karşı tarafa geçer
+    listenLang = target;            // sıra karşı tarafa geçer
   }catch(err){
     setTranslation(bub, null, target, null, err.message);
     setHint("Çeviri başarısız.");
@@ -817,15 +774,16 @@ async function startAll(){
 function stopAll(){
   running = false;
   clearTimeout(restartTimer);
-  clearTurn();
   try{ rec && rec.abort(); }catch(e){}
   try{ speechSynthesis.cancel(); }catch(e){}
+  clearLive();
   micBtn.classList.remove("on","busy");
   releaseWakeLock();
-  setHint("Başlamak için dokun");
+  if(!hint.dataset.sticky) setHint("Başlamak için dokun");
 }
 
 micBtn.addEventListener("click", () => {
+  hint.dataset.sticky = "";
   if(running) stopAll(); else startAll();
 });
 
@@ -834,7 +792,7 @@ micBtn.addEventListener("click", () => {
 function setHint(t){ hint.textContent = t; }
 
 function addBubble(side, src, dst){
-  const e = $("#empty"); if(e) e.remove();
+  $("#empty") && $("#empty").remove();
   const el = document.createElement("div");
   el.className = "bub " + (side === cfg.a ? "sideA" : "sideB");
   const p1 = document.createElement("p"); p1.className = "src"; p1.textContent = src;
@@ -867,48 +825,45 @@ function setTranslation(el, text, lang, source, errMsg){
   }
   feed.scrollTop = feed.scrollHeight;
 }
-// Konuşurken metni canlı göster: kesinleşene kadar soluk ve kesik çizgili.
 function showLive(text){
   if(!liveBub){
-    const e = $("#empty"); if(e) e.remove();
-    liveBub = document.createElement("div");
-    liveBub.className = "bub live " + (listenLang === cfg.a ? "sideA" : "sideB");
-    const p = document.createElement("p"); p.className = "src"; p.textContent = text;
-    liveBub.appendChild(p);
-    feed.appendChild(liveBub);
+    liveBub = addBubble(listenLang, text, "");
+    liveBub.classList.add("live");
+    liveBub.querySelector(".dst").remove();
   }else{
     liveBub.querySelector(".src").textContent = text;
+    feed.scrollTop = feed.scrollHeight;
+  }
+}
+function clearLive(){ if(liveBub){ liveBub.remove(); liveBub = null; } }
+
+function remember(src, dst, from, to, source){
+  cfg.history.push({s:src, d:dst, f:from, t:to, g:source});
+  if(cfg.history.length > 50) cfg.history = cfg.history.slice(-50);
+  save();
+}
+function renderHistory(){
+  if(!cfg.history.length) return;
+  for(const h of cfg.history){
+    const el = addBubble(h.f, h.s, h.d);
+    setTranslation(el, h.d, h.t, h.g);
   }
   feed.scrollTop = feed.scrollHeight;
 }
-function clearLive(){ if(liveBub){ liveBub.remove(); liveBub = null; } }
 
 function paintPair(){
   $("#pa").textContent = LANGS[cfg.a].n;
   $("#pb").textContent = LANGS[cfg.b].n;
-  $("#pa").classList.toggle("turn", listenLang === cfg.a);
-  $("#pb").classList.toggle("turn", listenLang === cfg.b);
 }
-
-// Sırayı ver. byUser=true ise dinlemeyi hemen o dile çevirir.
-function setTurn(lang, byUser){
-  listenLang = lang;
-  paintPair();
-  if(byUser && running && !busy){
-    clearTurn();
-    try{ rec && rec.abort(); }catch(e){}   // onEnd yeni dille yeniden başlatır
-    setHint("Sıra sende · " + LANGS[lang].n);
-  }
-}
-$("#pa").addEventListener("click", () => setTurn(cfg.a, true));
-$("#pb").addEventListener("click", () => setTurn(cfg.b, true));
 $("#swap").addEventListener("click", async () => {
   const t = cfg.a; cfg.a = cfg.b; cfg.b = t; save();
+  listenLang = cfg.a;
   translators.clear();
-  setTurn(cfg.a, running);
-  fillLangSelects(); paintVoiceSelects();
+  paintPair(); fillLangSelects(); paintVoiceSelects();
   await detectCaps();
 });
+$("#pa").addEventListener("click", () => { openSheet(); $("#selA").focus(); });
+$("#pb").addEventListener("click", () => { openSheet(); $("#selB").focus(); });
 
 /* ============================ 8 · Ekranı açık tut ======================== */
 
@@ -924,59 +879,7 @@ document.addEventListener("visibilitychange", () => {
   if(document.visibilityState === "visible" && running && !wakeLock) requestWakeLock();
 });
 
-/* ============================ 9 · Mikrofon testi ========================= */
-
-let testStream = null, testCtx = null, testRAF = null;
-
-async function micTest(){
-  const btn = $("#micTest"), txt = $("#lvlTxt"), fill = $("#lvlFill");
-  if(running){ txt.textContent = "Önce dinlemeyi durdur, sonra ölç."; return; }
-  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
-    txt.textContent = "Bu tarayıcı mikrofon ölçümüne izin vermiyor."; return;
-  }
-  try{
-    testStream = await navigator.mediaDevices.getUserMedia({
-      audio:{echoCancellation:true, noiseSuppression:true, autoGainControl:true}
-    });
-  }catch(e){ txt.textContent = "Mikrofon açılamadı: " + e.message; return; }
-
-  btn.disabled = true;
-  txt.textContent = "Ölçülüyor… normal ses tonunla konuş.";
-  testCtx = new (window.AudioContext || window.webkitAudioContext)();
-  const an = testCtx.createAnalyser();
-  an.fftSize = 1024;
-  testCtx.createMediaStreamSource(testStream).connect(an);
-  const buf = new Float32Array(an.fftSize);
-  let peak = 0;
-  const t0 = performance.now();
-
-  (function loop(){
-    an.getFloatTimeDomainData(buf);
-    let sum = 0;
-    for(let i = 0; i < buf.length; i++) sum += buf[i] * buf[i];
-    const rms = Math.sqrt(sum / buf.length);
-    if(rms > peak) peak = rms;
-    fill.style.width = Math.min(100, Math.round(rms * 400)) + "%";
-    if(performance.now() - t0 < 5000) testRAF = requestAnimationFrame(loop);
-    else finishTest(peak);
-  })();
-}
-
-function finishTest(peak){
-  cancelAnimationFrame(testRAF);
-  if(testStream){ testStream.getTracks().forEach(t => t.stop()); testStream = null; }
-  if(testCtx){ try{ testCtx.close(); }catch(e){} testCtx = null; }
-  $("#lvlFill").style.width = "0%";
-  $("#micTest").disabled = false;
-  const db = peak > 0 ? Math.round(20 * Math.log10(peak)) : -99;
-  const txt = $("#lvlTxt");
-  if(db <= -45)      txt.textContent = "Tepe seviye " + db + " dBFS — çok kısık. Mikrofona yaklaş ya da Windows/Android giriş seviyesini yükselt.";
-  else if(db >= -3)  txt.textContent = "Tepe seviye " + db + " dBFS — kırpılıyor. Mikrofondan biraz uzaklaş.";
-  else               txt.textContent = "Tepe seviye " + db + " dBFS — seviye iyi. Algılama hâlâ kötüyse turu bitirme süresini uzat.";
-}
-$("#micTest").addEventListener("click", micTest);
-
-/* ============================ 10 · Ayarlar ekranı ======================== */
+/* ============================ 9 · Ayarlar ekranı ========================= */
 
 const sheet = $("#sheet");
 function openSheet(){ sheet.classList.add("open"); }
@@ -996,7 +899,6 @@ function fillLangSelects(){
       sel.appendChild(o);
     }
   }
-  paintPair();
 }
 function paintVoiceSelects(){
   for(const [id, code, cur] of [["#vA", cfg.a, cfg.voiceA], ["#vB", cfg.b, cfg.voiceB]]){
@@ -1092,46 +994,30 @@ function bindText(id, key){
 
 bindSelect("#selA", "a", async () => {
   if(cfg.a === cfg.b){ cfg.b = Object.keys(LANGS).find(c => c !== cfg.a); save(); }
-  translators.clear(); setTurn(cfg.a, running);
-  fillLangSelects(); paintVoiceSelects(); await detectCaps();
+  listenLang = cfg.a; translators.clear();
+  paintPair(); fillLangSelects(); paintVoiceSelects(); await detectCaps();
 });
 bindSelect("#selB", "b", async () => {
   if(cfg.a === cfg.b){ cfg.a = Object.keys(LANGS).find(c => c !== cfg.b); save(); }
-  translators.clear(); setTurn(cfg.a, running);
-  fillLangSelects(); paintVoiceSelects(); await detectCaps();
+  listenLang = cfg.a; translators.clear();
+  paintPair(); fillLangSelects(); paintVoiceSelects(); await detectCaps();
 });
 bindSelect("#vA", "voiceA");
 bindSelect("#vB", "voiceB");
 bindSelect("#prov", "prov");
-
 $("#cont").addEventListener("change", () => { cfg.cont = Number($("#cont").value); save(); });
 $("#rate").addEventListener("input", () => {
-  cfg.rate = Number($("#rate").value);
-  $("#rateVal").textContent = cfg.rate.toFixed(1).replace(".", ",");
-  save();
+  cfg.rate = Number($("#rate").value); $("#rateVal").textContent = cfg.rate.toFixed(1); save();
 });
-$("#endp").addEventListener("input", () => {
-  cfg.endpoint = Number($("#endp").value);
-  $("#endpVal").textContent = (cfg.endpoint / 1000).toFixed(1).replace(".", ",");
-  save();
-});
-
 bindText("#email", "email");
 bindText("#proxy", "proxy");
 bindText("#gkey", "gkey");
 bindText("#gemkey", "gemkey");
 bindText("#gemmodel", "gemmodel");
 
-$("#clearScreen").addEventListener("click", () => {
-  feed.innerHTML = "";
-  liveBub = null;
-  const d = document.createElement("div");
-  d.id = "empty";
-  const s = document.createElement("strong");
-  s.textContent = "Konuşmaya başla";
-  d.appendChild(s);
-  d.appendChild(document.createTextNode("Mikrofona dokun, konuş."));
-  feed.appendChild(d);
+$("#clearHist").addEventListener("click", () => {
+  cfg.history = []; save();
+  feed.innerHTML = '<div id="empty"><strong>Konuşmaya başla</strong>Mikrofona dokun, konuş.</div>';
   closeSheet();
 });
 $("#resetAll").addEventListener("click", () => {
@@ -1144,9 +1030,7 @@ function paintSettings(){
   fillLangSelects();
   paintVoiceSelects();
   $("#rate").value = cfg.rate;
-  $("#rateVal").textContent = Number(cfg.rate).toFixed(1).replace(".", ",");
-  $("#endp").value = cfg.endpoint;
-  $("#endpVal").textContent = (Number(cfg.endpoint) / 1000).toFixed(1).replace(".", ",");
+  $("#rateVal").textContent = Number(cfg.rate).toFixed(1);
   $("#cont").value = String(cfg.cont);
   $("#prov").value = cfg.prov;
   $("#email").value = cfg.email;
@@ -1156,14 +1040,15 @@ function paintSettings(){
   $("#gemmodel").value = cfg.gemmodel;
 }
 
-/* ============================ 11 · Açılış =============================== */
+/* ============================ 10 · Açılış =============================== */
 
-(function init(){
+(async function init(){
   if(!LANGS[cfg.a]) cfg.a = DEFAULTS.a;
   if(!LANGS[cfg.b]) cfg.b = DEFAULTS.b;
   listenLang = cfg.a;
-  paintSettings();
   paintPair();
+  paintSettings();
+  renderHistory();
   if(location.protocol === "file:"){
     const w = document.createElement("div");
     w.id = "fileWarn";
@@ -1172,7 +1057,7 @@ function paintSettings(){
       + "VS Code'da dosyaya sağ tık → Open with Live Server, ya da https adresine yükle.";
     document.body.insertBefore(w, feed);
   }
-  detectCaps();
+  await detectCaps();
 })();
 </script>
 </body>
