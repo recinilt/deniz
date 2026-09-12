@@ -312,42 +312,36 @@
 const KEY = "cevirmen_v2";
 
 const LANGS = {
-  tr:{n:"Türkçe",     t:"Türkçe",       asr:"tr-TR"},
-  en:{n:"English",    t:"İngilizce",    asr:"en-US"},
-  de:{n:"Deutsch",    t:"Almanca",      asr:"de-DE"},
-  fr:{n:"Français",   t:"Fransızca",    asr:"fr-FR"},
-  es:{n:"Español",    t:"İspanyolca",   asr:"es-ES"},
-  it:{n:"Italiano",   t:"İtalyanca",    asr:"it-IT"},
-  pt:{n:"Português",  t:"Portekizce",   asr:"pt-BR"},
-  nl:{n:"Nederlands", t:"Felemenkçe",   asr:"nl-NL"},
-  ru:{n:"Русский",    t:"Rusça",        asr:"ru-RU"},
-  uk:{n:"Українська", t:"Ukraynaca",    asr:"uk-UA"},
-  pl:{n:"Polski",     t:"Lehçe",        asr:"pl-PL"},
-  ar:{n:"العربية",    t:"Arapça",       asr:"ar-SA"},
-  he:{n:"עברית",      t:"İbranice",     asr:"he-IL"},
-  el:{n:"Ελληνικά",   t:"Yunanca",      asr:"el-GR"},
-  ro:{n:"Română",     t:"Romence",      asr:"ro-RO"},
-  bg:{n:"Български",  t:"Bulgarca",     asr:"bg-BG"},
-  cs:{n:"Čeština",    t:"Çekçe",        asr:"cs-CZ"},
-  hu:{n:"Magyar",     t:"Macarca",      asr:"hu-HU"},
-  sv:{n:"Svenska",    t:"İsveççe",      asr:"sv-SE"},
-  da:{n:"Dansk",      t:"Danca",        asr:"da-DK"},
-  fi:{n:"Suomi",      t:"Fince",        asr:"fi-FI"},
-  no:{n:"Norsk",      t:"Norveççe",     asr:"nb-NO"},
-  hi:{n:"हिन्दी",       t:"Hintçe",       asr:"hi-IN"},
-  id:{n:"Indonesia",  t:"Endonezce",    asr:"id-ID"},
-  th:{n:"ไทย",        t:"Tayca",        asr:"th-TH"},
-  vi:{n:"Tiếng Việt", t:"Vietnamca",    asr:"vi-VN"},
-  ja:{n:"日本語",      t:"Japonca",      asr:"ja-JP"},
-  ko:{n:"한국어",      t:"Korece",       asr:"ko-KR"},
-  zh:{n:"中文",        t:"Çince",        asr:"zh-CN"}
+  tr:{n:"Türkçe",     asr:"tr-TR"},
+  en:{n:"English",    asr:"en-US"},
+  de:{n:"Deutsch",    asr:"de-DE"},
+  fr:{n:"Français",   asr:"fr-FR"},
+  es:{n:"Español",    asr:"es-ES"},
+  it:{n:"Italiano",   asr:"it-IT"},
+  pt:{n:"Português",  asr:"pt-BR"},
+  nl:{n:"Nederlands", asr:"nl-NL"},
+  ru:{n:"Русский",    asr:"ru-RU"},
+  uk:{n:"Українська", asr:"uk-UA"},
+  pl:{n:"Polski",     asr:"pl-PL"},
+  ar:{n:"العربية",    asr:"ar-SA"},
+  he:{n:"עברית",      asr:"he-IL"},
+  el:{n:"Ελληνικά",   asr:"el-GR"},
+  ro:{n:"Română",     asr:"ro-RO"},
+  bg:{n:"Български",  asr:"bg-BG"},
+  cs:{n:"Čeština",    asr:"cs-CZ"},
+  hu:{n:"Magyar",     asr:"hu-HU"},
+  sv:{n:"Svenska",    asr:"sv-SE"},
+  da:{n:"Dansk",      asr:"da-DK"},
+  fi:{n:"Suomi",      asr:"fi-FI"},
+  no:{n:"Norsk",      asr:"nb-NO"},
+  hi:{n:"हिन्दी",       asr:"hi-IN"},
+  id:{n:"Indonesia",  asr:"id-ID"},
+  th:{n:"ไทย",        asr:"th-TH"},
+  vi:{n:"Tiếng Việt", asr:"vi-VN"},
+  ja:{n:"日本語",      asr:"ja-JP"},
+  ko:{n:"한국어",      asr:"ko-KR"},
+  zh:{n:"中文",        asr:"zh-CN"}
 };
-// Listelerde gösterilecek ad: kendi yazılışı + Türkçe karşılığı.
-function langLabel(code){
-  const L = LANGS[code];
-  if(!L) return code;
-  return L.n === L.t ? L.n : (L.n + " · " + L.t);
-}
 
 // Konuşma geçmişi BİLEREK saklanmıyor: sayfa her açılışta boş başlar.
 const DEFAULTS = {
@@ -473,48 +467,6 @@ async function getJSON(url, opts){
   } finally { clearTimeout(t); }
 }
 
-/* ---- Cihazda dil kararı: seçili İKİ dil arasında, sağlayıcıya bağımlı olmadan ---- */
-// Yalnız seçili çift arasında karar verir; genel dil tespiti değildir.
-const STOP = {
-  tr:"bir bu şu ve ne için ile de da mı mi mu mü ben sen o biz siz onlar nasıl evet hayır var yok çok iyi değil ama ki gibi kadar sonra şimdi burada nerede kaç tamam merhaba teşekkür teşekkürler lütfen ederim nasılsın iyiyim benim senin",
-  en:"the a an and is are you i it to of in that this for with on my your we they he she not what how am was were do does can will yes no hello hi thanks thank please where when who fine good ok okay im",
-  de:"der die das und ist ich du wir sie nicht ein eine mit für auf wie was ja nein danke bitte wo gut hallo",
-  fr:"le la les et est je tu il nous vous ne pas un une des pour avec où comment oui non merci bonjour bien",
-  es:"el la los las y es yo tú usted no un una para con qué cómo dónde sí gracias hola por bien",
-  it:"il la gli le e è io tu non un una per con che come dove sì grazie ciao bene",
-  pt:"o a os as e é eu você não um uma para com que como onde sim obrigado olá bem",
-  nl:"de het en is ik je jij wij niet een voor met wat hoe waar ja nee dank hallo goed"
-};
-const STOPSET = {};
-for(const k in STOP) STOPSET[k] = new Set(STOP[k].split(" "));
-const SCRIPT = {
-  ru:/[\u0400-\u04FF]/, uk:/[\u0400-\u04FF]/, bg:/[\u0400-\u04FF]/,
-  ar:/[\u0600-\u06FF]/, he:/[\u0590-\u05FF]/, el:/[\u0370-\u03FF]/,
-  hi:/[\u0900-\u097F]/, th:/[\u0E00-\u0E7F]/, ja:/[\u3040-\u30FF]/,
-  ko:/[\uAC00-\uD7AF]/, zh:/[\u4E00-\u9FFF]/
-};
-const DIACR = {
-  tr:/[ğışçöüĞİŞÇÖÜ]/g, de:/[äöüßÄÖÜ]/g, fr:/[éèêàçùœÉÈÊÀÇ]/g,
-  es:/[ñ¿¡áéíóúÑÁÉÍÓÚ]/g, pt:/[ãõçáÃÕÇÁ]/g, pl:/[ąęłńśźżĄĘŁŃŚŹŻ]/g,
-  cs:/[ěščřžýáíéůúĚŠČŘŽÝÁÍÉŮÚ]/g, hu:/[őűŐŰ]/g, ro:/[ăâîșțĂÂÎȘȚ]/g
-};
-function langScore(text, l){
-  let s = 0;
-  if(SCRIPT[l] && SCRIPT[l].test(text)) s += 5;
-  if(DIACR[l]){ const m = text.match(DIACR[l]); if(m) s += m.length * 1.5; }
-  if(STOPSET[l]){
-    const words = text.toLowerCase().replace(/[^\p{L}\p{N}\s]/gu, " ").split(/\s+/).filter(Boolean);
-    for(const w of words) if(STOPSET[l].has(w)) s += 2;
-  }
-  return s;
-}
-// Dönüş: l1, l2 ya da "" (karar yok).
-function guessPair(text, l1, l2){
-  const a = langScore(text, l1), b = langScore(text, l2);
-  if(a === b) return "";
-  return a > b ? l1 : l2;
-}
-
 /* ============================ 4 · Çeviri katmanları ====================== */
 
 const translators = new Map();   // "tr>en" -> Translator
@@ -638,7 +590,6 @@ async function translate(text, from, to){
     try{
       const r = await STEPS[name](text, from, to);
       lastSource = r.source; paintEngine();
-      r.note = failures.join(", ");       // öncekiler neden düştü, balonda görünsün
       return r;
     }catch(e){
       failures.push(name + ": " + (e && e.message ? e.message : "hata"));
@@ -749,15 +700,12 @@ function startRec(){
 }
 
 function onResult(ev){
-  // Biriktirme yok: Chrome Android aynı parçayı birden çok kez "final" olarak
-  // yolluyor; metni her seferinde tüm sonuç listesinden sıfırdan kuruyoruz.
-  let final = "", interim = "";
-  for(let i = 0; i < ev.results.length; i++){
+  let interim = "";
+  for(let i = ev.resultIndex; i < ev.results.length; i++){
     const t = ev.results[i][0].transcript;
-    if(ev.results[i].isFinal) final += t + " ";
+    if(ev.results[i].isFinal) turnFinal += t + " ";
     else interim += t;
   }
-  turnFinal = final;
   turnInterim = interim;
   errStreak = 0;
   const live = (turnFinal + " " + interim).replace(/\s+/g, " ").trim();
@@ -822,31 +770,26 @@ async function handleUtterance(text){
   if(!cfg.cont){ try{ rec && rec.abort(); }catch(e){} }
 
   const spokenGuess = listenLang;
-
-  // Konuşulan dili çeviriden ÖNCE cihazda belirle: dinleme diline güvenme.
-  let from = spokenGuess;
-  const d = caps.localDetect ? await localDetect(text) : "";
-  const g = (d === cfg.a || d === cfg.b) ? d : guessPair(text, cfg.a, cfg.b);
-  if(g === cfg.a || g === cfg.b) from = g;
-  let target = (from === cfg.a) ? cfg.b : cfg.a;
-
-  const bub = addBubble(from, text, null);
+  let target = spokenGuess === cfg.a ? cfg.b : cfg.a;
+  const bub = addBubble(spokenGuess, text, null);
 
   try{
+    let from = spokenGuess;
+    if(caps.localDetect){
+      const d = await localDetect(text);
+      if(d === cfg.a || d === cfg.b){ from = d; target = (d === cfg.a) ? cfg.b : cfg.a; }
+    }
     let r = await translate(text, from, target);
 
-    // Sağlayıcı kaynak dili biliyorsa ve bizimle çelişiyorsa ona uy, bir kez daha çevir.
+    // Karşı dilde konuşulmuşsa yönü düzelt ve bir kez daha çevir.
     if(r.detected && r.detected === base(target) && base(target) !== base(from)){
       const fixedTarget = (base(target) === cfg.a) ? cfg.b : cfg.a;
-      try{
-        r = await translate(text, r.detected, fixedTarget);
-        from = (fixedTarget === cfg.a) ? cfg.b : cfg.a;
-        target = fixedTarget;
-        setBubbleSide(bub, from);
-      }catch(e){ /* düzeltme başarısızsa ilk çeviriyle devam */ }
+      try{ r = await translate(text, r.detected, fixedTarget); target = fixedTarget; }
+      catch(e){ /* düzeltme başarısızsa ilk çeviriyle devam */ }
     }
 
-    setTranslation(bub, r.text, target, r.source + (r.note ? " · düşen: " + r.note : ""));
+    setBubbleSide(bub, (base(target) === cfg.a) ? cfg.b : cfg.a);
+    setTranslation(bub, r.text, target, r.source);
 
     setHint("Okuyor…");
     await speak(r.text, target);
@@ -1048,7 +991,7 @@ function fillLangSelects(){
     sel.innerHTML = "";
     for(const code of Object.keys(LANGS)){
       const o = document.createElement("option");
-      o.value = code; o.textContent = langLabel(code);
+      o.value = code; o.textContent = LANGS[code].n;
       if(code === cur) o.selected = true;
       sel.appendChild(o);
     }
