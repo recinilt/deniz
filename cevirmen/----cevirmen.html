@@ -491,45 +491,24 @@ function paintEngine(){
 
 const base = code => String(code||"").toLowerCase().split(/[-_]/)[0];
 
-// TTS metnini bölerken kelime ortasından asla kesme. Üç kademe: önce cümle
-// sınırı, sonra ; : , sınırı, sonra KELİME sınırı. Son kademe olmadan
-// noktalamasız uzun bir metin (Web Speech çıktısı noktalama üretmiyor) tek
-// parça kalıyor ve motor onu ortasından kesiyordu.
-function splitPunct(s, limit){
-  return (s.match(/[^;:,]+[;:,]\s*|[^;:,]+$/g) || [s]);
-}
-function splitWords(s, limit){
-  const out = [];
-  let buf = "";
-  for(const w of s.split(/(\s+)/)){
-    if(!w) continue;
-    if((buf + w).length > limit && buf.trim()){ out.push(buf); buf = w.trim() ? w : ""; }
-    else buf += w;
-    // tek bir "kelime" limitten uzunsa (uzun sayı, bağlantı) zorunlu kesme
-    while(buf.length > limit){
-      out.push(buf.slice(0, limit));
-      buf = buf.slice(limit);
-    }
-  }
-  if(buf.trim()) out.push(buf);
-  return out.length ? out : [s];
-}
-
+// TTS'i cümle sınırında böl: kelime ortasından asla kesme.
 function chunk(text, limit){
   limit = limit || 200;
   const out = [];
-  const push = s => { if(s && s.trim()) out.push(s.trim()); };
   const sentences = text.match(/[^.!?…]+[.!?…]+["')\]]*\s*|[^.!?…]+$/g) || [text];
   let buf = "";
-  for(const s of sentences){
-    const pieces = (s.length > limit) ? splitPunct(s, limit) : [s];
-    for(const p of pieces){
-      const bits = (p.length > limit) ? splitWords(p, limit) : [p];
-      for(const b of bits){
-        if((buf + b).length > limit){ push(buf); buf = b; }
-        else buf += b;
+  const push = s => { if(s.trim()) out.push(s.trim()); };
+  for(let s of sentences){
+    if(s.length > limit){
+      const parts = s.match(/[^;:,]+[;:,]\s*|[^;:,]+$/g) || [s];
+      for(const p of parts){
+        if((buf + p).length > limit){ push(buf); buf = p; }
+        else buf += p;
       }
+      continue;
     }
+    if((buf + s).length > limit){ push(buf); buf = s; }
+    else buf += s;
   }
   push(buf);
   return out.length ? out : [text];
@@ -1154,16 +1133,9 @@ function speakChunk(text, code, voice){
     let done = false;
     const fin = () => { if(!done){ done = true; resolve(); } };
     u.onend = fin; u.onerror = fin;
-    // Zaman aşımı metnin uzunluğuna göre: sabit 20 sn, yavaş okunan uzun bir
-    // parçayı ortasından kesiyordu. Hızı da hesaba kat, en az 12 saniye ver.
-    const budget = Math.max(12000, Math.ceil(text.length * 120 / (Number(cfg.rate) || 1)));
-    setTimeout(() => {
-      if(!done){
-        console.warn("okuma zaman aşımına uğradı, kesildi:", text.slice(0, 60));
-        try{ speechSynthesis.cancel(); }catch(e){}
-        fin();
-      }
-    }, budget);
+    // Ses motoru sessizce takılırsa: yalnız beklemeyi bitirmek yetmez, konuşmayı
+    // da iptal et, yoksa sonraki parça üstüne biner.
+    setTimeout(() => { if(!done){ try{ speechSynthesis.cancel(); }catch(e){} fin(); } }, 20000);
     speechSynthesis.speak(u);
   });
 }
@@ -1617,11 +1589,7 @@ async function runUtterance(text, conf, audioBlob, gen){
   // Birleştirme: iki kaynak çelişiyorsa güveni yüksek olan kazanır. Metin
   // tarafının güveni yoksa (istatistik tahmini) sabit bir değer varsayılır;
   // ses kararı eşiği geçmişse metin onu ezemez.
-  // txtScore, CEVABIN GELDİĞİ kaynağa bağlı olmalı (d), dedektörün bir şey
-  // söylemiş olmasına değil (dres.lang). Aksi halde eşiğin altında kalıp
-  // reddedilen bir cihaz tahmininin güveni, aslında istatistiksel tahminden
-  // (gd) gelen cevaba mal olup ses kararını haksız yere silebiliyordu.
-  const txtScore = d ? dres.score : (gd.margin >= 4 ? 0.7 : 0.5);
+  const txtScore = dres.lang ? dres.score : (gd.margin >= 4 ? 0.7 : 0.5);
   if(lidLang && lidScore < 0.75 && gTxt && gTxt !== lidLang && txtStrong && txtScore > lidScore){
     lidTag += " → metin: " + gTxt + " (güven " + txtScore.toFixed(2) + ")";
     lidLang = "";
