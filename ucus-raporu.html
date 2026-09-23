@@ -1,0 +1,733 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Uçuşa elverişlilik – IATA süreleri</title>
+<style>
+:root{
+  --sign:#FFD100; --sign-ink:#111820;
+  --bg:#F2F4F7; --surface:#FFFFFF; --ink:#13294B; --muted:#586A80; --line:#C9D2DC;
+  --deg:#B42318; --deg-bg:#FDECEA; --sartli:#8A5A00; --sartli-bg:#FFF3D6;
+  --kabul:#146C3F; --kabul-bg:#E3F4EA; --yok:#586A80; --yok-bg:#EAEEF2;
+  --focus:#1A6BD1; --radius-s:6px; --radius-m:10px;
+  --font:"Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,"Noto Sans",Roboto,sans-serif;
+}
+:root[data-tema="koyu"]{
+  --bg:#0E1A2A; --surface:#15253A; --ink:#E6EDF5; --muted:#9AAABD; --line:#2C405A;
+  --deg:#FF8A7A; --deg-bg:#3A1E1E; --sartli:#FFCB66; --sartli-bg:#3A2E12;
+  --kabul:#6FD39B; --kabul-bg:#12332A; --yok:#9AAABD; --yok-bg:#1E2F45; --focus:#6FA8FF;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-tema="acik"]){
+    --bg:#0E1A2A; --surface:#15253A; --ink:#E6EDF5; --muted:#9AAABD; --line:#2C405A;
+    --deg:#FF8A7A; --deg-bg:#3A1E1E; --sartli:#FFCB66; --sartli-bg:#3A2E12;
+    --kabul:#6FD39B; --kabul-bg:#12332A; --yok:#9AAABD; --yok-bg:#1E2F45; --focus:#6FA8FF;
+  }
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{overflow:auto}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 var(--font);font-variant-numeric:tabular-nums}
+a{color:var(--focus)}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+button,input,select,textarea{font:inherit;color:inherit}
+.kap{max-width:1280px;margin:0 auto;padding:0 16px}
+
+header.ust{background:var(--ink);color:var(--bg)}
+:root[data-tema="koyu"] header.ust{background:#081221;color:var(--ink)}
+@media (prefers-color-scheme: dark){:root:not([data-tema="acik"]) header.ust{background:#081221;color:var(--ink)}}
+.ust .kap{display:flex;align-items:center;gap:16px;padding-top:12px;padding-bottom:12px;flex-wrap:wrap}
+.ust h1{font-size:1.25rem;margin:0;font-weight:650;letter-spacing:.01em}
+.ust .kaynak{font-size:.8125rem;opacity:.8;flex:1;min-width:220px}
+.tema-btn{background:transparent;border:1px solid currentColor;border-radius:var(--radius-s);padding:4px 10px;color:inherit;cursor:pointer}
+
+nav.sekmeler{background:var(--surface);border-bottom:1px solid var(--line);overflow-x:auto}
+nav.sekmeler .kap{display:flex;gap:4px}
+.sekme{border:0;background:none;padding:12px 14px;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;color:var(--muted);font-weight:600}
+.sekme[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--sign)}
+
+main{padding:16px 0 48px}
+.panel[hidden]{display:none}
+
+/* Tabela: arama */
+.tabela{background:var(--sign);color:var(--sign-ink);border-radius:var(--radius-m);display:flex;align-items:center;gap:12px;padding:10px 14px}
+.tabela svg{flex:none}
+.tabela input{flex:1;min-width:0;border:0;background:transparent;font-size:1.375rem;font-weight:650;color:var(--sign-ink);padding:6px 0}
+.tabela input::placeholder{color:#3B3413;opacity:.75}
+.tabela input:focus{outline:none}
+.tabela:focus-within{box-shadow:0 0 0 3px var(--focus)}
+.tabela kbd{border:1.5px solid var(--sign-ink);border-radius:4px;padding:0 6px;font-size:.8125rem;font-family:inherit}
+.temizle{border:0;background:transparent;color:var(--sign-ink);cursor:pointer;font-size:1.25rem;padding:0 6px}
+
+.cipler{display:flex;gap:8px;overflow-x:auto;padding:12px 0 4px;scrollbar-width:thin}
+.cip{flex:none;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 14px;cursor:pointer;font-size:.9375rem}
+.cip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+
+.duzen{display:grid;grid-template-columns:minmax(300px,420px) 1fr;gap:16px;margin-top:12px;align-items:start}
+@media (max-width:860px){.duzen{grid-template-columns:1fr}}
+
+.liste{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-m);overflow:hidden}
+.liste-ust{padding:8px 14px;font-size:.8125rem;color:var(--muted);border-bottom:1px solid var(--line)}
+.kat-basligi{padding:10px 14px 4px;font-size:.8125rem;font-weight:700;color:var(--muted);background:var(--bg)}
+.satir{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--line);padding:10px 14px;cursor:pointer}
+.satir:last-child{border-bottom:0}
+.satir:hover{background:var(--bg)}
+.satir[aria-current="true"]{background:var(--bg);box-shadow:inset 4px 0 0 var(--sign)}
+.satir .ad{flex:1;min-width:0}
+.satir .ad small{display:block;color:var(--muted);font-size:.8125rem}
+.rozet{flex:none;font-size:.8125rem;font-weight:700;border-radius:var(--radius-s);padding:2px 8px;white-space:nowrap}
+.r-kabul{background:var(--kabul-bg);color:var(--kabul)}
+.r-deg{background:var(--deg-bg);color:var(--deg)}
+.r-yok{background:var(--yok-bg);color:var(--yok)}
+.r-sartli{background:var(--sartli-bg);color:var(--sartli)}
+.bos{padding:24px 14px;color:var(--muted)}
+
+.detay{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-m);padding:20px;position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto}
+@media (max-width:860px){.detay{position:static;max-height:none}}
+.detay h2{margin:0;font-size:1.5rem;line-height:1.25}
+.detay .en{color:var(--muted);margin:2px 0 14px}
+.etiketler{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.etiket{font-size:.8125rem;border:1px solid var(--line);border-radius:var(--radius-s);padding:1px 8px;color:var(--muted)}
+.etiket.uyari{border-color:var(--sartli);color:var(--sartli)}
+
+.kural{border-left:4px solid var(--line);padding:6px 0 6px 12px;margin:10px 0}
+.kural b{display:block;font-size:.875rem}
+.kural.k-deg{border-color:var(--deg)} .kural.k-deg b{color:var(--deg)}
+.kural.k-kabul{border-color:var(--kabul)} .kural.k-kabul b{color:var(--kabul)}
+.kural.k-not b{color:var(--muted)}
+.kural p{margin:2px 0 0;max-width:72ch}
+
+.hesap{margin-top:18px;border:1px solid var(--line);border-radius:var(--radius-m);padding:16px;background:var(--bg)}
+.hesap h3,.blok h3{margin:0 0 10px;font-size:1.0625rem}
+.alanlar{display:flex;gap:12px;flex-wrap:wrap}
+.alan{display:flex;flex-direction:column;gap:4px;font-size:.875rem;font-weight:600;min-width:180px;flex:1}
+.alan input,.alan select,.alan textarea{font-weight:400;font-size:1rem;padding:8px 10px;border:1px solid var(--line);border-radius:var(--radius-s);background:var(--surface);min-height:42px}
+.secenekler{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.secenek{border:1px solid var(--line);background:var(--surface);border-radius:var(--radius-s);padding:6px 12px;cursor:pointer}
+.secenek[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink);font-weight:700}
+.kisayol{border:0;background:none;color:var(--focus);cursor:pointer;padding:0;font-size:.8125rem;text-align:left;text-decoration:underline}
+
+.sonuc{margin-top:14px;border-radius:var(--radius-m);padding:14px 16px;background:var(--surface);border:2px solid var(--line)}
+.sonuc.s-deg{border-color:var(--deg);background:var(--deg-bg)}
+.sonuc.s-sartli{border-color:var(--sartli);background:var(--sartli-bg)}
+.sonuc.s-kabul{border-color:var(--kabul);background:var(--kabul-bg)}
+.sonuc .hukum{font-size:1.375rem;font-weight:750;margin:0}
+.s-deg .hukum{color:var(--deg)} .s-sartli .hukum{color:var(--sartli)} .s-kabul .hukum{color:var(--kabul)}
+.sonuc p{margin:4px 0 0}
+.sonuc .gun{font-size:1rem;font-weight:600}
+
+/* Pist: gün şeridi */
+.pist{margin-top:14px}
+.pist-serit{position:relative;display:flex;height:22px;border-radius:4px;overflow:hidden;border:1px solid var(--line)}
+.pist-serit span{flex:1}
+.p-deg{background:var(--deg)} .p-sartli{background:#E0A526} .p-kabul{background:var(--kabul)}
+.pist-isaret{position:absolute;top:-6px;bottom:-6px;width:3px;background:var(--ink);box-shadow:0 0 0 2px var(--surface)}
+.pist-eksen{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);margin-top:4px}
+.pist-lejant{display:flex;gap:14px;flex-wrap:wrap;font-size:.75rem;color:var(--muted);margin-top:6px}
+.pist-lejant i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+
+.ek-kaynak{margin-top:16px}
+.ek-kaynak h3{font-size:1rem;margin:0 0 6px}
+.ek-kaynak li{margin:4px 0;max-width:72ch}
+.celiski{color:var(--sartli);font-weight:700}
+.thy-not{margin-top:14px;padding:10px 12px;border-radius:var(--radius-s);background:var(--yok-bg);max-width:78ch}
+.dipnot{margin-top:18px;font-size:.8125rem;color:var(--muted);max-width:78ch}
+
+.blok{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-m);padding:20px;margin-bottom:16px}
+.blok ul{padding-left:20px;margin:6px 0} .blok li{margin:4px 0;max-width:78ch}
+.iki{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:860px){.iki{grid-template-columns:1fr}}
+.cikti{white-space:pre-wrap;font-family:inherit;background:var(--bg);border:1px solid var(--line);border-radius:var(--radius-s);padding:14px;min-height:220px;margin:0}
+.btnlar{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.btn{border:1px solid var(--ink);background:var(--ink);color:var(--bg);border-radius:var(--radius-s);padding:8px 14px;cursor:pointer;font-weight:600}
+.btn.ikincil{background:transparent;color:var(--ink)}
+.uyarilar{margin:12px 0 0;padding:0;list-style:none}
+.uyarilar li{padding:6px 10px;border-radius:var(--radius-s);margin:4px 0}
+.uyarilar .u-deg{background:var(--deg-bg);color:var(--deg)}
+.uyarilar .u-kabul{background:var(--kabul-bg);color:var(--kabul)}
+.gebe-sonuc{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:14px}
+.gizli{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.hata{padding:24px;background:var(--deg-bg);color:var(--deg);border-radius:var(--radius-m);margin:24px 16px}
+footer{font-size:.8125rem;color:var(--muted);padding:0 0 32px}
+
+@media (prefers-reduced-motion: no-preference){.sonuc{transition:background-color .15s}}
+@media print{
+  header.ust,nav.sekmeler,.tabela,.cipler,.liste,.btnlar,.tema-btn,footer{display:none!important}
+  .duzen{display:block} .detay{position:static;max-height:none;border:0}
+  body{background:#fff;color:#000}
+  body.rapor-yazdir main > .panel:not(#p-rapor){display:none!important}
+  body.rapor-yazdir #p-rapor .rapor-form,body.rapor-yazdir #p-rapor .uyarilar{display:none!important}
+  body.rapor-yazdir .cikti{border:0;background:#fff}
+}
+</style>
+</head>
+<body>
+<header class="ust">
+  <div class="kap">
+    <h1>Uçuşa elverişlilik</h1>
+    <div class="kaynak" id="kaynak-satiri"></div>
+    <button class="tema-btn" id="tema-btn" type="button">Koyu tema</button>
+  </div>
+</header>
+<nav class="sekmeler" aria-label="Bölümler">
+  <div class="kap" role="tablist">
+    <button class="sekme" role="tab" aria-selected="true" aria-controls="p-durum" id="t-durum" type="button">Durumlar</button>
+    <button class="sekme" role="tab" aria-selected="false" aria-controls="p-gebe" id="t-gebe" type="button">Gebelik hesabı</button>
+    <button class="sekme" role="tab" aria-selected="false" aria-controls="p-rapor" id="t-rapor" type="button">Rapor şablonu</button>
+    <button class="sekme" role="tab" aria-selected="false" aria-controls="p-thy" id="t-thy" type="button">THY kuralları</button>
+    <button class="sekme" role="tab" aria-selected="false" aria-controls="p-genel" id="t-genel" type="button">Genel</button>
+  </div>
+</nav>
+
+<main class="kap" id="ana">
+  <section class="panel" id="p-durum" role="tabpanel" aria-labelledby="t-durum">
+    <div class="tabela">
+      <svg width="30" height="30" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>
+      <label for="ara" class="gizli">Durum ara</label>
+      <input id="ara" type="search" autocomplete="off" spellcheck="false" placeholder="Durum ara: bypass, katarakt, gebelik, safra kesesi…">
+      <button class="temizle" id="ara-temizle" type="button" aria-label="Aramayı temizle" hidden>×</button>
+      <kbd aria-hidden="true">/</kbd>
+    </div>
+    <div class="cipler" id="cipler" role="group" aria-label="Kategoriler"></div>
+    <div class="duzen">
+      <div class="liste" id="liste" aria-label="Durumlar"></div>
+      <article class="detay" id="detay" aria-live="polite"></article>
+    </div>
+  </section>
+
+  <section class="panel" id="p-gebe" role="tabpanel" aria-labelledby="t-gebe" hidden>
+    <div class="blok">
+      <h3>Uçuş günündeki gebelik haftası</h3>
+      <div class="secenekler" role="group" aria-label="Gebelik türü">
+        <button class="secenek" type="button" data-tur="tekil" aria-pressed="true">Tekil</button>
+        <button class="secenek" type="button" data-tur="cogul" aria-pressed="false">Çoğul</button>
+      </div>
+      <div class="secenekler" role="group" aria-label="Referans tarih">
+        <button class="secenek" type="button" data-ref="tdt" aria-pressed="true">Tahmini doğum tarihi</button>
+        <button class="secenek" type="button" data-ref="sat" aria-pressed="false">Son adet tarihi</button>
+      </div>
+      <div class="alanlar">
+        <label class="alan"><span id="g-ref-etiket">Tahmini doğum tarihi</span><input type="date" id="g-ref"></label>
+        <label class="alan">Gidiş uçuşu<input type="date" id="g-gidis"></label>
+        <label class="alan">Dönüş uçuşu (isteğe bağlı)<input type="date" id="g-donus"></label>
+      </div>
+      <div id="g-sonuc" aria-live="polite"></div>
+      <p class="dipnot" id="g-yorum"></p>
+    </div>
+  </section>
+
+  <section class="panel" id="p-rapor" role="tabpanel" aria-labelledby="t-rapor" hidden>
+    <div class="blok rapor-form">
+      <h3>THY'nin istediği alanlarla uçuşa elverişlilik raporu</h3>
+      <p class="dipnot" style="margin-top:0">Girilen bilgiler hiçbir yere kaydedilmez veya gönderilmez; sayfa kapanınca silinir.</p>
+      <div class="secenekler" role="group" aria-label="Rapor türü">
+        <button class="secenek" type="button" data-rtur="hasta" aria-pressed="true">Hasta yolcu</button>
+        <button class="secenek" type="button" data-rtur="gebe" aria-pressed="false">Gebe yolcu</button>
+      </div>
+      <div class="alanlar">
+        <label class="alan">Yolcunun adı soyadı *<input id="r-ad"></label>
+        <label class="alan">Doğum tarihi<input type="date" id="r-dogum"></label>
+        <label class="alan">Pasaport veya kimlik no<input id="r-kimlik"></label>
+      </div>
+      <div class="alanlar r-hasta">
+        <label class="alan">Tanı *<input id="r-tani"></label>
+        <label class="alan">İşlem veya olay<input id="r-islem"></label>
+        <label class="alan">İşlem veya olay tarihi<input type="date" id="r-islem-tarih"></label>
+      </div>
+      <div class="alanlar r-gebe" hidden>
+        <label class="alan">Gebelik<select id="r-gebe-tur"><option value="tekil">Tekil</option><option value="cogul">Çoğul</option></select></label>
+        <label class="alan">Tahmini doğum tarihi *<input type="date" id="r-tdt"></label>
+      </div>
+      <div class="alanlar">
+        <label class="alan">Uçuş tarihi *<input type="date" id="r-ucus"></label>
+        <label class="alan">Uçuş numarası<input id="r-ucusno" placeholder="TK…"></label>
+        <label class="alan">Güzergâh<input id="r-guzergah" placeholder="IST – FRA"></label>
+      </div>
+      <div class="alanlar">
+        <label class="alan">Özel ihtiyaçlar<input id="r-ihtiyac" placeholder="Örn. oksijen 2 L/dk, tekerlekli sandalye, refakatçi"></label>
+      </div>
+      <div class="alanlar">
+        <label class="alan">Hekimin adı soyadı *<input id="r-hekim"></label>
+        <label class="alan">Unvanı *<input id="r-unvan" placeholder="Dr., Uzm. Dr."></label>
+        <label class="alan">Diploma veya lisans no *<input id="r-lisans"></label>
+      </div>
+      <div class="alanlar">
+        <label class="alan">Kurum<input id="r-kurum"></label>
+        <label class="alan">Muayene ve düzenleme tarihi *<input type="date" id="r-tarih"></label>
+      </div>
+      <ul class="uyarilar" id="r-uyarilar" aria-live="polite"></ul>
+    </div>
+    <div class="iki">
+      <div class="blok">
+        <h3>Türkçe</h3>
+        <pre class="cikti" id="r-tr"></pre>
+        <div class="btnlar"><button class="btn" type="button" data-kopya="r-tr">Türkçeyi kopyala</button></div>
+      </div>
+      <div class="blok">
+        <h3>English</h3>
+        <pre class="cikti" id="r-en"></pre>
+        <div class="btnlar"><button class="btn" type="button" data-kopya="r-en">Copy English</button></div>
+      </div>
+    </div>
+    <div class="btnlar"><button class="btn ikincil" type="button" id="r-yazdir">Raporu yazdır</button></div>
+  </section>
+
+  <section class="panel" id="p-thy" role="tabpanel" aria-labelledby="t-thy" hidden></section>
+  <section class="panel" id="p-genel" role="tabpanel" aria-labelledby="t-genel" hidden></section>
+</main>
+<footer class="kap" id="alt"></footer>
+
+<script src="veri.js"></script>
+<script>
+(function(){
+"use strict";
+var V = window.UCUS_VERI;
+if(!V){
+  document.getElementById("ana").innerHTML = '<div class="hata"><b>veri.js yüklenemedi.</b> veri.js dosyası index.html ile aynı klasörde olmalı.</div>';
+  return;
+}
+
+/* ---------- yardımcılar ---------- */
+function $(id){return document.getElementById(id);}
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+var TR_HARF = {"ç":"c","ğ":"g","ı":"i","ö":"o","ş":"s","ü":"u","â":"a","î":"i","û":"u"};
+function normal(s){
+  return String(s||"").toLocaleLowerCase("tr").replace(/[çğıöşüâîû]/g,function(c){return TR_HARF[c];})
+    .normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g," ").trim();
+}
+var AYLAR = ["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
+var GUNLER = ["Pazar","Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi"];
+function trTarih(d){return d.getDate()+" "+AYLAR[d.getMonth()]+" "+d.getFullYear()+", "+GUNLER[d.getDay()];}
+function trTarihKisa(d){return pad(d.getDate())+"."+pad(d.getMonth()+1)+"."+d.getFullYear();}
+function trSaat(d){return trTarih(d)+" "+pad(d.getHours())+":"+pad(d.getMinutes());}
+function pad(n){return (n<10?"0":"")+n;}
+function tarihOku(v){ if(!v) return null; var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(v); if(!m) return null; return new Date(+m[1],+m[2]-1,+m[3]); }
+function zamanOku(v){ if(!v) return null; var m=/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(v); if(!m) return null; return new Date(+m[1],+m[2]-1,+m[3],+m[4],+m[5]); }
+function gunFarki(a,b){ return Math.round((Date.UTC(b.getFullYear(),b.getMonth(),b.getDate())-Date.UTC(a.getFullYear(),a.getMonth(),a.getDate()))/86400000); }
+function gunEkle(d,n){ return new Date(d.getFullYear(),d.getMonth(),d.getDate()+n); }
+function inputTarih(d){ return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate()); }
+function inputZaman(d){ return inputTarih(d)+"T"+pad(d.getHours())+":"+pad(d.getMinutes()); }
+function bugun(){ var n=new Date(); return new Date(n.getFullYear(),n.getMonth(),n.getDate()); }
+function simdi(){ var n=new Date(); n.setSeconds(0,0); return n; }
+
+/* ---------- kural motoru ---------- */
+function asamaBul(asamalar, gun, saat){
+  for(var i=0;i<asamalar.length;i++){
+    var k = asamalar[i].kosul || {};
+    if(k.gun_lte!=null && !(gun<=k.gun_lte)) continue;
+    if(k.gun_gte!=null && !(gun>=k.gun_gte)) continue;
+    if(k.saat_lt!=null && !(saat<k.saat_lt)) continue;
+    if(k.saat_gte!=null && !(saat>=k.saat_gte)) continue;
+    return asamalar[i];
+  }
+  return null;
+}
+/* IATA sayımı: olay günü 1. gündür. */
+function iataGun(olay, ucus){ return gunFarki(olay, ucus) + 1; }
+
+function enErken(asamalar, saatli, olay, hedefDurum){
+  if(!saatli){
+    for(var g=1; g<=730; g++){ var a=asamaBul(asamalar,g,Infinity); if(a && a.durum===hedefDurum) return {gun:g, tarih:gunEkle(olay,g-1)}; }
+    return null;
+  }
+  for(var h=0; h<=24*730; h++){
+    var t = new Date(olay.getTime()+h*3600000);
+    var a2 = asamaBul(asamalar, iataGun(olay,t), h);
+    if(a2 && a2.durum===hedefDurum) return {saat:h, gun:iataGun(olay,t), tarih:t};
+  }
+  return null;
+}
+
+/* Liste rozeti: değerlendirme dışındaki ilk aşamanın eşiği; koşulluysa sarı. */
+function esikEtiketi(asamalar){
+  var hedef=-1, dur=null;
+  for(var i=0;i<asamalar.length;i++){ if(asamalar[i].durum!=="deg"){hedef=i;dur=asamalar[i].durum;break;} }
+  if(hedef<0) return null;
+  for(var j=hedef-1;j>=0;j--){ var k=asamalar[j].kosul||{};
+    if(k.gun_lte!=null) return {t:"gun", v:k.gun_lte+1, durum:dur};
+    if(k.saat_lt!=null) return {t:"saat", v:k.saat_lt, durum:dur}; }
+  return {t:"hemen", v:0, durum:dur};
+}
+function rozet(d){
+  if(d.kaynak_disi && !d.hesap) return {sinif:"r-yok", metin:"Süre yok"};
+  if(!d.hesap){
+    if(d.gebelik_hesabi) return {sinif:"r-kabul", metin:d.id==="gebelik_cogul"?"31+6 hf'ya kadar":"35+6 hf'ya kadar"};
+    return {sinif:"r-yok", metin:"Klinik ölçüt"};
+  }
+  var liste = d.hesap.secenekler ? d.hesap.secenekler.map(function(s){return esikEtiketi(s.asamalar);}) : [esikEtiketi(d.hesap.asamalar)];
+  var gecerli = liste.filter(Boolean);
+  if(!gecerli.length) return {sinif:"r-deg", metin:"Ertele"};
+  var sinif = gecerli.every(function(e){return e.durum==="sartli";}) ? "r-sartli" : "r-kabul";
+  if(gecerli.every(function(e){return e.t==="gun";})) return {sinif:sinif, metin:gecerli.map(function(e){return e.v;}).join(" / ")+". gün"};
+  if(gecerli.every(function(e){return e.t==="saat";})) return {sinif:sinif, metin:gecerli.map(function(e){return e.v;}).join(" / ")+" saat"};
+  return {sinif:sinif, metin:gecerli.map(function(e){return e.t==="gun"?e.v+". gün":e.t==="saat"?e.v+" saat":"hemen";}).join(" / ")};
+}
+
+/* ---------- durum listesi ---------- */
+var KATLAR = {}; V.kategoriler.forEach(function(k){KATLAR[k.id]=k.ad;});
+var DURUMLAR = V.durumlar_listesi.map(function(d){
+  d._ara = normal([d.ad,d.en,(d.esanlam||[]).join(" "),KATLAR[d.kategori]].join(" "));
+  d._ad = normal(d.ad);
+  return d;
+});
+var durum = {kat:null, sorgu:"", secili:null, secenek:{}};
+
+function cipleriCiz(){
+  var h = '<button class="cip" type="button" data-kat="" aria-pressed="'+(durum.kat===null)+'">Tümü</button>';
+  V.kategoriler.forEach(function(k){
+    var say = DURUMLAR.filter(function(d){return d.kategori===k.id;}).length;
+    h += '<button class="cip" type="button" data-kat="'+k.id+'" aria-pressed="'+(durum.kat===k.id)+'">'+esc(k.ad)+' <span style="opacity:.6">'+say+'</span></button>';
+  });
+  $("cipler").innerHTML = h;
+}
+function sonuclar(){
+  var q = normal(durum.sorgu), parcalar = q ? q.split(" ") : [];
+  var r = DURUMLAR.filter(function(d){
+    if(durum.kat && d.kategori!==durum.kat) return false;
+    for(var i=0;i<parcalar.length;i++){ if(d._ara.indexOf(parcalar[i])<0) return false; }
+    return true;
+  });
+  if(q){
+    r = r.map(function(d){ var p=0; if(d._ad.indexOf(q)===0)p=3; else if((" "+d._ad).indexOf(" "+parcalar[0])>=0)p=2; else if(d._ad.indexOf(parcalar[0])>=0)p=1; return {d:d,p:p}; })
+         .sort(function(a,b){return b.p-a.p;}).map(function(x){return x.d;});
+  }
+  return r;
+}
+function listeyiCiz(){
+  var r = sonuclar(), h = "", q = normal(durum.sorgu);
+  h += '<div class="liste-ust">'+r.length+' durum'+(q?' bulundu':'')+'</div>';
+  if(!r.length){
+    h += '<div class="bos">Eşleşen durum yok. Başka bir kelime deneyin (örneğin "ameliyat" yerine "cerrahi") veya kategori filtresini kaldırın.</div>';
+  }
+  var sonKat=null;
+  r.forEach(function(d){
+    if(!q && d.kategori!==sonKat){ sonKat=d.kategori; h+='<div class="kat-basligi">'+esc(KATLAR[d.kategori])+'</div>'; }
+    var rz = rozet(d);
+    h += '<button class="satir" type="button" data-id="'+d.id+'" aria-current="'+(durum.secili===d.id)+'">'
+      + '<span class="ad">'+esc(d.ad)+(q?'<small>'+esc(KATLAR[d.kategori])+'</small>':'')+'</span>'
+      + '<span class="rozet '+rz.sinif+'">'+esc(rz.metin)+'</span></button>';
+  });
+  $("liste").innerHTML = h;
+}
+
+/* ---------- detay ---------- */
+function kuralBlok(sinif, baslik, metin){ return metin ? '<div class="kural '+sinif+'"><b>'+baslik+'</b><p>'+esc(metin)+'</p></div>' : ""; }
+
+function detayCiz(){
+  var d = DURUMLAR.filter(function(x){return x.id===durum.secili;})[0];
+  var el = $("detay");
+  if(!d){
+    el.innerHTML = '<h2>Bir durum seçin</h2><p class="en">Soldaki listeden bir durum seçin veya yukarıya yazın. Kırmızı rozet ertelemeyi, yeşil rozet IATA sayımına göre kabulün başladığı günü ya da saati gösterir.</p><p class="dipnot">'+esc(V.gun_sayimi)+'</p>';
+    return;
+  }
+  var h = '<h2>'+esc(d.ad)+'</h2><p class="en">'+esc(d.en)+'</p><div class="etiketler"><span class="etiket">'+esc(KATLAR[d.kategori])+'</span>';
+  if(d.iata && d.iata.sayfa) h += '<span class="etiket">IATA s. '+d.iata.sayfa+'</span>';
+  if(d.kaynak_disi) h += '<span class="etiket uyari">'+esc(d.kaynak_disi)+'</span>';
+  if((d.ek||[]).some(function(e){return e.celiski;})) h += '<span class="etiket uyari">Kaynaklar arasında çelişki var</span>';
+  h += '</div>';
+  if(d.iata){
+    h += kuralBlok("k-deg","Değerlendirme gerekli (havacılık hekimliği deneyimli doktor)", d.iata.deg);
+    h += kuralBlok("k-kabul","Kabul", d.iata.kabul);
+    h += kuralBlok("k-not","Not", d.iata.not);
+  }
+  if(d.diger_kaynak) h += kuralBlok("k-not", d.diger_kaynak.kaynak, d.diger_kaynak.metin);
+  if(d.hesap) h += hesapHTML(d);
+  if(d.gebelik_hesabi) h += '<div class="hesap"><h3>Gebelik haftası hesabı</h3><p style="margin:0">Uçuş günündeki gebelik haftasını ve IATA ile THY sınırlarını hesaplamak için <button class="kisayol" type="button" data-git="gebe">Gebelik hesabı</button> bölümünü açın.</p></div>';
+  if(d.ek && d.ek.length){
+    h += '<div class="ek-kaynak"><h3>Diğer kaynaklar</h3><ul>';
+    d.ek.forEach(function(e){ h += '<li>'+(e.celiski?'<span class="celiski">Çelişki. </span>':'')+'<b>'+esc(e.kaynak)+':</b> '+esc(e.metin)+'</li>'; });
+    h += '</ul></div>';
+  }
+  if(d.thy) h += '<div class="thy-not"><b>THY:</b> '+esc(d.thy.replace(/^THY:\s*/,""))+'</div>';
+  h += '<p class="dipnot">'+esc(V.gun_sayimi)+' '+esc(V.uyari)+'</p>';
+  el.innerHTML = h;
+  if(d.hesap) hesapBagla(d);
+}
+
+function aktifAsamalar(d){
+  if(!d.hesap.secenekler) return d.hesap.asamalar;
+  var i = durum.secenek[d.id]||0; return d.hesap.secenekler[i].asamalar;
+}
+function hesapHTML(d){
+  var s = d.hesap, h = '<div class="hesap"><h3>Uçuş günü hesabı'+(s.kaynak?' ('+esc(s.kaynak)+')':' (IATA sayımı)')+'</h3>';
+  if(s.secenekler){
+    h += '<div class="secenekler" role="group" aria-label="Seçenek">';
+    s.secenekler.forEach(function(o,i){ h += '<button class="secenek" type="button" data-sec="'+i+'" aria-pressed="'+((durum.secenek[d.id]||0)===i)+'">'+esc(o.etiket)+'</button>'; });
+    h += '</div>';
+  }
+  var tip = s.saatli ? "datetime-local" : "date";
+  h += '<div class="alanlar">'
+    + '<label class="alan">'+esc(s.olay)+'<input type="'+tip+'" id="h-olay"></label>'
+    + '<label class="alan">Uçuş '+(s.saatli?'zamanı':'tarihi')+'<input type="'+tip+'" id="h-ucus"><button class="kisayol" type="button" id="h-simdi">'+(s.saatli?'Şu an':'Bugün')+'</button></label>'
+    + '</div><div id="h-sonuc"></div></div>';
+  return h;
+}
+function hesapBagla(d){
+  var s = d.hesap, olayEl=$("h-olay"), ucusEl=$("h-ucus");
+  var oncekiOlay = durum.sonOlay && durum.sonOlay.tip===(s.saatli?"z":"t") ? durum.sonOlay.v : "";
+  olayEl.value = oncekiOlay;
+  ucusEl.value = s.saatli ? inputZaman(simdi()) : inputTarih(bugun());
+  function guncelle(){ durum.sonOlay = {tip:s.saatli?"z":"t", v:olayEl.value}; hesapla(d); }
+  olayEl.addEventListener("input", guncelle);
+  ucusEl.addEventListener("input", guncelle);
+  $("h-simdi").addEventListener("click", function(){ ucusEl.value = s.saatli ? inputZaman(simdi()) : inputTarih(bugun()); hesapla(d); });
+  document.querySelectorAll("#detay [data-sec]").forEach(function(b){
+    b.addEventListener("click", function(){ durum.secenek[d.id]=+b.getAttribute("data-sec"); detayCiz(); listeyiCiz(); });
+  });
+  hesapla(d);
+}
+function hesapla(d){
+  var s=d.hesap, out=$("h-sonuc"), asamalar=aktifAsamalar(d);
+  var olay = s.saatli ? zamanOku($("h-olay").value) : tarihOku($("h-olay").value);
+  var ucus = s.saatli ? zamanOku($("h-ucus").value) : tarihOku($("h-ucus").value);
+  var h = "";
+  var ilkKabul = null, ilkSartli = null;
+  if(olay){ ilkKabul = enErken(asamalar, s.saatli, olay, "kabul"); ilkSartli = enErken(asamalar, s.saatli, olay, "sartli"); }
+  if(!olay){
+    h = '<div class="sonuc"><p class="gun">'+esc(s.olay)+' girin; sonuç ve en erken uygun '+(s.saatli?'zaman':'tarih')+' burada görünür.</p></div>';
+  } else if(!ucus){
+    h = '<div class="sonuc"><p class="gun">Uçuş '+(s.saatli?'zamanını':'tarihini')+' girin.</p></div>';
+  } else if(ucus < olay){
+    h = '<div class="sonuc s-deg"><p class="hukum">Uçuş, olaydan önce</p><p>Uçuş '+(s.saatli?'zamanı':'tarihi')+', '+esc(s.olay.toLocaleLowerCase("tr"))+' öncesine düşüyor. Tarihleri kontrol edin.</p></div>';
+  } else {
+    var gun = iataGun(olay, ucus), saat = (ucus-olay)/3600000;
+    var a = asamaBul(asamalar, gun, saat);
+    var ad = V.durumlar[a.durum];
+    h += '<div class="sonuc s-'+a.durum+'"><p class="hukum">'+esc(ad)+'</p>';
+    h += '<p class="gun">IATA sayımıyla '+gun+'. gün';
+    if(s.saatli){ var tamSaat=Math.floor(saat); h += ' ('+Math.floor(tamSaat/24)+' gün '+(tamSaat%24)+' saat geçti)'; }
+    else { h += ' ('+(gun-1)+' gün geçti)'; }
+    h += '</p>';
+    if(a.metin) h += '<p>'+esc(a.metin)+'</p>';
+    h += '</div>';
+  }
+  if(olay){
+    h += '<div class="sonuc" style="margin-top:10px">';
+    if(ilkKabul){ h += '<p><b>En erken kabul:</b> '+(s.saatli?trSaat(ilkKabul.tarih):trTarih(ilkKabul.tarih))+' ('+ilkKabul.gun+'. gün'+(s.saatli?', '+ilkKabul.saat+'. saat':'')+')</p>'; }
+    else { h += '<p><b>En erken kabul:</b> bu seçenekte gün sınırı yok; durum stabil olana kadar ertelenir.</p>'; }
+    if(ilkSartli && (!ilkKabul || ilkSartli.tarih < ilkKabul.tarih)){ h += '<p><b>En erken koşullu uçuş:</b> '+(s.saatli?trSaat(ilkSartli.tarih):trTarih(ilkSartli.tarih))+' ('+ilkSartli.gun+'. gün)</p>'; }
+    h += '</div>';
+    h += pistHTML(asamalar, s.saatli, olay, ucus, ilkKabul);
+  }
+  out.innerHTML = h;
+}
+function pistHTML(asamalar, saatli, olay, ucus, ilkKabul){
+  var adim, adet, birim;
+  var hedefSaat = ilkKabul ? (saatli ? ilkKabul.saat : (ilkKabul.gun-1)*24) : 24*14;
+  var ucusSaat = ucus && ucus>=olay ? (ucus-olay)/3600000 : 0;
+  var ufuk = Math.max(hedefSaat*1.4, hedefSaat+24, ucusSaat+ (saatli?6:24));
+  if(!saatli || ufuk>24*6){ birim="gun"; adet=Math.min(Math.ceil(ufuk/24)+1, 90); adim=24; }
+  else { birim="saat"; adim = ufuk>72 ? 3 : 1; adet=Math.ceil(ufuk/adim); }
+  var h='<div class="pist" aria-hidden="true"><div class="pist-serit">';
+  for(var i=0;i<adet;i++){
+    var gun, saat;
+    if(birim==="gun"){ gun=i+1; saat=saatli ? (i*24+23.99) : Infinity; }
+    else { saat=i*adim+adim*0.5; gun=iataGun(olay,new Date(olay.getTime()+saat*3600000)); }
+    var a = asamaBul(asamalar,gun,saat);
+    h += '<span class="p-'+(a?a.durum:"deg")+'" title="'+(birim==="gun"?gun+". gün":Math.floor(saat)+". saat")+'"></span>';
+  }
+  if(ucus && ucus>=olay){
+    var konum = birim==="gun" ? ((iataGun(olay,ucus)-0.5)/adet) : (ucusSaat/(adet*adim));
+    if(konum<=1) h += '<span class="pist-isaret" style="left:calc('+(Math.min(konum,1)*100).toFixed(2)+'% - 1px)"></span>';
+  }
+  h += '</div><div class="pist-eksen"><span>'+(birim==="gun"?"1. gün (olay)":"Olay")+'</span><span>'+(birim==="gun"?adet+". gün":Math.round(adet*adim)+". saat")+'</span></div>';
+  h += '<div class="pist-lejant"><span><i class="p-deg"></i>Değerlendirme</span><span><i class="p-sartli"></i>Koşullu</span><span><i class="p-kabul"></i>Kabul</span><span><i style="background:var(--ink)"></i>Uçuş</span></div></div>';
+  return h;
+}
+
+/* ---------- gebelik ---------- */
+var gebe = {tur:"tekil", ref:"tdt"};
+function gebelikGunu(tdt, tarih){ return 280 - gunFarki(tarih, tdt); }
+function haftaMetni(g){ return Math.floor(g/7)+" hafta "+(g%7)+" gün ("+Math.floor(g/7)+"+"+(g%7)+")"; }
+function gebeDegerlendir(g, tur){
+  var G = V.gebelik, iataSon = tur==="tekil" ? G.iata.tekil_son_gun_hafta*7+G.iata.tekil_son_gun_gun : G.iata.cogul_son_gun_hafta*7+G.iata.cogul_son_gun_gun;
+  var thyYok = (tur==="tekil"?G.thy.tekil_kabul_yok_hafta:G.thy.cogul_kabul_yok_hafta)*7, thyRapor = G.thy.rapor_baslangic_hafta*7;
+  var iata = g<=iataSon ? {d:"kabul", m:"IATA: izin gerekmez."} : {d:"deg", m:"IATA: değerlendirme gerekli (sınır "+Math.floor(iataSon/7)+"+"+(iataSon%7)+")."};
+  var thy = g>=thyYok ? {d:"deg", m:"THY: kabul edilmez (raporla da)."} : g>=thyRapor ? {d:"sartli", m:"THY: en fazla 10 günlük rapor gerekli."} : {d:"kabul", m:"THY: rapor gerekmez."};
+  return {iata:iata, thy:thy};
+}
+function gebeHesapla(){
+  var ref = tarihOku($("g-ref").value), gid = tarihOku($("g-gidis").value), don = tarihOku($("g-donus").value), out=$("g-sonuc");
+  if(!ref){ out.innerHTML='<div class="sonuc"><p class="gun">'+(gebe.ref==="tdt"?"Tahmini doğum tarihini":"Son adet tarihini")+' girin.</p></div>'; return; }
+  var tdt = gebe.ref==="tdt" ? ref : gunEkle(ref,280);
+  var G = V.gebelik, tur=gebe.tur;
+  var iataSonG = tur==="tekil" ? G.iata.tekil_son_gun_hafta*7+G.iata.tekil_son_gun_gun : G.iata.cogul_son_gun_hafta*7+G.iata.cogul_son_gun_gun;
+  var h = '<p style="margin:12px 0 0">Tahmini doğum tarihi: <b>'+trTarih(tdt)+'</b>. Bugün: <b>'+haftaMetni(gebelikGunu(tdt,bugun()))+'</b>.</p><div class="gebe-sonuc">';
+  [["Gidiş",gid],["Dönüş",don]].forEach(function(x){
+    if(!x[1]) return;
+    var g = gebelikGunu(tdt,x[1]);
+    if(g<0){ h += '<div class="sonuc s-deg"><p class="hukum">'+x[0]+'</p><p>Uçuş tarihi gebelik başlangıcından önce görünüyor; tarihleri kontrol edin.</p></div>'; return; }
+    var r = gebeDegerlendir(g,tur), kotu = (r.iata.d==="deg"||r.thy.d==="deg")?"deg":(r.thy.d==="sartli"?"sartli":"kabul");
+    h += '<div class="sonuc s-'+kotu+'"><p class="hukum">'+x[0]+': '+haftaMetni(g)+'</p><p>'+trTarih(x[1])+'</p><p>'+esc(r.iata.m)+'</p><p>'+esc(r.thy.m)+'</p>';
+    if(r.thy.d==="sartli") h += '<p>Rapor en erken '+trTarih(gunEkle(x[1],-V.thy.rapor_gecerlilik_gun))+' tarihinde düzenlenebilir.</p>';
+    h += '</div>';
+  });
+  h += '</div>';
+  var sonGun = gunEkle(tdt, iataSonG-280), raporBas = gunEkle(tdt, G.thy.rapor_baslangic_hafta*7-280);
+  h += '<div class="sonuc" style="margin-top:12px"><p><b>IATA ve THY için son uygun uçuş günü:</b> '+trTarih(sonGun)+' ('+Math.floor(iataSonG/7)+'+'+(iataSonG%7)+').</p><p><b>THY raporunun gerektiği ilk gün:</b> '+trTarih(raporBas)+' ('+G.thy.rapor_baslangic_hafta+'+0).</p>';
+  if(gid && don){
+    var dG=gebelikGunu(tdt,don);
+    if(gunFarki(gid,don) > V.thy.rapor_gecerlilik_gun && dG>=G.thy.rapor_baslangic_hafta*7) h += '<p><b>Dikkat:</b> Dönüş, gidişten '+gunFarki(gid,don)+' gün sonra; gidiş için alınan rapor dönüşü kapsamaz. Dönüş için yeni rapor gerekir.</p>';
+  }
+  h += '</div>';
+  out.innerHTML = h;
+}
+function gebeBagla(){
+  $("g-yorum").textContent = V.gebelik.iata.metin+" "+V.gebelik.thy.metin+" "+V.gebelik.yorum;
+  $("g-gidis").value = inputTarih(bugun());
+  document.querySelectorAll("#p-gebe [data-tur]").forEach(function(b){ b.addEventListener("click",function(){ gebe.tur=b.getAttribute("data-tur"); document.querySelectorAll("#p-gebe [data-tur]").forEach(function(x){x.setAttribute("aria-pressed",String(x===b));}); gebeHesapla(); }); });
+  document.querySelectorAll("#p-gebe [data-ref]").forEach(function(b){ b.addEventListener("click",function(){ gebe.ref=b.getAttribute("data-ref"); document.querySelectorAll("#p-gebe [data-ref]").forEach(function(x){x.setAttribute("aria-pressed",String(x===b));}); $("g-ref-etiket").textContent = gebe.ref==="tdt"?"Tahmini doğum tarihi":"Son adet tarihi"; gebeHesapla(); }); });
+  ["g-ref","g-gidis","g-donus"].forEach(function(id){ $(id).addEventListener("input",gebeHesapla); });
+  gebeHesapla();
+}
+
+/* ---------- rapor ---------- */
+var rapor = {tur:"hasta"};
+function rv(id){ return $(id).value.trim(); }
+function raporCiz(){
+  var ucus=tarihOku(rv("r-ucus")), tarih=tarihOku(rv("r-tarih")), dogum=tarihOku(rv("r-dogum")), islemT=tarihOku(rv("r-islem-tarih")), tdt=tarihOku(rv("r-tdt"));
+  var ad=rv("r-ad")||"[Ad Soyad]", kimlik=rv("r-kimlik"), hekim=rv("r-hekim")||"[Hekim adı soyadı]", unvan=rv("r-unvan")||"[Unvan]", lisans=rv("r-lisans")||"[Diploma/lisans no]", kurum=rv("r-kurum");
+  var ucusNo=rv("r-ucusno"), guz=rv("r-guzergah"), ihtiyac=rv("r-ihtiyac");
+  var tT = tarih?trTarihKisa(tarih):"[Tarih]", uT = ucus?trTarihKisa(ucus):"[Uçuş tarihi]";
+  var kimlikTR = [dogum?"doğum tarihi "+trTarihKisa(dogum):"", kimlik?"pasaport/kimlik no "+kimlik:""].filter(Boolean).join(", ");
+  var kimlikEN = [dogum?"date of birth "+trTarihKisa(dogum):"", kimlik?"passport/ID no "+kimlik:""].filter(Boolean).join(", ");
+  var ucusTR = uT+(ucusNo?", "+ucusNo:"")+(guz?", "+guz:""), ucusEN = uT+(ucusNo?", "+ucusNo:"")+(guz?", "+guz:"");
+  var tr="UÇUŞA ELVERİŞLİLİK RAPORU\n\n", en="FIT TO FLY MEDICAL CERTIFICATE\n\n";
+  var hataList=[];
+  if(rapor.tur==="hasta"){
+    var tani=rv("r-tani")||"[Tanı]", islem=rv("r-islem");
+    tr += ad+(kimlikTR?" ("+kimlikTR+")":"")+" "+tT+" tarihinde tarafımdan muayene edilmiştir.\n\nTanı: "+tani+"\n"
+      + (islem||islemT ? "İşlem/olay: "+(islem||"-")+(islemT?" ("+trTarihKisa(islemT)+")":"")+"\n" : "")
+      + "Planlanan uçuş: "+ucusTR+"\n\nYapılan değerlendirmede yolcunun uçuşu acil tıbbi yardıma ihtiyaç duymadan tamamlayabileceği kanaatine varılmıştır.\n"
+      + (ihtiyac?"\nÖzel ihtiyaçlar: "+ihtiyac+"\n":"");
+    en += "I examined "+ad+(kimlikEN?" ("+kimlikEN+")":"")+" on "+tT+".\n\nDiagnosis: "+tani+"\n"
+      + (islem||islemT ? "Procedure/event: "+(islem||"-")+(islemT?" ("+trTarihKisa(islemT)+")":"")+"\n" : "")
+      + "Planned flight: "+ucusEN+"\n\nIn my assessment, the passenger can complete the flight without needing urgent medical assistance.\n"
+      + (ihtiyac?"\nSpecial requirements: "+ihtiyac+"\n":"");
+    if(!rv("r-tani")) hataList.push("Tanı boş.");
+  } else {
+    var tur=$("r-gebe-tur").value, bazT = tarih||bugun();
+    var hafta = tdt ? gebelikGunu(tdt,bazT) : null, ucusHafta = (tdt&&ucus) ? gebelikGunu(tdt,ucus) : null;
+    var hTR = hafta!=null ? Math.floor(hafta/7)+" hafta "+(hafta%7)+" gün" : "[x hafta y gün]";
+    var hEN = hafta!=null ? Math.floor(hafta/7)+" weeks "+(hafta%7)+" days" : "[x weeks y days]";
+    tr += ad+(kimlikTR?" ("+kimlikTR+")":"")+" "+tT+" tarihinde tarafımdan muayene edilmiştir.\n\n"
+      + (tur==="tekil"?"Tekil":"Çoğul")+" gebeliği bulunmaktadır. Muayene tarihinde gebelik süresi "+hTR+"dür; tahmini doğum tarihi: "+(tdt?trTarihKisa(tdt):"[TDT]")+". Gebelik komplikasyonsuz seyretmektedir.\n"
+      + "Planlanan uçuş: "+ucusTR+"\n\nUçakla seyahatinde tıbbi sakınca yoktur.\n"+(ihtiyac?"\nÖzel ihtiyaçlar: "+ihtiyac+"\n":"");
+    en += "I examined "+ad+(kimlikEN?" ("+kimlikEN+")":"")+" on "+tT+".\n\n"
+      + "She has a "+(tur==="tekil"?"single":"multiple")+" pregnancy. On the date of examination the gestational age is "+hEN+", with an estimated date of delivery of "+(tdt?trTarihKisa(tdt):"[EDD]")+". The pregnancy is uncomplicated.\n"
+      + "Planned flight: "+ucusEN+"\n\nThere are no medical contraindications for air travel.\n"+(ihtiyac?"\nSpecial requirements: "+ihtiyac+"\n":"");
+    if(!tdt) hataList.push("Tahmini doğum tarihi boş.");
+    if(ucusHafta!=null){
+      var r=gebeDegerlendir(ucusHafta,tur);
+      if(r.thy.d==="deg") hataList.push("Uçuş gününde gebelik "+haftaMetni(ucusHafta)+": THY bu haftada raporla da kabul etmez.");
+      else if(r.iata.d==="deg") hataList.push("Uçuş gününde gebelik "+haftaMetni(ucusHafta)+": IATA'ya göre değerlendirme gerekir.");
+    }
+  }
+  tr += "\n"+hekim+"\n"+unvan+"\nDiploma/lisans no: "+lisans+(kurum?"\n"+kurum:"")+"\nTarih: "+tT+"\n\nİmza / e-imza ve kaşe:\n\n";
+  en += "\n"+hekim+"\n"+unvan+"\nDiploma/licence no: "+lisans+(kurum?"\n"+kurum:"")+"\nDate: "+tT+"\n\nSignature / e-signature and stamp:\n\n";
+  $("r-tr").textContent = tr; $("r-en").textContent = en;
+
+  ["r-ad","r-hekim","r-unvan","r-lisans","r-ucus","r-tarih"].forEach(function(id){ if(!rv(id)) hataList.push($(id).parentNode.firstChild.textContent.replace(" *","")+" boş."); });
+  if(ucus && tarih){
+    var fark = gunFarki(tarih, ucus);
+    if(fark<0) hataList.push("Rapor tarihi uçuştan sonra.");
+    else if(fark>V.thy.rapor_gecerlilik_gun) hataList.push("Rapor uçuştan "+fark+" gün önce düzenleniyor; THY en fazla "+V.thy.rapor_gecerlilik_gun+" gün önceki raporu kabul eder.");
+  }
+  var ul = hataList.length ? hataList.map(function(m){return '<li class="u-deg">'+esc(m)+'</li>';}).join("") : '<li class="u-kabul">Zorunlu alanlar dolu ve rapor tarihi THY\'nin 10 gün kuralına uygun.</li>';
+  $("r-uyarilar").innerHTML = ul;
+}
+function raporBagla(){
+  $("r-tarih").value = inputTarih(bugun());
+  document.querySelectorAll("#p-rapor input, #p-rapor select").forEach(function(el){ el.addEventListener("input",raporCiz); });
+  document.querySelectorAll("#p-rapor [data-rtur]").forEach(function(b){ b.addEventListener("click",function(){
+    rapor.tur=b.getAttribute("data-rtur");
+    document.querySelectorAll("#p-rapor [data-rtur]").forEach(function(x){x.setAttribute("aria-pressed",String(x===b));});
+    document.querySelectorAll(".r-hasta").forEach(function(x){x.hidden = rapor.tur!=="hasta";});
+    document.querySelectorAll(".r-gebe").forEach(function(x){x.hidden = rapor.tur!=="gebe";});
+    raporCiz();
+  }); });
+  document.querySelectorAll("[data-kopya]").forEach(function(b){ b.addEventListener("click",function(){
+    var metin=$(b.getAttribute("data-kopya")).textContent, eski=b.textContent;
+    function tamam(){ b.textContent = b.getAttribute("data-kopya")==="r-en"?"Copied":"Kopyalandı"; setTimeout(function(){b.textContent=eski;},1500); }
+    if(navigator.clipboard && window.isSecureContext){ navigator.clipboard.writeText(metin).then(tamam,function(){yedekKopya(metin);tamam();}); }
+    else { yedekKopya(metin); tamam(); }
+  }); });
+  $("r-yazdir").addEventListener("click",function(){ document.body.classList.add("rapor-yazdir"); window.print(); setTimeout(function(){document.body.classList.remove("rapor-yazdir");},500); });
+  raporCiz();
+}
+function yedekKopya(metin){ var t=document.createElement("textarea"); t.value=metin; t.style.position="fixed"; t.style.opacity="0"; document.body.appendChild(t); t.select(); try{document.execCommand("copy");}catch(e){} document.body.removeChild(t); }
+
+/* ---------- THY ve genel ---------- */
+function listeHTML(a){ return "<ul>"+a.map(function(x){return "<li>"+esc(x)+"</li>";}).join("")+"</ul>"; }
+function sabitSekmeler(){
+  var T=V.thy;
+  $("p-thy").innerHTML =
+    '<div class="blok"><h3>Rapor koşulları</h3>'+listeHTML(T.rapor_kosullari)+'</div>'
+   +'<div class="blok"><h3>Rapor istenen yolcular</h3>'+listeHTML(T.rapor_istenenler)+'</div>'
+   +'<div class="blok"><h3>Kabul edilmeyen yolcular</h3>'+listeHTML(T.kabul_edilmeyenler)+'</div>'
+   +'<div class="blok"><h3>Oksijen, cihaz ve yardım</h3>'+listeHTML(T.diger)+'</div>'
+   +'<div class="blok"><h3>Kaynak</h3><p style="margin:0">'+esc(T.kaynak_tarih)+'. Kurallar değişebilir; şüphede THY sayfalarını açın.</p><ul>'
+   +T.linkler.map(function(l){return '<li><a href="'+esc(l.url)+'" target="_blank" rel="noopener">'+esc(l.ad)+'</a></li>';}).join("")+'</ul></div>';
+  var Gz=V.genel_izin;
+  $("p-genel").innerHTML =
+    '<div class="blok"><h3>'+esc(Gz.baslik)+'</h3>'+listeHTML(Gz.maddeler)+'<p class="dipnot">'+esc(Gz.not)+' IATA s. '+Gz.sayfa+'.</p></div>'
+   +'<div class="blok"><h3>Gün sayımı</h3><p style="margin:0;max-width:78ch">'+esc(V.gun_sayimi)+'</p></div>'
+   +'<div class="blok"><h3>Renkler</h3><ul><li><b style="color:var(--deg)">Değerlendirme gerekli:</b> IATA tablosunun "havacılık hekimliği deneyimli doktor değerlendirmesi" sütunu. Mutlak yasak anlamına gelmez; havayolunun tıbbi birimi karar verir.</li><li><b style="color:var(--sartli)">Koşula bağlı:</b> belirtilen koşul sağlanırsa uçulabilir.</li><li><b style="color:var(--kabul)">Kabul:</b> IATA tablosunun "kabul" sütunu.</li></ul></div>'
+   +'<div class="blok"><h3>Kaynak ve sınırlar</h3><p style="margin:0;max-width:78ch">'+esc(V.ana_kaynak)+'. '+esc(V.uyari)+' Veri sürümü '+esc(V.surum)+', güncelleme '+esc(V.guncelleme)+'. IATA metni telifli olduğundan tablolar birebir değil, Türkçe özet olarak verilmiştir.</p></div>';
+  $("kaynak-satiri").textContent = "IATA Medical Manual 12. baskı esas alındı. Veri: "+V.guncelleme;
+  $("alt").textContent = V.uyari;
+}
+
+/* ---------- sekmeler, tema, klavye, adres ---------- */
+function sekmeAc(ad){
+  ["durum","gebe","rapor","thy","genel"].forEach(function(x){ $("t-"+x).setAttribute("aria-selected",String(x===ad)); $("p-"+x).hidden = x!==ad; });
+  if(ad==="durum") setTimeout(function(){$("ara").focus();},0);
+}
+document.querySelectorAll(".sekme").forEach(function(b){ b.addEventListener("click",function(){ sekmeAc(b.id.slice(2)); }); });
+
+var temaBtn=$("tema-btn");
+function temaUygula(t){ document.documentElement.setAttribute("data-tema",t); temaBtn.textContent = t==="koyu"?"Açık tema":"Koyu tema"; }
+temaUygula(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "koyu" : "acik");
+temaBtn.addEventListener("click",function(){ temaUygula(document.documentElement.getAttribute("data-tema")==="koyu"?"acik":"koyu"); });
+
+function sec(id, kaydir){
+  durum.secili=id; listeyiCiz(); detayCiz();
+  if(id) history.replaceState(null,"","#"+id);
+  if(kaydir && window.innerWidth<=860) $("detay").scrollIntoView({behavior:"smooth",block:"start"});
+}
+$("liste").addEventListener("click",function(e){ var b=e.target.closest(".satir"); if(b) sec(b.getAttribute("data-id"), true); });
+$("cipler").addEventListener("click",function(e){ var b=e.target.closest(".cip"); if(!b) return; var k=b.getAttribute("data-kat"); durum.kat = k||null; cipleriCiz(); listeyiCiz(); });
+$("detay").addEventListener("click",function(e){ var b=e.target.closest("[data-git]"); if(b) sekmeAc(b.getAttribute("data-git")); });
+var ara=$("ara");
+ara.addEventListener("input",function(){
+  durum.sorgu=ara.value; $("ara-temizle").hidden = !ara.value; listeyiCiz();
+  var r=sonuclar(); if(ara.value && r.length && (!durum.secili || r.indexOf(DURUMLAR.filter(function(d){return d.id===durum.secili;})[0])<0)) sec(r[0].id,false);
+});
+$("ara-temizle").addEventListener("click",function(){ ara.value=""; durum.sorgu=""; $("ara-temizle").hidden=true; listeyiCiz(); ara.focus(); });
+ara.addEventListener("keydown",function(e){
+  var r=sonuclar(); if(!r.length) return;
+  var i=r.map(function(d){return d.id;}).indexOf(durum.secili);
+  if(e.key==="ArrowDown"){ e.preventDefault(); sec(r[Math.min(i+1,r.length-1)].id,false); }
+  else if(e.key==="ArrowUp"){ e.preventDefault(); sec(r[Math.max(i-1,0)].id,false); }
+  else if(e.key==="Enter"){ e.preventDefault(); if(i<0) sec(r[0].id,false); var o=$("h-olay"); if(o) o.focus(); }
+  else if(e.key==="Escape"){ ara.value=""; durum.sorgu=""; $("ara-temizle").hidden=true; listeyiCiz(); }
+});
+document.addEventListener("keydown",function(e){
+  if(e.key==="/" && !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)){ e.preventDefault(); sekmeAc("durum"); ara.focus(); ara.select(); }
+});
+
+sabitSekmeler(); cipleriCiz();
+var ilk = decodeURIComponent((location.hash||"").slice(1));
+durum.secili = DURUMLAR.some(function(d){return d.id===ilk;}) ? ilk : null;
+listeyiCiz(); detayCiz(); gebeBagla(); raporBagla();
+window.addEventListener("hashchange",function(){
+  var h=decodeURIComponent((location.hash||"").slice(1));
+  if(h!==durum.secili && DURUMLAR.some(function(d){return d.id===h;})){ sekmeAc("durum"); sec(h,false); }
+});
+ara.focus();
+})();
+</script>
+</body>
+</html>
