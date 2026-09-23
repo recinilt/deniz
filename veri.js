@@ -1,6 +1,6 @@
 /* Uçuşa elverişlilik verisi. Düzenlerken JSON yapısını bozmayın; bu dosya index.html tarafından <script> ile yüklenir. */
 window.UCUS_VERI = {
-  "surum": "1.0",
+  "surum": "1.1",
   "guncelleme": "2026-09-23",
   "ana_kaynak": "IATA Medical Manual, 12. baskı (Temmuz 2020), Bölüm 6.1.6 Specific Medical Guidelines, kılavuz s. 53–59",
   "gun_sayimi": "IATA: olay (işlem, ameliyat, kanama vb.) günü ve uçuş günü sayıma dahildir. Olay günü 1. gündür; örneğin '≥10 gün' kuralında 1 Ekim'deki ameliyat için en erken gün 10 Ekim'dir.",
@@ -209,7 +209,12 @@ window.UCUS_VERI = {
       "id": "tb", "kategori": "solunum", "ad": "Tüberküloz", "en": "Tuberculosis",
       "esanlam": ["verem", "TB", "tüberküloz"],
       "iata": {"deg": "Tedavi edilmemiş veya tedaviye yanıtsız.", "kabul": "En az 2 hafta uygun tedavi ve tedaviye yanıt kanıtı varsa.", "sayfa": 55},
-      "hesap": {"olay": "Uygun tedavinin başlangıcı", "asamalar": [{"kosul": {"gun_lte": 13}, "durum": "deg"}, {"kosul": {}, "durum": "sartli", "metin": "2 hafta doldu; tedaviye yanıt kanıtı varsa kabul."}]},
+      "hesap": {"olay": "Uygun tedavinin başlangıcı", "asamalar": [{"kosul": {"gun_lte": 13}, "durum": "deg"}, {"kosul": {}, "durum": "sartli", "metin": "2 hafta doldu; tedaviye yanıt kanıtı varsa kabul (IATA). WHO ayrıca en az iki negatif balgam yayması ister; MDR/XDR-TB'de iki ardışık negatif kültür gerekir."}]},
+      "ek": [
+        {"kaynak": "WHO 2008", "celiski": true, "metin": "Bulaştırıcı veya bulaştırıcı olabilecek TB hastası, bulaştırıcılığı bitene kadar hiçbir süredeki ticari uçuşa binmemeli. İlaca duyarlı TB'de en az iki kez balgam yayması negatif olmalı; MDR ve XDR-TB'de iki ardışık negatif balgam kültürü gerekir. WHO, IATA'nın '2 hafta tedavi' ölçütünden daha katıdır."},
+        {"kaynak": "WHO 2008", "metin": "Hastanın oturduğu sıra ile iki ön ve iki arka sıradaki (toplam 5 sıra) yolcular, 8 saat ve üzeri uçuşlarda 'yakın temaslı' sayılır. Bu tanım, uçuştan sonra temaslı taraması içindir; koltuklar boş bırakılarak bulaştırıcı hastanın uçabileceği anlamına gelmez."},
+        {"kaynak": "WHO 2008", "metin": "İstisnai zorunlulukta ticari uçuş ancak havayolu ile kalkış, varış ve aktarma ülkelerinin halk sağlığı otoritelerinin onayı ve belirlenen usulle yapılabilir; hava ambulansı bu kısıtın dışındadır."}
+      ],
       "thy": "THY, bulaşıcı dönemdeki tüberkülozu kabul etmez; bulaş riski yoktur raporu varsa kabul edebilir."
     },
     {
@@ -439,7 +444,7 @@ window.UCUS_VERI = {
     {
       "id": "radyoiyot_ca", "kategori": "onko", "ad": "Radyoiyot (I-131) – tiroid kanseri", "en": "Radioiodine I131 for thyroid cancer",
       "esanlam": ["I-131", "radyoaktif iyot", "atom tedavisi", "tiroid kanseri"],
-      "iata": {"deg": "Diğer tüm durumlar, 0.5 m'de µSv/saat doz hızı tahmini dahil bireysel risk değerlendirmesi gerektirir.", "kabul": "2 saatten kısa uçuşta tedaviden 4 gün önce değil; 2 saatten uzun uçuşta 7 gün önce değil.", "not": "ICRP ve ulusal taburculuk şartları sağlanmalı; seyahat planı nükleer tıp bölümünce gözden geçirilmeli. Tüm vakalar güvenlik ve radyasyon dedektörleri için belge taşımalı.", "sayfa": 58},
+      "iata": {"deg": "Diğer tüm durumlar, 0.5 m'de µSv/saat doz hızı tahmini dahil bireysel risk değerlendirmesi gerektirir.", "kabul": "2 saatten kısa uçuşta tedaviden 4 gün önce değil; 2 saatten uzun uçuşta 7 gün önce değil.", "not": "ICRP ve ulusal taburculuk şartları sağlanmalı; seyahat planı nükleer tıp bölümünce gözden geçirilmeli. Değerlendirmede 0.3 m mesafe ve uçuş süresi artı 30 dakika boyunca kesintisiz yakınlık varsayılır. Şartları karşılamayan vaka ek bilgiyle veya önlemlerle onaylanabilir: mümkünse izolasyon (iki koltuk ayırmak gerekebilir), doz tahmini uygunsa bilgilendirilmiş refakatçinin veya düşük riskli yolcunun yanına oturtma, ya da yolculuğu erteleme. Tüm vakalar güvenlik ve radyasyon dedektörleri için belge taşımalı.", "sayfa": 58},
       "hesap": {"olay": "Tedavi tarihi", "secenekler": [
         {"etiket": "Uçuş 2 saatten kısa", "asamalar": [{"kosul": {"gun_lte": 3}, "durum": "deg"}, {"kosul": {}, "durum": "kabul", "metin": "Kabul; nükleer tıp planı ve belge gerekli."}]},
         {"etiket": "Uçuş 2 saatten uzun", "asamalar": [{"kosul": {"gun_lte": 6}, "durum": "deg"}, {"kosul": {}, "durum": "kabul", "metin": "Kabul; nükleer tıp planı ve belge gerekli."}]}
@@ -448,7 +453,7 @@ window.UCUS_VERI = {
     {
       "id": "radyoiyot_benign", "kategori": "onko", "ad": "Radyoiyot (I-131) – benign tiroid hastalığı", "en": "Radioiodine I131 for benign thyroid conditions",
       "esanlam": ["hipertiroidi", "Graves", "toksik nodül", "radyoaktif iyot"],
-      "iata": {"deg": "Diğer tüm durumlar bireysel risk değerlendirmesi gerektirir.", "kabul": "2 saatten kısa uçuşta tedaviden 3 gün önce değil; 2 saatten uzun uçuşta 5 gün önce değil.", "not": "Tiroid kanseri satırındaki şartlar burada da geçerli.", "sayfa": 58},
+      "iata": {"deg": "Diğer tüm durumlar bireysel risk değerlendirmesi gerektirir.", "kabul": "2 saatten kısa uçuşta tedaviden 3 gün önce değil; 2 saatten uzun uçuşta 5 gün önce değil.", "not": "Tiroid kanseri satırındaki şartlar ve önlemler (izolasyon için iki koltuk, refakatçi yanına oturtma, erteleme) burada da geçerli.", "sayfa": 58},
       "hesap": {"olay": "Tedavi tarihi", "secenekler": [
         {"etiket": "Uçuş 2 saatten kısa", "asamalar": [{"kosul": {"gun_lte": 2}, "durum": "deg"}, {"kosul": {}, "durum": "kabul", "metin": "Kabul; nükleer tıp planı ve belge gerekli."}]},
         {"etiket": "Uçuş 2 saatten uzun", "asamalar": [{"kosul": {"gun_lte": 4}, "durum": "deg"}, {"kosul": {}, "durum": "kabul", "metin": "Kabul; nükleer tıp planı ve belge gerekli."}]}
@@ -491,6 +496,7 @@ window.UCUS_VERI = {
       "id": "bulasici", "kategori": "diger", "ad": "Bulaşıcı hastalıklar", "en": "Communicable diseases",
       "esanlam": ["suçiçeği", "kızamık", "kabakulak", "boğmaca", "uyuz", "menenjit", "grip", "influenza", "enfeksiyon", "maymun çiçeği", "kızamıkçık"],
       "iata": {"deg": "Hastalığın bulaşıcı döneminde.", "sayfa": 59},
+      "ek": [{"kaynak": "WHO 2008", "metin": "Tüberküloz için ayrıntılı kurallar Tüberküloz kartında. Oturduğu sıra ile iki ön ve iki arka sıra kuralı, uçuş sonrası temaslı taramasının tanımıdır; uçuş izni değildir."}],
       "thy": "THY: bulaşıcı dönemdeki kızamıkçık, kızamık, kabakulak, menenjit, el-ayak-ağız hastalığı, boğmaca, uyuz, suçiçeği, maymun çiçeği ve tüberkülozu kabul etmez; 'diğer yolculara bulaş riski yoktur' raporu varsa kabul edebilir."
     },
     {
