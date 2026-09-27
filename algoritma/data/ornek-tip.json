@@ -1,0 +1,861 @@
+{
+  "meta": {
+    "schema_version": "1.0",
+    "baslik": "Erişkinde Akut Baş Ağrısına Yaklaşım",
+    "yazar": "Sentetik örnek rehber",
+    "ozet": "Rehber, erişkinde yeni başlayan baş ağrısında önce ikincil (tehlikeli) nedenleri kırmızı bayraklarla ayıklamayı, sonra birincil baş ağrılarını klinik özelliklerle ayırmayı önerir. Subaraknoid kanama ve menenjit şüphesi acil değerlendirme gerektirir; migren ve gerilim tipi baş ağrısı öykü ve muayeneyle tanınır.",
+    "kaynak_dosya": "ornek-klinik-rehber.pdf",
+    "sha256": null,
+    "sayfa_sayisi": 24,
+    "karakter_sayisi": 58000,
+    "alan": "tip",
+    "dil": "tr",
+    "olusturma_tarihi": "2026-09-27",
+    "olusturan": "Claude (algoritma oluşturucu talimatı 1.0)",
+    "uyari": "Bu algoritma yüklenen belgeden türetilmiştir; klinik karar, muayene veya hekim değerlendirmesinin yerine geçmez. Acil belirtilerde 112'yi arayın.",
+    "ornek": true
+  },
+  "parcalar": [
+    {
+      "id": "P1",
+      "baslik": "Giriş ve sınıflama",
+      "sayfa_baslangic": 1,
+      "sayfa_bitis": 5,
+      "gecis1": true,
+      "gecis2": true
+    },
+    {
+      "id": "P2",
+      "baslik": "Kırmızı bayraklar",
+      "sayfa_baslangic": 6,
+      "sayfa_bitis": 11,
+      "gecis1": true,
+      "gecis2": true
+    },
+    {
+      "id": "P3",
+      "baslik": "İkincil nedenler",
+      "sayfa_baslangic": 12,
+      "sayfa_bitis": 17,
+      "gecis1": true,
+      "gecis2": true
+    },
+    {
+      "id": "P4",
+      "baslik": "Birincil baş ağrıları",
+      "sayfa_baslangic": 18,
+      "sayfa_bitis": 24,
+      "gecis1": true,
+      "gecis2": true
+    }
+  ],
+  "varliklar": [
+    {
+      "id": "V1",
+      "tur": "hastalık",
+      "ad": "Subaraknoid kanama",
+      "takma_adlar": [
+        "SAK"
+      ],
+      "aciklama": "Beyin zarları arasına kanama; ani başlayan çok şiddetli baş ağrısıyla gelen acil durum.",
+      "ozellikler": {
+        "aciliyet": "acil",
+        "sinif": "ikincil"
+      },
+      "onem": 5,
+      "kanit": [
+        {
+          "parca": "P3",
+          "sayfa": 12,
+          "alinti": "Ani başlangıçlı en şiddetli baş ağrısı SAK açısından değerlendirilmelidir."
+        }
+      ],
+      "guven": "yuksek"
+    },
+    {
+      "id": "V2",
+      "tur": "hastalık",
+      "ad": "Bakteriyel menenjit",
+      "takma_adlar": [
+        "Menenjit"
+      ],
+      "aciklama": "Beyin zarlarının bakteriyel enfeksiyonu; ateş, ense sertliği ve bilinç değişikliğiyle gelir.",
+      "ozellikler": {
+        "aciliyet": "acil",
+        "sinif": "ikincil"
+      },
+      "onem": 5,
+      "kanit": [
+        {
+          "parca": "P3",
+          "sayfa": 14
+        }
+      ],
+      "guven": "yuksek"
+    },
+    {
+      "id": "V3",
+      "tur": "hastalık",
+      "ad": "Migren",
+      "takma_adlar": [],
+      "aciklama": "Tekrarlayan, çoğunlukla tek taraflı, zonklayıcı, bulantı ve ışık-ses hassasiyetinin eşlik ettiği birincil baş ağrısı.",
+      "ozellikler": {
+        "sinif": "birincil"
+      },
+      "onem": 4,
+      "kanit": [
+        {
+          "parca": "P4",
+          "sayfa": 18
+        }
+      ],
+      "guven": "yuksek"
+    },
+    {
+      "id": "V4",
+      "tur": "hastalık",
+      "ad": "Gerilim tipi baş ağrısı",
+      "takma_adlar": [
+        "GTBA"
+      ],
+      "aciklama": "İki taraflı, baskı veya sıkıştırma tarzında, günlük aktiviteyle artmayan birincil baş ağrısı.",
+      "ozellikler": {
+        "sinif": "birincil"
+      },
+      "onem": 3,
+      "kanit": [
+        {
+          "parca": "P4",
+          "sayfa": 21
+        }
+      ],
+      "guven": "yuksek"
+    },
+    {
+      "id": "V5",
+      "tur": "kırmızı_bayrak",
+      "ad": "Gök gürültüsü baş ağrısı",
+      "takma_adlar": [
+        "Ani en şiddetli baş ağrısı"
+      ],
+      "aciklama": "Bir dakikadan kısa sürede en yüksek şiddete ulaşan baş ağrısı.",
+      "onem": 5,
+      "kanit": [
+        {
+          "parca": "P2",
+          "sayfa": 7
+        }
+      ],
+      "guven": "yuksek"
+    },
+    {
+      "id": "V6",
+      "tur": "kırmızı_bayrak",
+      "ad": "Ateş ve ense sertliği",
+      "takma_adlar": [],
+      "aciklama": "Baş ağrısına ateş ve ense sertliğinin eşlik etmesi.",
+      "onem": 5,
+      "kanit": [
+        {
+          "parca": "P2",
+          "sayfa": 8
+        }
+      ],
+      "guven": "yuksek"
+    },
+    {
+      "id": "V7",
+      "tur": "kırmızı_bayrak",
+      "ad": "Yeni nörolojik bulgu",
+      "takma_adlar": [],
+      "aciklama": "Güçsüzlük, konuşma bozukluğu, görme kaybı, nöbet veya bilinç değişikliği.",
+      "onem": 5,
+      "kanit": [
+        {
+          "parca": "P2",
+          "sayfa": 8
+        }
+      ],
+      "guven": "yuksek"
+    },
+    {
+      "id": "V8",
+      "tur": "kırmızı_bayrak",
+      "ad": "50 yaş sonrası yeni başlangıç",
+      "takma_adlar": [],
+      "aciklama": "Daha önce benzer baş ağrısı olmayan 50 yaş üstü hastada yeni baş ağrısı.",
+      "onem": 4,
+      "kanit": [
+        {
+          "parca": "P2",
+          "sayfa": 9
+        }
+      ],
+      "guven": "yuksek"
+    },
+    {
+      "id": "V9",
+      "tur": "belirti",
+      "ad": "Aura",
+      "takma_adlar": [],
+      "aciklama": "Baş ağrısından önce gelen, geri dönüşlü görsel veya duyusal belirtiler.",
+      "onem": 3,
+      "kanit": [
+        {
+          "parca": "P4",
+          "sayfa": 19
+        }
+      ],
+      "guven": "yuksek"
+    },
+    {
+      "id": "V10",
+      "tur": "tetkik",
+      "ad": "Kontrastsız beyin BT",
+      "takma_adlar": [
+        "BT"
+      ],
+      "aciklama": "Kanama şüphesinde ilk görüntüleme yöntemi.",
+      "onem": 4,
+      "kanit": [
+        {
+          "parca": "P3",
+          "sayfa": 13
+        }
+      ],
+      "guven": "yuksek"
+    },
+    {
+      "id": "V11",
+      "tur": "tetkik",
+      "ad": "Lomber ponksiyon",
+      "takma_adlar": [
+        "LP"
+      ],
+      "aciklama": "BT normal olup SAK şüphesi süren veya menenjit düşünülen hastada beyin omurilik sıvısı incelemesi.",
+      "onem": 4,
+      "kanit": [
+        {
+          "parca": "P3",
+          "sayfa": 13
+        }
+      ],
+      "guven": "yuksek"
+    },
+    {
+      "id": "V12",
+      "tur": "tedavi",
+      "ad": "Ampirik antibiyotik",
+      "takma_adlar": [],
+      "aciklama": "Menenjit şüphesinde tetkikler nedeniyle geciktirilmeden başlanan tedavi.",
+      "onem": 5,
+      "kanit": [
+        {
+          "parca": "P3",
+          "sayfa": 15,
+          "alinti": "Antibiyotik tedavisi görüntüleme için ertelenmemelidir."
+        }
+      ],
+      "guven": "yuksek"
+    },
+    {
+      "id": "V13",
+      "tur": "tedavi",
+      "ad": "Akut migren atak tedavisi",
+      "takma_adlar": [],
+      "aciklama": "Atağın erken döneminde basit analjezikler veya triptanlar; ilaç seçimi ve doz hekimce belirlenir.",
+      "onem": 3,
+      "kanit": [
+        {
+          "parca": "P4",
+          "sayfa": 20
+        }
+      ],
+      "guven": "orta"
+    }
+  ],
+  "iliskiler": [
+    {
+      "id": "I1",
+      "kaynak": "V5",
+      "hedef": "V1",
+      "tur": "düşündürür",
+      "aciklama": "Gök gürültüsü baş ağrısı SAK'ı düşündürür.",
+      "yonlu": true,
+      "kanit": [
+        {
+          "parca": "P3",
+          "sayfa": 12
+        }
+      ],
+      "guven": "yuksek"
+    },
+    {
+      "id": "I2",
+      "kaynak": "V6",
+      "hedef": "V2",
+      "tur": "düşündürür",
+      "aciklama": "Ateş ve ense sertliği menenjiti düşündürür.",
+      "yonlu": true,
+      "kanit": [
+        {
+          "parca": "P3",
+          "sayfa": 14
+        }
+      ],
+      "guven": "yuksek"
+    },
+    {
+      "id": "I3",
+      "kaynak": "V1",
+      "hedef": "V10",
+      "tur": "tanı_için",
+      "aciklama": "SAK şüphesinde ilk tetkik BT.",
+      "yonlu": true,
+      "kanit": [
+        {
+          "parca": "P3",
+          "sayfa": 13
+        }
+      ],
+      "guven": "yuksek"
+    },
+    {
+      "id": "I4",
+      "kaynak": "V1",
+      "hedef": "V11",
+      "tur": "tanı_için",
+      "aciklama": "BT normal ama şüphe sürüyorsa LP.",
+      "yonlu": true,
+      "kanit": [
+        {
+          "parca": "P3",
+          "sayfa": 13
+        }
+      ],
+      "guven": "yuksek"
+    },
+    {
+      "id": "I5",
+      "kaynak": "V2",
+      "hedef": "V11",
+      "tur": "tanı_için",
+      "aciklama": "Menenjit tanısında BOS incelemesi.",
+      "yonlu": true,
+      "kanit": [
+        {
+          "parca": "P3",
+          "sayfa": 14
+        }
+      ],
+      "guven": "yuksek"
+    },
+    {
+      "id": "I6",
+      "kaynak": "V2",
+      "hedef": "V12",
+      "tur": "tedavi_edilir",
+      "aciklama": "Menenjit şüphesinde gecikmeden ampirik antibiyotik.",
+      "yonlu": true,
+      "kanit": [
+        {
+          "parca": "P3",
+          "sayfa": 15
+        }
+      ],
+      "guven": "yuksek"
+    },
+    {
+      "id": "I7",
+      "kaynak": "V9",
+      "hedef": "V3",
+      "tur": "eşlik_eder",
+      "aciklama": "Aura migrenin bir alt tipine eşlik eder.",
+      "yonlu": true,
+      "kanit": [
+        {
+          "parca": "P4",
+          "sayfa": 19
+        }
+      ],
+      "guven": "yuksek"
+    },
+    {
+      "id": "I8",
+      "kaynak": "V3",
+      "hedef": "V13",
+      "tur": "tedavi_edilir",
+      "aciklama": "Migren atağında akut tedavi.",
+      "yonlu": true,
+      "kanit": [
+        {
+          "parca": "P4",
+          "sayfa": 20
+        }
+      ],
+      "guven": "orta"
+    },
+    {
+      "id": "I9",
+      "kaynak": "V3",
+      "hedef": "V4",
+      "tur": "ayırıcı_tanı",
+      "aciklama": "Birincil baş ağrılarında birbirinden ayrılmaları gerekir.",
+      "yonlu": false,
+      "kanit": [
+        {
+          "parca": "P4",
+          "sayfa": 22
+        }
+      ],
+      "guven": "yuksek"
+    },
+    {
+      "id": "I10",
+      "kaynak": "V7",
+      "hedef": "V10",
+      "tur": "gerektirir",
+      "aciklama": "Yeni nörolojik bulgu acil görüntüleme gerektirir.",
+      "yonlu": true,
+      "kanit": [
+        {
+          "parca": "P2",
+          "sayfa": 8
+        }
+      ],
+      "guven": "yuksek"
+    },
+    {
+      "id": "I11",
+      "kaynak": "V8",
+      "hedef": "V10",
+      "tur": "gerektirir",
+      "aciklama": "50 yaş sonrası yeni baş ağrısı ileri değerlendirme gerektirir.",
+      "yonlu": true,
+      "kanit": [
+        {
+          "parca": "P2",
+          "sayfa": 9
+        }
+      ],
+      "guven": "orta"
+    }
+  ],
+  "olaylar": [],
+  "kurallar": [
+    {
+      "id": "K1",
+      "baslik": "Kırmızı bayrak kuralı",
+      "kosul": "Baş ağrısına herhangi bir kırmızı bayrak eşlik ediyorsa",
+      "eylem": "Hasta acil değerlendirmeye yönlendirilir; birincil baş ağrısı tanısı konmaz.",
+      "istisnalar": [],
+      "kanit_duzeyi": "Uzman görüşü",
+      "ilgili": [
+        "V5",
+        "V6",
+        "V7",
+        "V8"
+      ],
+      "kanit": [
+        {
+          "parca": "P2",
+          "sayfa": 6,
+          "alinti": "Kırmızı bayrak varlığında birincil baş ağrısı tanısı konmamalıdır."
+        }
+      ],
+      "guven": "yuksek"
+    },
+    {
+      "id": "K2",
+      "baslik": "Menenjitte tedavi gecikmez",
+      "kosul": "Bakteriyel menenjit düşünülüyorsa",
+      "eylem": "Kültür örnekleri alınır ve görüntüleme beklenmeden ampirik antibiyotik başlanır.",
+      "istisnalar": [],
+      "kanit_duzeyi": "Güçlü öneri",
+      "ilgili": [
+        "V2",
+        "V12"
+      ],
+      "kanit": [
+        {
+          "parca": "P3",
+          "sayfa": 15
+        }
+      ],
+      "guven": "yuksek"
+    },
+    {
+      "id": "K3",
+      "baslik": "BT normalse SAK dışlanmış sayılmaz",
+      "kosul": "SAK şüphesi olan hastada BT normalse ve şüphe sürüyorsa",
+      "eylem": "Lomber ponksiyon düşünülür.",
+      "istisnalar": [
+        "Belgede belirtilen erken dönem BT'de kanama yoksa karar hekime bırakılır."
+      ],
+      "kanit_duzeyi": "Orta",
+      "ilgili": [
+        "V1",
+        "V10",
+        "V11"
+      ],
+      "kanit": [
+        {
+          "parca": "P3",
+          "sayfa": 13
+        }
+      ],
+      "guven": "orta"
+    }
+  ],
+  "algoritmalar": [
+    {
+      "id": "A1",
+      "baslik": "Erişkinde akut baş ağrısı değerlendirme akışı",
+      "amac": "Tehlikeli nedenleri önce ayıklayıp birincil baş ağrısını sınıflamak.",
+      "giris_kosulu": "Erişkin hasta, yeni veya değişmiş baş ağrısı.",
+      "ilgili": [
+        "K1",
+        "K2",
+        "K3"
+      ],
+      "dugumler": [
+        {
+          "id": "D1",
+          "tur": "baslangic",
+          "metin": "Erişkinde yeni veya değişmiş baş ağrısı"
+        },
+        {
+          "id": "D2",
+          "tur": "karar",
+          "metin": "Kırmızı bayrak var mı?",
+          "ayrinti": "Gök gürültüsü baş ağrısı, ateş ve ense sertliği, yeni nörolojik bulgu, 50 yaş sonrası yeni başlangıç.",
+          "ilgili": [
+            "V5",
+            "V6",
+            "V7",
+            "V8"
+          ],
+          "kanit": [
+            {
+              "parca": "P2",
+              "sayfa": 6
+            }
+          ]
+        },
+        {
+          "id": "D3",
+          "tur": "uyari",
+          "metin": "Acil değerlendirme: birincil tanı konmaz",
+          "ilgili": [
+            "K1"
+          ],
+          "kanit": [
+            {
+              "parca": "P2",
+              "sayfa": 6
+            }
+          ]
+        },
+        {
+          "id": "D4",
+          "tur": "karar",
+          "metin": "Ateş ve ense sertliği var mı?",
+          "ilgili": [
+            "V6"
+          ],
+          "kanit": [
+            {
+              "parca": "P3",
+              "sayfa": 14
+            }
+          ]
+        },
+        {
+          "id": "D5",
+          "tur": "eylem",
+          "metin": "Kültür al, antibiyotiği geciktirmeden başlat; LP planla",
+          "ilgili": [
+            "V12",
+            "V11",
+            "K2"
+          ],
+          "kanit": [
+            {
+              "parca": "P3",
+              "sayfa": 15
+            }
+          ]
+        },
+        {
+          "id": "D6",
+          "tur": "eylem",
+          "metin": "Kontrastsız beyin BT",
+          "ilgili": [
+            "V10"
+          ],
+          "kanit": [
+            {
+              "parca": "P3",
+              "sayfa": 13
+            }
+          ]
+        },
+        {
+          "id": "D7",
+          "tur": "karar",
+          "metin": "BT'de kanama var mı?",
+          "kanit": [
+            {
+              "parca": "P3",
+              "sayfa": 13
+            }
+          ]
+        },
+        {
+          "id": "D8",
+          "tur": "bitis",
+          "metin": "SAK: acil nöroşirürji konsültasyonu",
+          "ilgili": [
+            "V1"
+          ]
+        },
+        {
+          "id": "D9",
+          "tur": "eylem",
+          "metin": "SAK şüphesi sürüyorsa lomber ponksiyon",
+          "ilgili": [
+            "V11",
+            "K3"
+          ],
+          "kanit": [
+            {
+              "parca": "P3",
+              "sayfa": 13
+            }
+          ]
+        },
+        {
+          "id": "D10",
+          "tur": "bitis",
+          "metin": "Sonuca göre ileri ikincil neden araştırması"
+        },
+        {
+          "id": "D11",
+          "tur": "karar",
+          "metin": "Tek taraflı, zonklayıcı, bulantı veya ışık-ses hassasiyeti var mı?",
+          "ilgili": [
+            "V3"
+          ],
+          "kanit": [
+            {
+              "parca": "P4",
+              "sayfa": 18
+            }
+          ]
+        },
+        {
+          "id": "D12",
+          "tur": "bitis",
+          "metin": "Migren olası: akut atak tedavisi ve izlem",
+          "ilgili": [
+            "V3",
+            "V13"
+          ]
+        },
+        {
+          "id": "D13",
+          "tur": "karar",
+          "metin": "İki taraflı, baskı tarzında, aktiviteyle artmıyor mu?",
+          "ilgili": [
+            "V4"
+          ],
+          "kanit": [
+            {
+              "parca": "P4",
+              "sayfa": 21
+            }
+          ]
+        },
+        {
+          "id": "D14",
+          "tur": "bitis",
+          "metin": "Gerilim tipi baş ağrısı olası",
+          "ilgili": [
+            "V4"
+          ]
+        },
+        {
+          "id": "D15",
+          "tur": "bitis",
+          "metin": "Sınıflanamadı: hekim değerlendirmesi"
+        },
+        {
+          "id": "D16",
+          "tur": "bitis",
+          "metin": "Menenjit tedavisi ve BOS sonucuna göre izlem",
+          "ilgili": [
+            "V2"
+          ]
+        }
+      ],
+      "kenarlar": [
+        {
+          "kaynak": "D1",
+          "hedef": "D2"
+        },
+        {
+          "kaynak": "D2",
+          "hedef": "D3",
+          "etiket": "Evet"
+        },
+        {
+          "kaynak": "D2",
+          "hedef": "D11",
+          "etiket": "Hayır"
+        },
+        {
+          "kaynak": "D3",
+          "hedef": "D4"
+        },
+        {
+          "kaynak": "D4",
+          "hedef": "D5",
+          "etiket": "Evet"
+        },
+        {
+          "kaynak": "D4",
+          "hedef": "D6",
+          "etiket": "Hayır"
+        },
+        {
+          "kaynak": "D5",
+          "hedef": "D16"
+        },
+        {
+          "kaynak": "D6",
+          "hedef": "D7"
+        },
+        {
+          "kaynak": "D7",
+          "hedef": "D8",
+          "etiket": "Evet"
+        },
+        {
+          "kaynak": "D7",
+          "hedef": "D9",
+          "etiket": "Hayır"
+        },
+        {
+          "kaynak": "D9",
+          "hedef": "D10"
+        },
+        {
+          "kaynak": "D11",
+          "hedef": "D12",
+          "etiket": "Evet"
+        },
+        {
+          "kaynak": "D11",
+          "hedef": "D13",
+          "etiket": "Hayır"
+        },
+        {
+          "kaynak": "D13",
+          "hedef": "D14",
+          "etiket": "Evet"
+        },
+        {
+          "kaynak": "D13",
+          "hedef": "D15",
+          "etiket": "Hayır"
+        }
+      ],
+      "kanit": [
+        {
+          "parca": "P2",
+          "sayfa": 6
+        },
+        {
+          "parca": "P4",
+          "sayfa": 18
+        }
+      ],
+      "guven": "yuksek"
+    }
+  ],
+  "temalar": [
+    {
+      "id": "T1",
+      "ad": "Önce tehlikeyi dışla",
+      "aciklama": "Rehberin ana ilkesi: birincil tanıdan önce ikincil nedenler kırmızı bayraklarla taranır.",
+      "ilgili": [
+        "K1",
+        "A1"
+      ],
+      "kanit": [
+        {
+          "parca": "P1",
+          "sayfa": 2
+        }
+      ]
+    }
+  ],
+  "sozluk": [
+    {
+      "id": "S1",
+      "terim": "Birincil baş ağrısı",
+      "tanim": "Altta yatan başka bir hastalığa bağlı olmayan baş ağrısı (migren, gerilim tipi vb.).",
+      "kanit": [
+        {
+          "parca": "P1",
+          "sayfa": 3
+        }
+      ]
+    },
+    {
+      "id": "S2",
+      "terim": "İkincil baş ağrısı",
+      "tanim": "Kanama, enfeksiyon, kitle gibi başka bir nedene bağlı baş ağrısı.",
+      "kanit": [
+        {
+          "parca": "P1",
+          "sayfa": 3
+        }
+      ]
+    },
+    {
+      "id": "S3",
+      "terim": "BOS",
+      "tanim": "Beyin omurilik sıvısı; lomber ponksiyonla alınıp incelenir.",
+      "kanit": [
+        {
+          "parca": "P3",
+          "sayfa": 14
+        }
+      ]
+    }
+  ],
+  "belirsizlikler": [
+    {
+      "kayit": "K3",
+      "tur": "eksik",
+      "neden": "Belge, BT'nin hangi saat aralığında yeterli sayılacağını açıkça belirtmiyor."
+    },
+    {
+      "kayit": "V13",
+      "tur": "eksik",
+      "neden": "Belgede ilaç adları ve dozları yer almıyor; yalnız ilaç grupları anılıyor."
+    }
+  ],
+  "kalite": {
+    "parca_sayisi": 4,
+    "gecis2_eklenen": 3,
+    "gecis2_dusurulen": 0,
+    "dogrulama": {
+      "sonuc": "GECTI",
+      "hata_sayisi": 0,
+      "uyari_sayisi": 0,
+      "uyarilar": []
+    }
+  }
+}

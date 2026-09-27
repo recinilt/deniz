@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Belge Algoritmaları</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;600;700&family=Literata:opsz,wght@7..72,400;7..72,600&display=swap" rel="stylesheet">
+<script>
+/* ============ AYARLAR: GitHub Pages'te yayınlanacak JSON dosyaları ============
+   Yeni bir JSON ürettiğinde dosyayı "data/" klasörüne koy ve adını aşağıya ekle. */
+const JSON_DOSYALARI = [
+  "ornek-roman.json",
+  "ornek-tip.json"
+];
+const VERI_KLASORU = "data/";
+const SEMA_DOSYASI = "algoritma-semasi.json";
+</script>
+<script src="https://cdn.jsdelivr.net/npm/cytoscape@3.34.3/dist/cytoscape.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/cytoscape-dagre@4.0.1/dist/cytoscape-dagre.js"></script>
+<style>
+:root {
+  --zemin: #EEF2F5; --yuzey: #FFFFFF; --yuzey2: #F6F8FA; --murekkep: #16233A; --soluk: #5B6B82;
+  --cizgi: #D3DBE4; --vurgu: #4B3FA7; --vurgu-acik: #E6E3F7; --okra: #A8700F; --okra-acik: #FBF1DC;
+  --kizil: #B3261E; --kizil-acik: #FBE6E4; --yesil: #2E7D4F; --yesil-acik: #E2F2E8;
+  --golge: 0 1px 2px rgba(22,35,58,.06), 0 4px 16px rgba(22,35,58,.06);
+  --govde: "Atkinson Hyperlegible Next", "Segoe UI", system-ui, sans-serif;
+  --baslik: "Literata", Georgia, "Times New Roman", serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --zemin: #121A2A; --yuzey: #1A2438; --yuzey2: #212D45; --murekkep: #E4E9F2; --soluk: #9AA8BF;
+    --cizgi: #2E3B55; --vurgu: #A99CF5; --vurgu-acik: #2C2A55; --okra: #E0B14F; --okra-acik: #3A2F17;
+    --kizil: #F28B82; --kizil-acik: #432122; --yesil: #7ACB98; --yesil-acik: #1D3A2A;
+    --golge: 0 1px 2px rgba(0,0,0,.3); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --zemin: #121A2A; --yuzey: #1A2438; --yuzey2: #212D45; --murekkep: #E4E9F2; --soluk: #9AA8BF;
+  --cizgi: #2E3B55; --vurgu: #A99CF5; --vurgu-acik: #2C2A55; --okra: #E0B14F; --okra-acik: #3A2F17;
+  --kizil: #F28B82; --kizil-acik: #432122; --yesil: #7ACB98; --yesil-acik: #1D3A2A;
+  --golge: 0 1px 2px rgba(0,0,0,.3); color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+body { margin: 0; background: var(--zemin); color: var(--murekkep); font: 16px/1.55 var(--govde);
+  padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--vurgu); outline-offset: 2px; }
+a { color: var(--vurgu); }
+.duzen { display: grid; grid-template-columns: 280px minmax(0, 1fr); min-height: 100vh; }
+.kenar { background: var(--yuzey); border-right: 1px solid var(--cizgi); padding: 20px 16px; position: sticky;
+  top: 0; height: 100vh; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; }
+.marka { font-family: var(--baslik); font-size: 1.15rem; font-weight: 600; margin: 0; }
+.marka small { display: block; font-family: var(--govde); font-weight: 400; font-size: .82rem; color: var(--soluk); }
+.kenar h2 { font-size: .85rem; font-weight: 600; color: var(--soluk); margin: 0 0 6px; }
+.dosya-listesi { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.dosya-listesi button { width: 100%; text-align: left; border: 0; background: none; padding: 8px 10px;
+  border-radius: 8px; cursor: pointer; overflow-wrap: anywhere; }
+.dosya-listesi button:hover { background: var(--yuzey2); }
+.dosya-listesi button[aria-current="true"] { background: var(--vurgu-acik); color: var(--vurgu); font-weight: 600; }
+.yerel { border: 1.5px dashed var(--cizgi); border-radius: 10px; padding: 12px; font-size: .88rem; color: var(--soluk); text-align: center; }
+.yerel.surukle { border-color: var(--vurgu); background: var(--vurgu-acik); }
+.yerel label { color: var(--vurgu); cursor: pointer; font-weight: 600; }
+.arama { width: 100%; padding: 9px 12px; border: 1px solid var(--cizgi); border-radius: 8px; background: var(--yuzey2); }
+.arama-sonuc { list-style: none; padding: 0; margin: 8px 0 0; display: grid; gap: 2px; max-height: 40vh; overflow-y: auto; }
+.arama-sonuc button { width: 100%; text-align: left; background: none; border: 0; padding: 6px 8px; border-radius: 6px; cursor: pointer; }
+.arama-sonuc button:hover { background: var(--yuzey2); }
+.arama-sonuc small { color: var(--soluk); }
+.tema-dugme { margin-top: auto; background: none; border: 1px solid var(--cizgi); border-radius: 8px; padding: 7px 10px; cursor: pointer; }
+.ana { padding: 28px clamp(16px, 4vw, 48px) 60px; min-width: 0; }
+.bos { max-width: 60ch; margin: 12vh auto; text-align: center; color: var(--soluk); }
+.bos h1 { font-family: var(--baslik); color: var(--murekkep); font-weight: 600; }
+.ust { display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px 20px; margin-bottom: 8px; }
+.ust h1 { font-family: var(--baslik); font-size: clamp(1.8rem, 3.2vw, 2.6rem); line-height: 1.15; font-weight: 600; margin: 0; letter-spacing: -.01em; }
+.rozet { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: .82rem; font-weight: 600; background: var(--vurgu-acik); color: var(--vurgu); }
+.rozet.gecti { background: var(--yesil-acik); color: var(--yesil); }
+.rozet.kaldi { background: var(--kizil-acik); color: var(--kizil); }
+.meta-satir { color: var(--soluk); font-size: .92rem; margin: 0 0 16px; }
+.ozet { font-family: var(--baslik); font-size: 1.08rem; line-height: 1.7; max-width: 72ch; margin: 0 0 20px; }
+.uyari-kutu { border-left: 4px solid var(--kizil); background: var(--kizil-acik); padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 0 0 20px; max-width: 80ch; }
+.sekmeler { display: flex; gap: 4px; border-bottom: 1px solid var(--cizgi); margin: 8px 0 24px; overflow-x: auto; scrollbar-width: thin; }
+.sekmeler button { border: 0; background: none; padding: 10px 14px; cursor: pointer; color: var(--soluk); border-bottom: 3px solid transparent; white-space: nowrap; }
+.sekmeler button[aria-selected="true"] { color: var(--murekkep); border-bottom-color: var(--vurgu); font-weight: 600; }
+.sekmeler .sayi { font-size: .78rem; color: var(--soluk); margin-left: 4px; }
+.istatistikler { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; margin-bottom: 28px; }
+.istatistik { background: var(--yuzey); border: 1px solid var(--cizgi); border-radius: 10px; padding: 12px 14px; }
+.istatistik b { display: block; font-size: 1.5rem; font-family: var(--baslik); }
+.istatistik span { color: var(--soluk); font-size: .88rem; }
+h2.bolum { font-family: var(--baslik); font-weight: 600; font-size: 1.3rem; margin: 28px 0 12px; }
+.iki-sutun { display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, 400px); gap: 20px; align-items: start; }
+.liste { display: grid; gap: 8px; }
+.kayit { background: var(--yuzey); border: 1px solid var(--cizgi); border-radius: 10px; padding: 12px 14px; cursor: pointer; text-align: left; width: 100%; }
+.kayit:hover { border-color: var(--vurgu); }
+.kayit[aria-pressed="true"] { border-color: var(--vurgu); box-shadow: 0 0 0 1px var(--vurgu); }
+.kayit h3 { margin: 0 0 2px; font-size: 1rem; }
+.kayit p { margin: 0; color: var(--soluk); font-size: .93rem; }
+.tur-imi { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: 1px; }
+.filtreler { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.filtre { border: 1px solid var(--cizgi); background: var(--yuzey); border-radius: 999px; padding: 4px 12px; cursor: pointer; font-size: .9rem; }
+.filtre[aria-pressed="true"] { background: var(--murekkep); color: var(--yuzey); border-color: var(--murekkep); }
+.detay { background: var(--yuzey); border: 1px solid var(--cizgi); border-radius: 12px; padding: 18px; position: sticky; top: 16px; max-height: calc(100vh - 32px); overflow-y: auto; box-shadow: var(--golge); }
+.detay h3 { font-family: var(--baslik); font-size: 1.3rem; margin: 0 0 4px; font-weight: 600; }
+.detay .alt { color: var(--soluk); font-size: .88rem; margin-bottom: 12px; }
+.detay h4 { font-size: .88rem; color: var(--soluk); font-weight: 600; margin: 16px 0 6px; }
+.detay dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 0; font-size: .93rem; }
+.detay dt { color: var(--soluk); }
+.detay dd { margin: 0; }
+.bag { display: inline-block; border: 0; background: var(--yuzey2); border-radius: 6px; padding: 2px 8px; margin: 2px 4px 2px 0; cursor: pointer; font-size: .9rem; color: var(--vurgu); }
+.bag:hover { background: var(--vurgu-acik); }
+.bag.olu { color: var(--kizil); cursor: default; }
+.kanit { border-left: 3px solid var(--cizgi); padding: 4px 0 4px 10px; margin: 6px 0; font-size: .92rem; }
+.kanit q { font-family: var(--baslik); font-style: italic; }
+.kanit small { color: var(--soluk); display: block; }
+.not { background: var(--okra-acik); border-left: 3px solid var(--okra); padding: 8px 10px; border-radius: 0 6px 6px 0; font-size: .92rem; margin: 6px 0; }
+.guven-yuksek { color: var(--yesil); } .guven-orta { color: var(--okra); } .guven-dusuk { color: var(--kizil); }
+.grafik { height: min(70vh, 640px); background: var(--yuzey); border: 1px solid var(--cizgi); border-radius: 12px; }
+.grafik-arac { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; }
+.dugme { border: 1px solid var(--cizgi); background: var(--yuzey); border-radius: 8px; padding: 7px 14px; cursor: pointer; }
+.dugme:hover { border-color: var(--vurgu); }
+.dugme.birincil { background: var(--vurgu); color: #fff; border-color: var(--vurgu); }
+:root[data-theme="dark"] .dugme.birincil { color: #121A2A; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .dugme.birincil { color: #121A2A; } }
+.lejant { display: flex; flex-wrap: wrap; gap: 12px; font-size: .88rem; color: var(--soluk); margin-top: 8px; }
+.zaman { position: relative; margin: 0; padding: 0 0 0 28px; list-style: none; max-width: 80ch; }
+.zaman::before { content: ""; position: absolute; left: 9px; top: 6px; bottom: 6px; width: 2px; background: var(--cizgi); }
+.zaman li { position: relative; margin-bottom: 14px; }
+.zaman li::before { content: ""; position: absolute; left: -24px; top: 16px; width: 12px; height: 12px; border-radius: 50%; background: var(--yuzey); border: 2px solid var(--vurgu); }
+.zaman li.geri::before { border-color: var(--okra); background: var(--okra-acik); }
+.sira { font-size: .82rem; color: var(--soluk); }
+.yurut { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 330px); gap: 20px; align-items: start; }
+.iz { list-style: none; margin: 0 0 14px; padding: 0; counter-reset: adim; }
+.iz li { counter-increment: adim; display: grid; grid-template-columns: 28px 1fr; gap: 8px; padding: 6px 0; border-bottom: 1px dashed var(--cizgi); font-size: .92rem; }
+.iz li::before { content: counter(adim); width: 22px; height: 22px; border-radius: 50%; background: var(--vurgu-acik); color: var(--vurgu); display: grid; place-items: center; font-size: .78rem; font-weight: 700; }
+.iz em { color: var(--vurgu); font-style: normal; font-weight: 600; }
+.soru { font-family: var(--baslik); font-size: 1.25rem; line-height: 1.4; margin: 0 0 8px; }
+.secenekler { display: grid; gap: 8px; margin-top: 12px; }
+.secenekler .dugme { text-align: left; padding: 10px 14px; }
+.sonuc-kutu { background: var(--yesil-acik); border-left: 4px solid var(--yesil); padding: 12px 14px; border-radius: 0 8px 8px 0; }
+.uyari-dugum { background: var(--kizil-acik); border-left: 4px solid var(--kizil); padding: 12px 14px; border-radius: 0 8px 8px 0; }
+.kural { background: var(--yuzey); border: 1px solid var(--cizgi); border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; max-width: 80ch; }
+.kural .ise { display: grid; grid-template-columns: 70px 1fr; gap: 4px 10px; margin: 8px 0; }
+.kural .ise b { color: var(--vurgu); }
+.tablo-kap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: .93rem; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--cizgi); vertical-align: top; }
+th { color: var(--soluk); font-weight: 600; }
+.denetim li { margin: 4px 0; }
+.denetim .h { color: var(--kizil); } .denetim .u { color: var(--okra); }
+.ipucu { color: var(--soluk); font-size: .9rem; }
+.hata-kutu { background: var(--kizil-acik); color: var(--murekkep); border-left: 4px solid var(--kizil); padding: 14px 16px; border-radius: 0 8px 8px 0; max-width: 80ch; }
+.menu-dugme { display: none; }
+@media (max-width: 900px) {
+  .duzen { grid-template-columns: 1fr; }
+  .kenar { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--cizgi); }
+  .kenar.kapali > :not(.kenar-ust) { display: none; }
+  .kenar-ust { display: flex; justify-content: space-between; align-items: center; }
+  .menu-dugme { display: inline-block; }
+  .iki-sutun, .yurut { grid-template-columns: 1fr; }
+  .detay { position: static; max-height: none; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<div class="duzen">
+  <aside class="kenar kapali" id="kenar">
+    <div class="kenar-ust">
+      <p class="marka">Belge Algoritmaları<small>Belgeden çıkarılmış bilgi haritaları</small></p>
+      <button class="dugme menu-dugme" id="menuDugme" aria-expanded="false" aria-controls="kenar">Menü</button>
+    </div>
+    <section>
+      <h2>Belgeler</h2>
+      <ul class="dosya-listesi" id="dosyaListesi"></ul>
+    </section>
+    <section class="yerel" id="yerelAlan">
+      Bilgisayarındaki bir JSON'u buraya sürükle ya da <label for="dosyaSec">dosya seç</label>
+      <input type="file" id="dosyaSec" accept=".json,application/json" hidden>
+    </section>
+    <section>
+      <h2><label for="arama">Belgede ara</label></h2>
+      <input class="arama" id="arama" type="search" placeholder="Karakter, hastalık, olay…" autocomplete="off" disabled>
+      <ul class="arama-sonuc" id="aramaSonuc"></ul>
+    </section>
+    <button class="tema-dugme" id="temaDugme" type="button">Temayı değiştir</button>
+  </aside>
+  <main class="ana" id="ana">
+    <div class="bos"><h1>Bir belge seç</h1><p>Soldaki listeden bir algoritma dosyası seç ya da kendi JSON dosyanı sürükleyip bırak.</p></div>
+  </main>
+</div>
+
+<script>
+const Dogrulayici = (() => {
+  const DESTEKLENEN = new Set(["$schema", "$id", "title", "description", "type", "required", "properties",
+    "additionalProperties", "items", "enum", "const", "pattern", "minimum", "maximum", "minItems",
+    "minLength", "maxLength", "$ref", "$defs"]);
+  const ONEK = { parcalar: "P", varliklar: "V", iliskiler: "I", olaylar: "O", kurallar: "K",
+    algoritmalar: "A", temalar: "T", sozluk: "S" };
+  const KANITLI = ["varliklar", "iliskiler", "olaylar", "kurallar", "algoritmalar", "temalar", "sozluk"];
+  const ALINTI_KELIME_SINIRI = 15;
+
+  const turu = (d) => d === null ? "null" : Array.isArray(d) ? "array"
+    : Number.isInteger(d) ? "integer" : typeof d;
+  const turUyar = (d, t) => { const g = turu(d); return g === t || (t === "number" && g === "integer"); };
+  const norm = (s) => String(s).toLocaleLowerCase("tr").replace(/\s+/g, " ").trim();
+
+  function semaDenetle(sema, kok, yol, hatalar) {
+    if (sema === null || typeof sema !== "object") return;
+    for (const k of Object.keys(sema)) {
+      if (!DESTEKLENEN.has(k)) hatalar.push(`Şemada desteklenmeyen anahtar: ${yol}/${k}`);
+    }
+    for (const alt of ["properties", "$defs"]) {
+      if (sema[alt]) for (const [k, v] of Object.entries(sema[alt])) semaDenetle(v, kok, `${yol}/${alt}/${k}`, hatalar);
+    }
+    if (sema.items) semaDenetle(sema.items, kok, `${yol}/items`, hatalar);
+    if (typeof sema.additionalProperties === "object") semaDenetle(sema.additionalProperties, kok, `${yol}/additionalProperties`, hatalar);
+  }
+
+  function semaDogrula(veri, sema, kok, yol, hatalar) {
+    if (sema.$ref) {
+      const ad = sema.$ref.replace("#/$defs/", "");
+      const hedef = kok.$defs && kok.$defs[ad];
+      if (!hedef) { hatalar.push(`${yol}: çözülemeyen $ref ${sema.$ref}`); return; }
+      return semaDogrula(veri, hedef, kok, yol, hatalar);
+    }
+    if (sema.type) {
+      const turler = Array.isArray(sema.type) ? sema.type : [sema.type];
+      if (!turler.some((t) => turUyar(veri, t))) {
+        hatalar.push(`${yol}: tür ${turler.join("|")} olmalı, ${turu(veri)} geldi`);
+        return;
+      }
+    }
+    if ("const" in sema && veri !== sema.const) hatalar.push(`${yol}: değer ${JSON.stringify(sema.const)} olmalı`);
+    if (sema.enum && !sema.enum.includes(veri)) hatalar.push(`${yol}: izinli değerler ${sema.enum.join(", ")}; gelen ${JSON.stringify(veri)}`);
+    if (typeof veri === "string") {
+      if (sema.minLength !== undefined && veri.length < sema.minLength) hatalar.push(`${yol}: boş olamaz`);
+      if (sema.maxLength !== undefined && veri.length > sema.maxLength) hatalar.push(`${yol}: en fazla ${sema.maxLength} karakter`);
+      if (sema.pattern && !new RegExp(sema.pattern, "u").test(veri)) hatalar.push(`${yol}: biçim uymuyor (${sema.pattern}): ${JSON.stringify(veri)}`);
+    }
+    if (typeof veri === "number") {
+      if (sema.minimum !== undefined && veri < sema.minimum) hatalar.push(`${yol}: en az ${sema.minimum}`);
+      if (sema.maximum !== undefined && veri > sema.maximum) hatalar.push(`${yol}: en fazla ${sema.maximum}`);
+    }
+    if (Array.isArray(veri)) {
+      if (sema.minItems !== undefined && veri.length < sema.minItems) hatalar.push(`${yol}: en az ${sema.minItems} öğe gerekli`);
+      if (sema.items) veri.forEach((o, i) => semaDogrula(o, sema.items, kok, `${yol}[${i}]`, hatalar));
+    }
+    if (turu(veri) === "object") {
+      for (const r of sema.required || []) if (!(r in veri)) hatalar.push(`${yol}: zorunlu alan eksik: ${r}`);
+      const props = sema.properties || {};
+      for (const [k, v] of Object.entries(veri)) {
+        if (props[k]) semaDogrula(v, props[k], kok, `${yol}.${k}`, hatalar);
+        else if (sema.additionalProperties === false) hatalar.push(`${yol}: tanımsız alan: ${k}`);
+      }
+    }
+  }
+
+  function butunlukDenetle(v, hatalar, uyarilar, secenek) {
+    const tumIdler = new Map();
+    for (const [koleksiyon, onek] of Object.entries(ONEK)) {
+      (v[koleksiyon] || []).forEach((k, i) => {
+        if (!k || typeof k.id !== "string") return;
+        if (!k.id.startsWith(onek) || !/^[A-Z][0-9]/.test(k.id)) hatalar.push(`${koleksiyon}[${i}]: kimlik "${onek}" ile başlamalı: ${k.id}`);
+        if (tumIdler.has(k.id)) hatalar.push(`Yinelenen kimlik: ${k.id} (${tumIdler.get(k.id)} ve ${koleksiyon})`);
+        else tumIdler.set(k.id, koleksiyon);
+      });
+    }
+    const var_ = (id) => tumIdler.has(id);
+    const koleksiyonda = (id, k) => tumIdler.get(id) === k;
+    const ref = (id, yol, beklenen) => {
+      if (id === null || id === undefined) return;
+      if (!var_(id)) hatalar.push(`${yol}: bilinmeyen kimlik ${id}`);
+      else if (beklenen && !koleksiyonda(id, beklenen)) hatalar.push(`${yol}: ${id} bir ${beklenen} kaydı olmalı, ${tumIdler.get(id)} kaydı`);
+    };
+
+    let kanitsiz = 0;
+    const parcaMap = new Map((v.parcalar || []).map((p) => [p.id, p]));
+    const kanitDenetle = (liste, yol) => {
+      (liste || []).forEach((k, i) => {
+        ref(k.parca, `${yol}.kanit[${i}].parca`, "parcalar");
+        const pc = parcaMap.get(k.parca);
+        if (pc && k.sayfa && pc.sayfa_baslangic && pc.sayfa_bitis && (k.sayfa < pc.sayfa_baslangic || k.sayfa > pc.sayfa_bitis))
+          hatalar.push(`${yol}.kanit[${i}]: sayfa ${k.sayfa}, ${k.parca} parçasının aralığında değil (${pc.sayfa_baslangic}–${pc.sayfa_bitis})`);
+        if (k.alinti) {
+          const kelime = k.alinti.trim().split(/\s+/).length;
+          if (kelime > ALINTI_KELIME_SINIRI) hatalar.push(`${yol}.kanit[${i}]: alıntı ${kelime} kelime; sınır ${ALINTI_KELIME_SINIRI}`);
+        }
+      });
+    };
+    for (const koleksiyon of KANITLI) {
+      (v[koleksiyon] || []).forEach((k) => {
+        if (!k.kanit || k.kanit.length === 0) kanitsiz++;
+        kanitDenetle(k.kanit, k.id);
+      });
+    }
+
+    const parcalar = v.parcalar || [];
+    const g1 = parcalar.filter((p) => !p.gecis1).map((p) => p.id);
+    const g2 = parcalar.filter((p) => !p.gecis2).map((p) => p.id);
+    const kapsamMesaji = (ad, l) => `${ad} işlenmemiş parçalar (${l.length}): ${l.slice(0, 20).join(", ")}${l.length > 20 ? "…" : ""}`;
+    if (g1.length) (secenek.ara ? uyarilar : hatalar).push(kapsamMesaji("1. geçişte", g1));
+    if (g2.length) (secenek.ara ? uyarilar : hatalar).push(kapsamMesaji("2. geçişte", g2));
+    parcalar.forEach((p) => {
+      if (p.sayfa_baslangic && p.sayfa_bitis && p.sayfa_bitis < p.sayfa_baslangic) hatalar.push(`${p.id}: sayfa_bitis, sayfa_baslangic'tan küçük`);
+    });
+
+    const kullanilan = new Set();
+    (v.iliskiler || []).forEach((r) => {
+      ref(r.kaynak, `${r.id}.kaynak`); ref(r.hedef, `${r.id}.hedef`);
+      ref(r.baslangic_olay, `${r.id}.baslangic_olay`, "olaylar"); ref(r.bitis_olay, `${r.id}.bitis_olay`, "olaylar");
+      if (r.kaynak === r.hedef) uyarilar.push(`${r.id}: ilişki kendine bağlanıyor (${r.kaynak})`);
+      kullanilan.add(r.kaynak); kullanilan.add(r.hedef);
+    });
+    (v.varliklar || []).forEach((x) => (x.gelisim || []).forEach((g, i) => ref(g.olay, `${x.id}.gelisim[${i}].olay`, "olaylar")));
+
+    const olaylar = v.olaylar || [];
+    const siralar = new Map();
+    olaylar.forEach((o) => {
+      (o.katilimcilar || []).forEach((k, i) => { ref(k, `${o.id}.katilimcilar[${i}]`, "varliklar"); kullanilan.add(k); });
+      if (o.yer) { ref(o.yer, `${o.id}.yer`, "varliklar"); kullanilan.add(o.yer); }
+      (o.nedenler || []).forEach((n, i) => ref(n, `${o.id}.nedenler[${i}]`, "olaylar"));
+      if (siralar.has(o.anlati_sirasi)) uyarilar.push(`${o.id} ve ${siralar.get(o.anlati_sirasi)} aynı anlati_sirasi (${o.anlati_sirasi})`);
+      else siralar.set(o.anlati_sirasi, o.id);
+    });
+    const renk = new Map();
+    const dongu = (id, yigin) => {
+      renk.set(id, 1);
+      const o = olaylar.find((x) => x.id === id);
+      for (const n of (o && o.nedenler) || []) {
+        if (renk.get(n) === 1) { hatalar.push(`Neden-sonuç döngüsü: ${[...yigin, id, n].join(" → ")}`); return true; }
+        if (!renk.has(n) && koleksiyonda(n, "olaylar") && dongu(n, [...yigin, id])) return true;
+      }
+      renk.set(id, 2); return false;
+    };
+    olaylar.forEach((o) => { if (!renk.has(o.id)) dongu(o.id, []); });
+
+    for (const k of ["kurallar", "temalar", "algoritmalar"]) {
+      (v[k] || []).forEach((x) => (x.ilgili || []).forEach((r, i) => { ref(r, `${x.id}.ilgili[${i}]`); kullanilan.add(r); }));
+    }
+    (v.belirsizlikler || []).forEach((b, i) => ref(b.kayit, `belirsizlikler[${i}].kayit`));
+
+    (v.algoritmalar || []).forEach((a) => {
+      const dugumler = a.dugumler || [], kenarlar = a.kenarlar || [];
+      const ids = new Map();
+      dugumler.forEach((d) => {
+        if (!/^D[0-9]+$/.test(d.id)) hatalar.push(`${a.id}: düğüm kimliği "D" ile başlamalı: ${d.id}`);
+        if (ids.has(d.id)) hatalar.push(`${a.id}: yinelenen düğüm ${d.id}`);
+        ids.set(d.id, d);
+        (d.ilgili || []).forEach((r, i) => { ref(r, `${a.id}.${d.id}.ilgili[${i}]`); kullanilan.add(r); });
+        kanitDenetle(d.kanit, `${a.id}.${d.id}`);
+        if (["karar", "eylem", "uyari"].includes(d.tur) && (!d.kanit || !d.kanit.length)) uyarilar.push(`${a.id}.${d.id}: ${d.tur} düğümünün kanıtı yok`);
+      });
+      const cikis = new Map(dugumler.map((d) => [d.id, []]));
+      kenarlar.forEach((e, i) => {
+        if (!ids.has(e.kaynak)) hatalar.push(`${a.id}.kenarlar[${i}]: bilinmeyen kaynak düğüm ${e.kaynak}`);
+        if (!ids.has(e.hedef)) hatalar.push(`${a.id}.kenarlar[${i}]: bilinmeyen hedef düğüm ${e.hedef}`);
+        if (cikis.has(e.kaynak)) cikis.get(e.kaynak).push(e);
+      });
+      const baslar = dugumler.filter((d) => d.tur === "baslangic");
+      if (baslar.length !== 1) hatalar.push(`${a.id}: tam 1 başlangıç düğümü olmalı, ${baslar.length} var`);
+      if (!dugumler.some((d) => d.tur === "bitis")) hatalar.push(`${a.id}: en az 1 bitiş düğümü olmalı`);
+      dugumler.forEach((d) => {
+        const c = cikis.get(d.id) || [];
+        if (d.tur === "bitis" && c.length) hatalar.push(`${a.id}.${d.id}: bitiş düğümünden çıkış olamaz`);
+        if (d.tur !== "bitis" && !c.length) hatalar.push(`${a.id}.${d.id}: çıkışı olmayan ara düğüm (çıkmaz yol)`);
+        if (d.tur === "karar") {
+          if (c.length < 2) hatalar.push(`${a.id}.${d.id}: karar düğümünün en az 2 çıkışı olmalı`);
+          if (c.some((e) => !e.etiket || !e.etiket.trim())) hatalar.push(`${a.id}.${d.id}: karar çıkışlarının hepsi etiketli olmalı`);
+        } else if (c.length > 1) uyarilar.push(`${a.id}.${d.id}: karar olmayan düğümün ${c.length} çıkışı var`);
+      });
+      if (baslar.length === 1) {
+        const gorulen = new Set([baslar[0].id]), kuyruk = [baslar[0].id];
+        while (kuyruk.length) for (const e of cikis.get(kuyruk.shift()) || []) if (!gorulen.has(e.hedef)) { gorulen.add(e.hedef); kuyruk.push(e.hedef); }
+        dugumler.forEach((d) => { if (!gorulen.has(d.id)) hatalar.push(`${a.id}.${d.id}: başlangıçtan ulaşılamıyor`); });
+      }
+    });
+
+    (v.varliklar || []).forEach((x) => { if (!kullanilan.has(x.id)) uyarilar.push(`${x.id} (${x.ad}): hiçbir ilişki, olay veya algoritmada geçmiyor`); });
+    const adlar = new Map();
+    (v.varliklar || []).forEach((x) => {
+      for (const ad of [x.ad, ...(x.takma_adlar || [])]) {
+        const n = norm(ad);
+        if (adlar.has(n) && adlar.get(n) !== x.id) uyarilar.push(`"${ad}" adı hem ${adlar.get(n)} hem ${x.id} kaydında: birleştirilmesi gerekebilir`);
+        else adlar.set(n, x.id);
+      }
+    });
+
+    const m = v.meta || {};
+    if (m.alan === "tip" && !(m.uyari && m.uyari.trim())) hatalar.push("meta.uyari: tıp alanında zorunlu (klinik karar yerine geçmez uyarısı)");
+    const kal = v.kalite || {};
+    if (kal.parca_sayisi !== undefined && kal.parca_sayisi !== parcalar.length) hatalar.push(`kalite.parca_sayisi (${kal.parca_sayisi}) gerçek parça sayısıyla (${parcalar.length}) uyuşmuyor`);
+    return { kanitsiz, istatistik: {
+      parca: parcalar.length, varlik: (v.varliklar || []).length, iliski: (v.iliskiler || []).length,
+      olay: olaylar.length, kural: (v.kurallar || []).length, algoritma: (v.algoritmalar || []).length,
+      tema: (v.temalar || []).length, terim: (v.sozluk || []).length, belirsizlik: (v.belirsizlikler || []).length,
+      kanitsiz_kayit: kanitsiz } };
+  }
+
+  function dogrula(veri, sema, secenek = {}) {
+    const hatalar = [], uyarilar = [];
+    if (sema) {
+      semaDenetle(sema, sema, "#", hatalar);
+      if (hatalar.length) return { sonuc: "KALDI", hatalar, uyarilar, istatistik: {} };
+      semaDogrula(veri, sema, sema, "$", hatalar);
+    } else uyarilar.push("Şema bulunamadı: yalnız bütünlük denetimi yapıldı");
+    if (turu(veri) !== "object") return { sonuc: "KALDI", hatalar: [...hatalar, "Kök bir nesne değil"], uyarilar, istatistik: {} };
+    let istatistik = {};
+    try { ({ istatistik } = butunlukDenetle(veri, hatalar, uyarilar, secenek)); }
+    catch (e) { hatalar.push(`Bütünlük denetimi yapılamadı (yapı bozuk): ${e.message}`); }
+    const d = veri.kalite && veri.kalite.dogrulama;
+    if (d && secenek.beyanDenetle !== false) {
+      const gercek = hatalar.length ? "KALDI" : "GECTI";
+      if (d.sonuc !== gercek) hatalar.push(`kalite.dogrulama.sonuc "${d.sonuc}" yazıyor, gerçek sonuç "${gercek}"`);
+      if (d.uyari_sayisi !== uyarilar.length) uyarilar.push(`kalite.dogrulama.uyari_sayisi (${d.uyari_sayisi}) gerçek uyarı sayısından (${uyarilar.length}) farklı`);
+    }
+    return { sonuc: hatalar.length ? "KALDI" : "GECTI", hatalar, uyarilar, istatistik };
+  }
+
+  return { dogrula, norm };
+})();
+</script>
+<script>
+"use strict";
+const SEKMELER = [
+  ["ozet", "Özet"], ["varliklar", "Varlıklar"], ["ag", "İlişki ağı"], ["zaman", "Zaman çizelgesi"],
+  ["algoritmalar", "Algoritmalar"], ["kurallar", "Kurallar"], ["temalar", "Temalar"], ["sozluk", "Sözlük"],
+  ["kanitlar", "Kaynak ve belirsizlik"], ["kalite", "Kalite"]
+];
+const KOLEKSIYON_ADI = { varliklar: "Varlık", iliskiler: "İlişki", olaylar: "Olay", kurallar: "Kural",
+  algoritmalar: "Algoritma", temalar: "Tema", sozluk: "Terim", parcalar: "Parça" };
+const ALAN_ADI = { roman: "Roman", tip: "Tıp", ders: "Ders kitabı", teknik: "Teknik", hukuk: "Hukuk", genel: "Genel" };
+const GUVEN_ADI = { yuksek: "Yüksek güven", orta: "Orta güven", dusuk: "Düşük güven" };
+const DUGUM_ADI = { baslangic: "Başlangıç", karar: "Karar", eylem: "Eylem", bilgi: "Bilgi", uyari: "Uyarı", bitis: "Sonuç" };
+const PALET = ["#4B3FA7", "#1F7A8C", "#C2571A", "#2E7D4F", "#A8327F", "#6B7A1F", "#3558B8", "#8C5A2B", "#5E4B8B", "#1C6E5A"];
+
+const D = { ad: null, veri: null, sema: undefined, dizin: new Map(), turRenk: new Map(), sekme: "ozet",
+  secili: null, filtre: null, cyAg: null, cyAlg: null, algId: null, iz: [], zamanKip: "anlati", denetim: null };
+const $ = (s, k = document) => k.querySelector(s);
+const kac = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const css = (ad) => getComputedStyle(document.documentElement).getPropertyValue(ad).trim();
+const cytoscapeVar = () => typeof window.cytoscape === "function";
+
+function kenarKur() {
+  const ul = $("#dosyaListesi");
+  ul.innerHTML = JSON_DOSYALARI.length ? JSON_DOSYALARI.map((f) =>
+    `<li><button type="button" data-dosya="${kac(f)}">${kac(f.replace(/\.json$/i, ""))}</button></li>`).join("")
+    : `<li class="ipucu">Liste boş. index.html içindeki JSON_DOSYALARI dizisine dosya adı ekle.</li>`;
+  ul.addEventListener("click", (e) => { const b = e.target.closest("button[data-dosya]"); if (!b) return; kenarKapat(); if (b.dataset.dosya === D.ad && !D.yerel) { durumUygula("ozet", null); adresYaz("ozet", null); } else location.hash = "#" + new URLSearchParams({ f: b.dataset.dosya }); });
+  const alan = $("#yerelAlan"), sec = $("#dosyaSec");
+  sec.addEventListener("change", () => sec.files[0] && yerelOku(sec.files[0]));
+  ["dragenter", "dragover"].forEach((t) => alan.addEventListener(t, (e) => { e.preventDefault(); alan.classList.add("surukle"); }));
+  ["dragleave", "drop"].forEach((t) => alan.addEventListener(t, (e) => { e.preventDefault(); alan.classList.remove("surukle"); }));
+  alan.addEventListener("drop", (e) => e.dataTransfer.files[0] && yerelOku(e.dataTransfer.files[0]));
+  $("#arama").addEventListener("input", aramaYap);
+  $("#aramaSonuc").addEventListener("click", (e) => { const b = e.target.closest("[data-git]"); if (b) { git(b.dataset.git); kenarKapat(); } });
+  $("#temaDugme").addEventListener("click", () => {
+    const koyu = document.documentElement.dataset.theme ? document.documentElement.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+    document.documentElement.dataset.theme = koyu ? "light" : "dark";
+    if (D.veri) sekmeCiz();
+  });
+  $("#menuDugme").addEventListener("click", () => {
+    const k = $("#kenar"); k.classList.toggle("kapali");
+    $("#menuDugme").setAttribute("aria-expanded", String(!k.classList.contains("kapali")));
+  });
+}
+function kenarKapat() { if (matchMedia("(max-width: 900px)").matches) { $("#kenar").classList.add("kapali"); $("#menuDugme").setAttribute("aria-expanded", "false"); } }
+
+async function semaGetir() {
+  if (D.sema !== undefined) return D.sema;
+  try { const r = await fetch(SEMA_DOSYASI, { cache: "no-cache" }); D.sema = r.ok ? await r.json() : null; }
+  catch { D.sema = null; }
+  return D.sema;
+}
+async function uzaktanYukle(ad) {
+  if (D.yukleniyor === ad) return;
+  D.yukleniyor = ad;
+  try { await uzaktanYukleIc(ad); } finally { D.yukleniyor = null; }
+}
+async function uzaktanYukleIc(ad) {
+  if (location.protocol === "file:") { hataGoster(`Sayfa dosyadan (file://) açılmış; tarayıcı bu şekilde "${ad}" dosyasını okumaya izin vermez. Sayfayı VS Code Live Server veya GitHub Pages üzerinden aç ya da JSON'u soldaki alana sürükle.`); return; }
+  let metin;
+  try {
+    const r = await fetch(VERI_KLASORU + encodeURIComponent(ad), { cache: "no-cache" });
+    if (!r.ok) throw new Error(`HTTP ${r.status}: ${VERI_KLASORU}${ad} bulunamadı. Dosyanın "${VERI_KLASORU}" klasöründe ve adın JSON_DOSYALARI listesinde birebir aynı yazıldığından emin ol.`);
+    metin = new TextDecoder("utf-8").decode(await r.arrayBuffer());
+  } catch (e) { hataGoster(e.message); return; }
+  await belgeKur(ad, metin);
+}
+function yerelOku(dosya) {
+  const o = new FileReader();
+  o.onload = async () => { history.replaceState(null, "", location.pathname + location.search); await belgeKur(dosya.name, new TextDecoder("utf-8").decode(o.result), true); };
+  o.onerror = () => hataGoster(`${dosya.name} okunamadı.`);
+  o.readAsArrayBuffer(dosya);
+}
+async function belgeKur(ad, metin, yerel = false) {
+  let veri;
+  try { veri = JSON.parse(metin.replace(/^\uFEFF/, "")); }
+  catch (e) { hataGoster(`${ad} geçerli bir JSON değil: ${e.message}`); return; }
+  if (!veri || typeof veri !== "object" || !veri.meta) { hataGoster(`${ad} bir belge algoritması dosyası değil: "meta" bölümü yok.`); return; }
+  const sema = await semaGetir();
+  D.ad = ad; D.veri = veri; D.yerel = yerel; D.secili = null; D.filtre = null; D.algId = null; D.iz = [];
+  D.denetim = Dogrulayici.dogrula(veri, sema);
+  D.dizin = new Map();
+  for (const k of Object.keys(KOLEKSIYON_ADI)) (veri[k] || []).forEach((x) => x && x.id && D.dizin.set(x.id, { k, x }));
+  const turler = [...new Set((veri.varliklar || []).map((v) => v.tur))].sort();
+  D.turRenk = new Map(turler.map((t, i) => [t, PALET[i % PALET.length]]));
+  document.querySelectorAll("#dosyaListesi button").forEach((b) => b.setAttribute("aria-current", String(!yerel && b.dataset.dosya === ad)));
+  $("#arama").disabled = false; $("#arama").value = ""; $("#aramaSonuc").innerHTML = "";
+  document.title = `${veri.meta.baslik || ad} · Belge Algoritmaları`;
+  const h = yerel ? {} : hashOku();
+  D.sekme = "ozet";
+  iskeletCiz();
+  durumUygula(h.s, h.id);
+}
+function hataGoster(m) { $("#ana").innerHTML = `<div class="hata-kutu" role="alert"><strong>Belge açılamadı.</strong><br>${kac(m)}</div>`; }
+
+function hashOku() { const p = new URLSearchParams(location.hash.slice(1)); return { f: p.get("f"), s: p.get("s"), id: p.get("id") }; }
+function adres(s, id) { const p = new URLSearchParams(); if (!D.yerel && D.ad) p.set("f", D.ad); if (s && s !== "ozet") p.set("s", s); if (id) p.set("id", id); return "#" + p.toString(); }
+function adresYaz(s, id, degistir = false) { const a = adres(s, id); if (location.hash !== a) history[degistir ? "replaceState" : "pushState"](null, "", a); }
+function durumUygula(s, id) {
+  const gecerli = gorunurSekmeler().map(([x]) => x);
+  const d = id && D.dizin.get(id);
+  if (d) {
+    s = { varliklar: "varliklar", iliskiler: "ag", olaylar: "zaman", kurallar: "kurallar", algoritmalar: "algoritmalar", temalar: "temalar", sozluk: "sozluk", parcalar: "kanitlar" }[d.k];
+    if (d.k === "algoritmalar" && D.algId !== id) { D.algId = id; D.iz = []; }
+    if (d.k === "varliklar" && D.filtre && d.x.tur !== D.filtre) D.filtre = null;
+  }
+  D.sekme = gecerli.includes(s) ? s : "ozet"; D.secili = d ? id : null;
+  sekmeCiz();
+  if (d) { const el = document.querySelector(`[data-kayit="${CSS.escape(id)}"]`); if (el) el.scrollIntoView({ block: "nearest" }); }
+}
+async function adresDegisti() {
+  const h = hashOku();
+  if (h.f && h.f !== D.ad) { await uzaktanYukle(h.f); return; }
+  if (!D.veri) return;
+  if ((h.s || "ozet") === D.sekme && (h.id || null) === D.secili) return;
+  durumUygula(h.s, h.id);
+}
+function git(id) { if (!D.dizin.has(id)) return; durumUygula(null, id); adresYaz(D.sekme, id); }
+
+function gorunurSekmeler() {
+  const v = D.veri, n = (k) => (v[k] || []).length;
+  return SEKMELER.filter(([s]) => ({ ozet: 1, varliklar: n("varliklar"), ag: n("iliskiler"), zaman: n("olaylar"),
+    algoritmalar: n("algoritmalar"), kurallar: n("kurallar"), temalar: n("temalar"), sozluk: n("sozluk"), kanitlar: 1, kalite: 1 })[s]);
+}
+function sekmeSayisi(s) { const v = D.veri; return { varliklar: (v.varliklar || []).length, ag: (v.iliskiler || []).length, zaman: (v.olaylar || []).length,
+  algoritmalar: (v.algoritmalar || []).length, kurallar: (v.kurallar || []).length, temalar: (v.temalar || []).length, sozluk: (v.sozluk || []).length }[s]; }
+
+function iskeletCiz() {
+  const m = D.veri.meta, dn = D.denetim;
+  const bilgi = [m.yazar, m.sayfa_sayisi && `${m.sayfa_sayisi} sayfa`, m.kaynak_dosya, m.olusturma_tarihi].filter(Boolean).map(kac).join(" · ");
+  $("#ana").innerHTML = `
+    <div class="ust"><h1>${kac(m.baslik)}</h1>
+      <span class="rozet">${kac(ALAN_ADI[m.alan] || m.alan)}</span>
+      <span class="rozet ${dn.sonuc === "GECTI" ? "gecti" : "kaldi"}" title="Görüntüleyicinin canlı doğrulaması">${dn.sonuc === "GECTI" ? "Doğrulama geçti" : `Doğrulama kaldı (${dn.hatalar.length} hata)`}</span>
+      ${m.ornek ? '<span class="rozet">Sentetik örnek</span>' : ""}</div>
+    <p class="meta-satir">${bilgi}</p>
+    ${m.uyari ? `<div class="uyari-kutu" role="note">${kac(m.uyari)}</div>` : ""}
+    <nav class="sekmeler" role="tablist" id="sekmeler">${gorunurSekmeler().map(([s, ad]) =>
+      `<button role="tab" data-s="${s}" aria-selected="${s === D.sekme}">${ad}${sekmeSayisi(s) ? `<span class="sayi">${sekmeSayisi(s)}</span>` : ""}</button>`).join("")}</nav>
+    <section id="panel" role="tabpanel"></section>`;
+  $("#sekmeler").addEventListener("click", (e) => { const b = e.target.closest("[data-s]"); if (!b) return; D.sekme = b.dataset.s; D.secili = null; sekmeCiz(); adresYaz(D.sekme, null); });
+}
+function sekmeCiz() {
+  document.querySelectorAll("#sekmeler [data-s]").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.s === D.sekme)));
+  if (D.cyAg) { D.cyAg.destroy(); D.cyAg = null; } if (D.cyAlg) { D.cyAlg.destroy(); D.cyAlg = null; }
+  const p = $("#panel");
+  try { ({ ozet: ozetCiz, varliklar: varlikCiz, ag: agCiz, zaman: zamanCiz, algoritmalar: algCiz, kurallar: kuralCiz,
+    temalar: temaCiz, sozluk: sozlukCiz, kanitlar: kanitCiz, kalite: kaliteCiz })[D.sekme](p); }
+  catch (e) { p.innerHTML = `<div class="hata-kutu" role="alert">Bu bölüm çizilemedi; dosyanın yapısı beklenenden farklı olabilir (Kalite sekmesine bak). Ayrıntı: ${kac(e.message)}</div>`; console.error(e); }
+}
+
+function adi(id) { const d = D.dizin.get(id); if (!d) return id; const x = d.x; return x.ad || x.baslik || x.terim || id; }
+function bag(id) {
+  if (!D.dizin.has(id)) return `<span class="bag olu" title="Dosyada bulunmayan kimlik">${kac(id)}</span>`;
+  return `<button type="button" class="bag" data-git="${kac(id)}">${kac(adi(id))}</button>`;
+}
+function baglar(liste) { return (liste || []).length ? liste.map(bag).join("") : '<span class="ipucu">yok</span>'; }
+function parcaAdi(pid) { const p = D.dizin.get(pid); return p ? (p.x.baslik || pid) : pid; }
+function kanitHtml(liste) {
+  if (!liste || !liste.length) return '<p class="ipucu">Kanıt kaydı yok.</p>';
+  return liste.map((k) => `<div class="kanit">${k.alinti ? `<q>${kac(k.alinti)}</q>` : ""}<small>${kac(parcaAdi(k.parca))}${k.sayfa ? `, s. ${k.sayfa}` : ""}</small></div>`).join("");
+}
+function belirsizlikHtml(id) { return (D.veri.belirsizlikler || []).filter((b) => b.kayit === id).map((b) => `<div class="not"><strong>${kac({ celiski: "Çelişki", kanit_zayif: "Kanıt zayıf", yorum: "Yoruma açık", eksik: "Eksik bilgi" }[b.tur] || b.tur)}:</strong> ${kac(b.neden)}</div>`).join(""); }
+
+document.addEventListener("click", (e) => { const b = e.target.closest(".bag[data-git], .kayit[data-git]"); if (b && !b.closest("#aramaSonuc")) { e.preventDefault(); git(b.dataset.git); } });
+
+function detayHtml(id) {
+  const d = D.dizin.get(id); if (!d) return '<p class="ipucu">Ayrıntı görmek için bir kayıt seç.</p>';
+  const x = d.x, v = D.veri;
+  let h = `<h3>${kac(adi(id))}</h3><div class="alt">${kac(KOLEKSIYON_ADI[d.k])}${x.tur ? " · " + kac(x.tur.replace(/_/g, " ")) : ""} · ${kac(id)}${x.guven ? ` · <span class="guven-${x.guven}">${GUVEN_ADI[x.guven]}</span>` : ""}</div>`;
+  if (x.takma_adlar && x.takma_adlar.length) h += `<p><span class="ipucu">Diğer adları:</span> ${x.takma_adlar.map(kac).join(", ")}</p>`;
+  if (x.aciklama || x.tanim) h += `<p>${kac(x.aciklama || x.tanim)}</p>`;
+  if (d.k === "iliskiler") h += `<p>${bag(x.kaynak)} ${x.yonlu === false ? "↔" : "→"} ${bag(x.hedef)}</p><p class="ipucu">Tür: ${kac(x.tur.replace(/_/g, " "))}${x.baslangic_olay ? ` · başlangıç: ${bag(x.baslangic_olay)}` : ""}${x.bitis_olay ? ` · bitiş: ${bag(x.bitis_olay)}` : ""}</p>`;
+  if (x.ozellikler && Object.keys(x.ozellikler).length) h += `<h4>Özellikler</h4><dl>${Object.entries(x.ozellikler).map(([k, val]) => `<dt>${kac(k.replace(/_/g, " "))}</dt><dd>${kac(typeof val === "object" ? JSON.stringify(val) : val)}</dd>`).join("")}</dl>`;
+  if (d.k === "varliklar") {
+    const rel = (v.iliskiler || []).filter((r) => r.kaynak === id || r.hedef === id);
+    if (rel.length) h += `<h4>İlişkiler</h4>${rel.map((r) => `<div>${r.kaynak === id ? "→" : "←"} ${kac(r.tur.replace(/_/g, " "))} ${bag(r.kaynak === id ? r.hedef : r.kaynak)}${r.aciklama ? `<br><small class="ipucu">${kac(r.aciklama)}</small>` : ""}</div>`).join("")}`;
+    const ol = (v.olaylar || []).filter((o) => (o.katilimcilar || []).includes(id) || o.yer === id).sort((a, b) => a.anlati_sirasi - b.anlati_sirasi);
+    if (ol.length) h += `<h4>Geçtiği olaylar</h4>${baglar(ol.map((o) => o.id))}`;
+    if (x.gelisim && x.gelisim.length) h += `<h4>Gelişimi</h4>${x.gelisim.map((g) => `<div class="kanit">${kac(g.degisim)}<small>${bag(g.olay)}</small></div>`).join("")}`;
+  }
+  if (d.k === "olaylar") {
+    h += `<dl>${x.zaman_ifadesi ? `<dt>Zaman</dt><dd>${kac(x.zaman_ifadesi)}</dd>` : ""}<dt>Anlatı sırası</dt><dd>${x.anlati_sirasi}</dd>${x.kronolojik_sira ? `<dt>Kronolojik</dt><dd>${x.kronolojik_sira}</dd>` : ""}${x.yer ? `<dt>Yer</dt><dd>${bag(x.yer)}</dd>` : ""}</dl>`;
+    h += `<h4>Katılımcılar</h4>${baglar(x.katilimcilar)}<h4>Nedenleri</h4>${baglar(x.nedenler)}`;
+    const son = (v.olaylar || []).filter((o) => (o.nedenler || []).includes(id)).map((o) => o.id);
+    h += `<h4>Yol açtıkları</h4>${baglar(son)}`;
+  }
+  if (x.ilgili && x.ilgili.length) h += `<h4>İlgili kayıtlar</h4>${baglar(x.ilgili)}`;
+  const anan = [];
+  for (const k of ["kurallar", "temalar", "algoritmalar"]) (v[k] || []).forEach((y) => { if ((y.ilgili || []).includes(id) || (k === "algoritmalar" && (y.dugumler || []).some((dd) => (dd.ilgili || []).includes(id)))) anan.push(y.id); });
+  if (anan.length && d.k !== "algoritmalar") h += `<h4>Geçtiği kural, tema ve algoritmalar</h4>${baglar([...new Set(anan)])}`;
+  h += belirsizlikHtml(id);
+  h += `<h4>Kaynak</h4>${kanitHtml(x.kanit)}`;
+  return h;
+}
+
+function ozetCiz(p) {
+  const s = D.denetim.istatistik, v = D.veri;
+  const kutular = [["varlik", "Varlık"], ["iliski", "İlişki"], ["olay", "Olay"], ["algoritma", "Algoritma"], ["kural", "Kural"], ["tema", "Tema"], ["terim", "Terim"], ["parca", "Okunan parça"]]
+    .filter(([k]) => s[k]).map(([k, ad]) => `<div class="istatistik"><b>${s[k]}</b><span>${ad}</span></div>`).join("");
+  const onemli = (v.varliklar || []).slice().sort((a, b) => (b.onem || 0) - (a.onem || 0)).slice(0, 8);
+  p.innerHTML = `<p class="ozet">${kac(v.meta.ozet)}</p><div class="istatistikler">${kutular}</div>
+    ${onemli.length ? `<h2 class="bolum">Öne çıkanlar</h2><div>${baglar(onemli.map((x) => x.id))}</div>` : ""}
+    ${(v.algoritmalar || []).length ? `<h2 class="bolum">Algoritmalar</h2><div class="liste">${v.algoritmalar.map((a) => `<button type="button" class="kayit" data-git="${kac(a.id)}"><h3>${kac(a.baslik)}</h3><p>${kac(a.amac)}</p></button>`).join("")}</div>` : ""}
+    ${(v.temalar || []).length ? `<h2 class="bolum">Temalar</h2><div class="liste">${v.temalar.map((t) => `<button type="button" class="kayit" data-git="${kac(t.id)}"><h3>${kac(t.ad)}</h3><p>${kac(t.aciklama)}</p></button>`).join("")}</div>` : ""}`;
+}
+
+function varlikCiz(p) {
+  const v = D.veri.varliklar || [];
+  const turler = [...D.turRenk.keys()];
+  const liste = v.filter((x) => !D.filtre || x.tur === D.filtre).sort((a, b) => (b.onem || 0) - (a.onem || 0) || a.ad.localeCompare(b.ad, "tr"));
+  const secili = D.secili && D.dizin.get(D.secili)?.k === "varliklar" ? D.secili : liste[0]?.id;
+  p.innerHTML = `<div class="filtreler"><button class="filtre" data-f="" aria-pressed="${!D.filtre}">Tümü (${v.length})</button>${turler.map((t) =>
+    `<button class="filtre" data-f="${kac(t)}" aria-pressed="${D.filtre === t}"><span class="tur-imi" style="background:${D.turRenk.get(t)}"></span>${kac(t.replace(/_/g, " "))} (${v.filter((x) => x.tur === t).length})</button>`).join("")}</div>
+    <div class="iki-sutun"><div class="liste">${liste.map((x) => `<button type="button" class="kayit" data-kayit="${kac(x.id)}" aria-pressed="${x.id === secili}">
+      <h3><span class="tur-imi" style="background:${D.turRenk.get(x.tur)}"></span>${kac(x.ad)}</h3><p>${kac(x.aciklama)}</p></button>`).join("")}</div>
+      <aside class="detay" id="detay" aria-live="polite">${detayHtml(secili)}</aside></div>`;
+  p.querySelector(".filtreler").addEventListener("click", (e) => { const b = e.target.closest("[data-f]"); if (b) { D.filtre = b.dataset.f || null; D.secili = null; sekmeCiz(); } });
+  p.querySelector(".liste").addEventListener("click", (e) => { const b = e.target.closest("[data-kayit]"); if (!b) return;
+    D.secili = b.dataset.kayit; p.querySelectorAll("[data-kayit]").forEach((k) => k.setAttribute("aria-pressed", String(k === b)));
+    $("#detay").innerHTML = detayHtml(D.secili); adresYaz("varliklar", D.secili, true); });
+}
+
+function cyYok(p, neden) { p.insertAdjacentHTML("afterbegin", `<div class="hata-kutu" role="alert">Grafik kütüphanesi yüklenemedi (${kac(neden)}). İnternet bağlantını kontrol et; aşağıda liste görünümü var.</div>`); }
+function agCiz(p) {
+  const v = D.veri, rel = v.iliskiler || [];
+  p.innerHTML = `<div class="grafik-arac"><button class="dugme" id="agSigdir" type="button">Tümünü sığdır</button><span class="ipucu">Düğüme tıklayınca ayrıntısı sağda açılır; sürükleyerek yerleşimi değiştirebilirsin.</span></div>
+    <div class="iki-sutun"><div><div class="grafik" id="agGrafik" role="img" aria-label="Varlıklar arası ilişki ağı"></div>
+    <div class="lejant">${[...D.turRenk].map(([t, r]) => `<span><span class="tur-imi" style="background:${r}"></span>${kac(t.replace(/_/g, " "))}</span>`).join("")}</div></div>
+    <aside class="detay" id="detay" aria-live="polite">${detayHtml(D.secili)}</aside></div>
+    <h2 class="bolum">İlişki listesi</h2><div class="tablo-kap"><table><thead><tr><th>Kaynak</th><th>İlişki</th><th>Hedef</th><th>Açıklama</th></tr></thead><tbody>${rel.map((r) =>
+      `<tr><td>${bag(r.kaynak)}</td><td>${kac(r.tur.replace(/_/g, " "))}${r.yonlu === false ? " ↔" : " →"}</td><td>${bag(r.hedef)}</td><td>${kac(r.aciklama || "")}</td></tr>`).join("")}</tbody></table></div>`;
+  if (!cytoscapeVar()) return cyYok(p, "cytoscape bulunamadı");
+  const ids = new Set();
+  rel.forEach((r) => { ids.add(r.kaynak); ids.add(r.hedef); });
+  (v.varliklar || []).forEach((x) => ids.add(x.id));
+  const elemanlar = [...ids].filter((id) => D.dizin.has(id)).map((id) => { const d = D.dizin.get(id);
+    return { data: { id, label: adi(id), renk: d.k === "varliklar" ? D.turRenk.get(d.x.tur) : css("--soluk"), boy: 18 + 6 * ((d.x.onem || 2)) } }; });
+  rel.filter((r) => D.dizin.has(r.kaynak) && D.dizin.has(r.hedef)).forEach((r) => elemanlar.push({ data: { id: "e_" + r.id, source: r.kaynak, target: r.hedef, label: r.tur.replace(/_/g, " "), yon: r.yonlu === false ? "none" : "triangle", rid: r.id } }));
+  D.cyAg = cytoscape({ container: $("#agGrafik"), elements: elemanlar, wheelSensitivity: 0.3,
+    style: [
+      { selector: "node", style: { "background-color": "data(renk)", width: "data(boy)", height: "data(boy)", label: "data(label)", color: css("--murekkep"),
+        "font-family": css("--govde"), "font-size": 12, "text-valign": "bottom", "text-margin-y": 4, "text-wrap": "wrap", "text-max-width": 120,
+        "text-background-color": css("--yuzey"), "text-background-opacity": 0.85, "text-background-padding": 2 } },
+      { selector: "edge", style: { width: 1.6, "line-color": css("--cizgi"), "target-arrow-color": css("--soluk"), "target-arrow-shape": "data(yon)",
+        "curve-style": "bezier", label: "data(label)", "font-size": 10, color: css("--soluk"), "text-rotation": "autorotate",
+        "text-background-color": css("--yuzey"), "text-background-opacity": 0.9, "text-background-padding": 1 } },
+      { selector: ".secili", style: { "border-width": 3, "border-color": css("--murekkep") } },
+      { selector: ".soluk", style: { opacity: 0.18 } }
+    ],
+    layout: { name: "cose", animate: false, nodeRepulsion: 9000, idealEdgeLength: 110, padding: 30 } });
+  const vurgula = (id) => { D.cyAg.elements().removeClass("secili soluk"); const n = D.cyAg.getElementById(id);
+    if (n && n.length) { n.addClass("secili"); D.cyAg.elements().difference(n.closedNeighborhood()).addClass("soluk"); } };
+  D.cyAg.on("tap", "node", (e) => { D.secili = e.target.id(); vurgula(D.secili); $("#detay").innerHTML = detayHtml(D.secili); adresYaz("ag", D.secili, true); });
+  D.cyAg.on("tap", "edge", (e) => { D.secili = e.target.data("rid"); $("#detay").innerHTML = detayHtml(D.secili); });
+  D.cyAg.on("tap", (e) => { if (e.target === D.cyAg) D.cyAg.elements().removeClass("secili soluk"); });
+  if (D.secili) vurgula(D.secili);
+  $("#agSigdir").addEventListener("click", () => D.cyAg.fit(undefined, 30));
+}
+
+function zamanCiz(p) {
+  const ol = (D.veri.olaylar || []).slice();
+  const kron = D.zamanKip === "kronolojik";
+  const kronVar = ol.some((o) => o.kronolojik_sira);
+  ol.sort((a, b) => kron ? ((a.kronolojik_sira ?? 1e9) - (b.kronolojik_sira ?? 1e9)) : a.anlati_sirasi - b.anlati_sirasi);
+  let enBuyuk = 0;
+  const geri = new Set();
+  ol.slice().sort((a, b) => a.anlati_sirasi - b.anlati_sirasi).forEach((o) => { if (o.kronolojik_sira) { if (o.kronolojik_sira < enBuyuk) geri.add(o.id); enBuyuk = Math.max(enBuyuk, o.kronolojik_sira); } });
+  p.innerHTML = `<div class="grafik-arac">${kronVar ? `<div class="filtreler" style="margin:0"><button class="filtre" data-k="anlati" aria-pressed="${!kron}">Anlatı sırası</button><button class="filtre" data-k="kronolojik" aria-pressed="${kron}">Kronolojik sıra</button></div>` : ""}
+    ${geri.size ? `<span class="ipucu">Okra işaretli olaylar anlatıda geriye dönüş (flashback) olarak anlatılıyor.</span>` : ""}</div>
+    <div class="iki-sutun"><ol class="zaman">${ol.map((o) => `<li class="${geri.has(o.id) ? "geri" : ""}"><button type="button" class="kayit" data-kayit="${kac(o.id)}" aria-pressed="${o.id === D.secili}">
+      <span class="sira">Anlatı ${o.anlati_sirasi}${o.kronolojik_sira ? ` · kronolojik ${o.kronolojik_sira}` : ""}${o.zaman_ifadesi ? ` · ${kac(o.zaman_ifadesi)}` : ""}</span>
+      <h3>${kac(o.baslik)}</h3><p>${kac(o.aciklama)}</p></button></li>`).join("")}</ol>
+    <aside class="detay" id="detay" aria-live="polite">${detayHtml(D.secili && D.dizin.get(D.secili)?.k === "olaylar" ? D.secili : ol[0]?.id)}</aside></div>`;
+  p.querySelector(".grafik-arac").addEventListener("click", (e) => { const b = e.target.closest("[data-k]"); if (b) { D.zamanKip = b.dataset.k; sekmeCiz(); } });
+  p.querySelector(".zaman").addEventListener("click", (e) => { const b = e.target.closest("[data-kayit]"); if (!b) return; D.secili = b.dataset.kayit;
+    p.querySelectorAll("[data-kayit]").forEach((k) => k.setAttribute("aria-pressed", String(k === b))); $("#detay").innerHTML = detayHtml(D.secili); adresYaz("zaman", D.secili, true); });
+}
+
+function algCiz(p) {
+  const algler = D.veri.algoritmalar || [];
+  if (!D.algId || !algler.some((a) => a.id === D.algId)) D.algId = algler[0].id;
+  const a = algler.find((x) => x.id === D.algId);
+  const dug = new Map((a.dugumler || []).map((d) => [d.id, d]));
+  const bas = (a.dugumler || []).find((d) => d.tur === "baslangic");
+  if (!D.iz.length && bas) D.iz = [{ dugum: bas.id, etiket: null }];
+  p.innerHTML = `<div class="grafik-arac">${algler.length > 1 ? `<label class="ipucu" for="algSec">Algoritma</label><select id="algSec" class="dugme">${algler.map((x) => `<option value="${kac(x.id)}" ${x.id === a.id ? "selected" : ""}>${kac(x.baslik)}</option>`).join("")}</select>` : ""}
+    <button class="dugme" id="algSigdir" type="button">Tümünü sığdır</button><button class="dugme" id="algBastan" type="button">Baştan yürüt</button></div>
+    <h2 class="bolum" style="margin-top:4px">${kac(a.baslik)}</h2><p style="max-width:72ch">${kac(a.amac)}${a.giris_kosulu ? `<br><span class="ipucu">Giriş koşulu: ${kac(a.giris_kosulu)}</span>` : ""} <span class="guven-${a.guven}">(${GUVEN_ADI[a.guven] || ""})</span></p>
+    ${belirsizlikHtml(a.id)}
+    <div class="yurut"><div><div class="grafik" id="algGrafik" role="img" aria-label="Algoritma akış şeması"></div>
+      <div class="lejant"><span>◆ karar</span><span>▭ eylem</span><span>⬭ sonuç</span><span>Kalın yol: yürüttüğün adımlar</span></div></div>
+      <aside class="detay" id="yurutucu" aria-live="polite"></aside></div>
+    <h2 class="bolum">Adımların kaynakları</h2><div class="tablo-kap"><table><thead><tr><th>Adım</th><th>Tür</th><th>Kaynak</th></tr></thead><tbody>${(a.dugumler || []).map((d) =>
+      `<tr><td>${kac(d.metin)}${d.ilgili && d.ilgili.length ? `<br>${baglar(d.ilgili)}` : ""}</td><td>${DUGUM_ADI[d.tur] || kac(d.tur)}</td><td>${d.kanit && d.kanit.length ? d.kanit.map((k) => `${kac(parcaAdi(k.parca))}${k.sayfa ? `, s. ${k.sayfa}` : ""}`).join("<br>") : '<span class="ipucu">—</span>'}</td></tr>`).join("")}</tbody></table></div>`;
+  const sec = $("#algSec"); if (sec) sec.addEventListener("change", () => { D.algId = sec.value; D.iz = []; D.secili = sec.value; adresYaz("algoritmalar", sec.value, true); sekmeCiz(); });
+  $("#algBastan").addEventListener("click", () => { D.iz = bas ? [{ dugum: bas.id, etiket: null }] : []; yurutucuCiz(a, dug); izBoya(); });
+  if (cytoscapeVar() && window.cytoscapeDagre && !cytoscape.__dagre) { cytoscape.use(window.cytoscapeDagre); cytoscape.__dagre = true; }
+  if (cytoscapeVar()) {
+    const renk = { baslangic: css("--vurgu"), karar: css("--okra"), eylem: css("--murekkep"), bilgi: css("--soluk"), uyari: css("--kizil"), bitis: css("--yesil") };
+    const sekil = { baslangic: "round-rectangle", karar: "diamond", eylem: "round-rectangle", bilgi: "rectangle", uyari: "rectangle", bitis: "ellipse" };
+    D.cyAlg = cytoscape({ container: $("#algGrafik"), wheelSensitivity: 0.3, autoungrabify: true,
+      elements: [...(a.dugumler || []).map((d) => ({ data: { id: d.id, label: d.metin, renk: renk[d.tur] || css("--soluk"), sekil: sekil[d.tur] || "round-rectangle", genis: d.tur === "karar" ? 150 : 140 } })),
+        ...(a.kenarlar || []).filter((e) => dug.has(e.kaynak) && dug.has(e.hedef)).map((e, i) => ({ data: { id: `k${i}`, source: e.kaynak, target: e.hedef, label: e.etiket || "" } }))],
+      style: [
+        { selector: "node", style: { shape: "data(sekil)", "background-color": css("--yuzey"), "border-width": 2, "border-color": "data(renk)", label: "data(label)",
+          "text-wrap": "wrap", "text-max-width": "data(genis)", "text-valign": "center", "text-halign": "center", "font-family": css("--govde"), "font-size": 13,
+          color: css("--murekkep"), width: "label", height: "label", padding: 14 } },
+        { selector: "node[sekil = 'diamond']", style: { padding: 26 } },
+        { selector: "edge", style: { width: 1.6, "line-color": css("--cizgi"), "target-arrow-shape": "triangle", "target-arrow-color": css("--soluk"), "curve-style": "taxi",
+          "taxi-direction": "downward", label: "data(label)", "font-size": 11, color: css("--soluk"), "text-background-color": css("--zemin"), "text-background-opacity": 1, "text-background-padding": 2 } },
+        { selector: ".yolda", style: { "border-width": 4, "background-color": css("--vurgu-acik") } },
+        { selector: "edge.yolda", style: { width: 4, "line-color": css("--vurgu"), "target-arrow-color": css("--vurgu"), color: css("--vurgu") } },
+        { selector: ".simdi", style: { "border-color": css("--vurgu"), "border-width": 5 } }
+      ],
+      layout: window.cytoscapeDagre ? { name: "dagre", rankDir: "TB", nodeSep: 24, rankSep: 46, edgeSep: 12, padding: 16 } : { name: "breadthfirst", directed: true, padding: 20 } });
+    const kap = $("#algGrafik"), bb = D.cyAlg.elements().boundingBox();
+    const olcek = Math.min(1, (kap.clientWidth - 40) / Math.max(bb.w, 1));
+    kap.style.height = Math.round(Math.max(360, Math.min(1800, bb.h * olcek + 48))) + "px";
+    D.cyAlg.resize(); D.cyAlg.fit(undefined, 20);
+    D.cyAlg.on("tap", "node", (e) => { const id = e.target.id(); const i = D.iz.findIndex((s) => s.dugum === id); if (i >= 0) { D.iz = D.iz.slice(0, i + 1); yurutucuCiz(a, dug); izBoya(); } });
+    $("#algSigdir").addEventListener("click", () => D.cyAlg.fit(undefined, 20));
+    if (!window.cytoscapeDagre) p.querySelector(".lejant").insertAdjacentHTML("beforeend", '<span class="guven-dusuk">Dagre yerleşimi yüklenemedi; basit yerleşim kullanıldı.</span>');
+  } else cyYok(p, "cytoscape bulunamadı");
+  yurutucuCiz(a, dug); izBoya();
+}
+function izBoya() {
+  if (!D.cyAlg) return;
+  D.cyAlg.elements().removeClass("yolda simdi");
+  D.iz.forEach((s, i) => { D.cyAlg.getElementById(s.dugum).addClass("yolda");
+    if (i > 0) D.cyAlg.edges(`[source = "${D.iz[i - 1].dugum}"][target = "${s.dugum}"]`).addClass("yolda"); });
+  if (D.iz.length) D.cyAlg.getElementById(D.iz[D.iz.length - 1].dugum).addClass("simdi");
+}
+function yurutucuCiz(a, dug) {
+  const kutu = $("#yurutucu");
+  if (!D.iz.length) { kutu.innerHTML = '<p class="hata-kutu">Bu algoritmada başlangıç düğümü yok; yürütülemiyor.</p>'; return; }
+  const simdi = dug.get(D.iz[D.iz.length - 1].dugum);
+  const cikis = (a.kenarlar || []).filter((e) => e.kaynak === simdi.id && dug.has(e.hedef));
+  const gecmis = D.iz.slice(0, -1).map((s, i) => `<li><span>${kac(dug.get(s.dugum).metin)}${D.iz[i + 1].etiket ? ` <em>${kac(D.iz[i + 1].etiket)}</em>` : ""}</span></li>`).join("");
+  let govde = "";
+  if (simdi.tur === "bitis") govde = `<div class="sonuc-kutu"><strong>Sonuç</strong><p class="soru" style="margin:4px 0 0">${kac(simdi.metin)}</p></div>`;
+  else if (simdi.tur === "uyari") govde = `<div class="uyari-dugum"><strong>Uyarı</strong><p class="soru" style="margin:4px 0 0">${kac(simdi.metin)}</p></div>`;
+  else govde = `<p class="ipucu" style="margin:0">${DUGUM_ADI[simdi.tur] || ""}</p><p class="soru">${kac(simdi.metin)}</p>`;
+  if (simdi.ayrinti) govde += `<p>${kac(simdi.ayrinti)}</p>`;
+  if (simdi.ilgili && simdi.ilgili.length) govde += `<div>${baglar(simdi.ilgili)}</div>`;
+  if (cikis.length) govde += `<div class="secenekler">${cikis.map((e, i) => `<button type="button" class="dugme ${cikis.length === 1 ? "birincil" : ""}" data-i="${i}">${kac(e.etiket || (cikis.length === 1 ? "Devam" : dug.get(e.hedef).metin))}</button>`).join("")}</div>`;
+  else if (simdi.tur !== "bitis") govde += '<p class="hata-kutu">Bu adımdan çıkış yok (dosyada çıkmaz yol).</p>';
+  if (simdi.tur === "bitis") govde += '<div class="secenekler"><button type="button" class="dugme" data-bastan="1">Baştan yürüt</button></div>';
+  kutu.innerHTML = `${gecmis ? `<h4 style="margin-top:0">İzlediğin yol</h4><ol class="iz">${gecmis}</ol>` : ""}${govde}${simdi.kanit && simdi.kanit.length ? `<h4>Kaynak</h4>${kanitHtml(simdi.kanit)}` : ""}`;
+  kutu.onclick = (e) => {
+    const b = e.target.closest("[data-i]");
+    if (b) { const k = cikis[+b.dataset.i]; D.iz.push({ dugum: k.hedef, etiket: k.etiket || null }); yurutucuCiz(a, dug); izBoya(); kutu.querySelector(".secenekler .dugme, .soru")?.focus?.(); return; }
+    if (e.target.closest("[data-bastan]")) { D.iz = [D.iz[0]]; yurutucuCiz(a, dug); izBoya(); }
+  };
+}
+
+function kuralCiz(p) {
+  p.innerHTML = (D.veri.kurallar || []).map((k) => `<article class="kural" data-kayit="${kac(k.id)}"><h3 style="margin:0">${kac(k.baslik)}</h3>
+    <div class="ise"><b>Eğer</b><span>${kac(k.kosul)}</span><b>O zaman</b><span>${kac(k.eylem)}</span>${k.istisnalar && k.istisnalar.length ? `<b>İstisna</b><span>${k.istisnalar.map(kac).join("<br>")}</span>` : ""}</div>
+    <p class="ipucu" style="margin:0">${k.kanit_duzeyi ? `Kanıt düzeyi: ${kac(k.kanit_duzeyi)} · ` : ""}<span class="guven-${k.guven}">${GUVEN_ADI[k.guven] || ""}</span></p>
+    ${k.ilgili && k.ilgili.length ? `<div style="margin-top:6px">${baglar(k.ilgili)}</div>` : ""}${belirsizlikHtml(k.id)}${kanitHtml(k.kanit)}</article>`).join("");
+}
+function temaCiz(p) {
+  p.innerHTML = (D.veri.temalar || []).map((t) => `<article class="kural" data-kayit="${kac(t.id)}"><h3 style="margin:0 0 4px;font-family:var(--baslik)">${kac(t.ad)}</h3><p>${kac(t.aciklama)}</p>
+    ${t.ilgili && t.ilgili.length ? `<div>${baglar(t.ilgili)}</div>` : ""}${kanitHtml(t.kanit)}</article>`).join("");
+}
+function sozlukCiz(p) {
+  const s = (D.veri.sozluk || []).slice().sort((a, b) => a.terim.localeCompare(b.terim, "tr"));
+  p.innerHTML = `<div class="tablo-kap"><table><thead><tr><th>Terim</th><th>Tanım</th><th>Kaynak</th></tr></thead><tbody>${s.map((t) =>
+    `<tr data-kayit="${kac(t.id)}"><td><strong>${kac(t.terim)}</strong></td><td>${kac(t.tanim)}</td><td>${t.kanit.map((k) => `${kac(parcaAdi(k.parca))}${k.sayfa ? `, s. ${k.sayfa}` : ""}`).join("<br>")}</td></tr>`).join("")}</tbody></table></div>`;
+}
+function kanitCiz(p) {
+  const v = D.veri, sayac = new Map();
+  for (const k of ["varliklar", "iliskiler", "olaylar", "kurallar", "algoritmalar", "temalar", "sozluk"]) (v[k] || []).forEach((x) => (x.kanit || []).forEach((kn) => sayac.set(kn.parca, (sayac.get(kn.parca) || 0) + 1)));
+  const bel = v.belirsizlikler || [];
+  p.innerHTML = `<h2 class="bolum" style="margin-top:0">Belirsizlikler (${bel.length})</h2>${bel.length ? bel.map((b) => `<div class="not">${bag(b.kayit)} ${kac(b.neden)}</div>`).join("") : '<p class="ipucu">Belirsizlik kaydı yok.</p>'}
+    <h2 class="bolum">Okunan parçalar</h2><div class="tablo-kap"><table><thead><tr><th>Parça</th><th>Sayfalar</th><th>1. geçiş</th><th>2. geçiş</th><th>Kanıt sayısı</th></tr></thead><tbody>${(v.parcalar || []).map((pc) =>
+      `<tr data-kayit="${kac(pc.id)}"><td>${kac(pc.baslik || pc.id)}${pc.not ? `<br><small class="ipucu">${kac(pc.not)}</small>` : ""}</td><td>${pc.sayfa_baslangic ?? "?"}–${pc.sayfa_bitis ?? "?"}</td><td>${pc.gecis1 ? "✔" : '<span class="guven-dusuk">✘</span>'}</td><td>${pc.gecis2 ? "✔" : '<span class="guven-dusuk">✘</span>'}</td><td>${sayac.get(pc.id) || 0}</td></tr>`).join("")}</tbody></table></div>`;
+}
+function kaliteCiz(p) {
+  const dn = D.denetim, k = D.veri.kalite || {}, beyan = k.dogrulama || {};
+  p.innerHTML = `<p style="max-width:72ch">Görüntüleyici dosyayı açarken ${D.sema ? "şemaya ve " : ""}bütünlük kurallarına göre yeniden denetledi. ${D.sema ? "" : '<span class="guven-orta">Şema dosyası (algoritma-semasi.json) bulunamadığı için yalnız bütünlük denetimi yapıldı.</span>'}</p>
+    <div class="istatistikler"><div class="istatistik"><b class="${dn.sonuc === "GECTI" ? "guven-yuksek" : "guven-dusuk"}">${dn.sonuc === "GECTI" ? "Geçti" : "Kaldı"}</b><span>Canlı denetim</span></div>
+      <div class="istatistik"><b>${dn.hatalar.length}</b><span>Hata</span></div><div class="istatistik"><b>${dn.uyarilar.length}</b><span>Uyarı</span></div>
+      <div class="istatistik"><b>${beyan.sonuc === "GECTI" ? "Geçti" : beyan.sonuc === "KALDI" ? "Kaldı" : "?"}</b><span>Dosyadaki beyan</span></div>
+      <div class="istatistik"><b>${k.gecis2_eklenen ?? "?"}</b><span>2. geçişte eklenen</span></div><div class="istatistik"><b>${k.gecis2_dusurulen ?? "?"}</b><span>2. geçişte düşürülen</span></div></div>
+    ${dn.hatalar.length ? `<h2 class="bolum">Hatalar</h2><ul class="denetim">${dn.hatalar.map((h) => `<li class="h">${kac(h)}</li>`).join("")}</ul>` : ""}
+    ${dn.uyarilar.length ? `<h2 class="bolum">Uyarılar</h2><ul class="denetim">${dn.uyarilar.map((h) => `<li class="u">${kac(h)}</li>`).join("")}</ul>` : ""}
+    ${!dn.hatalar.length && !dn.uyarilar.length ? '<p class="guven-yuksek">Hata veya uyarı yok.</p>' : ""}`;
+}
+
+function aramaYap() {
+  const q = Dogrulayici.norm($("#arama").value), ul = $("#aramaSonuc");
+  if (q.length < 2) { ul.innerHTML = ""; return; }
+  const sonuc = [];
+  for (const [id, { k, x }] of D.dizin) {
+    if (k === "parcalar") continue;
+    const ad = adi(id), alanlar = [ad, ...(x.takma_adlar || []), x.aciklama, x.tanim, x.amac, x.kosul, x.eylem, x.tur].filter(Boolean).map(Dogrulayici.norm);
+    const puan = Dogrulayici.norm(ad).startsWith(q) ? 3 : Dogrulayici.norm(ad).includes(q) ? 2 : alanlar.some((a) => a.includes(q)) ? 1 : 0;
+    if (puan) sonuc.push({ id, ad, k, puan });
+  }
+  (D.veri.algoritmalar || []).forEach((a) => (a.dugumler || []).forEach((d) => { if (Dogrulayici.norm(d.metin).includes(q)) sonuc.push({ id: a.id, ad: d.metin, k: "algoritma adımı", puan: 1 }); }));
+  sonuc.sort((a, b) => b.puan - a.puan || a.ad.localeCompare(b.ad, "tr"));
+  ul.innerHTML = sonuc.length ? sonuc.slice(0, 40).map((s) => `<li><button type="button" data-git="${kac(s.id)}">${kac(s.ad)}<br><small>${kac(KOLEKSIYON_ADI[s.k] || s.k)}</small></button></li>`).join("") : '<li class="ipucu">Eşleşme yok.</li>';
+}
+
+kenarKur();
+window.addEventListener("hashchange", adresDegisti);
+window.addEventListener("popstate", adresDegisti);
+(async () => {
+  const h = hashOku();
+  if (h.f) await uzaktanYukle(h.f);
+  else if (JSON_DOSYALARI.length && location.protocol !== "file:") await uzaktanYukle(JSON_DOSYALARI[0]);
+  if (!cytoscapeVar()) console.warn("cytoscape yüklenemedi");
+})();
+</script>
+</body>
+</html>
