@@ -1,0 +1,482 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "harita-semasi.json",
+  "title": "Belge Zihin Haritası",
+  "description": "Bir belgeden (roman, tıp, ders, teknik, hukuk, sohbet/YouTube, genel) iki geçişli okumayla çıkarılan, her düğümü kaynağa bağlı zihin haritası. Düz düğüm listesi; ağaç 'ebeveyn' alanıyla kurulur. Sürüm 1.0.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "meta",
+    "parcalar",
+    "dugumler",
+    "baglantilar",
+    "ozetler",
+    "belirsizlikler",
+    "kalite"
+  ],
+  "properties": {
+    "meta": {
+      "$ref": "#/$defs/meta"
+    },
+    "parcalar": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/parca"
+      }
+    },
+    "dugumler": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/dugum"
+      }
+    },
+    "baglantilar": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/baglanti"
+      }
+    },
+    "ozetler": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ozet"
+      }
+    },
+    "belirsizlikler": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/belirsizlik"
+      }
+    },
+    "kalite": {
+      "$ref": "#/$defs/kalite"
+    },
+    "alan_ozel": {
+      "type": "object"
+    }
+  },
+  "$defs": {
+    "kimlik": {
+      "type": "string",
+      "pattern": "^[A-Z][0-9]{1,5}$"
+    },
+    "zaman": {
+      "type": "string",
+      "pattern": "^([0-9]{1,2}:)?[0-5]?[0-9]:[0-5][0-9]$"
+    },
+    "metin": {
+      "type": "string",
+      "minLength": 1
+    },
+    "guven": {
+      "type": "string",
+      "enum": [
+        "yuksek",
+        "orta",
+        "dusuk"
+      ]
+    },
+    "kanit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "parca"
+      ],
+      "properties": {
+        "parca": {
+          "$ref": "#/$defs/kimlik"
+        },
+        "sayfa": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1
+        },
+        "zaman": {
+          "$ref": "#/$defs/zaman"
+        },
+        "alinti": {
+          "type": "string",
+          "maxLength": 160
+        },
+        "gorsel": {
+          "type": "boolean"
+        }
+      }
+    },
+    "kanitlar": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/kanit"
+      }
+    },
+    "meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "baslik",
+        "ozet",
+        "kaynak_dosya",
+        "kaynak_turu",
+        "alan",
+        "dil",
+        "olusturma_tarihi"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "1.0"
+        },
+        "baslik": {
+          "$ref": "#/$defs/metin"
+        },
+        "yazar": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ozet": {
+          "$ref": "#/$defs/metin"
+        },
+        "kaynak_dosya": {
+          "$ref": "#/$defs/metin"
+        },
+        "kaynak_turu": {
+          "type": "string",
+          "enum": [
+            "pdf",
+            "txt",
+            "markdown",
+            "youtube",
+            "diger"
+          ]
+        },
+        "kaynak_url": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^https?://"
+        },
+        "sha256": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "sayfa_sayisi": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1
+        },
+        "sure": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "alan": {
+          "type": "string",
+          "enum": [
+            "roman",
+            "tip",
+            "ders",
+            "teknik",
+            "hukuk",
+            "sohbet",
+            "genel"
+          ]
+        },
+        "dil": {
+          "type": "string",
+          "pattern": "^[a-z]{2}$"
+        },
+        "olusturma_tarihi": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}"
+        },
+        "olusturan": {
+          "type": "string"
+        },
+        "uyari": {
+          "type": "string"
+        },
+        "ornek": {
+          "type": "boolean"
+        }
+      }
+    },
+    "parca": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "gecis1",
+        "gecis2"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/kimlik"
+        },
+        "baslik": {
+          "type": "string"
+        },
+        "sayfa_baslangic": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1
+        },
+        "sayfa_bitis": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1
+        },
+        "zaman_baslangic": {
+          "$ref": "#/$defs/zaman"
+        },
+        "zaman_bitis": {
+          "$ref": "#/$defs/zaman"
+        },
+        "gecis1": {
+          "type": "boolean"
+        },
+        "gecis2": {
+          "type": "boolean"
+        },
+        "not": {
+          "type": "string"
+        }
+      }
+    },
+    "dugum": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "ebeveyn",
+        "sira",
+        "etiket",
+        "kanit",
+        "guven"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/kimlik"
+        },
+        "ebeveyn": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[A-Z][0-9]{1,5}$"
+        },
+        "sira": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "etiket": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "aciklama": {
+          "type": "string"
+        },
+        "tur": {
+          "type": "string",
+          "pattern": "^[a-zçğıöşü_]+$"
+        },
+        "ikon": {
+          "type": "string",
+          "maxLength": 8
+        },
+        "onem": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "acik": {
+          "type": "boolean"
+        },
+        "kanit": {
+          "$ref": "#/$defs/kanitlar"
+        },
+        "guven": {
+          "$ref": "#/$defs/guven"
+        }
+      }
+    },
+    "baglanti": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kaynak",
+        "hedef",
+        "etiket",
+        "kanit",
+        "guven"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/kimlik"
+        },
+        "kaynak": {
+          "$ref": "#/$defs/kimlik"
+        },
+        "hedef": {
+          "$ref": "#/$defs/kimlik"
+        },
+        "etiket": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60
+        },
+        "cift_yonlu": {
+          "type": "boolean"
+        },
+        "aciklama": {
+          "type": "string"
+        },
+        "kanit": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/kanit"
+          }
+        },
+        "guven": {
+          "$ref": "#/$defs/guven"
+        }
+      }
+    },
+    "ozet": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "ebeveyn",
+        "bas",
+        "son",
+        "etiket"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/kimlik"
+        },
+        "ebeveyn": {
+          "$ref": "#/$defs/kimlik"
+        },
+        "bas": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "son": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "etiket": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "kanit": {
+          "$ref": "#/$defs/kanitlar"
+        }
+      }
+    },
+    "belirsizlik": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kayit",
+        "tur",
+        "neden"
+      ],
+      "properties": {
+        "kayit": {
+          "$ref": "#/$defs/kimlik"
+        },
+        "tur": {
+          "type": "string",
+          "enum": [
+            "celiski",
+            "kanit_zayif",
+            "yorum",
+            "eksik"
+          ]
+        },
+        "neden": {
+          "$ref": "#/$defs/metin"
+        }
+      }
+    },
+    "kalite": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "parca_sayisi",
+        "gecis2_eklenen",
+        "gecis2_dusurulen",
+        "dogrulama"
+      ],
+      "properties": {
+        "parca_sayisi": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "gecis2_eklenen": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "gecis2_dusurulen": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "dogrulama": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "sonuc",
+            "hata_sayisi",
+            "uyari_sayisi"
+          ],
+          "properties": {
+            "sonuc": {
+              "type": "string",
+              "enum": [
+                "GECTI",
+                "KALDI"
+              ]
+            },
+            "hata_sayisi": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "uyari_sayisi": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "uyarilar": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

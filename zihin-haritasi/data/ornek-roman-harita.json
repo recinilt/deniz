@@ -1,0 +1,627 @@
+{
+ "meta": {
+  "schema_version": "1.0",
+  "baslik": "Tuz ve Fener",
+  "yazar": "Sentetik örnek",
+  "ozet": "Fener bekçisi Halil, bir fırtına gecesi fenerin sönmesi yüzünden bir gemi kazasından sorumlu tutulur ve kederle ölür. Kızı Nevin, babasının seyir defterinde fitillerin kasten değiştirildiğini gösteren kaydı bulur; iz gemi sahibinin oğlu Selim üzerinden muhtara ve bir sigorta dolandırıcılığına çıkar.",
+  "kaynak_dosya": "tuz-ve-fener.txt",
+  "kaynak_turu": "txt",
+  "sayfa_sayisi": 180,
+  "alan": "roman",
+  "dil": "tr",
+  "olusturma_tarihi": "2026-09-28",
+  "olusturan": "Claude (zihin haritası talimatı 1.0)",
+  "ornek": true
+ },
+ "parcalar": [
+  {
+   "id": "P1",
+   "baslik": "1. Bölüm: Cenaze",
+   "sayfa_baslangic": 1,
+   "sayfa_bitis": 28,
+   "gecis1": true,
+   "gecis2": true
+  },
+  {
+   "id": "P2",
+   "baslik": "2. Bölüm: O Gece",
+   "sayfa_baslangic": 29,
+   "sayfa_bitis": 61,
+   "gecis1": true,
+   "gecis2": true
+  },
+  {
+   "id": "P3",
+   "baslik": "3. Bölüm: Defter",
+   "sayfa_baslangic": 62,
+   "sayfa_bitis": 97,
+   "gecis1": true,
+   "gecis2": true
+  },
+  {
+   "id": "P4",
+   "baslik": "4. Bölüm: Selim",
+   "sayfa_baslangic": 98,
+   "sayfa_bitis": 131,
+   "gecis1": true,
+   "gecis2": true
+  },
+  {
+   "id": "P5",
+   "baslik": "5. Bölüm: Muhtarlık",
+   "sayfa_baslangic": 132,
+   "sayfa_bitis": 160,
+   "gecis1": true,
+   "gecis2": true
+  },
+  {
+   "id": "P6",
+   "baslik": "6. Bölüm: Işık",
+   "sayfa_baslangic": 161,
+   "sayfa_bitis": 180,
+   "gecis1": true,
+   "gecis2": true
+  }
+ ],
+ "dugumler": [
+  {
+   "id": "N1",
+   "ebeveyn": null,
+   "sira": 0,
+   "etiket": "Tuz ve Fener",
+   "kanit": [],
+   "guven": "yuksek"
+  },
+  {
+   "id": "N2",
+   "ebeveyn": "N1",
+   "sira": 0,
+   "etiket": "Karakterler",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 3
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Romanın kişileri ve rolleri.",
+   "tur": "kategori",
+   "ikon": "👤"
+  },
+  {
+   "id": "N3",
+   "ebeveyn": "N2",
+   "sira": 0,
+   "etiket": "Nevin",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 3,
+     "alinti": "Nevin tabutun başında değil, fenerin kapısında bekliyordu."
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Fener bekçisinin kızı, ana karakter; babasının adını temizlemek için gerçeğin peşine düşer.",
+   "tur": "karakter"
+  },
+  {
+   "id": "N4",
+   "ebeveyn": "N3",
+   "sira": 0,
+   "etiket": "Yastan kararlılığa",
+   "kanit": [
+    {
+     "parca": "P3",
+     "sayfa": 62
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Defteri bulunca yasın yerini kararlılık alır.",
+   "tur": "gelişim"
+  },
+  {
+   "id": "N5",
+   "ebeveyn": "N3",
+   "sira": 1,
+   "etiket": "Fenerin yeni bekçisi",
+   "kanit": [
+    {
+     "parca": "P6",
+     "sayfa": 178
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Finalde babasının görevini üstlenir.",
+   "tur": "gelişim"
+  },
+  {
+   "id": "N6",
+   "ebeveyn": "N2",
+   "sira": 1,
+   "etiket": "Halil",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 30,
+     "alinti": "Otuz yıldır tek bir gece bile sönmemişti Halil'in feneri."
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Otuz yıllık fener bekçisi; kaza sonrası suçlanır, kederle ölür.",
+   "tur": "karakter"
+  },
+  {
+   "id": "N7",
+   "ebeveyn": "N2",
+   "sira": 2,
+   "etiket": "Rıza Kaptan",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 44
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Kayalara çarpan geminin sahibi; sigortadan tazminat alır.",
+   "tur": "karakter"
+  },
+  {
+   "id": "N8",
+   "ebeveyn": "N2",
+   "sira": 3,
+   "etiket": "Selim",
+   "kanit": [
+    {
+     "parca": "P4",
+     "sayfa": 99
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Rıza'nın oğlu, Nevin'in çocukluk arkadaşı; babasının planını bilir ama susar.",
+   "tur": "karakter"
+  },
+  {
+   "id": "N9",
+   "ebeveyn": "N2",
+   "sira": 4,
+   "etiket": "Muhtar Cevdet",
+   "kanit": [
+    {
+     "parca": "P5",
+     "sayfa": 140
+    }
+   ],
+   "guven": "orta",
+   "aciklama": "Kaza raporunu Halil aleyhine yazar.",
+   "tur": "karakter"
+  },
+  {
+   "id": "N10",
+   "ebeveyn": "N2",
+   "sira": 5,
+   "etiket": "Doktor Leyla",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 12
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Nevin'e sessizce destek olan kasaba doktoru.",
+   "tur": "karakter"
+  },
+  {
+   "id": "N11",
+   "ebeveyn": "N1",
+   "sira": 1,
+   "etiket": "Olay örgüsü",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 1
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Olaylar anlatı sırasıyla.",
+   "tur": "kategori",
+   "ikon": "📖"
+  },
+  {
+   "id": "N12",
+   "ebeveyn": "N11",
+   "sira": 0,
+   "etiket": "Cenaze",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 1
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Roman Halil'in cenazesiyle açılır.",
+   "tur": "olay"
+  },
+  {
+   "id": "N13",
+   "ebeveyn": "N11",
+   "sira": 1,
+   "etiket": "Fener söner",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 38,
+     "alinti": "Işık bir mum gibi titredi, sonra hiç yanmamış gibi karardı."
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Geriye dönüş: fırtına gecesi fener söner, gemi kayalara çarpar.",
+   "tur": "olay"
+  },
+  {
+   "id": "N14",
+   "ebeveyn": "N11",
+   "sira": 2,
+   "etiket": "Defter bulunur",
+   "kanit": [
+    {
+     "parca": "P3",
+     "sayfa": 62
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Nevin babasının seyir defterini bulur; fitillerin değiştirildiği kaydı görür.",
+   "tur": "olay"
+  },
+  {
+   "id": "N15",
+   "ebeveyn": "N11",
+   "sira": 3,
+   "etiket": "Kahvede yüzleşme",
+   "kanit": [
+    {
+     "parca": "P4",
+     "sayfa": 118
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Selim babasının planını bildiğini itiraf eder.",
+   "tur": "olay"
+  },
+  {
+   "id": "N16",
+   "ebeveyn": "N11",
+   "sira": 4,
+   "etiket": "Rüşvet ortaya çıkar",
+   "kanit": [
+    {
+     "parca": "P5",
+     "sayfa": 151
+    }
+   ],
+   "guven": "orta",
+   "aciklama": "Raporun para karşılığı yazıldığı anlaşılır.",
+   "tur": "olay"
+  },
+  {
+   "id": "N17",
+   "ebeveyn": "N11",
+   "sira": 5,
+   "etiket": "Işık yeniden yanar",
+   "kanit": [
+    {
+     "parca": "P6",
+     "sayfa": 178
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Halil'in adı temizlenir, Nevin feneri yakar.",
+   "tur": "olay"
+  },
+  {
+   "id": "N18",
+   "ebeveyn": "N1",
+   "sira": 2,
+   "etiket": "Mekânlar",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 2
+    }
+   ],
+   "guven": "yuksek",
+   "tur": "kategori",
+   "ikon": "🗺️"
+  },
+  {
+   "id": "N19",
+   "ebeveyn": "N18",
+   "sira": 0,
+   "etiket": "Karaburun Feneri",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 2
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Kasabanın batı burnundaki fener; hikâyenin merkezi.",
+   "tur": "mekan"
+  },
+  {
+   "id": "N20",
+   "ebeveyn": "N18",
+   "sira": 1,
+   "etiket": "Liman kahvesi",
+   "kanit": [
+    {
+     "parca": "P4",
+     "sayfa": 110
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Dedikoduların ve yüzleşmenin geçtiği yer.",
+   "tur": "mekan"
+  },
+  {
+   "id": "N21",
+   "ebeveyn": "N1",
+   "sira": 3,
+   "etiket": "Çatışmalar",
+   "kanit": [
+    {
+     "parca": "P4",
+     "sayfa": 100
+    }
+   ],
+   "guven": "yuksek",
+   "tur": "kategori",
+   "ikon": "⚔️"
+  },
+  {
+   "id": "N22",
+   "ebeveyn": "N21",
+   "sira": 0,
+   "etiket": "Nevin ile kasaba",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 20
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Resmî rapora inanan kasabaya karşı tek başına.",
+   "tur": "çatışma"
+  },
+  {
+   "id": "N23",
+   "ebeveyn": "N21",
+   "sira": 1,
+   "etiket": "Selim ile babası",
+   "kanit": [
+    {
+     "parca": "P5",
+     "sayfa": 157
+    }
+   ],
+   "guven": "orta",
+   "aciklama": "Selim sonunda babasına karşı tanıklık eder.",
+   "tur": "çatışma"
+  },
+  {
+   "id": "N24",
+   "ebeveyn": "N1",
+   "sira": 4,
+   "etiket": "Temalar",
+   "kanit": [
+    {
+     "parca": "P6",
+     "sayfa": 179
+    }
+   ],
+   "guven": "yuksek",
+   "tur": "kategori",
+   "ikon": "💡"
+  },
+  {
+   "id": "N25",
+   "ebeveyn": "N24",
+   "sira": 0,
+   "etiket": "Işık ve hakikat",
+   "kanit": [
+    {
+     "parca": "P6",
+     "sayfa": 179
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Fenerin sönmesi gerçeğin örtülmesi, yanması adaletin gelişi.",
+   "tur": "tema"
+  },
+  {
+   "id": "N26",
+   "ebeveyn": "N24",
+   "sira": 1,
+   "etiket": "Babadan kalan yük",
+   "kanit": [
+    {
+     "parca": "P4",
+     "sayfa": 125
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Nevin babasını savunur, Selim babasını reddeder.",
+   "tur": "tema"
+  },
+  {
+   "id": "N27",
+   "ebeveyn": "N24",
+   "sira": 2,
+   "etiket": "Küçük yerde yozlaşma",
+   "kanit": [
+    {
+     "parca": "P5",
+     "sayfa": 140
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Topluluk bir kişiyi kolayca feda eder.",
+   "tur": "tema"
+  },
+  {
+   "id": "N28",
+   "ebeveyn": "N1",
+   "sira": 5,
+   "etiket": "Semboller",
+   "kanit": [
+    {
+     "parca": "P3",
+     "sayfa": 63
+    }
+   ],
+   "guven": "yuksek",
+   "tur": "kategori",
+   "ikon": "🔦"
+  },
+  {
+   "id": "N29",
+   "ebeveyn": "N28",
+   "sira": 0,
+   "etiket": "Seyir defteri",
+   "kanit": [
+    {
+     "parca": "P3",
+     "sayfa": 63,
+     "alinti": "Defterin son sayfasında babasının titrek el yazısı vardı."
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Gerçeğin yazılı kanıtı.",
+   "tur": "sembol"
+  },
+  {
+   "id": "N30",
+   "ebeveyn": "N28",
+   "sira": 1,
+   "etiket": "Fitil",
+   "kanit": [
+    {
+     "parca": "P3",
+     "sayfa": 71,
+     "alinti": "Yeni fitiller kaptanın adamlarınca takıldı, rengi bulanık."
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Değiştirilen fitil: sabotajın izi.",
+   "tur": "sembol"
+  }
+ ],
+ "baglantilar": [
+  {
+   "id": "L1",
+   "kaynak": "N7",
+   "hedef": "N9",
+   "etiket": "rüşvet verir",
+   "kanit": [
+    {
+     "parca": "P5",
+     "sayfa": 151,
+     "alinti": "Zarfın içindeki paranın kokusu hâlâ sigaraya sinmişti."
+    }
+   ],
+   "guven": "orta"
+  },
+  {
+   "id": "L2",
+   "kaynak": "N3",
+   "hedef": "N8",
+   "etiket": "çocukluk arkadaşı",
+   "cift_yonlu": true,
+   "aciklama": "Yüzleşmeyle kırılır.",
+   "kanit": [
+    {
+     "parca": "P4",
+     "sayfa": 100
+    }
+   ],
+   "guven": "yuksek"
+  },
+  {
+   "id": "L3",
+   "kaynak": "N29",
+   "hedef": "N14",
+   "etiket": "kanıt olur",
+   "kanit": [
+    {
+     "parca": "P3",
+     "sayfa": 62
+    }
+   ],
+   "guven": "yuksek"
+  },
+  {
+   "id": "L4",
+   "kaynak": "N13",
+   "hedef": "N25",
+   "etiket": "simgeler",
+   "kanit": [
+    {
+     "parca": "P6",
+     "sayfa": 179
+    }
+   ],
+   "guven": "orta"
+  },
+  {
+   "id": "L5",
+   "kaynak": "N6",
+   "hedef": "N3",
+   "etiket": "babası",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 4
+    }
+   ],
+   "guven": "yuksek"
+  }
+ ],
+ "ozetler": [
+  {
+   "id": "Z1",
+   "ebeveyn": "N11",
+   "bas": 0,
+   "son": 2,
+   "etiket": "Kayıp ve keşif"
+  },
+  {
+   "id": "Z2",
+   "ebeveyn": "N11",
+   "bas": 3,
+   "son": 5,
+   "etiket": "Hesaplaşma"
+  }
+ ],
+ "belirsizlikler": [
+  {
+   "kayit": "L1",
+   "tur": "kanit_zayif",
+   "neden": "Rüşvet yalnız Selim'in tanıklığı ve dolaylı bir zarf sahnesiyle gösteriliyor."
+  },
+  {
+   "kayit": "N9",
+   "tur": "yorum",
+   "neden": "Muhtarın parayı bilerek mi baskı altında mı aldığı açık bırakılmış."
+  }
+ ],
+ "kalite": {
+  "parca_sayisi": 6,
+  "gecis2_eklenen": 3,
+  "gecis2_dusurulen": 1,
+  "dogrulama": {
+   "sonuc": "GECTI",
+   "hata_sayisi": 0,
+   "uyari_sayisi": 0,
+   "uyarilar": []
+  }
+ }
+}

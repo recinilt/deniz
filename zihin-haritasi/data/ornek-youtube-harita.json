@@ -1,0 +1,510 @@
+{
+ "meta": {
+  "schema_version": "1.0",
+  "baslik": "Balkonda kompost: bir bahçıvanla sohbet",
+  "ozet": "Bahçıvan Murat Usta, balkonda kokusuz kompostun yeşil ve kahverengi malzeme dengesine, havalandırmaya ve neme dayandığını anlatıyor. Neyin konmayacağı, sinek ve koku sorunlarının çözümü, kış bakımı ve hazır kompostun saksıda kullanımı ele alınıyor.",
+  "kaynak_dosya": "balkonda-kompost.txt",
+  "kaynak_turu": "youtube",
+  "sha256": "38a51b595e7ed1e08e9909e19938c51bbe079c66ae2a68b93a3ee88d8f1efd86",
+  "sayfa_sayisi": null,
+  "sure": "4:49",
+  "alan": "sohbet",
+  "dil": "tr",
+  "olusturma_tarihi": "2026-09-28",
+  "olusturan": "Claude (zihin haritası talimatı 1.0)",
+  "kaynak_url": "https://www.youtube.com/watch?v=ORNEKVIDEO01",
+  "ornek": true,
+  "yazar": "Sentetik örnek sohbet (Deniz ve Murat Usta)"
+ },
+ "parcalar": [
+  {
+   "id": "P1",
+   "baslik": "0:00 – 4:49",
+   "zaman_baslangic": "0:00",
+   "zaman_bitis": "4:49",
+   "gecis1": true,
+   "gecis2": true
+  }
+ ],
+ "dugumler": [
+  {
+   "id": "N1",
+   "ebeveyn": null,
+   "sira": 0,
+   "etiket": "Balkonda kompost",
+   "kanit": [],
+   "guven": "yuksek"
+  },
+  {
+   "ebeveyn": "N1",
+   "etiket": "Konuşmacılar",
+   "kanit": [
+    {
+     "parca": "P1",
+     "zaman": "0:00"
+    }
+   ],
+   "guven": "yuksek",
+   "tur": "kategori",
+   "ikon": "🎙️",
+   "id": "N2",
+   "sira": 0
+  },
+  {
+   "ebeveyn": "N2",
+   "etiket": "Deniz (sunucu)",
+   "kanit": [
+    {
+     "parca": "P1",
+     "zaman": "0:00"
+    }
+   ],
+   "guven": "yuksek",
+   "tur": "konuşmacı",
+   "id": "N3",
+   "sira": 0
+  },
+  {
+   "ebeveyn": "N2",
+   "etiket": "Murat Usta (bahçıvan)",
+   "kanit": [
+    {
+     "parca": "P1",
+     "zaman": "0:00",
+     "alinti": "Konuğum bahçıvan Murat Usta."
+    }
+   ],
+   "guven": "yuksek",
+   "tur": "konuşmacı",
+   "id": "N4",
+   "sira": 1
+  },
+  {
+   "ebeveyn": "N1",
+   "etiket": "Ana tez",
+   "kanit": [
+    {
+     "parca": "P1",
+     "zaman": "0:12"
+    }
+   ],
+   "guven": "yuksek",
+   "tur": "kategori",
+   "ikon": "💡",
+   "id": "N5",
+   "sira": 1
+  },
+  {
+   "ebeveyn": "N5",
+   "etiket": "Doğru yapılırsa kokmaz",
+   "kanit": [
+    {
+     "parca": "P1",
+     "zaman": "0:12",
+     "alinti": "doğru yapılırsa kokmaz."
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Balkonda kompost mümkün; koku bir hata işaretidir.",
+   "tur": "tez",
+   "id": "N6",
+   "sira": 0
+  },
+  {
+   "ebeveyn": "N1",
+   "etiket": "Malzemeler",
+   "kanit": [
+    {
+     "parca": "P1",
+     "zaman": "0:45"
+    }
+   ],
+   "guven": "yuksek",
+   "tur": "kategori",
+   "ikon": "🥬",
+   "id": "N7",
+   "sira": 2
+  },
+  {
+   "ebeveyn": "N7",
+   "etiket": "Yeşil: azotça zengin",
+   "kanit": [
+    {
+     "parca": "P1",
+     "zaman": "0:45",
+     "alinti": "Yeşil dediğimiz azotça zengin, ıslak şeyler."
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Sebze kabukları, meyve artıkları, kahve telvesi, çay posası.",
+   "tur": "malzeme",
+   "id": "N8",
+   "sira": 0
+  },
+  {
+   "ebeveyn": "N7",
+   "etiket": "Kahverengi: karbonca zengin",
+   "kanit": [
+    {
+     "parca": "P1",
+     "zaman": "0:58",
+     "alinti": "Kahverengi ise karbonca zengin, kuru şeyler."
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Kuru yaprak, karton, yumurta kolisi, talaş.",
+   "tur": "malzeme",
+   "id": "N9",
+   "sira": 1
+  },
+  {
+   "ebeveyn": "N7",
+   "etiket": "Oran: 1 yeşil / 2 kahverengi",
+   "kanit": [
+    {
+     "parca": "P1",
+     "zaman": "1:13",
+     "alinti": "hacim olarak bir ölçü yeşile iki ölçü kahverengi."
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Kokarsa kahverengi, kurursa yeşil veya su eklenir.",
+   "tur": "kural",
+   "id": "N10",
+   "sira": 2
+  },
+  {
+   "ebeveyn": "N7",
+   "etiket": "Koyulmayacaklar",
+   "kanit": [
+    {
+     "parca": "P1",
+     "zaman": "2:02"
+    }
+   ],
+   "guven": "yuksek",
+   "tur": "yasak",
+   "ikon": "🚫",
+   "id": "N11",
+   "sira": 3
+  },
+  {
+   "ebeveyn": "N11",
+   "etiket": "Et, balık, süt, yağlı yemek",
+   "kanit": [
+    {
+     "parca": "P1",
+     "zaman": "2:02",
+     "alinti": "Et, balık, süt ürünleri ve yağlı yemek artıkları koymayın."
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Koku yapar ve haşere çeker.",
+   "tur": "yasak",
+   "id": "N12",
+   "sira": 0
+  },
+  {
+   "ebeveyn": "N11",
+   "etiket": "Hastalıklı bitki, evcil hayvan dışkısı",
+   "kanit": [
+    {
+     "parca": "P1",
+     "zaman": "2:15"
+    }
+   ],
+   "guven": "yuksek",
+   "tur": "yasak",
+   "id": "N13",
+   "sira": 1
+  },
+  {
+   "ebeveyn": "N11",
+   "etiket": "Narenciye ve soğan: ölçülü",
+   "kanit": [
+    {
+     "parca": "P1",
+     "zaman": "2:28"
+    }
+   ],
+   "guven": "orta",
+   "aciklama": "Çok konursa ortamı asitleştirip süreci yavaşlatabilir.",
+   "tur": "uyarı",
+   "id": "N14",
+   "sira": 2
+  },
+  {
+   "ebeveyn": "N1",
+   "etiket": "Kurulum ve bakım",
+   "kanit": [
+    {
+     "parca": "P1",
+     "zaman": "1:34"
+    }
+   ],
+   "guven": "yuksek",
+   "tur": "kategori",
+   "ikon": "🧺",
+   "id": "N15",
+   "sira": 3
+  },
+  {
+   "ebeveyn": "N15",
+   "etiket": "Kapaklı, delikli kutu",
+   "kanit": [
+    {
+     "parca": "P1",
+     "zaman": "1:34",
+     "alinti": "Kapaklı, altı ve yanları delikli bir kutu yeterli."
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Altına sızıntı suyu için tepsi; hava almayan kova olmaz.",
+   "tur": "yöntem",
+   "id": "N16",
+   "sira": 0
+  },
+  {
+   "ebeveyn": "N15",
+   "etiket": "Haftada bir karıştır",
+   "kanit": [
+    {
+     "parca": "P1",
+     "zaman": "2:44",
+     "alinti": "Haftada bir karıştırmak yeterli."
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Karıştırmak içeri hava sokar.",
+   "tur": "yöntem",
+   "id": "N17",
+   "sira": 1
+  },
+  {
+   "ebeveyn": "N15",
+   "etiket": "Nem: sıkılmış sünger",
+   "kanit": [
+    {
+     "parca": "P1",
+     "zaman": "2:56",
+     "alinti": "Sıkılmış bir sünger kıvamı olmalı."
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Avuçta sıkınca bir iki damla gelmeli.",
+   "tur": "yöntem",
+   "id": "N18",
+   "sira": 2
+  },
+  {
+   "ebeveyn": "N15",
+   "etiket": "Kırmızı solucan (isteğe bağlı)",
+   "kanit": [
+    {
+     "parca": "P1",
+     "zaman": "3:12"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Süreci hızlandırır; kutu doğrudan güneşe konmaz.",
+   "tur": "yöntem",
+   "id": "N19",
+   "sira": 3
+  },
+  {
+   "ebeveyn": "N1",
+   "etiket": "Sorunlar ve çözümler",
+   "kanit": [
+    {
+     "parca": "P1",
+     "zaman": "0:29"
+    }
+   ],
+   "guven": "yuksek",
+   "tur": "kategori",
+   "ikon": "🛠️",
+   "id": "N20",
+   "sira": 4
+  },
+  {
+   "ebeveyn": "N20",
+   "etiket": "Koku → kahverengi ekle",
+   "kanit": [
+    {
+     "parca": "P1",
+     "zaman": "0:29",
+     "alinti": "yeşil malzeme çok, kahverengi malzeme az."
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Koku çoğunlukla fazla yeşil, az kahverengiden; havasızlık da çürütür.",
+   "tur": "çözüm",
+   "id": "N21",
+   "sira": 0
+  },
+  {
+   "ebeveyn": "N20",
+   "etiket": "Sinek → artığı ört",
+   "kanit": [
+    {
+     "parca": "P1",
+     "zaman": "3:29",
+     "alinti": "Yeni atılan artığı her seferinde kahverengi malzemeyle örtün."
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Meyve sineği açıkta kalan meyve artığından gelir.",
+   "tur": "çözüm",
+   "id": "N22",
+   "sira": 1
+  },
+  {
+   "ebeveyn": "N1",
+   "etiket": "Hasat ve kullanım",
+   "kanit": [
+    {
+     "parca": "P1",
+     "zaman": "4:01"
+    }
+   ],
+   "guven": "yuksek",
+   "tur": "kategori",
+   "ikon": "🌱",
+   "id": "N23",
+   "sira": 5
+  },
+  {
+   "ebeveyn": "N23",
+   "etiket": "2-4 ayda hazır",
+   "kanit": [
+    {
+     "parca": "P1",
+     "zaman": "4:01",
+     "alinti": "Balkon koşullarında genelde iki ile dört ay arası."
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Koyu renkli, toprak kokulu, artıklar tanınmıyor.",
+   "tur": "ölçüt",
+   "id": "N24",
+   "sira": 0
+  },
+  {
+   "ebeveyn": "N23",
+   "etiket": "Saksı toprağına ¼ oranında",
+   "kanit": [
+    {
+     "parca": "P1",
+     "zaman": "4:18",
+     "alinti": "Saksı toprağına yaklaşık dörtte bir oranında karıştırın."
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Saf kompost fide dikimi için fazla güçlüdür.",
+   "tur": "kullanım",
+   "id": "N25",
+   "sira": 1
+  },
+  {
+   "ebeveyn": "N15",
+   "etiket": "Kışın rüzgârsız köşeye al",
+   "kanit": [
+    {
+     "parca": "P1",
+     "zaman": "3:46",
+     "alinti": "Soğukta süreç yavaşlar ama durmaz."
+    }
+   ],
+   "aciklama": "Kutu duvar dibine, rüzgâr almayan yere alınır.",
+   "tur": "yöntem",
+   "guven": "yuksek",
+   "id": "N26",
+   "sira": 4
+  },
+  {
+   "ebeveyn": "N5",
+   "etiket": "Küçük başla",
+   "kanit": [
+    {
+     "parca": "P1",
+     "zaman": "4:37",
+     "alinti": "Küçük başlayın."
+    }
+   ],
+   "aciklama": "Kutuyu bir haftalık mutfak artığına göre seç, alışınca büyüt.",
+   "tur": "öneri",
+   "guven": "yuksek",
+   "id": "N27",
+   "sira": 1
+  }
+ ],
+ "baglantilar": [
+  {
+   "kaynak": "N10",
+   "hedef": "N21",
+   "etiket": "kokuyu önler",
+   "kanit": [
+    {
+     "parca": "P1",
+     "zaman": "1:13"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "L1"
+  },
+  {
+   "kaynak": "N17",
+   "hedef": "N21",
+   "etiket": "havasızlığı giderir",
+   "kanit": [
+    {
+     "parca": "P1",
+     "zaman": "1:47",
+     "alinti": "Oksijen yoksa çürüme başlar, koku da oradan gelir."
+    }
+   ],
+   "guven": "yuksek",
+   "id": "L2"
+  },
+  {
+   "kaynak": "N9",
+   "hedef": "N22",
+   "etiket": "örtü malzemesi",
+   "kanit": [
+    {
+     "parca": "P1",
+     "zaman": "3:29"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "L3"
+  }
+ ],
+ "ozetler": [
+  {
+   "ebeveyn": "N7",
+   "bas": 0,
+   "son": 2,
+   "etiket": "Denge: koku olmaması için",
+   "kanit": [
+    {
+     "parca": "P1",
+     "zaman": "1:13"
+    }
+   ],
+   "id": "Z1"
+  }
+ ],
+ "belirsizlikler": [],
+ "kalite": {
+  "parca_sayisi": 1,
+  "gecis2_eklenen": 3,
+  "gecis2_dusurulen": 0,
+  "dogrulama": {
+   "sonuc": "GECTI",
+   "hata_sayisi": 0,
+   "uyari_sayisi": 0,
+   "uyarilar": []
+  }
+ }
+}

@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Zihin Haritaları</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;600;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mind-elixir@5.15.1/dist/MindElixir.css">
+<script>
+/* ============ AYARLAR: GitHub Pages'te yayınlanacak harita dosyaları ============
+   Yeni bir harita JSON'u ürettiğinde dosyayı "data/" klasörüne koy ve adını aşağıya ekle. */
+const HARITA_DOSYALARI = [
+  "ornek-roman-harita.json",
+  "ornek-youtube-harita.json",
+  "hastane-oncesi-acil-harita.json"
+];
+const VERI_KLASORU = "data/";
+const SEMA_DOSYASI = "harita-semasi.json";
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mind-elixir@5.15.1/dist/MindElixir.iife.js"></script>
+<style>
+:root {
+  --kagit: #F3F5F2; --yuzey: #FFFFFF; --yuzey2: #EAEEE9; --murekkep: #1E2A2F; --soluk: #5E6B6A; --cizgi: #D5DCD6;
+  --vurgu: #7A3E6B; --vurgu-acik: #F1E4EE; --okra: #9A6A12; --okra-acik: #FAF0DA; --kizil: #B0322A; --kizil-acik: #FBE7E4;
+  --yesil: #2F6F4E; --yesil-acik: #E0F0E7;
+  --govde: "Atkinson Hyperlegible Next", "Segoe UI", system-ui, sans-serif;
+  --baslik: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --ust: 56px; color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --kagit: #161B1E; --yuzey: #1F262A; --yuzey2: #283136; --murekkep: #E6ECEA; --soluk: #9DAAA8; --cizgi: #34403F;
+  --vurgu: #D69BC8; --vurgu-acik: #3A2636; --okra: #E2B45A; --okra-acik: #3A301A; --kizil: #F08A80; --kizil-acik: #422320;
+  --yesil: #86CFA6; --yesil-acik: #1D3528; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body { margin: 0; background: var(--kagit); color: var(--murekkep); font: 15px/1.5 var(--govde); overflow: hidden;
+  padding-top: env(safe-area-inset-top, 0px); }
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--vurgu); outline-offset: 2px; }
+.ust { height: var(--ust); display: flex; align-items: center; gap: 10px; padding: 0 14px; background: var(--yuzey); border-bottom: 1px solid var(--cizgi); overflow-x: auto; scrollbar-width: thin; }
+.marka { font-family: var(--baslik); font-weight: 700; font-size: 1.15rem; white-space: nowrap; margin-right: 6px; letter-spacing: -.01em; }
+.marka span { color: var(--vurgu); }
+select, .dugme, .arama { height: 36px; border: 1px solid var(--cizgi); background: var(--yuzey); border-radius: 8px; padding: 0 10px; }
+select { max-width: 240px; cursor: pointer; }
+.dugme { cursor: pointer; white-space: nowrap; }
+.dugme:hover, select:hover { border-color: var(--vurgu); }
+.dugme[aria-pressed="true"] { background: var(--murekkep); color: var(--yuzey); border-color: var(--murekkep); }
+.grup { display: flex; gap: 0; }
+.grup .dugme { border-radius: 0; margin-left: -1px; }
+.grup .dugme:first-child { border-radius: 8px 0 0 8px; margin-left: 0; }
+.grup .dugme:last-child { border-radius: 0 8px 8px 0; }
+.arama-kap { position: relative; }
+.arama { width: 200px; background: var(--yuzey2); }
+.sonuclar { position: absolute; top: 40px; left: 0; width: 320px; max-height: 60vh; overflow-y: auto; background: var(--yuzey); border: 1px solid var(--cizgi); border-radius: 10px; box-shadow: 0 8px 28px rgba(30,42,47,.14); z-index: 20; padding: 4px; }
+.sonuclar[hidden] { display: none; }
+.sonuclar button { display: block; width: 100%; text-align: left; border: 0; background: none; padding: 7px 9px; border-radius: 6px; cursor: pointer; }
+.sonuclar button:hover, .sonuclar button:focus { background: var(--vurgu-acik); }
+.sonuclar small { display: block; color: var(--soluk); font-size: .8rem; }
+.bosluk { flex: 1; }
+.menu { position: relative; }
+.menu-liste { position: absolute; right: 0; top: 40px; background: var(--yuzey); border: 1px solid var(--cizgi); border-radius: 10px; padding: 4px; min-width: 190px; z-index: 20; box-shadow: 0 8px 28px rgba(30,42,47,.14); }
+.menu-liste[hidden] { display: none; }
+.menu-liste button, .menu-liste label { display: block; width: 100%; text-align: left; border: 0; background: none; padding: 8px 10px; border-radius: 6px; cursor: pointer; }
+.menu-liste button:hover, .menu-liste label:hover { background: var(--vurgu-acik); }
+.govde { position: relative; height: calc(100vh - var(--ust) - env(safe-area-inset-top, 0px)); display: flex; }
+.sahne { position: relative; flex: 1; min-width: 0; }
+#harita { position: absolute; inset: 0; }
+#anahat { position: absolute; inset: 0; overflow: auto; padding: 24px clamp(16px, 4vw, 48px) 80px; }
+#anahat[hidden], #harita[hidden] { display: none; }
+.panel { width: 380px; max-width: 100%; background: var(--yuzey); border-left: 1px solid var(--cizgi); overflow-y: auto; padding: 20px 20px 40px; }
+.panel[hidden] { display: none; }
+.panel-kapat { float: right; border: 0; background: none; font-size: 1.4rem; line-height: 1; cursor: pointer; color: var(--soluk); padding: 2px 6px; }
+.yol { color: var(--soluk); font-size: .85rem; margin: 0 0 6px; }
+.yol button { border: 0; background: none; padding: 0; color: var(--vurgu); cursor: pointer; font-size: inherit; }
+.panel h1 { font-family: var(--baslik); font-weight: 700; font-size: 1.55rem; line-height: 1.2; margin: 0 0 6px; letter-spacing: -.01em; }
+.panel h2 { font-size: .9rem; color: var(--soluk); font-weight: 600; margin: 20px 0 6px; }
+.etiketler { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 12px; }
+.rozet { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: .8rem; font-weight: 600; background: var(--yuzey2); color: var(--soluk); }
+.rozet.gecti { background: var(--yesil-acik); color: var(--yesil); }
+.rozet.kaldi { background: var(--kizil-acik); color: var(--kizil); }
+.rozet.alan { background: var(--vurgu-acik); color: var(--vurgu); }
+.guven-yuksek { color: var(--yesil); } .guven-orta { color: var(--okra); } .guven-dusuk { color: var(--kizil); }
+.aciklama { font-size: 1rem; line-height: 1.6; margin: 0 0 8px; }
+.kanit { border-left: 3px solid var(--cizgi); padding: 3px 0 3px 10px; margin: 6px 0; font-size: .92rem; }
+.kanit q { font-style: italic; }
+.kanit small { display: block; color: var(--soluk); }
+.kanit a { color: var(--vurgu); }
+.not { background: var(--okra-acik); border-left: 3px solid var(--okra); padding: 8px 10px; border-radius: 0 6px 6px 0; font-size: .9rem; margin: 6px 0; }
+.uyari-kutu { background: var(--kizil-acik); border-left: 3px solid var(--kizil); padding: 10px 12px; border-radius: 0 6px 6px 0; font-size: .92rem; margin: 8px 0; }
+.bag { display: inline-block; border: 0; background: var(--yuzey2); border-radius: 6px; padding: 3px 8px; margin: 2px 4px 2px 0; cursor: pointer; color: var(--vurgu); font-size: .9rem; text-align: left; }
+.bag:hover { background: var(--vurgu-acik); }
+.denetim { padding-left: 18px; font-size: .88rem; }
+.denetim .h { color: var(--kizil); } .denetim .u { color: var(--okra); }
+.ipucu { color: var(--soluk); font-size: .88rem; }
+.anahat-baslik { font-family: var(--baslik); font-weight: 700; font-size: clamp(1.5rem, 3vw, 2.2rem); margin: 0 0 6px; letter-spacing: -.015em; max-width: 30ch; }
+.anahat-ozet { max-width: 70ch; color: var(--soluk); margin: 0 0 18px; }
+.agac, .agac ul { list-style: none; margin: 0; padding: 0; }
+.agac ul { padding-left: 22px; border-left: 2px solid var(--renk, var(--cizgi)); margin-left: 9px; }
+.agac li { margin: 3px 0; }
+.agac summary { cursor: pointer; list-style: none; display: inline-flex; gap: 6px; align-items: baseline; }
+.agac summary::-webkit-details-marker { display: none; }
+.agac summary::before { content: "▸"; color: var(--soluk); width: 12px; display: inline-block; transition: transform .15s; }
+.agac details[open] > summary::before { transform: rotate(90deg); }
+.agac .yaprak { display: inline-flex; gap: 6px; padding-left: 18px; }
+.agac .dugum-ad { border: 0; background: none; padding: 1px 4px; border-radius: 4px; cursor: pointer; text-align: left; }
+.agac .dugum-ad:hover { background: var(--vurgu-acik); }
+.agac .dugum-ad.secili { background: var(--vurgu); color: var(--yuzey); }
+.agac .ana > details > summary .dugum-ad, .agac .ana > .yaprak .dugum-ad { font-weight: 700; color: var(--renk); }
+.bos { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: 24px; }
+.bos h1 { font-family: var(--baslik); font-weight: 700; font-size: 1.8rem; margin: 0 0 8px; }
+.bos p { color: var(--soluk); max-width: 46ch; margin: 0 auto 6px; }
+.surukle-ortu { position: fixed; inset: 0; background: rgba(122,62,107,.12); border: 3px dashed var(--vurgu); z-index: 50; display: grid; place-items: center; font-family: var(--baslik); font-size: 1.6rem; color: var(--vurgu); pointer-events: none; }
+.surukle-ortu[hidden] { display: none; }
+.bildirim { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); background: var(--murekkep); color: var(--yuzey); padding: 10px 16px; border-radius: 10px; z-index: 60; max-width: 90vw; }
+.bildirim[hidden] { display: none; }
+/* Mind Elixir düğümleri */
+#harita .map-container { font-family: var(--govde); }
+#harita me-tpc { font-family: var(--govde); max-width: 260px; white-space: normal; }
+#harita me-root me-tpc { font-family: var(--baslik); font-weight: 700; }
+#harita .map-container .selected { outline-color: var(--vurgu) !important; }
+@media (max-width: 820px) {
+  .panel { position: absolute; left: 0; right: 0; bottom: 0; width: auto; max-height: 55%; border-left: 0; border-top: 1px solid var(--cizgi); border-radius: 14px 14px 0 0; box-shadow: 0 -8px 28px rgba(30,42,47,.16); z-index: 15; padding-bottom: calc(40px + env(safe-area-inset-bottom, 0px)); }
+  .arama { width: 150px; }
+  .marka { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<header class="ust">
+  <div class="marka">Zihin <span>Haritaları</span></div>
+  <label class="gizli" for="dosyaSec" hidden>Harita</label>
+  <select id="dosyaSec" aria-label="Harita dosyası"></select>
+  <div class="arama-kap">
+    <input id="arama" class="arama" type="search" placeholder="Haritada ara…" autocomplete="off" aria-label="Haritada ara" disabled>
+    <div id="sonuclar" class="sonuclar" hidden role="listbox"></div>
+  </div>
+  <div class="grup" role="group" aria-label="Açık seviye">
+    <button class="dugme" data-seviye="1" title="Yalnız ana dallar">1</button>
+    <button class="dugme" data-seviye="2">2</button>
+    <button class="dugme" data-seviye="3">3</button>
+    <button class="dugme" data-seviye="99">Tümü</button>
+  </div>
+  <div class="grup" role="group" aria-label="Görünüm">
+    <button class="dugme" id="gHarita" aria-pressed="true">Harita</button>
+    <button class="dugme" id="gAnahat" aria-pressed="false">Anahat</button>
+  </div>
+  <button class="dugme" id="odakDugme" hidden>Odaktan çık</button>
+  <div class="bosluk"></div>
+  <button class="dugme" id="sigdir" title="Haritayı ekrana sığdır">Sığdır</button>
+  <div class="menu">
+    <button class="dugme" id="disaDugme" aria-haspopup="true" aria-expanded="false">Dışa aktar</button>
+    <div class="menu-liste" id="disaMenu" hidden>
+      <button data-disa="png">PNG görsel</button>
+      <button data-disa="svg">SVG görsel</button>
+      <button data-disa="md">Markdown anahat</button>
+      <button data-disa="opml">OPML (XMind, MindNode…)</button>
+      <button data-disa="json">JSON dosyası</button>
+    </div>
+  </div>
+  <label class="dugme" for="yerelDosya" style="display:inline-flex;align-items:center">Dosya aç</label>
+  <input type="file" id="yerelDosya" accept=".json,application/json" hidden>
+  <button class="dugme" id="temaDugme" title="Açık/koyu tema">Tema</button>
+</header>
+<div class="govde">
+  <main class="sahne" id="sahne">
+    <div id="harita" aria-label="Zihin haritası"></div>
+    <div id="anahat" hidden></div>
+    <div class="bos" id="bos"><div><h1>Bir harita seç</h1><p>Üstteki listeden bir harita seç, "Dosya aç" ile bilgisayarından bir JSON yükle ya da dosyayı sayfaya sürükle.</p></div></div>
+  </main>
+  <aside class="panel" id="panel" hidden aria-live="polite"></aside>
+</div>
+<div class="surukle-ortu" id="surukleOrtu" hidden>Haritayı buraya bırak</div>
+<div class="bildirim" id="bildirim" hidden role="status"></div>
+
+<script>
+const HaritaDogrulayici = (() => {
+  const DESTEKLENEN = new Set(["$schema", "$id", "title", "description", "type", "required", "properties",
+    "additionalProperties", "items", "enum", "const", "pattern", "minimum", "maximum", "minItems",
+    "minLength", "maxLength", "$ref", "$defs"]);
+  const ALINTI_KELIME_SINIRI = 15;
+  const ETIKET_KELIME_UYARI = 6;
+  const DERINLIK_UYARI = 5;
+  const DUGUM_UYARI = 400;
+  const turu = (d) => d === null ? "null" : Array.isArray(d) ? "array"
+    : Number.isInteger(d) ? "integer" : typeof d;
+  const turUyar = (d, t) => { const g = turu(d); return g === t || (t === "number" && g === "integer"); };
+  const norm = (s) => String(s).toLocaleLowerCase("tr").replace(/\s+/g, " ").trim();
+  const saniye = (z) => z.split(":").map(Number).reduce((t, x) => t * 60 + x, 0);
+
+  function semaDenetle(sema, kok, yol, hatalar) {
+    if (sema === null || typeof sema !== "object") return;
+    for (const k of Object.keys(sema)) {
+      if (!DESTEKLENEN.has(k)) hatalar.push(`Şemada desteklenmeyen anahtar: ${yol}/${k}`);
+    }
+    for (const alt of ["properties", "$defs"]) {
+      if (sema[alt]) for (const [k, v] of Object.entries(sema[alt])) semaDenetle(v, kok, `${yol}/${alt}/${k}`, hatalar);
+    }
+    if (sema.items) semaDenetle(sema.items, kok, `${yol}/items`, hatalar);
+    if (typeof sema.additionalProperties === "object") semaDenetle(sema.additionalProperties, kok, `${yol}/additionalProperties`, hatalar);
+  }
+
+  function semaDogrula(veri, sema, kok, yol, hatalar) {
+    if (sema.$ref) {
+      const ad = sema.$ref.replace("#/$defs/", "");
+      const hedef = kok.$defs && kok.$defs[ad];
+      if (!hedef) { hatalar.push(`${yol}: çözülemeyen $ref ${sema.$ref}`); return; }
+      return semaDogrula(veri, hedef, kok, yol, hatalar);
+    }
+    if (sema.type) {
+      const turler = Array.isArray(sema.type) ? sema.type : [sema.type];
+      if (!turler.some((t) => turUyar(veri, t))) {
+        hatalar.push(`${yol}: tür ${turler.join("|")} olmalı, ${turu(veri)} geldi`);
+        return;
+      }
+    }
+    if ("const" in sema && veri !== sema.const) hatalar.push(`${yol}: değer ${JSON.stringify(sema.const)} olmalı`);
+    if (sema.enum && !sema.enum.includes(veri)) hatalar.push(`${yol}: izinli değerler ${sema.enum.join(", ")}; gelen ${JSON.stringify(veri)}`);
+    if (typeof veri === "string") {
+      if (sema.minLength !== undefined && veri.length < sema.minLength) hatalar.push(`${yol}: boş olamaz`);
+      if (sema.maxLength !== undefined && veri.length > sema.maxLength) hatalar.push(`${yol}: en fazla ${sema.maxLength} karakter`);
+      if (sema.pattern && !new RegExp(sema.pattern, "u").test(veri)) hatalar.push(`${yol}: biçim uymuyor (${sema.pattern}): ${JSON.stringify(veri)}`);
+    }
+    if (typeof veri === "number") {
+      if (sema.minimum !== undefined && veri < sema.minimum) hatalar.push(`${yol}: en az ${sema.minimum}`);
+      if (sema.maximum !== undefined && veri > sema.maximum) hatalar.push(`${yol}: en fazla ${sema.maximum}`);
+    }
+    if (Array.isArray(veri)) {
+      if (sema.minItems !== undefined && veri.length < sema.minItems) hatalar.push(`${yol}: en az ${sema.minItems} öğe gerekli`);
+      if (sema.items) veri.forEach((o, i) => semaDogrula(o, sema.items, kok, `${yol}[${i}]`, hatalar));
+    }
+    if (turu(veri) === "object") {
+      for (const r of sema.required || []) if (!(r in veri)) hatalar.push(`${yol}: zorunlu alan eksik: ${r}`);
+      const props = sema.properties || {};
+      for (const [k, v] of Object.entries(veri)) {
+        if (props[k]) semaDogrula(v, props[k], kok, `${yol}.${k}`, hatalar);
+        else if (sema.additionalProperties === false) hatalar.push(`${yol}: tanımsız alan: ${k}`);
+      }
+    }
+  }
+
+  function agac(v) {
+    const dugumler = v.dugumler || [];
+    const byId = new Map(), cocuk = new Map();
+    dugumler.forEach((d) => { byId.set(d.id, d); cocuk.set(d.id, []); });
+    const kokler = dugumler.filter((d) => d.ebeveyn === null);
+    dugumler.forEach((d) => { if (d.ebeveyn !== null && cocuk.has(d.ebeveyn)) cocuk.get(d.ebeveyn).push(d); });
+    for (const l of cocuk.values()) l.sort((a, b) => a.sira - b.sira || a.id.localeCompare(b.id));
+    return { byId, cocuk, kokler };
+  }
+
+  function butunlukDenetle(v, hatalar, uyarilar, secenek) {
+    const tum = new Map();
+    const kaydet = (liste, onek, ad) => (liste || []).forEach((x, i) => {
+      if (!x || typeof x.id !== "string") return;
+      if (!x.id.startsWith(onek)) hatalar.push(`${ad}[${i}]: kimlik "${onek}" ile başlamalı: ${x.id}`);
+      if (tum.has(x.id)) hatalar.push(`Yinelenen kimlik: ${x.id}`); else tum.set(x.id, ad);
+    });
+    kaydet(v.parcalar, "P", "parcalar"); kaydet(v.dugumler, "N", "dugumler");
+    kaydet(v.baglantilar, "L", "baglantilar"); kaydet(v.ozetler, "Z", "ozetler");
+    const parca = new Map((v.parcalar || []).map((p) => [p.id, p]));
+    const { byId, cocuk, kokler } = agac(v);
+
+    const kanitDenetle = (liste, yol) => (liste || []).forEach((k, i) => {
+      const p = parca.get(k.parca);
+      if (!p) { hatalar.push(`${yol}.kanit[${i}]: bilinmeyen parça ${k.parca}`); return; }
+      if (k.sayfa && p.sayfa_baslangic && p.sayfa_bitis && (k.sayfa < p.sayfa_baslangic || k.sayfa > p.sayfa_bitis))
+        hatalar.push(`${yol}.kanit[${i}]: sayfa ${k.sayfa}, ${k.parca} aralığında değil (${p.sayfa_baslangic}–${p.sayfa_bitis})`);
+      if (k.zaman && p.zaman_baslangic && p.zaman_bitis && (saniye(k.zaman) < saniye(p.zaman_baslangic) || saniye(k.zaman) > saniye(p.zaman_bitis)))
+        hatalar.push(`${yol}.kanit[${i}]: zaman ${k.zaman}, ${k.parca} aralığında değil (${p.zaman_baslangic}–${p.zaman_bitis})`);
+      if (k.alinti) { const n = k.alinti.trim().split(/\s+/).length; if (n > ALINTI_KELIME_SINIRI) hatalar.push(`${yol}.kanit[${i}]: alıntı ${n} kelime; sınır ${ALINTI_KELIME_SINIRI}`); }
+    });
+
+    if (kokler.length !== 1) hatalar.push(`Tam 1 kök düğüm (ebeveyn: null) olmalı, ${kokler.length} var`);
+    (v.dugumler || []).forEach((d) => {
+      if (d.ebeveyn !== null && !byId.has(d.ebeveyn)) hatalar.push(`${d.id}: ebeveyn ${d.ebeveyn} yok`);
+      if (d.ebeveyn === d.id) hatalar.push(`${d.id}: kendi ebeveyni olamaz`);
+      if (d.ebeveyn !== null && (!d.kanit || !d.kanit.length)) hatalar.push(`${d.id} (${d.etiket}): kök dışındaki her düğüm en az bir kanıt taşımalı`);
+      kanitDenetle(d.kanit, d.id);
+      const kelime = String(d.etiket || "").trim().split(/\s+/).length;
+      if (kelime > ETIKET_KELIME_UYARI) uyarilar.push(`${d.id}: etiket ${kelime} kelime; zihin haritasında ${ETIKET_KELIME_UYARI} kelimeyi geçmemeli, ayrıntıyı açıklamaya taşı`);
+    });
+    const gorulen = new Set(), derinlik = new Map();
+    if (kokler.length === 1) {
+      const yigin = [[kokler[0].id, 0]];
+      while (yigin.length) {
+        const [id, dz] = yigin.pop();
+        if (gorulen.has(id)) { hatalar.push(`Döngü: ${id} birden fazla yoldan ulaşılıyor`); continue; }
+        gorulen.add(id); derinlik.set(id, dz);
+        for (const c of cocuk.get(id) || []) yigin.push([c.id, dz + 1]);
+      }
+      (v.dugumler || []).forEach((d) => { if (!gorulen.has(d.id) && byId.has(d.ebeveyn)) hatalar.push(`${d.id}: kökten ulaşılamıyor (döngü içinde)`); });
+      const ana = (cocuk.get(kokler[0].id) || []).length;
+      if (ana < 3 || ana > 7) uyarilar.push(`Kökten ${ana} ana dal çıkıyor; okunabilirlik için 3-7 önerilir`);
+      const enDerin = Math.max(0, ...derinlik.values());
+      if (enDerin > DERINLIK_UYARI) uyarilar.push(`Harita derinliği ${enDerin}; ${DERINLIK_UYARI} seviyeyi geçmemesi önerilir`);
+    }
+    if ((v.dugumler || []).length > DUGUM_UYARI) uyarilar.push(`${v.dugumler.length} düğüm var; ${DUGUM_UYARI} üstünde harita zor okunur, alt dalları açıklamaya taşımayı düşün`);
+    for (const [id, l] of cocuk) {
+      const s = new Map();
+      l.forEach((c) => { const n = norm(c.etiket); if (s.has(n)) uyarilar.push(`${id} altında aynı etiket iki kez: "${c.etiket}" (${s.get(n)}, ${c.id})`); else s.set(n, c.id); });
+      const sira = new Set();
+      l.forEach((c) => { if (sira.has(c.sira)) uyarilar.push(`${id} altında aynı sıra numarası: ${c.sira}`); sira.add(c.sira); });
+      if (l.length === 1 && (cocuk.get(l[0].id) || []).length === 1) uyarilar.push(`${id} → ${l[0].id} → ${cocuk.get(l[0].id)[0].id}: tek çocuklu zincir; birleştirilebilir`);
+    }
+    (v.baglantilar || []).forEach((b) => {
+      if (!byId.has(b.kaynak)) hatalar.push(`${b.id}: kaynak düğüm yok: ${b.kaynak}`);
+      if (!byId.has(b.hedef)) hatalar.push(`${b.id}: hedef düğüm yok: ${b.hedef}`);
+      if (b.kaynak === b.hedef) hatalar.push(`${b.id}: düğüm kendine bağlanamaz`);
+      const k = byId.get(b.kaynak), h = byId.get(b.hedef);
+      if (k && h && (k.ebeveyn === h.id || h.ebeveyn === k.id)) uyarilar.push(`${b.id}: zaten ebeveyn-çocuk olan düğümleri bağlıyor; ağaç kenarı yeterli`);
+      kanitDenetle(b.kanit, b.id);
+    });
+    (v.ozetler || []).forEach((z) => {
+      const l = cocuk.get(z.ebeveyn);
+      if (!l) { hatalar.push(`${z.id}: ebeveyn düğüm yok: ${z.ebeveyn}`); return; }
+      if (z.bas > z.son) hatalar.push(`${z.id}: bas (${z.bas}) son'dan (${z.son}) büyük`);
+      if (z.son >= l.length) hatalar.push(`${z.id}: son=${z.son}, ${z.ebeveyn} altında yalnız ${l.length} çocuk var (0-tabanlı)`);
+      kanitDenetle(z.kanit, z.id);
+    });
+    (v.belirsizlikler || []).forEach((b, i) => { if (!tum.has(b.kayit)) hatalar.push(`belirsizlikler[${i}]: bilinmeyen kayıt ${b.kayit}`); });
+
+    const ps = v.parcalar || [];
+    const g1 = ps.filter((p) => !p.gecis1).map((p) => p.id), g2 = ps.filter((p) => !p.gecis2).map((p) => p.id);
+    const kap = (ad, l) => `${ad} işlenmemiş parçalar (${l.length}): ${l.slice(0, 20).join(", ")}${l.length > 20 ? "…" : ""}`;
+    if (g1.length) (secenek.ara ? uyarilar : hatalar).push(kap("1. geçişte", g1));
+    if (g2.length) (secenek.ara ? uyarilar : hatalar).push(kap("2. geçişte", g2));
+    ps.forEach((p) => {
+      if (p.sayfa_baslangic && p.sayfa_bitis && p.sayfa_bitis < p.sayfa_baslangic) hatalar.push(`${p.id}: sayfa_bitis < sayfa_baslangic`);
+      if (p.zaman_baslangic && p.zaman_bitis && saniye(p.zaman_bitis) < saniye(p.zaman_baslangic)) hatalar.push(`${p.id}: zaman_bitis < zaman_baslangic`);
+    });
+    const m = v.meta || {};
+    if (m.alan === "tip" && !(m.uyari && m.uyari.trim())) hatalar.push("meta.uyari: tıp alanında zorunlu");
+    if (m.kaynak_turu === "youtube" && !m.kaynak_url) uyarilar.push("meta.kaynak_url: YouTube kaynağında video bağlantısı önerilir");
+    const kal = v.kalite || {};
+    if (kal.parca_sayisi !== undefined && kal.parca_sayisi !== ps.length) hatalar.push(`kalite.parca_sayisi (${kal.parca_sayisi}) gerçek parça sayısıyla (${ps.length}) uyuşmuyor`);
+    return { istatistik: { parca: ps.length, dugum: (v.dugumler || []).length, ana_dal: kokler.length === 1 ? (cocuk.get(kokler[0].id) || []).length : 0,
+      derinlik: Math.max(0, ...derinlik.values()), baglanti: (v.baglantilar || []).length, ozet: (v.ozetler || []).length, belirsizlik: (v.belirsizlikler || []).length } };
+  }
+
+  function dogrula(veri, sema, secenek = {}) {
+    const hatalar = [], uyarilar = [];
+    if (sema) {
+      semaDenetle(sema, sema, "#", hatalar);
+      if (hatalar.length) return { sonuc: "KALDI", hatalar, uyarilar, istatistik: {} };
+      semaDogrula(veri, sema, sema, "$", hatalar);
+    } else uyarilar.push("Şema bulunamadı: yalnız bütünlük denetimi yapıldı");
+    if (turu(veri) !== "object") return { sonuc: "KALDI", hatalar: [...hatalar, "Kök bir nesne değil"], uyarilar, istatistik: {} };
+    let istatistik = {};
+    try { ({ istatistik } = butunlukDenetle(veri, hatalar, uyarilar, secenek)); }
+    catch (e) { hatalar.push(`Bütünlük denetimi yapılamadı (yapı bozuk): ${e.message}`); }
+    const d = veri.kalite && veri.kalite.dogrulama;
+    if (d && secenek.beyanDenetle !== false) {
+      const gercek = hatalar.length ? "KALDI" : "GECTI";
+      if (d.sonuc !== gercek) hatalar.push(`kalite.dogrulama.sonuc "${d.sonuc}" yazıyor, gerçek sonuç "${gercek}"`);
+      if (d.uyari_sayisi !== uyarilar.length) uyarilar.push(`kalite.dogrulama.uyari_sayisi (${d.uyari_sayisi}) gerçek uyarı sayısından (${uyarilar.length}) farklı`);
+    }
+    return { sonuc: hatalar.length ? "KALDI" : "GECTI", hatalar, uyarilar, istatistik };
+  }
+
+  return { dogrula, norm, agac, saniye };
+})();
+</script>
+<script>
+"use strict";
+const PALET_ACIK = ["#7A3E6B", "#2F6F8F", "#B5651D", "#2F6F4E", "#A23B4A", "#5B5EA6", "#8A7A12", "#1F7A74", "#6D4C8F", "#9C4F2E"];
+const PALET_KOYU = ["#D69BC8", "#7FC0E0", "#F0A765", "#86CFA6", "#F08A96", "#A7A9EE", "#E0CF6A", "#6FD1C8", "#C4A3E6", "#EFA07B"];
+const ALAN_ADI = { roman: "Roman", tip: "Tıp", ders: "Ders", teknik: "Teknik", hukuk: "Hukuk", sohbet: "Sohbet", genel: "Genel" };
+const GUVEN_ADI = { yuksek: "Yüksek güven", orta: "Orta güven", dusuk: "Düşük güven" };
+const BELIRSIZLIK_ADI = { celiski: "Çelişki", kanit_zayif: "Kanıt zayıf", yorum: "Yoruma açık", eksik: "Eksik bilgi" };
+const S = { ad: null, yerel: false, veri: null, sema: undefined, denetim: null, agac: null, byId: new Map(), cocuk: new Map(), derinlik: new Map(),
+  renk: new Map(), mind: null, seviye: 99, secili: null, gorunum: "harita", odak: false, yukleniyor: null };
+const $ = (s) => document.querySelector(s);
+const ME = typeof window.MindElixir === "function" ? window.MindElixir : (window.MindElixir && typeof window.MindElixir.default === "function" ? window.MindElixir.default : null);
+const kac = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const koyu = () => document.documentElement.dataset.theme === "dark";
+function bildir(m) { const b = $("#bildirim"); b.textContent = m; b.hidden = false; clearTimeout(bildir.t); bildir.t = setTimeout(() => (b.hidden = true), 3500); }
+
+function listeKur() {
+  const sec = $("#dosyaSec");
+  sec.innerHTML = `<option value="">${HARITA_DOSYALARI.length ? "Harita seç…" : "Liste boş: HARITA_DOSYALARI'na dosya ekle"}</option>` +
+    HARITA_DOSYALARI.map((f) => `<option value="${kac(f)}">${kac(f.replace(/\.json$/i, ""))}</option>`).join("");
+  sec.addEventListener("change", () => { if (sec.value) location.hash = "#" + new URLSearchParams({ f: sec.value }); });
+}
+
+async function semaGetir() {
+  if (S.sema !== undefined) return S.sema;
+  try { const r = await fetch(SEMA_DOSYASI, { cache: "no-cache" }); S.sema = r.ok ? await r.json() : null; } catch { S.sema = null; }
+  return S.sema;
+}
+async function uzaktanYukle(ad) {
+  if (S.yukleniyor === ad) return;
+  S.yukleniyor = ad;
+  try {
+    if (location.protocol === "file:") { hataGoster(`Sayfa dosyadan (file://) açılmış; tarayıcı bu şekilde "${ad}" dosyasını okumaya izin vermez. Sayfayı VS Code Live Server veya GitHub Pages üzerinden aç ya da "Dosya aç" ile JSON'u seç.`); return; }
+    let metin;
+    try {
+      const r = await fetch(VERI_KLASORU + encodeURIComponent(ad), { cache: "no-cache" });
+      if (!r.ok) throw new Error(`HTTP ${r.status}: ${VERI_KLASORU}${ad} bulunamadı. Dosyanın "${VERI_KLASORU}" klasöründe ve adın HARITA_DOSYALARI listesinde birebir aynı yazıldığından emin ol.`);
+      metin = new TextDecoder("utf-8").decode(await r.arrayBuffer());
+    } catch (e) { hataGoster(e.message); return; }
+    await kur(ad, metin, false);
+  } finally { S.yukleniyor = null; }
+}
+function yerelOku(f) {
+  const o = new FileReader();
+  o.onload = async () => { history.replaceState(null, "", location.pathname + location.search); await kur(f.name, new TextDecoder("utf-8").decode(o.result), true); };
+  o.onerror = () => hataGoster(`${f.name} okunamadı.`);
+  o.readAsArrayBuffer(f);
+}
+function hataGoster(m) {
+  $("#bos").hidden = false;
+  $("#bos").innerHTML = `<div class="uyari-kutu" role="alert" style="max-width:60ch;text-align:left"><strong>Harita açılamadı.</strong><br>${kac(m)}</div>`;
+  $("#harita").hidden = true; $("#anahat").hidden = true; $("#panel").hidden = true;
+}
+
+async function kur(ad, metin, yerel) {
+  let veri;
+  try { veri = JSON.parse(metin.replace(/^\uFEFF/, "")); } catch (e) { hataGoster(`${ad} geçerli bir JSON değil: ${e.message}`); return; }
+  if (!veri || !veri.meta || !Array.isArray(veri.dugumler)) { hataGoster(`${ad} bir zihin haritası dosyası değil: "meta" veya "dugumler" bölümü yok.`); return; }
+  const sema = await semaGetir();
+  S.denetim = HaritaDogrulayici.dogrula(veri, sema);
+  const { byId, cocuk, kokler } = HaritaDogrulayici.agac(veri);
+  if (kokler.length !== 1) { hataGoster(`Haritada tam bir kök düğüm olmalı; ${kokler.length} bulundu. Doğrulama: ${S.denetim.hatalar.slice(0, 3).join(" · ")}`); return; }
+  Object.assign(S, { ad, yerel, veri, byId, cocuk, kok: kokler[0], secili: null, odak: false });
+  S.derinlik = new Map(); S.renk = new Map();
+  const palet = koyu() ? PALET_KOYU : PALET_ACIK;
+  const gez = (d, dz, renk) => { S.derinlik.set(d.id, dz); if (renk) S.renk.set(d.id, renk); (cocuk.get(d.id) || []).forEach((c, i) => gez(c, dz + 1, dz === 0 ? palet[i % palet.length] : renk)); };
+  gez(S.kok, 0, null);
+  S.seviye = veri.dugumler.length > 120 ? 2 : 99;
+  $("#dosyaSec").value = yerel ? "" : ad;
+  $("#arama").disabled = false; $("#arama").value = "";
+  document.title = `${veri.meta.baslik} · Zihin Haritaları`;
+  $("#bos").hidden = true;
+  seviyeDugmeleri();
+  const h = hashOku();
+  S.kaydirHedef = !yerel && h.n && byId.has(h.n) ? h.n : null;
+  ciz();
+  secDugum(!yerel && h.n && byId.has(h.n) ? h.n : S.kok.id, { adresYaz: false, kaydir: !!h.n });
+}
+
+function meVeri() {
+  const acikMi = (d) => d.acik !== undefined && S.seviye === 99 ? d.acik : S.derinlik.get(d.id) < S.seviye;
+  const cevir = (d) => {
+    const c = S.cocuk.get(d.id) || [];
+    const n = { id: d.id, topic: d.etiket, expanded: c.length ? acikMi(d) : true };
+    if (d.ikon) n.icons = [d.ikon];
+    if (S.renk.has(d.id) && S.derinlik.get(d.id) === 1) n.branchColor = S.renk.get(d.id);
+    if (d.guven === "dusuk") n.style = { textDecoration: "underline dotted" };
+    if (c.length) n.children = c.map(cevir);
+    return n;
+  };
+  return {
+    nodeData: cevir(S.kok),
+    arrows: (S.veri.baglantilar || []).filter((b) => S.byId.has(b.kaynak) && S.byId.has(b.hedef)).map((b) => ({ id: b.id, label: b.etiket, from: b.kaynak, to: b.hedef, bidirectional: !!b.cift_yonlu,
+      style: { stroke: koyu() ? "#D69BC8" : "#7A3E6B", labelColor: koyu() ? "#E7C2DE" : "#5E2F53", strokeWidth: "1.5", strokeDasharray: "6,4", opacity: b.guven === "dusuk" ? "0.5" : "0.8" } })),
+    summaries: (S.veri.ozetler || []).filter((z) => S.cocuk.has(z.ebeveyn) && z.son < (S.cocuk.get(z.ebeveyn) || []).length).map((z) => ({ id: z.id, parent: z.ebeveyn, start: z.bas, end: z.son, label: z.etiket })),
+    direction: 2
+  };
+}
+function tema() {
+  return koyu()
+    ? { name: "Gece", type: "dark", palette: PALET_KOYU, cssVar: { "--main-color": "#E6ECEA", "--main-bgcolor": "#283136", "--color": "#D4DBD9", "--bgcolor": "#161B1E", "--selected": "#D69BC8",
+        "--accent-color": "#D69BC8", "--root-color": "#161B1E", "--root-bgcolor": "#E6ECEA", "--root-border-color": "#E6ECEA", "--panel-color": "230, 236, 234", "--panel-bgcolor": "31, 38, 42", "--panel-border-color": "#34403F", "--main-bgcolor-transparent": "rgba(40,49,54,.8)" } }
+    : { name: "Kâğıt", type: "light", palette: PALET_ACIK, cssVar: { "--main-color": "#1E2A2F", "--main-bgcolor": "#FFFFFF", "--color": "#2E3B40", "--bgcolor": "#F3F5F2", "--selected": "#7A3E6B",
+        "--accent-color": "#7A3E6B", "--root-color": "#FFFFFF", "--root-bgcolor": "#1E2A2F", "--root-border-color": "#1E2A2F", "--panel-color": "30, 42, 47", "--panel-bgcolor": "255, 255, 255", "--panel-border-color": "#D5DCD6", "--main-bgcolor-transparent": "rgba(255,255,255,.8)" } };
+}
+function ciz() {
+  $("#harita").hidden = S.gorunum !== "harita"; $("#anahat").hidden = S.gorunum !== "anahat";
+  $("#gHarita").setAttribute("aria-pressed", String(S.gorunum === "harita")); $("#gAnahat").setAttribute("aria-pressed", String(S.gorunum === "anahat"));
+  if (S.gorunum === "anahat" || !ME) {
+    if (!ME && S.gorunum === "harita") { S.gorunum = "anahat"; bildir("Harita kütüphanesi yüklenemedi; anahat görünümüne geçildi. İnternet bağlantını kontrol et."); return ciz(); }
+    anahatCiz(); return;
+  }
+  const el = $("#harita");
+  if (S.mind) { try { S.mind.destroy(); } catch {} S.mind = null; }
+  el.innerHTML = "";
+  const mind = new ME({ el, direction: ME.SIDE, editable: false, draggable: false, contextMenu: false, toolBar: false, keypress: false,
+    allowUndo: false, locale: "en", overflowHidden: false, theme: tema(), alignment: "root", scaleMin: 0.15, scaleMax: 2.5 });
+  mind.init(meVeri());
+  mind.bus.addListener("selectNodes", (nodes) => { if (nodes && nodes[0] && nodes[0].id !== S.secili) secDugum(nodes[0].id, { haritadan: true }); });
+  mind.bus.addListener("selectArrow", (a) => a && panelBaglanti(a.id));
+  mind.bus.addListener("selectSummary", (z) => z && panelOzet(z.id));
+  S.mind = mind;
+  requestAnimationFrame(() => { try { mind.scaleFit(); mind.toCenter(); } catch {}
+    if (S.kaydirHedef) { const e = meEl(S.kaydirHedef); S.kaydirHedef = null; if (e) mind.scrollIntoView(e, true); } });
+}
+function anahatCiz() {
+  const v = S.veri, m = v.meta;
+  const dal = (d) => {
+    const c = S.cocuk.get(d.id) || [], dz = S.derinlik.get(d.id);
+    const ad = `<button class="dugum-ad${d.id === S.secili ? " secili" : ""}" data-id="${kac(d.id)}">${d.ikon ? kac(d.ikon) + " " : ""}${kac(d.etiket)}</button>`;
+    const stil = dz === 1 ? ` class="ana" style="--renk:${S.renk.get(d.id)}"` : "";
+    if (!c.length) return `<li${stil}><span class="yaprak">${ad}</span></li>`;
+    return `<li${stil}><details${dz < S.seviye ? " open" : ""}><summary>${ad}<span class="ipucu">${c.length}</span></summary><ul>${c.map(dal).join("")}</ul></details></li>`;
+  };
+  $("#anahat").innerHTML = `<h1 class="anahat-baslik">${kac(m.baslik)}</h1><p class="anahat-ozet">${kac(m.ozet)}</p><ul class="agac">${(S.cocuk.get(S.kok.id) || []).map(dal).join("")}</ul>`;
+}
+$("#anahat").addEventListener("click", (e) => { const b = e.target.closest(".dugum-ad"); if (b) { e.preventDefault(); secDugum(b.dataset.id); } });
+
+const meEl = (id) => document.querySelector(`#harita [data-nodeid="me${CSS.escape(id)}"]`);
+function ataYolu(id) { const y = []; let d = S.byId.get(id); while (d) { y.unshift(d); d = d.ebeveyn ? S.byId.get(d.ebeveyn) : null; } return y; }
+function secDugum(id, { adresYaz = true, kaydir = false, haritadan = false } = {}) {
+  if (!S.byId.has(id)) return;
+  S.secili = id;
+  if (S.gorunum === "harita" && S.mind && !haritadan) {
+    let ele = meEl(id);
+    if (!ele) { ataYolu(id).slice(1, -1).forEach((a) => { const e2 = meEl(a.id); if (e2) S.mind.expandNode(e2, true); }); ele = meEl(id); }
+    if (ele) { S.mind.selectNode(ele); if (kaydir) S.mind.scrollIntoView(ele, true); }
+  }
+  if (S.gorunum === "anahat") {
+    ataYolu(id).forEach((a) => { const b = document.querySelector(`#anahat .dugum-ad[data-id="${CSS.escape(a.id)}"]`); const det = b && b.closest("details"); if (det && a.id !== id) det.open = true; });
+    document.querySelectorAll("#anahat .dugum-ad.secili").forEach((b) => b.classList.remove("secili"));
+    const b = document.querySelector(`#anahat .dugum-ad[data-id="${CSS.escape(id)}"]`); if (b) { b.classList.add("secili"); if (kaydir) b.scrollIntoView({ block: "center" }); }
+  }
+  panelDugum(id);
+  if (adresYaz) adresGuncelle();
+}
+function adresGuncelle() {
+  const p = new URLSearchParams(); if (!S.yerel && S.ad) p.set("f", S.ad); if (S.secili && S.secili !== S.kok.id) p.set("n", S.secili);
+  const a = "#" + p.toString(); if (location.hash !== a) history.replaceState(null, "", a);
+}
+
+function parcaAdi(pid) { const p = (S.veri.parcalar || []).find((x) => x.id === pid); return p ? (p.baslik || pid) : pid; }
+function ytBag(zaman) {
+  const u = S.veri.meta.kaynak_url; if (!u || !/youtu/.test(u)) return null;
+  const sn = HaritaDogrulayici.saniye(zaman);
+  try { const url = new URL(u); url.searchParams.set("t", sn + "s"); return url.toString(); } catch { return null; }
+}
+function kanitHtml(liste) {
+  if (!liste || !liste.length) return '<p class="ipucu">Kanıt kaydı yok.</p>';
+  return liste.map((k) => {
+    const konum = k.zaman ? (ytBag(k.zaman) ? `<a href="${kac(ytBag(k.zaman))}" target="_blank" rel="noopener">${kac(k.zaman)}</a>` : kac(k.zaman)) : k.sayfa ? `s. ${k.sayfa}` : "";
+    const yer = (k.zaman ? `Videoda ${konum}` : `${kac(parcaAdi(k.parca))}${konum ? " · " + konum : ""}`) + (k.gorsel ? " · sayfa görüntüsünden doğrulandı" : "");
+    return `<div class="kanit">${k.alinti ? `<q>${kac(k.alinti)}</q>` : ""}<small>${yer}</small></div>`;
+  }).join("");
+}
+function bagDugme(id) { const d = S.byId.get(id); return d ? `<button class="bag" data-git="${kac(id)}">${kac(d.etiket)}</button>` : `<span class="bag">${kac(id)}</span>`; }
+function belirsizlik(id) { return (S.veri.belirsizlikler || []).filter((b) => b.kayit === id).map((b) => `<div class="not"><strong>${kac(BELIRSIZLIK_ADI[b.tur] || b.tur)}:</strong> ${kac(b.neden)}</div>`).join(""); }
+function panelAc(html) { const p = $("#panel"); p.hidden = false; p.innerHTML = `<button class="panel-kapat" id="panelKapat" aria-label="Paneli kapat">×</button>${html}`; p.scrollTop = 0; }
+function panelDugum(id) {
+  const d = S.byId.get(id), v = S.veri, m = v.meta;
+  const yol = ataYolu(id).slice(0, -1);
+  const c = S.cocuk.get(id) || [];
+  const bl = (v.baglantilar || []).filter((b) => b.kaynak === id || b.hedef === id);
+  let h = yol.length ? `<p class="yol">${yol.map((a) => `<button data-git="${kac(a.id)}">${kac(a.etiket)}</button>`).join(" › ")}</p>` : "";
+  h += `<h1>${d.ikon ? kac(d.ikon) + " " : ""}${kac(d.etiket)}</h1><div class="etiketler">`;
+  if (id === S.kok.id) h += `<span class="rozet alan">${kac(ALAN_ADI[m.alan] || m.alan)}</span><span class="rozet ${S.denetim.sonuc === "GECTI" ? "gecti" : "kaldi"}">${S.denetim.sonuc === "GECTI" ? "Doğrulama geçti" : `Doğrulama kaldı (${S.denetim.hatalar.length})`}</span>${m.ornek ? '<span class="rozet">Sentetik örnek</span>' : ""}`;
+  if (d.tur) h += `<span class="rozet">${kac(d.tur.replace(/_/g, " "))}</span>`;
+  if (id !== S.kok.id) h += `<span class="rozet guven-${d.guven}">${GUVEN_ADI[d.guven] || ""}</span>`;
+  h += "</div>";
+  if (id === S.kok.id) {
+    h += `<p class="aciklama">${kac(m.ozet)}</p>`;
+    if (m.uyari) h += `<div class="uyari-kutu">${kac(m.uyari)}</div>`;
+    h += `<p class="ipucu">${[m.yazar, m.kaynak_dosya, m.sayfa_sayisi && `${m.sayfa_sayisi} sayfa`, m.sure && `süre ${m.sure}`, m.olusturma_tarihi].filter(Boolean).map(kac).join(" · ")}${m.kaynak_url ? ` · <a href="${kac(m.kaynak_url)}" target="_blank" rel="noopener">kaynak</a>` : ""}</p>`;
+    const ist = S.denetim.istatistik;
+    h += `<p class="ipucu">${ist.dugum} düğüm, ${ist.ana_dal} ana dal, ${ist.baglanti} çapraz bağlantı, ${ist.belirsizlik} belirsizlik.</p>`;
+    if (S.denetim.hatalar.length || S.denetim.uyarilar.length) h += `<h2>Doğrulama</h2><ul class="denetim">${S.denetim.hatalar.map((x) => `<li class="h">${kac(x)}</li>`).join("")}${S.denetim.uyarilar.map((x) => `<li class="u">${kac(x)}</li>`).join("")}</ul>`;
+    if ((v.belirsizlikler || []).length) h += `<h2>Belirsizlikler</h2>${v.belirsizlikler.map((b) => `<div class="not">${bagDugme(b.kayit)} ${kac(b.neden)}</div>`).join("")}`;
+  } else {
+    if (d.aciklama) h += `<p class="aciklama">${kac(d.aciklama)}</p>`;
+    h += belirsizlik(id);
+    if (bl.length) h += `<h2>Bağlantılar</h2>${bl.map((b) => `<div>${b.kaynak === id ? "→" : "←"} ${kac(b.etiket)} ${bagDugme(b.kaynak === id ? b.hedef : b.kaynak)}</div>`).join("")}`;
+    h += `<h2>Kaynak</h2>${kanitHtml(d.kanit)}`;
+  }
+  if (c.length) h += `<h2>Alt dallar (${c.length})</h2><div>${c.map((x) => bagDugme(x.id)).join("")}</div>`;
+  if (c.length && S.gorunum === "harita") h += `<p style="margin-top:14px"><button class="dugme" id="odakla">Yalnız bu dala odaklan</button></p>`;
+  panelAc(h);
+}
+function panelBaglanti(lid) {
+  const b = (S.veri.baglantilar || []).find((x) => x.id === lid); if (!b) return;
+  panelAc(`<p class="yol">Çapraz bağlantı</p><h1>${kac(b.etiket)}</h1><div class="etiketler"><span class="rozet guven-${b.guven}">${GUVEN_ADI[b.guven] || ""}</span></div>
+    <p>${bagDugme(b.kaynak)} ${b.cift_yonlu ? "↔" : "→"} ${bagDugme(b.hedef)}</p>${b.aciklama ? `<p class="aciklama">${kac(b.aciklama)}</p>` : ""}${belirsizlik(lid)}<h2>Kaynak</h2>${kanitHtml(b.kanit)}`);
+}
+function panelOzet(zid) {
+  const z = (S.veri.ozetler || []).find((x) => x.id === zid); if (!z) return;
+  const kardes = (S.cocuk.get(z.ebeveyn) || []).slice(z.bas, z.son + 1);
+  panelAc(`<p class="yol">Özet grubu · ${bagDugme(z.ebeveyn)}</p><h1>${kac(z.etiket)}</h1><h2>Kapsadığı dallar</h2><div>${kardes.map((x) => bagDugme(x.id)).join("")}</div>${z.kanit && z.kanit.length ? `<h2>Kaynak</h2>${kanitHtml(z.kanit)}` : ""}`);
+}
+$("#panel").addEventListener("click", (e) => {
+  if (e.target.closest("#panelKapat")) { $("#panel").hidden = true; return; }
+  const g = e.target.closest("[data-git]"); if (g) { secDugum(g.dataset.git, { kaydir: true }); return; }
+  if (e.target.closest("#odakla") && S.mind) { const el = meEl(S.secili); if (el) { S.mind.focusNode(el); S.odak = true; $("#odakDugme").hidden = false; requestAnimationFrame(() => { try { S.mind.scaleFit(); S.mind.toCenter(); } catch {} }); } }
+});
+$("#odakDugme").addEventListener("click", () => { if (S.mind) { S.mind.cancelFocus(); S.odak = false; $("#odakDugme").hidden = true; requestAnimationFrame(() => { try { S.mind.scaleFit(); S.mind.toCenter(); } catch {} }); } });
+
+function seviyeDugmeleri() { document.querySelectorAll("[data-seviye]").forEach((b) => b.setAttribute("aria-pressed", String(+b.dataset.seviye === S.seviye))); }
+document.querySelectorAll("[data-seviye]").forEach((b) => b.addEventListener("click", () => {
+  if (!S.veri) return; S.seviye = +b.dataset.seviye; seviyeDugmeleri(); S.odak = false; $("#odakDugme").hidden = true; ciz();
+  if (S.secili) { const yol = ataYolu(S.secili); secDugum(yol[Math.min(yol.length - 1, S.seviye)].id); }
+}));
+$("#gHarita").addEventListener("click", () => { if (!S.veri) return; S.gorunum = "harita"; ciz(); secDugum(S.secili || S.kok.id, { adresYaz: false }); });
+$("#gAnahat").addEventListener("click", () => { if (!S.veri) return; S.gorunum = "anahat"; S.odak = false; $("#odakDugme").hidden = true; ciz(); secDugum(S.secili || S.kok.id, { adresYaz: false, kaydir: true }); });
+$("#sigdir").addEventListener("click", () => { if (S.mind) { S.mind.scaleFit(); S.mind.toCenter(); } });
+$("#temaDugme").addEventListener("click", () => {
+  document.documentElement.dataset.theme = koyu() ? "light" : "dark";
+  if (S.veri) { const secili = S.secili; kur(S.ad, JSON.stringify(S.veri), S.yerel).then(() => secDugum(secili, { adresYaz: false })); }
+});
+
+$("#arama").addEventListener("input", () => {
+  const q = HaritaDogrulayici.norm($("#arama").value), kutu = $("#sonuclar");
+  if (q.length < 2) { kutu.hidden = true; return; }
+  const bul = [];
+  for (const d of S.veri.dugumler) {
+    const ad = HaritaDogrulayici.norm(d.etiket), ac = HaritaDogrulayici.norm(d.aciklama || "");
+    const p = ad.startsWith(q) ? 3 : ad.includes(q) ? 2 : ac.includes(q) ? 1 : 0;
+    if (p) bul.push([p, d]);
+  }
+  bul.sort((a, b) => b[0] - a[0] || a[1].etiket.localeCompare(b[1].etiket, "tr"));
+  kutu.innerHTML = bul.length ? bul.slice(0, 30).map(([, d]) => `<button role="option" data-id="${kac(d.id)}">${kac(d.etiket)}<small>${kac(ataYolu(d.id).slice(1, -1).map((a) => a.etiket).join(" › ") || "ana dal")}</small></button>`).join("") : '<p class="ipucu" style="padding:8px">Eşleşme yok.</p>';
+  kutu.hidden = false;
+});
+$("#arama").addEventListener("keydown", (e) => { if (e.key === "Enter") { const b = $("#sonuclar button"); if (b) b.click(); } if (e.key === "Escape") $("#sonuclar").hidden = true; });
+$("#sonuclar").addEventListener("click", (e) => { const b = e.target.closest("[data-id]"); if (b) { $("#sonuclar").hidden = true; secDugum(b.dataset.id, { kaydir: true }); } });
+document.addEventListener("click", (e) => {
+  if (!e.target.closest(".arama-kap")) $("#sonuclar").hidden = true;
+  if (!e.target.closest(".menu")) { $("#disaMenu").hidden = true; $("#disaDugme").setAttribute("aria-expanded", "false"); }
+});
+
+function indir(ad, icerik, tip) { const url = URL.createObjectURL(icerik instanceof Blob ? icerik : new Blob([icerik], { type: tip })); const a = document.createElement("a"); a.href = url; a.download = ad; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000); }
+const dosyaKok = () => (S.ad || "harita").replace(/\.json$/i, "");
+function markdown() {
+  const satir = [`# ${S.kok.etiket}`, "", S.veri.meta.ozet, ""];
+  const gez = (d, dz) => { for (const c of S.cocuk.get(d.id) || []) { satir.push(`${"  ".repeat(dz)}- ${c.etiket}${c.aciklama ? ` — ${c.aciklama}` : ""}`); gez(c, dz + 1); } };
+  gez(S.kok, 0);
+  return satir.join("\n") + "\n";
+}
+function opml() {
+  const x = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  const gez = (d, dz) => { const c = S.cocuk.get(d.id) || [], g = "  ".repeat(dz + 2), not = d.aciklama ? ` _note="${x(d.aciklama)}"` : "";
+    return c.length ? `${g}<outline text="${x(d.etiket)}"${not}>\n${c.map((k) => gez(k, dz + 1)).join("")}${g}</outline>\n` : `${g}<outline text="${x(d.etiket)}"${not}/>\n`; };
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<opml version="2.0">\n  <head><title>${x(S.veri.meta.baslik)}</title></head>\n  <body>\n${gez(S.kok, -1).replace(/^ {2}/gm, "")}  </body>\n</opml>\n`;
+}
+$("#disaDugme").addEventListener("click", () => { const m = $("#disaMenu"); m.hidden = !m.hidden; $("#disaDugme").setAttribute("aria-expanded", String(!m.hidden)); });
+$("#disaMenu").addEventListener("click", async (e) => {
+  const b = e.target.closest("[data-disa]"); if (!b || !S.veri) return; $("#disaMenu").hidden = true;
+  const t = b.dataset.disa;
+  try {
+    if (t === "md") indir(dosyaKok() + ".md", markdown(), "text/markdown;charset=utf-8");
+    else if (t === "opml") indir(dosyaKok() + ".opml", opml(), "text/x-opml;charset=utf-8");
+    else if (t === "json") indir(dosyaKok() + ".json", JSON.stringify(S.veri, null, 2), "application/json;charset=utf-8");
+    else {
+      if (!S.mind) { bildir("Görsel dışa aktarma için Harita görünümüne geç."); return; }
+      const blob = t === "png" ? await S.mind.exportPng(false) : S.mind.exportSvg(false);
+      if (!blob) throw new Error("görsel üretilemedi");
+      indir(`${dosyaKok()}.${t}`, blob);
+    }
+    bildir("Dışa aktarıldı.");
+  } catch (err) { bildir(`Dışa aktarılamadı: ${err.message}`); }
+});
+
+$("#yerelDosya").addEventListener("change", (e) => { const f = e.target.files[0]; if (f) yerelOku(f); e.target.value = ""; });
+let suruklemeSayac = 0;
+window.addEventListener("dragenter", (e) => { if ([...(e.dataTransfer?.types || [])].includes("Files")) { suruklemeSayac++; $("#surukleOrtu").hidden = false; } });
+window.addEventListener("dragleave", () => { if (--suruklemeSayac <= 0) { suruklemeSayac = 0; $("#surukleOrtu").hidden = true; } });
+window.addEventListener("dragover", (e) => e.preventDefault());
+window.addEventListener("drop", (e) => { e.preventDefault(); suruklemeSayac = 0; $("#surukleOrtu").hidden = true; const f = e.dataTransfer.files[0]; if (f) yerelOku(f); });
+
+function hashOku() { const p = new URLSearchParams(location.hash.slice(1)); return { f: p.get("f"), n: p.get("n") }; }
+window.addEventListener("hashchange", () => {
+  const h = hashOku();
+  if (h.f && (h.f !== S.ad || S.yerel)) uzaktanYukle(h.f);
+  else if (h.n && S.veri && h.n !== S.secili) secDugum(h.n, { adresYaz: false, kaydir: true });
+});
+if (matchMedia("(prefers-color-scheme: dark)").matches) document.documentElement.dataset.theme = "dark";
+listeKur();
+(async () => {
+  const h = hashOku();
+  if (h.f) await uzaktanYukle(h.f);
+  else if (HARITA_DOSYALARI.length && location.protocol !== "file:") await uzaktanYukle(HARITA_DOSYALARI[0]);
+  else if (location.protocol === "file:") hataGoster("Sayfa dosyadan (file://) açılmış. Listedeki haritalar için VS Code Live Server veya GitHub Pages kullan; ya da \"Dosya aç\" ile bir JSON seç.");
+})();
+</script>
+</body>
+</html>

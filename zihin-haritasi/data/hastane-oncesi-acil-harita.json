@@ -1,0 +1,1970 @@
+{
+ "meta": {
+  "schema_version": "1.0",
+  "baslik": "Hastane öncesi acil akış şemaları (yetişkin)",
+  "yazar": "T.C. Sağlık Bakanlığı acil sağlık hizmetleri yönergesi, EK-2 (kurum adı belgede açıkça yazmıyor)",
+  "ozet": "Yetişkin hastane öncesi acil bakım yönergesinin 51 akış şeması 7 ana başlıkta toplanmıştır; her şemanın altında kullandığı başlıca ilaçlar ve dozları yer alır. Kesikli oklar şemalar arası yönlendirmeleri gösterir.",
+  "kaynak_dosya": "yetiskin112.pdf",
+  "kaynak_turu": "pdf",
+  "sha256": "2fb8f7fc3508e977cafdc5d4087b10e86ce64b4ea85655fbdc0b0fccc95a4cf8",
+  "sayfa_sayisi": 61,
+  "alan": "tip",
+  "dil": "tr",
+  "olusturma_tarihi": "2026-09-28",
+  "olusturan": "Claude — doğrulanmış algoritma JSON'undan türetildi (iki geçişli okuma değil)",
+  "uyari": "Bu JSON yüklenen yönergeden türetilmiştir; hekim değerlendirmesinin, güncel kılavuzların ve KKM talimatlarının yerine geçmez. Dozlar belgedeki haliyledir; belgenin kendisi de tıbbın değiştiğini ve güncel kılavuzların izlenmesi gerektiğini belirtir."
+ },
+ "parcalar": [
+  {
+   "id": "P1",
+   "baslik": "Sayfa 1–12",
+   "sayfa_baslangic": 1,
+   "sayfa_bitis": 12,
+   "gecis1": true,
+   "gecis2": true
+  },
+  {
+   "id": "P2",
+   "baslik": "Sayfa 13–27",
+   "sayfa_baslangic": 13,
+   "sayfa_bitis": 27,
+   "gecis1": true,
+   "gecis2": true
+  },
+  {
+   "id": "P3",
+   "baslik": "Sayfa 28–40",
+   "sayfa_baslangic": 28,
+   "sayfa_bitis": 40,
+   "gecis1": true,
+   "gecis2": true
+  },
+  {
+   "id": "P4",
+   "baslik": "Sayfa 41–52",
+   "sayfa_baslangic": 41,
+   "sayfa_bitis": 52,
+   "gecis1": true,
+   "gecis2": true
+  },
+  {
+   "id": "P5",
+   "baslik": "Sayfa 53–57",
+   "sayfa_baslangic": 53,
+   "sayfa_bitis": 57,
+   "gecis1": true,
+   "gecis2": true
+  },
+  {
+   "id": "P6",
+   "baslik": "Sayfa 58–61",
+   "sayfa_baslangic": 58,
+   "sayfa_bitis": 61,
+   "gecis1": true,
+   "gecis2": true
+  }
+ ],
+ "dugumler": [
+  {
+   "id": "N1",
+   "ebeveyn": null,
+   "sira": 0,
+   "etiket": "Hastane öncesi acil akış şemaları",
+   "kanit": [],
+   "guven": "yuksek"
+  },
+  {
+   "id": "N2",
+   "ebeveyn": "N1",
+   "sira": 0,
+   "etiket": "Saha, değerlendirme, prosedürler",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 5
+    }
+   ],
+   "guven": "yuksek",
+   "ikon": "🧭",
+   "tur": "kategori"
+  },
+  {
+   "id": "N3",
+   "ebeveyn": "N2",
+   "sira": 0,
+   "etiket": "Saha yönetimi",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 5,
+     "alinti": "SAHA YÖNETİMİ"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Olay yerine varıştan hasta yönetimine geçişe kadar güvenlik, mekanizma ve vaka sayısı kararları.",
+   "tur": "akış_şeması"
+  },
+  {
+   "id": "N4",
+   "ebeveyn": "N2",
+   "sira": 1,
+   "etiket": "İlk değerlendirme",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 6,
+     "alinti": "İLK DEĞERLENDİRME"
+    }
+   ],
+   "guven": "orta",
+   "aciklama": "Bilinç, havayolu, solunum ve dolaşımın sırayla değerlendirilip hayati tehlikeye hemen müdahale edilmesi.",
+   "tur": "akış_şeması"
+  },
+  {
+   "id": "N5",
+   "ebeveyn": "N2",
+   "sira": 2,
+   "etiket": "Sürekli değerlendirme",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 8,
+     "alinti": "SÜREKLİ DEĞERLENDİRME"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Nakil boyunca değerlendirmenin tekrarı ve sıklığının hastanın stabilitesine göre belirlenmesi.",
+   "tur": "akış_şeması"
+  },
+  {
+   "id": "N6",
+   "ebeveyn": "N2",
+   "sira": 3,
+   "etiket": "Krikotirotomi (Melker)",
+   "kanit": [
+    {
+     "parca": "P4",
+     "sayfa": 50,
+     "alinti": "Krikotirotomi, MELKER"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Seldinger yöntemiyle acil cerrahi havayolu.",
+   "tur": "akış_şeması"
+  },
+  {
+   "id": "N7",
+   "ebeveyn": "N2",
+   "sira": 4,
+   "etiket": "Defibrilasyon (manuel)",
+   "kanit": [
+    {
+     "parca": "P4",
+     "sayfa": 51
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Güvenli manuel defibrilasyon adımları.",
+   "tur": "akış_şeması"
+  },
+  {
+   "id": "N8",
+   "ebeveyn": "N2",
+   "sira": 5,
+   "etiket": "Senkronize kardiyoversiyon",
+   "kanit": [
+    {
+     "parca": "P6",
+     "sayfa": 58,
+     "alinti": "Senkronize Kardiyoversiyon"
+    }
+   ],
+   "guven": "orta",
+   "aciklama": "Cihaz hazırlığı, senkronizasyon ve kademeli enerjiyle kardiyoversiyon.",
+   "tur": "akış_şeması"
+  },
+  {
+   "id": "N9",
+   "ebeveyn": "N8",
+   "sira": 0,
+   "etiket": "Midazolam",
+   "kanit": [
+    {
+     "parca": "P3",
+     "sayfa": 35,
+     "alinti": "5mg MİDAZOLAM"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Epanutine rağmen nöbet sürerse 5 mg, KKM danışılarak.",
+   "tur": "ilaç",
+   "ikon": "💊"
+  },
+  {
+   "id": "N10",
+   "ebeveyn": "N2",
+   "sira": 6,
+   "etiket": "Orotrakeal entübasyon",
+   "kanit": [
+    {
+     "parca": "P5",
+     "sayfa": 54,
+     "alinti": "OROTRAKEAL ENTÜBASYON"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Hazırlık, laringoskopi, tüp yerleşimi ve yer doğrulama; yanlış yerleşimde düzeltme.",
+   "tur": "akış_şeması"
+  },
+  {
+   "id": "N11",
+   "ebeveyn": "N2",
+   "sira": 7,
+   "etiket": "Kemik içi uygulama (Cook/Jamshidi)",
+   "kanit": [
+    {
+     "parca": "P4",
+     "sayfa": 52,
+     "alinti": "Kemik İçi Uygulama (Cook/Jamshidi)"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Manuel iğneyle tibiadan intraosseöz yol açma ve sorun giderme.",
+   "tur": "akış_şeması"
+  },
+  {
+   "id": "N12",
+   "ebeveyn": "N2",
+   "sira": 8,
+   "etiket": "Kemik içi uygulama (EZ-IO)",
+   "kanit": [
+    {
+     "parca": "P5",
+     "sayfa": 53,
+     "alinti": "Kemik İçi Uygulama (EZ-IO)"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Motorlu sistemle intraosseöz yol.",
+   "tur": "akış_şeması"
+  },
+  {
+   "id": "N13",
+   "ebeveyn": "N2",
+   "sira": 9,
+   "etiket": "Erişkin aspirasyonu",
+   "kanit": [
+    {
+     "parca": "P5",
+     "sayfa": 56,
+     "alinti": "Erişkin Aspirasyonu"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Üst solunum yolundan sekresyon ve kusmuğun temizlenmesi.",
+   "tur": "akış_şeması"
+  },
+  {
+   "id": "N14",
+   "ebeveyn": "N2",
+   "sira": 10,
+   "etiket": "Trakeobronşiyal aspirasyon",
+   "kanit": [
+    {
+     "parca": "P5",
+     "sayfa": 57,
+     "alinti": "TrakeoBronşial Aspirasyon"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Entübe hastada sekresyon temizliği.",
+   "tur": "akış_şeması"
+  },
+  {
+   "id": "N15",
+   "ebeveyn": "N1",
+   "sira": 1,
+   "etiket": "Kalp, dolaşım ve şok",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 9
+    }
+   ],
+   "guven": "yuksek",
+   "ikon": "❤️",
+   "tur": "kategori"
+  },
+  {
+   "id": "N16",
+   "ebeveyn": "N15",
+   "sira": 0,
+   "etiket": "İleri yaşam desteği",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 9,
+     "alinti": "Kalp Durması - İleri Yaşam Desteği (Yetişkin)"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Bilinci kapalı yetişkinde solunum ve nabız kontrolünden ritme göre şemaya yönlendirme.",
+   "tur": "akış_şeması"
+  },
+  {
+   "id": "N17",
+   "ebeveyn": "N15",
+   "sira": 1,
+   "etiket": "VF / nabızsız VT",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 11,
+     "alinti": "VF / Nabızsız VT"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Şok uygulanabilir ritimlerde defibrilasyon, KPR ve ilaç sırası.",
+   "tur": "akış_şeması"
+  },
+  {
+   "id": "N18",
+   "ebeveyn": "N17",
+   "sira": 0,
+   "etiket": "Adrenalin",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 10,
+     "alinti": "ADRENALIN 1 mg IV/IO (3-5 dak da tekrarla)"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Kalp durmasında IV/IO 1 mg (3-5 dk'da tekrar), yol yoksa ET 2 mg; bradikardide 2-10 mcg/dk.",
+   "tur": "ilaç",
+   "ikon": "💊"
+  },
+  {
+   "id": "N19",
+   "ebeveyn": "N17",
+   "sira": 1,
+   "etiket": "Amiodaron",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 11,
+     "alinti": "AMIODORON 300 mg IV/IO"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "VF/nabızsız VT'de 3. şoktan sonra KPR sırasında 300 mg IV/IO; yoksa %2 lidokain.",
+   "tur": "ilaç",
+   "ikon": "💊"
+  },
+  {
+   "id": "N20",
+   "ebeveyn": "N17",
+   "sira": 2,
+   "etiket": "Lidokain",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 11,
+     "alinti": "LIDOKAIN 2-3 mg/kg ET’den 10 cc ye SF le tamamlayarak ver."
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Amiodaron yoksa; IV/IO yol yoksa 2-3 mg/kg ET'den.",
+   "tur": "ilaç",
+   "ikon": "💊"
+  },
+  {
+   "id": "N21",
+   "ebeveyn": "N17",
+   "sira": 3,
+   "etiket": "Sodyum bikarbonat",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 10,
+     "alinti": "1mEq/kg (en fazla 100 mEq) vermeyi düşün"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Kalp durmasında 20 dakika sonra 1 mEq/kg (en fazla 100 mEq) KKM danışılarak düşünülür.",
+   "tur": "ilaç",
+   "ikon": "💊"
+  },
+  {
+   "id": "N22",
+   "ebeveyn": "N15",
+   "sira": 2,
+   "etiket": "Asistoli / NEA",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 10,
+     "alinti": "ASİSTOLİ / NEA"
+    }
+   ],
+   "guven": "orta",
+   "aciklama": "Şok uygulanmayan ritimlerde KPR ve ilaç döngüsü.",
+   "tur": "akış_şeması"
+  },
+  {
+   "id": "N23",
+   "ebeveyn": "N22",
+   "sira": 0,
+   "etiket": "Adrenalin",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 10,
+     "alinti": "ADRENALIN 1 mg IV/IO (3-5 dak da tekrarla)"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Kalp durmasında IV/IO 1 mg (3-5 dk'da tekrar), yol yoksa ET 2 mg; bradikardide 2-10 mcg/dk.",
+   "tur": "ilaç",
+   "ikon": "💊"
+  },
+  {
+   "id": "N24",
+   "ebeveyn": "N22",
+   "sira": 1,
+   "etiket": "Atropin",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 10,
+     "alinti": "ATROPIN 3 mg IV/IO/ (Asistoli yada NEA ritm hızı<60)"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Asistoli/NEA'da (hız <60) IV/IO 3 mg veya 1 mg tekrarlı; bradikardide 0,5 mg IV, en fazla 3 mg.",
+   "tur": "ilaç",
+   "ikon": "💊"
+  },
+  {
+   "id": "N25",
+   "ebeveyn": "N22",
+   "sira": 2,
+   "etiket": "Sodyum bikarbonat",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 10,
+     "alinti": "1mEq/kg (en fazla 100 mEq) vermeyi düşün"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Kalp durmasında 20 dakika sonra 1 mEq/kg (en fazla 100 mEq) KKM danışılarak düşünülür.",
+   "tur": "ilaç",
+   "ikon": "💊"
+  },
+  {
+   "id": "N26",
+   "ebeveyn": "N15",
+   "sira": 3,
+   "etiket": "Bradikardi",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 12,
+     "alinti": "Bradikardi (Yetişkin)"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Hemodinamiği bozan düşük kalp hızında atropin ve adrenalin basamakları.",
+   "tur": "akış_şeması"
+  },
+  {
+   "id": "N27",
+   "ebeveyn": "N26",
+   "sira": 0,
+   "etiket": "Atropin",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 10,
+     "alinti": "ATROPIN 3 mg IV/IO/ (Asistoli yada NEA ritm hızı<60)"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Asistoli/NEA'da (hız <60) IV/IO 3 mg veya 1 mg tekrarlı; bradikardide 0,5 mg IV, en fazla 3 mg.",
+   "tur": "ilaç",
+   "ikon": "💊"
+  },
+  {
+   "id": "N28",
+   "ebeveyn": "N26",
+   "sira": 1,
+   "etiket": "Adrenalin",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 10,
+     "alinti": "ADRENALIN 1 mg IV/IO (3-5 dak da tekrarla)"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Kalp durmasında IV/IO 1 mg (3-5 dk'da tekrar), yol yoksa ET 2 mg; bradikardide 2-10 mcg/dk.",
+   "tur": "ilaç",
+   "ikon": "💊"
+  },
+  {
+   "id": "N29",
+   "ebeveyn": "N15",
+   "sira": 4,
+   "etiket": "Taşikardi",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 13,
+     "alinti": "Taşikardi (Yetişkin)"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Stabiliteye, QRS genişliğine ve ritim düzenine göre taşikardi tedavisi.",
+   "tur": "akış_şeması"
+  },
+  {
+   "id": "N30",
+   "ebeveyn": "N29",
+   "sira": 0,
+   "etiket": "Magnezyum sülfat",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 13,
+     "alinti": "Torsade de pointes ise;"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Torsade de pointes'te 2 g / 5 dk; eklamptik nöbette 4 g IV (>5 dk), sürerse 2 g puşe, ardından 2 g/saat infüzyon.",
+   "tur": "ilaç",
+   "ikon": "💊"
+  },
+  {
+   "id": "N31",
+   "ebeveyn": "N29",
+   "sira": 1,
+   "etiket": "Amiodaron",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 11,
+     "alinti": "AMIODORON 300 mg IV/IO"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "VF/nabızsız VT'de 3. şoktan sonra KPR sırasında 300 mg IV/IO; yoksa %2 lidokain.",
+   "tur": "ilaç",
+   "ikon": "💊"
+  },
+  {
+   "id": "N32",
+   "ebeveyn": "N29",
+   "sira": 2,
+   "etiket": "Adenozin",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 13,
+     "alinti": "Hızlı bolus IV Adenozin 6 mg IV"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Dar QRS düzenli taşikardide hızlı bolus 6 mg IV, başarısızsa 12 mg, gerekirse 12 mg daha.",
+   "tur": "ilaç",
+   "ikon": "💊"
+  },
+  {
+   "id": "N33",
+   "ebeveyn": "N29",
+   "sira": 3,
+   "etiket": "Diltiazem",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 13,
+     "alinti": "Diltiazem uygula"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Adenozin yoksa veya düzensiz dar QRS taşikardide 0,25 mg/kg.",
+   "tur": "ilaç",
+   "ikon": "💊"
+  },
+  {
+   "id": "N34",
+   "ebeveyn": "N29",
+   "sira": 4,
+   "etiket": "Metoprolol",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 13,
+     "alinti": "METOPROLOL 5 mg IV"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Hız kontrolü için 5 mg IV, düzelmezse 3 defa tekrar, toplam 15 mg'ı geçmeden; akut koroner sendromda KKM danışılarak.",
+   "tur": "ilaç",
+   "ikon": "💊"
+  },
+  {
+   "id": "N35",
+   "ebeveyn": "N15",
+   "sira": 5,
+   "etiket": "Göğüs ağrısı",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 18,
+     "alinti": "GÖĞÜS AĞRISI (TRAVMATİK OLMAYAN)"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Travmatik olmayan göğüs ağrısında destek ve iskemik ağrı tedavisi basamakları.",
+   "tur": "akış_şeması"
+  },
+  {
+   "id": "N36",
+   "ebeveyn": "N35",
+   "sira": 0,
+   "etiket": "Asetil salisilik asit",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 18,
+     "alinti": "Asetil Salisilik Asit 300 mg PO ver"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "İskemik göğüs ağrısında 300 mg ağızdan.",
+   "tur": "ilaç",
+   "ikon": "💊"
+  },
+  {
+   "id": "N37",
+   "ebeveyn": "N35",
+   "sira": 1,
+   "etiket": "İsordil",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 18,
+     "alinti": "5 mg SL İSORDİL veriniz."
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "5 mg dil altı, 3-5 dk'da bir, toplam 3 doz; hipotansiyon veya bradikardi yoksa.",
+   "tur": "ilaç",
+   "ikon": "💊"
+  },
+  {
+   "id": "N38",
+   "ebeveyn": "N35",
+   "sira": 2,
+   "etiket": "Morfin",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 16,
+     "alinti": "0.1 mg/kg IM verilebilir (10 mg’ı aşmayacak şekilde)"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Yanıkta 0,1 mg/kg IV (1 mg/dk) veya IM, 10 mg'ı aşmadan; göğüs ağrısında 1 mg/dk, en fazla 5 mg.",
+   "tur": "ilaç",
+   "ikon": "💊"
+  },
+  {
+   "id": "N39",
+   "ebeveyn": "N35",
+   "sira": 3,
+   "etiket": "Metoprolol",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 13,
+     "alinti": "METOPROLOL 5 mg IV"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Hız kontrolü için 5 mg IV, düzelmezse 3 defa tekrar, toplam 15 mg'ı geçmeden; akut koroner sendromda KKM danışılarak.",
+   "tur": "ilaç",
+   "ikon": "💊"
+  },
+  {
+   "id": "N40",
+   "ebeveyn": "N15",
+   "sira": 6,
+   "etiket": "Anafilaksi",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 15,
+     "alinti": "Anaflaksi (Yetişkin)"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Anafilakside destek, adrenalin ve ek ilaç basamakları.",
+   "tur": "akış_şeması"
+  },
+  {
+   "id": "N41",
+   "ebeveyn": "N40",
+   "sira": 0,
+   "etiket": "Adrenalin",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 10,
+     "alinti": "ADRENALIN 1 mg IV/IO (3-5 dak da tekrarla)"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Kalp durmasında IV/IO 1 mg (3-5 dk'da tekrar), yol yoksa ET 2 mg; bradikardide 2-10 mcg/dk.",
+   "tur": "ilaç",
+   "ikon": "💊"
+  },
+  {
+   "id": "N42",
+   "ebeveyn": "N40",
+   "sira": 1,
+   "etiket": "Salbutamol",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 15,
+     "alinti": "Salbutamol 2.5-5 mg nebül"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Anafilakside solunum sıkıntısı varsa 2,5-5 mg nebül.",
+   "tur": "ilaç",
+   "ikon": "💊"
+  },
+  {
+   "id": "N43",
+   "ebeveyn": "N40",
+   "sira": 2,
+   "etiket": "Metilprednizolon",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 15,
+     "alinti": "( en fazla 125 mg)"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Anafilakside belirtiler sürerse 1 mg/kg IV veya IM, en fazla 125 mg.",
+   "tur": "ilaç",
+   "ikon": "💊"
+  },
+  {
+   "id": "N44",
+   "ebeveyn": "N15",
+   "sira": 7,
+   "etiket": "Hipovolemik şok",
+   "kanit": [
+    {
+     "parca": "P3",
+     "sayfa": 37,
+     "alinti": "Hipovolemik Şok (Yetişkin)"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Kanama kontrolü, pozisyon, ısı koruma ve sıvı replasmanı.",
+   "tur": "akış_şeması"
+  },
+  {
+   "id": "N45",
+   "ebeveyn": "N15",
+   "sira": 8,
+   "etiket": "Kardiyojenik şok",
+   "kanit": [
+    {
+     "parca": "P3",
+     "sayfa": 38,
+     "alinti": "Kardiyojenik Şok (Yetişkin)"
+    }
+   ],
+   "guven": "orta",
+   "aciklama": "Uygun hastada sıvı denemesi ve yanıta göre sıvı azaltma veya dopamin.",
+   "tur": "akış_şeması"
+  },
+  {
+   "id": "N46",
+   "ebeveyn": "N45",
+   "sira": 0,
+   "etiket": "Dopamin",
+   "kanit": [
+    {
+     "parca": "P3",
+     "sayfa": 38,
+     "alinti": "(Sistolik KB 100 olmalı)"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Kardiyojenik şokta 5-20 mcg/kg/dk IV, sistolik KB 100 hedeflenir, KKM ile.",
+   "tur": "ilaç",
+   "ikon": "💊"
+  },
+  {
+   "id": "N47",
+   "ebeveyn": "N1",
+   "sira": 2,
+   "etiket": "Solunum ve havayolu",
+   "kanit": [
+    {
+     "parca": "P3",
+     "sayfa": 30
+    }
+   ],
+   "guven": "yuksek",
+   "ikon": "🫁",
+   "tur": "kategori"
+  },
+  {
+   "id": "N48",
+   "ebeveyn": "N47",
+   "sira": 0,
+   "etiket": "Havayolu tıkanması",
+   "kanit": [
+    {
+     "parca": "P3",
+     "sayfa": 30,
+     "alinti": "Havayolu Tıkanması"
+    }
+   ],
+   "guven": "orta",
+   "aciklama": "Bilinç ve yaşa göre yabancı cisim tıkanmasının yönetimi.",
+   "tur": "akış_şeması"
+  },
+  {
+   "id": "N49",
+   "ebeveyn": "N47",
+   "sira": 1,
+   "etiket": "Astım",
+   "kanit": [
+    {
+     "parca": "P3",
+     "sayfa": 31,
+     "alinti": "Astım (Yetişkin)"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Astım atağında bronkodilatör ve adrenalin basamakları.",
+   "tur": "akış_şeması"
+  },
+  {
+   "id": "N50",
+   "ebeveyn": "N49",
+   "sira": 0,
+   "etiket": "Salbutamol",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 15,
+     "alinti": "Salbutamol 2.5-5 mg nebül"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Anafilakside solunum sıkıntısı varsa 2,5-5 mg nebül.",
+   "tur": "ilaç",
+   "ikon": "💊"
+  },
+  {
+   "id": "N51",
+   "ebeveyn": "N49",
+   "sira": 1,
+   "etiket": "Adrenalin",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 10,
+     "alinti": "ADRENALIN 1 mg IV/IO (3-5 dak da tekrarla)"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Kalp durmasında IV/IO 1 mg (3-5 dk'da tekrar), yol yoksa ET 2 mg; bradikardide 2-10 mcg/dk.",
+   "tur": "ilaç",
+   "ikon": "💊"
+  },
+  {
+   "id": "N52",
+   "ebeveyn": "N47",
+   "sira": 2,
+   "etiket": "Krup / epiglotit",
+   "kanit": [
+    {
+     "parca": "P3",
+     "sayfa": 32,
+     "alinti": "Krup/Epiglotit"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Üst solunum yolu daralmasında sakinleştirme ve ilaç.",
+   "tur": "akış_şeması"
+  },
+  {
+   "id": "N53",
+   "ebeveyn": "N52",
+   "sira": 0,
+   "etiket": "Adrenalin",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 10,
+     "alinti": "ADRENALIN 1 mg IV/IO (3-5 dak da tekrarla)"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Kalp durmasında IV/IO 1 mg (3-5 dk'da tekrar), yol yoksa ET 2 mg; bradikardide 2-10 mcg/dk.",
+   "tur": "ilaç",
+   "ikon": "💊"
+  },
+  {
+   "id": "N54",
+   "ebeveyn": "N52",
+   "sira": 1,
+   "etiket": "Deksametazon",
+   "kanit": [
+    {
+     "parca": "P3",
+     "sayfa": 32,
+     "alinti": "0.6 mg/kg Deksametazon IV ver"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Krup/epiglotitte 0,6 mg/kg IV.",
+   "tur": "ilaç",
+   "ikon": "💊"
+  },
+  {
+   "id": "N55",
+   "ebeveyn": "N47",
+   "sira": 3,
+   "etiket": "Amfizem / KOAH",
+   "kanit": [
+    {
+     "parca": "P3",
+     "sayfa": 33,
+     "alinti": "Amfizem/KOAH (Yetişkin)"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "KOAH alevlenmesinde düşük akım oksijen ve bronkodilatör.",
+   "tur": "akış_şeması"
+  },
+  {
+   "id": "N56",
+   "ebeveyn": "N55",
+   "sira": 0,
+   "etiket": "Salbutamol",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 15,
+     "alinti": "Salbutamol 2.5-5 mg nebül"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Anafilakside solunum sıkıntısı varsa 2,5-5 mg nebül.",
+   "tur": "ilaç",
+   "ikon": "💊"
+  },
+  {
+   "id": "N57",
+   "ebeveyn": "N47",
+   "sira": 4,
+   "etiket": "Akut akciğer ödemi",
+   "kanit": [
+    {
+     "parca": "P3",
+     "sayfa": 34
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Pozisyon, oksijen, nitrat ve diüretik.",
+   "tur": "akış_şeması"
+  },
+  {
+   "id": "N58",
+   "ebeveyn": "N57",
+   "sira": 0,
+   "etiket": "İsordil",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 18,
+     "alinti": "5 mg SL İSORDİL veriniz."
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "5 mg dil altı, 3-5 dk'da bir, toplam 3 doz; hipotansiyon veya bradikardi yoksa.",
+   "tur": "ilaç",
+   "ikon": "💊"
+  },
+  {
+   "id": "N59",
+   "ebeveyn": "N57",
+   "sira": 1,
+   "etiket": "Furosemid",
+   "kanit": [
+    {
+     "parca": "P3",
+     "sayfa": 34,
+     "alinti": "Sistolik TA 100 mmHg üstündeyse 40 mg Furosemid İV ver."
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Akut akciğer ödeminde sistolik TA >100 ise 40 mg IV; önceden kullanıyorsa dozun 2 katı, en fazla 80 mg.",
+   "tur": "ilaç",
+   "ikon": "💊"
+  },
+  {
+   "id": "N60",
+   "ebeveyn": "N1",
+   "sira": 3,
+   "etiket": "Nörolojik ve metabolik",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 14
+    }
+   ],
+   "guven": "yuksek",
+   "ikon": "🧠",
+   "tur": "kategori"
+  },
+  {
+   "id": "N61",
+   "ebeveyn": "N60",
+   "sira": 0,
+   "etiket": "Bilinç değişiklikleri",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 14,
+     "alinti": "Bilinç Değişiklikleri"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Bilinç değişikliğinde destek, kan şekeri ölçümü ve ilgili şemaya yönlendirme.",
+   "tur": "akış_şeması"
+  },
+  {
+   "id": "N62",
+   "ebeveyn": "N60",
+   "sira": 1,
+   "etiket": "Hipoglisemi",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 24,
+     "alinti": "HİPOGLİSEMİ (Yetişkin)"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Bilince göre ağızdan şeker veya IV dekstroz.",
+   "tur": "akış_şeması"
+  },
+  {
+   "id": "N63",
+   "ebeveyn": "N62",
+   "sira": 0,
+   "etiket": "Dekstroz %20",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 24,
+     "alinti": "25 gr a kadar %20 Dextroz İV puşe yap"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Bilinci kapalı hipoglisemide 25 g'a kadar IV puşe.",
+   "tur": "ilaç",
+   "ikon": "💊"
+  },
+  {
+   "id": "N64",
+   "ebeveyn": "N60",
+   "sira": 2,
+   "etiket": "Hiperglisemi",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 23,
+     "alinti": "HİPERGLİSEMİ (Yetişkin)"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Hiperglisemide sıvı ve hızlı nakil.",
+   "tur": "akış_şeması"
+  },
+  {
+   "id": "N65",
+   "ebeveyn": "N60",
+   "sira": 3,
+   "etiket": "Nöbet / konvülziyon",
+   "kanit": [
+    {
+     "parca": "P3",
+     "sayfa": 35,
+     "alinti": "NÖBET (KONVÜLZİYON) (Yetişkin)"
+    }
+   ],
+   "guven": "orta",
+   "aciklama": "Nöbette koruma, hipoglisemi dışlama ve basamaklı antikonvülzan tedavi.",
+   "tur": "akış_şeması"
+  },
+  {
+   "id": "N66",
+   "ebeveyn": "N65",
+   "sira": 0,
+   "etiket": "Diazepam",
+   "kanit": [
+    {
+     "parca": "P3",
+     "sayfa": 35,
+     "alinti": "DİAZEPAM verin. Nöbet durunca infuzyonu durdur."
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Nöbette 0,25 mg/kg (1 ampul), en fazla 5 mg, yavaş IV titre; 5 dk içinde tekrar.",
+   "tur": "ilaç",
+   "ikon": "💊"
+  },
+  {
+   "id": "N67",
+   "ebeveyn": "N65",
+   "sira": 1,
+   "etiket": "Epanutin",
+   "kanit": [
+    {
+     "parca": "P3",
+     "sayfa": 35,
+     "alinti": "3 amp EPANUTIN 15-20 dak da IV"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "İki doz diazepama rağmen nöbet sürerse 150 cc %0,9 SF içinde 3 ampul, 15-20 dk'da IV.",
+   "tur": "ilaç",
+   "ikon": "💊"
+  },
+  {
+   "id": "N68",
+   "ebeveyn": "N65",
+   "sira": 2,
+   "etiket": "Midazolam",
+   "kanit": [
+    {
+     "parca": "P3",
+     "sayfa": 35,
+     "alinti": "5mg MİDAZOLAM"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Epanutine rağmen nöbet sürerse 5 mg, KKM danışılarak.",
+   "tur": "ilaç",
+   "ikon": "💊"
+  },
+  {
+   "id": "N69",
+   "ebeveyn": "N65",
+   "sira": 3,
+   "etiket": "Tiyopental sodyum",
+   "kanit": [
+    {
+     "parca": "P3",
+     "sayfa": 35,
+     "alinti": "THIOPENTANE Na (PENTOTHAL)"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Midazolama alternatif 1 g IV yavaş infüzyon, KKM danışılarak.",
+   "tur": "ilaç",
+   "ikon": "💊"
+  },
+  {
+   "id": "N70",
+   "ebeveyn": "N60",
+   "sira": 4,
+   "etiket": "İnme",
+   "kanit": [
+    {
+     "parca": "P4",
+     "sayfa": 41,
+     "alinti": "İNME / CVO"
+    }
+   ],
+   "guven": "orta",
+   "aciklama": "İnme şüphesinde destek, glukoz, skala, tansiyon ve hızlı transport.",
+   "tur": "akış_şeması"
+  },
+  {
+   "id": "N71",
+   "ebeveyn": "N70",
+   "sira": 0,
+   "etiket": "Furosemid",
+   "kanit": [
+    {
+     "parca": "P3",
+     "sayfa": 34,
+     "alinti": "Sistolik TA 100 mmHg üstündeyse 40 mg Furosemid İV ver."
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Akut akciğer ödeminde sistolik TA >100 ise 40 mg IV; önceden kullanıyorsa dozun 2 katı, en fazla 80 mg.",
+   "tur": "ilaç",
+   "ikon": "💊"
+  },
+  {
+   "id": "N72",
+   "ebeveyn": "N60",
+   "sira": 5,
+   "etiket": "Vertigo",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 25,
+     "alinti": "VERTİGO (Yetişkin)"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Şok dışlanıp yaşa göre antiemetik.",
+   "tur": "akış_şeması"
+  },
+  {
+   "id": "N73",
+   "ebeveyn": "N72",
+   "sira": 0,
+   "etiket": "Dimenhidrinat",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 25,
+     "alinti": "DIMENHIDRINAT"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Vertigoda 8 yaş üstünde KKM ile.",
+   "tur": "ilaç",
+   "ikon": "💊"
+  },
+  {
+   "id": "N74",
+   "ebeveyn": "N1",
+   "sira": 4,
+   "etiket": "Çevresel aciller ve travma",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 16
+    }
+   ],
+   "guven": "yuksek",
+   "ikon": "🌡️",
+   "tur": "kategori"
+  },
+  {
+   "id": "N75",
+   "ebeveyn": "N74",
+   "sira": 0,
+   "etiket": "Yanık",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 16,
+     "alinti": "YANIK"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Yanma sürecini durdurma, havayolu, yanık yüzeyine göre sıvı ve ağrı yönetimi.",
+   "tur": "akış_şeması"
+  },
+  {
+   "id": "N76",
+   "ebeveyn": "N75",
+   "sira": 0,
+   "etiket": "Morfin",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 16,
+     "alinti": "0.1 mg/kg IM verilebilir (10 mg’ı aşmayacak şekilde)"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Yanıkta 0,1 mg/kg IV (1 mg/dk) veya IM, 10 mg'ı aşmadan; göğüs ağrısında 1 mg/dk, en fazla 5 mg.",
+   "tur": "ilaç",
+   "ikon": "💊"
+  },
+  {
+   "id": "N77",
+   "ebeveyn": "N74",
+   "sira": 1,
+   "etiket": "Hipertermi",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 19,
+     "alinti": "HİPERTERMİ"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Sıcağa bağlı hastalıkta soğutma ve bilince göre sıvı yolu.",
+   "tur": "akış_şeması"
+  },
+  {
+   "id": "N78",
+   "ebeveyn": "N74",
+   "sira": 2,
+   "etiket": "Hipotermi",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 20,
+     "alinti": "HİPOTERMİ"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Nabza göre ileri yaşam desteği ve pasif ısıtma.",
+   "tur": "akış_şeması"
+  },
+  {
+   "id": "N79",
+   "ebeveyn": "N74",
+   "sira": 3,
+   "etiket": "Yılan ısırması",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 21,
+     "alinti": "YILAN ISIRMASI"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Yılan ısırmasında yerel bakım ve nakil.",
+   "tur": "akış_şeması"
+  },
+  {
+   "id": "N80",
+   "ebeveyn": "N74",
+   "sira": 4,
+   "etiket": "Kene ısırması",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 22,
+     "alinti": "KENE ISIRMASI"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Kenenin güvenli çıkarılması.",
+   "tur": "akış_şeması"
+  },
+  {
+   "id": "N81",
+   "ebeveyn": "N74",
+   "sira": 5,
+   "etiket": "Suda boğulma",
+   "kanit": [
+    {
+     "parca": "P4",
+     "sayfa": 42,
+     "alinti": "Suda Boğulma"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Solunum yeterliliğine göre oksijen/BVM, boyunluk, ısıtma ve izlem.",
+   "tur": "akış_şeması"
+  },
+  {
+   "id": "N82",
+   "ebeveyn": "N74",
+   "sira": 6,
+   "etiket": "Spinal immobilizasyon",
+   "kanit": [
+    {
+     "parca": "P3",
+     "sayfa": 39,
+     "alinti": "Spinal İmmobilizasyon"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Hastanın önceliğine göre immobilizasyon yöntemi seçimi.",
+   "tur": "akış_şeması"
+  },
+  {
+   "id": "N83",
+   "ebeveyn": "N74",
+   "sira": 7,
+   "etiket": "Selektif spinal immobilizasyon",
+   "kanit": [
+    {
+     "parca": "P3",
+     "sayfa": 40,
+     "alinti": "Selektif Spinal İmmobilizasyon"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Hangi travma hastasında immobilizasyon gerektiğine karar.",
+   "tur": "akış_şeması"
+  },
+  {
+   "id": "N84",
+   "ebeveyn": "N1",
+   "sira": 5,
+   "etiket": "Doğum",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 26
+    }
+   ],
+   "guven": "yuksek",
+   "ikon": "🤱",
+   "tur": "kategori"
+  },
+  {
+   "id": "N85",
+   "ebeveyn": "N84",
+   "sira": 0,
+   "etiket": "Normal doğum",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 26,
+     "alinti": "NORMAL DOĞUM"
+    }
+   ],
+   "guven": "orta",
+   "aciklama": "Hastane öncesi normal doğum eyleminin yönetimi.",
+   "tur": "akış_şeması"
+  },
+  {
+   "id": "N86",
+   "ebeveyn": "N84",
+   "sira": 1,
+   "etiket": "Göbek kordonu sarkması",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 27,
+     "alinti": "GÖBEK KORDONU SARKMASI"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Kordon sıkışmasını önleyip hızlı nakil.",
+   "tur": "akış_şeması"
+  },
+  {
+   "id": "N87",
+   "ebeveyn": "N84",
+   "sira": 2,
+   "etiket": "Makat geliş",
+   "kanit": [
+    {
+     "parca": "P3",
+     "sayfa": 28,
+     "alinti": "MAKAT GELİŞ"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Makat gelişte güvenli destek ve hızlı nakil.",
+   "tur": "akış_şeması"
+  },
+  {
+   "id": "N88",
+   "ebeveyn": "N84",
+   "sira": 3,
+   "etiket": "Ekstremite geliş",
+   "kanit": [
+    {
+     "parca": "P3",
+     "sayfa": 29,
+     "alinti": "EKSTREMİTE GELİŞ"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Ekstremite gelişte pozisyon ve hızlı nakil.",
+   "tur": "akış_şeması"
+  },
+  {
+   "id": "N89",
+   "ebeveyn": "N84",
+   "sira": 4,
+   "etiket": "Eklamptik nöbet",
+   "kanit": [
+    {
+     "parca": "P3",
+     "sayfa": 36,
+     "alinti": "ÜÇÜNCÜ TRİMESTER EKLAMPSİSİNE BAĞLI GELİŞEN NÖBETLER"
+    }
+   ],
+   "guven": "orta",
+   "aciklama": "Gebede nöbet: sol yan pozisyon, diazepam ve magnezyum sülfat basamakları.",
+   "tur": "akış_şeması"
+  },
+  {
+   "id": "N90",
+   "ebeveyn": "N89",
+   "sira": 0,
+   "etiket": "Diazepam",
+   "kanit": [
+    {
+     "parca": "P3",
+     "sayfa": 35,
+     "alinti": "DİAZEPAM verin. Nöbet durunca infuzyonu durdur."
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Nöbette 0,25 mg/kg (1 ampul), en fazla 5 mg, yavaş IV titre; 5 dk içinde tekrar.",
+   "tur": "ilaç",
+   "ikon": "💊"
+  },
+  {
+   "id": "N91",
+   "ebeveyn": "N89",
+   "sira": 1,
+   "etiket": "Magnezyum sülfat",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 13,
+     "alinti": "Torsade de pointes ise;"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Torsade de pointes'te 2 g / 5 dk; eklamptik nöbette 4 g IV (>5 dk), sürerse 2 g puşe, ardından 2 g/saat infüzyon.",
+   "tur": "ilaç",
+   "ikon": "💊"
+  },
+  {
+   "id": "N92",
+   "ebeveyn": "N1",
+   "sira": 6,
+   "etiket": "Zehirlenmeler",
+   "kanit": [
+    {
+     "parca": "P4",
+     "sayfa": 43
+    }
+   ],
+   "guven": "yuksek",
+   "ikon": "☠️",
+   "tur": "kategori"
+  },
+  {
+   "id": "N93",
+   "ebeveyn": "N92",
+   "sira": 0,
+   "etiket": "Genel zehirlenme yaklaşımı",
+   "kanit": [
+    {
+     "parca": "P4",
+     "sayfa": 43
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Zehirlenmede güvenlik, dekontaminasyon ve bilince göre ilk müdahale.",
+   "tur": "akış_şeması"
+  },
+  {
+   "id": "N94",
+   "ebeveyn": "N93",
+   "sira": 0,
+   "etiket": "Aktif kömür",
+   "kanit": [
+    {
+     "parca": "P4",
+     "sayfa": 43,
+     "alinti": "Ağızdan 1g/kg “sıvı aktif kömür” içirmeye çalış."
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Bilinci açık zehirlenmede ağızdan 1 g/kg sıvı aktif kömür, KKM ile.",
+   "tur": "ilaç",
+   "ikon": "💊"
+  },
+  {
+   "id": "N95",
+   "ebeveyn": "N92",
+   "sira": 1,
+   "etiket": "Alkol",
+   "kanit": [
+    {
+     "parca": "P4",
+     "sayfa": 44,
+     "alinti": "Alkol intoksikasyonu / yoksunluğu"
+    }
+   ],
+   "guven": "orta",
+   "aciklama": "Alkolde hipoglisemi varsayımı ve yoksunlukta sedasyon.",
+   "tur": "akış_şeması"
+  },
+  {
+   "id": "N96",
+   "ebeveyn": "N95",
+   "sira": 0,
+   "etiket": "Diazepam",
+   "kanit": [
+    {
+     "parca": "P3",
+     "sayfa": 35,
+     "alinti": "DİAZEPAM verin. Nöbet durunca infuzyonu durdur."
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Nöbette 0,25 mg/kg (1 ampul), en fazla 5 mg, yavaş IV titre; 5 dk içinde tekrar.",
+   "tur": "ilaç",
+   "ikon": "💊"
+  },
+  {
+   "id": "N97",
+   "ebeveyn": "N95",
+   "sira": 1,
+   "etiket": "Midazolam",
+   "kanit": [
+    {
+     "parca": "P3",
+     "sayfa": 35,
+     "alinti": "5mg MİDAZOLAM"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Epanutine rağmen nöbet sürerse 5 mg, KKM danışılarak.",
+   "tur": "ilaç",
+   "ikon": "💊"
+  },
+  {
+   "id": "N98",
+   "ebeveyn": "N92",
+   "sira": 2,
+   "etiket": "Narkotik / opiat",
+   "kanit": [
+    {
+     "parca": "P4",
+     "sayfa": 45,
+     "alinti": "Narkotikler/Opiadlar"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Solunum depresyonunda havayolu ve nalokson.",
+   "tur": "akış_şeması"
+  },
+  {
+   "id": "N99",
+   "ebeveyn": "N98",
+   "sira": 0,
+   "etiket": "Nalokson",
+   "kanit": [
+    {
+     "parca": "P4",
+     "sayfa": 45,
+     "gorsel": true
+    },
+    {
+     "parca": "P4",
+     "sayfa": 45,
+     "alinti": "NALOKSAN 0.4 mg/dk hızda, IV verilir."
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Opiat zehirlenmesinde solunum depresyonu varsa 0,1 mg/kg IV, 0,4 mg/dk hızda, en fazla 2 mg; IV yoksa 0,8 mg IM 2 kez (toplam 1,6 mg).",
+   "tur": "ilaç",
+   "ikon": "💊"
+  },
+  {
+   "id": "N100",
+   "ebeveyn": "N92",
+   "sira": 3,
+   "etiket": "Kolinerjikler",
+   "kanit": [
+    {
+     "parca": "P4",
+     "sayfa": 46,
+     "alinti": "Kolinerjikler"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Kolinerjik zehirlenmede korunma ve atropin.",
+   "tur": "akış_şeması"
+  },
+  {
+   "id": "N101",
+   "ebeveyn": "N100",
+   "sira": 0,
+   "etiket": "Atropin",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 10,
+     "alinti": "ATROPIN 3 mg IV/IO/ (Asistoli yada NEA ritm hızı<60)"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Asistoli/NEA'da (hız <60) IV/IO 3 mg veya 1 mg tekrarlı; bradikardide 0,5 mg IV, en fazla 3 mg.",
+   "tur": "ilaç",
+   "ikon": "💊"
+  },
+  {
+   "id": "N102",
+   "ebeveyn": "N92",
+   "sira": 4,
+   "etiket": "Trisiklik antidepresanlar",
+   "kanit": [
+    {
+     "parca": "P4",
+     "sayfa": 47,
+     "alinti": "Trisiklik antidepresanlar"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "TSA zehirlenmesinde bikarbonat ve magnezyum.",
+   "tur": "akış_şeması"
+  },
+  {
+   "id": "N103",
+   "ebeveyn": "N102",
+   "sira": 0,
+   "etiket": "Sodyum bikarbonat",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 10,
+     "alinti": "1mEq/kg (en fazla 100 mEq) vermeyi düşün"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Kalp durmasında 20 dakika sonra 1 mEq/kg (en fazla 100 mEq) KKM danışılarak düşünülür.",
+   "tur": "ilaç",
+   "ikon": "💊"
+  },
+  {
+   "id": "N104",
+   "ebeveyn": "N102",
+   "sira": 1,
+   "etiket": "Magnezyum sülfat",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 13,
+     "alinti": "Torsade de pointes ise;"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Torsade de pointes'te 2 g / 5 dk; eklamptik nöbette 4 g IV (>5 dk), sürerse 2 g puşe, ardından 2 g/saat infüzyon.",
+   "tur": "ilaç",
+   "ikon": "💊"
+  },
+  {
+   "id": "N105",
+   "ebeveyn": "N92",
+   "sira": 5,
+   "etiket": "Kokain / metamfetamin",
+   "kanit": [
+    {
+     "parca": "P4",
+     "sayfa": 48,
+     "alinti": "Kokain/Metamfetamin"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Genel destek ve nöbet yönetimi.",
+   "tur": "akış_şeması"
+  },
+  {
+   "id": "N106",
+   "ebeveyn": "N92",
+   "sira": 6,
+   "etiket": "Kalsiyum kanal blokerleri",
+   "kanit": [
+    {
+     "parca": "P4",
+     "sayfa": 49,
+     "alinti": "Kalsiyum kanal blokerleri"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "KKB zehirlenmesinde atropin.",
+   "tur": "akış_şeması"
+  },
+  {
+   "id": "N107",
+   "ebeveyn": "N106",
+   "sira": 0,
+   "etiket": "Atropin",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 10,
+     "alinti": "ATROPIN 3 mg IV/IO/ (Asistoli yada NEA ritm hızı<60)"
+    }
+   ],
+   "guven": "yuksek",
+   "aciklama": "Asistoli/NEA'da (hız <60) IV/IO 3 mg veya 1 mg tekrarlı; bradikardide 0,5 mg IV, en fazla 3 mg.",
+   "tur": "ilaç",
+   "ikon": "💊"
+  }
+ ],
+ "baglantilar": [
+  {
+   "id": "L1",
+   "kaynak": "N61",
+   "hedef": "N62",
+   "etiket": "hipoglisemiyi dışla",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 14
+    }
+   ],
+   "guven": "yuksek"
+  },
+  {
+   "id": "L2",
+   "kaynak": "N65",
+   "hedef": "N62",
+   "etiket": "hipoglisemiyi dışla",
+   "kanit": [
+    {
+     "parca": "P3",
+     "sayfa": 35
+    }
+   ],
+   "guven": "yuksek"
+  },
+  {
+   "id": "L3",
+   "kaynak": "N70",
+   "hedef": "N62",
+   "etiket": "hipoglisemiyi dışla",
+   "kanit": [
+    {
+     "parca": "P4",
+     "sayfa": 41
+    }
+   ],
+   "guven": "yuksek"
+  },
+  {
+   "id": "L4",
+   "kaynak": "N95",
+   "hedef": "N62",
+   "etiket": "hipoglisemiyi dışla",
+   "kanit": [
+    {
+     "parca": "P4",
+     "sayfa": 44
+    }
+   ],
+   "guven": "yuksek"
+  },
+  {
+   "id": "L5",
+   "kaynak": "N98",
+   "hedef": "N62",
+   "etiket": "hipoglisemiyi dışla",
+   "kanit": [
+    {
+     "parca": "P4",
+     "sayfa": 45
+    }
+   ],
+   "guven": "yuksek"
+  },
+  {
+   "id": "L6",
+   "kaynak": "N16",
+   "hedef": "N17",
+   "etiket": "şok uygulanabilir ritim",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 9
+    }
+   ],
+   "guven": "yuksek"
+  },
+  {
+   "id": "L7",
+   "kaynak": "N16",
+   "hedef": "N22",
+   "etiket": "şok uygulanmaz ritim",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 9
+    }
+   ],
+   "guven": "yuksek"
+  },
+  {
+   "id": "L8",
+   "kaynak": "N75",
+   "hedef": "N44",
+   "etiket": "yanık >%20",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 16
+    }
+   ],
+   "guven": "yuksek"
+  },
+  {
+   "id": "L9",
+   "kaynak": "N105",
+   "hedef": "N65",
+   "etiket": "nöbet varsa",
+   "kanit": [
+    {
+     "parca": "P4",
+     "sayfa": 48
+    }
+   ],
+   "guven": "yuksek"
+  },
+  {
+   "id": "L10",
+   "kaynak": "N29",
+   "hedef": "N8",
+   "etiket": "stabil değilse",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 13
+    }
+   ],
+   "guven": "yuksek"
+  }
+ ],
+ "ozetler": [],
+ "belirsizlikler": [
+  {
+   "kayit": "N1",
+   "tur": "yorum",
+   "neden": "Bu harita, aynı PDF'ten iki geçişle çıkarılmış algoritma JSON'undan türetilmiştir; gruplama (7 ana başlık) Claude'un kararıdır, belgede böyle bir gruplama yoktur."
+  }
+ ],
+ "kalite": {
+  "parca_sayisi": 6,
+  "gecis2_eklenen": 0,
+  "gecis2_dusurulen": 0,
+  "dogrulama": {
+   "sonuc": "GECTI",
+   "hata_sayisi": 0,
+   "uyari_sayisi": 2,
+   "uyarilar": [
+    "N99: \"0.8 mg\" metin katmanında yok; kanıtta görüntüden doğrulandı beyanı var",
+    "N99: \"1.6 mg\" metin katmanında yok; kanıtta görüntüden doğrulandı beyanı var"
+   ]
+  }
+ }
+}
