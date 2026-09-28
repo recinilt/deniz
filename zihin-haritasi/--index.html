@@ -14,7 +14,8 @@
 const HARITA_DOSYALARI = [
   "ornek-roman-harita.json",
   "ornek-youtube-harita.json",
-  "hastane-oncesi-acil-harita.json"
+  "hastane-oncesi-acil-harita.json",
+  "sapiens-in-organizmal-benligi-ii-katman-005-harita.json"
 ];
 const VERI_KLASORU = "data/";
 const SEMA_DOSYASI = "harita-semasi.json";
@@ -123,10 +124,6 @@ select { max-width: 240px; cursor: pointer; }
 #harita me-tpc { font-family: var(--govde); max-width: 260px; white-space: normal; }
 #harita me-root me-tpc { font-family: var(--baslik); font-weight: 700; }
 #harita .map-container .selected { outline-color: var(--vurgu) !important; }
-#harita svg.topiclinks path[stroke="transparent"] { pointer-events: none; }
-#harita .svg-label { background: rgba(243,245,242,.96); padding: 1px 6px; border-radius: 5px; box-shadow: 0 0 0 1px var(--cizgi); white-space: nowrap; cursor: pointer; line-height: 1.35; }
-:root[data-theme="dark"] #harita .svg-label { background: rgba(22,27,30,.96); }
-#harita .svg-label:hover { box-shadow: 0 0 0 2px var(--vurgu); }
 @media (max-width: 820px) {
   .panel { position: absolute; left: 0; right: 0; bottom: 0; width: auto; max-height: 55%; border-left: 0; border-top: 1px solid var(--cizgi); border-radius: 14px 14px 0 0; box-shadow: 0 -8px 28px rgba(30,42,47,.16); z-index: 15; padding-bottom: calc(40px + env(safe-area-inset-bottom, 0px)); }
   .arama { width: 150px; }
@@ -493,14 +490,9 @@ function ciz() {
   mind.bus.addListener("selectNodes", (nodes) => { if (nodes && nodes[0] && nodes[0].id !== S.secili) secDugum(nodes[0].id, { haritadan: true }); });
   mind.bus.addListener("selectArrow", (a) => a && panelBaglanti(a.id));
   mind.bus.addListener("selectSummary", (z) => z && panelOzet(z.id));
-  mind.bus.addListener("linkDiv", etiketPlanla);
-  etiketGozcu.disconnect();
-  etiketGozcu.observe(el, { subtree: true, childList: true, attributes: true, attributeFilter: ["style"] });
-  mind.bus.addListener("expandNode", etiketPlanla);
   S.mind = mind;
   requestAnimationFrame(() => { try { mind.scaleFit(); mind.toCenter(); } catch {}
-    if (S.kaydirHedef) { const e = meEl(S.kaydirHedef); S.kaydirHedef = null; if (e) mind.scrollIntoView(e, true); }
-    etiketPlanla(); });
+    if (S.kaydirHedef) { const e = meEl(S.kaydirHedef); S.kaydirHedef = null; if (e) mind.scrollIntoView(e, true); } });
 }
 function anahatCiz() {
   const v = S.veri, m = v.meta;
@@ -515,57 +507,6 @@ function anahatCiz() {
 }
 $("#anahat").addEventListener("click", (e) => { const b = e.target.closest(".dugum-ad"); if (b) { e.preventDefault(); secDugum(b.dataset.id); } });
 
-const ETIKET_T = [0.5, ...Array.from({ length: 9 }, (_, i) => [0.5 - (i + 1) * 0.05, 0.5 + (i + 1) * 0.05]).flat()];
-const ETIKET_KAYMA = [[0, 0], [0, -15], [0, 15], [0, -30], [0, 30], [0, -45], [0, 45], [0, -60], [0, 60], [-1, 0], [1, 0], [-1, -20], [1, 20], [-1, 20], [1, -20]];
-let etiketYaziyor = false;
-function etiketleriYerlestir() {
-  const m = S.mind; if (!m) return;
-  etiketYaziyor = true;
-  const olcek = m.scaleVal || 1;
-  const genis = (r, d) => ({ left: r.left - d, right: r.right + d, top: r.top - d, bottom: r.bottom + d });
-  const kesisim = (a, b) => Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left)) * Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
-  const engel = [...document.querySelectorAll("#harita me-tpc")].map((e) => e.getBoundingClientRect()).filter((r) => r.width > 0).map((r) => genis(r, 3));
-  const yerlesen = [];
-  const etiketler = [...document.querySelectorAll('#harita .svg-label[data-type="arrow"]')].filter((e) => getComputedStyle(e).visibility !== "hidden" && e.getBoundingClientRect().width > 0);
-  for (const et of etiketler) {
-    const yol = document.querySelector(`#${CSS.escape(et.dataset.svgId)} path:not([stroke="transparent"])`);
-    if (!yol || !yol.getScreenCTM()) continue;
-    const r = et.getBoundingClientRect(), w = r.width, h = r.height, cx = r.left + w / 2, cy = r.top + h / 2;
-    const uz = yol.getTotalLength(), ctm = yol.getScreenCTM();
-    let en = null;
-    for (const t of ETIKET_T) {
-      const pt = new DOMPoint(yol.getPointAtLength(uz * t).x, yol.getPointAtLength(uz * t).y).matrixTransform(ctm);
-      for (const [yx, dy] of ETIKET_KAYMA) {
-        const x = pt.x + yx * (w / 2 + 10), y = pt.y + dy;
-        const aday = { left: x - w / 2, right: x + w / 2, top: y - h / 2, bottom: y + h / 2 };
-        const ceza = [...engel, ...yerlesen].reduce((t2, e) => t2 + kesisim(aday, e), 0) + (Math.abs(dy) + Math.abs(x - pt.x)) * 0.001 + Math.abs(t - 0.5) * 0.01;
-        if (!en || ceza < en.ceza) en = { ceza, x, y };
-        if (ceza < 1) break;
-      }
-      if (en && en.ceza < 1) break;
-    }
-    if (en && en.ceza >= 1) {
-      const orta = new DOMPoint(yol.getPointAtLength(uz / 2).x, yol.getPointAtLength(uz / 2).y).matrixTransform(ctm);
-      dis: for (let rr = 70; rr <= 150; rr += 16) for (let a = 0; a < 16; a++) {
-        const x = orta.x + Math.cos(a * Math.PI / 8) * rr, y = orta.y + Math.sin(a * Math.PI / 8) * rr * 0.6;
-        const aday = { left: x - w / 2, right: x + w / 2, top: y - h / 2, bottom: y + h / 2 };
-        const ceza = [...engel, ...yerlesen].reduce((t2, e) => t2 + kesisim(aday, e), 0) + rr * 0.001;
-        if (ceza < en.ceza) en = { ceza, x, y };
-        if (ceza < 1) break dis;
-      }
-    }
-    if (!en) continue;
-    et.style.left = (parseFloat(et.style.left) || 0) + (en.x - cx) / olcek + "px";
-    et.style.top = (parseFloat(et.style.top) || 0) + (en.y - cy) / olcek + "px";
-    yerlesen.push(genis({ left: en.x - w / 2, right: en.x + w / 2, top: en.y - h / 2, bottom: en.y + h / 2 }, 2));
-  }
-  etiketGozcu.takeRecords();
-  etiketYaziyor = false;
-}
-const etiketGozcu = new MutationObserver(() => { if (!etiketYaziyor) etiketPlanla(); });
-let etiketZamanlayici = null;
-function etiketPlanla() { cancelAnimationFrame(etiketZamanlayici); etiketZamanlayici = requestAnimationFrame(() => requestAnimationFrame(etiketleriYerlestir)); }
-document.addEventListener("click", (e) => { const l = e.target.closest('#harita .svg-label[data-type="arrow"]'); if (l) { e.stopPropagation(); panelBaglanti(l.dataset.svgId.replace(/^a-/, "")); } }, true);
 const meEl = (id) => document.querySelector(`#harita [data-nodeid="me${CSS.escape(id)}"]`);
 function ataYolu(id) { const y = []; let d = S.byId.get(id); while (d) { y.unshift(d); d = d.ebeveyn ? S.byId.get(d.ebeveyn) : null; } return y; }
 function secDugum(id, { adresYaz = true, kaydir = false, haritadan = false } = {}) {
