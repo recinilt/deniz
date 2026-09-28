@@ -68,8 +68,7 @@ select { max-width: 240px; cursor: pointer; }
 .menu-liste button:hover, .menu-liste label:hover { background: var(--vurgu-acik); }
 .govde { position: relative; height: calc(100vh - var(--ust) - env(safe-area-inset-top, 0px)); display: flex; }
 .sahne { position: relative; flex: 1; min-width: 0; }
-#harita { position: absolute; inset: 0; overflow: hidden; }
-#haritaIc { width: 100%; height: 100%; }
+#harita { position: absolute; inset: 0; }
 #anahat { position: absolute; inset: 0; overflow: auto; padding: 24px clamp(16px, 4vw, 48px) 80px; }
 #anahat[hidden], #harita[hidden] { display: none; }
 .panel { width: 380px; max-width: 100%; background: var(--yuzey); border-left: 1px solid var(--cizgi); overflow-y: auto; padding: 20px 20px 40px; }
@@ -424,10 +423,7 @@ async function kur(ad, metin, yerel) {
   try { veri = JSON.parse(metin.replace(/^\uFEFF/, "")); } catch (e) { hataGoster(`${ad} geçerli bir JSON değil: ${e.message}`); return; }
   if (!veri || !veri.meta || !Array.isArray(veri.dugumler)) { hataGoster(`${ad} bir zihin haritası dosyası değil: "meta" veya "dugumler" bölümü yok.`); return; }
   const sema = await semaGetir();
-  S.denetim = HaritaDogrulayici.dogrula(veri, sema, { beyanDenetle: false });
-  const beyan = veri.kalite && veri.kalite.dogrulama;
-  if (beyan && beyan.sonuc === "GECTI" && S.denetim.hatalar.length) S.denetim.hatalar.push(`Dosya "GECTI" diyor, tarayıcı denetimi ${S.denetim.hatalar.length} hata buldu`);
-  S.aracDenetimi = beyan || null;
+  S.denetim = HaritaDogrulayici.dogrula(veri, sema);
   const { byId, cocuk, kokler } = HaritaDogrulayici.agac(veri);
   if (kokler.length !== 1) { hataGoster(`Haritada tam bir kök düğüm olmalı; ${kokler.length} bulundu. Doğrulama: ${S.denetim.hatalar.slice(0, 3).join(" · ")}`); return; }
   Object.assign(S, { ad, yerel, veri, byId, cocuk, kok: kokler[0], secili: null, odak: false });
@@ -480,9 +476,9 @@ function ciz() {
     if (!ME && S.gorunum === "harita") { S.gorunum = "anahat"; bildir("Harita kütüphanesi yüklenemedi; anahat görünümüne geçildi. İnternet bağlantını kontrol et."); return ciz(); }
     anahatCiz(); return;
   }
+  const el = $("#harita");
   if (S.mind) { try { S.mind.destroy(); } catch {} S.mind = null; }
-  $("#harita").innerHTML = '<div id="haritaIc"></div>';
-  const el = $("#haritaIc");
+  el.innerHTML = "";
   const mind = new ME({ el, direction: ME.SIDE, editable: false, draggable: false, contextMenu: false, toolBar: false, keypress: false,
     allowUndo: false, locale: "en", overflowHidden: false, theme: tema(), alignment: "root", scaleMin: 0.15, scaleMax: 2.5 });
   mind.init(meVeri());
@@ -563,9 +559,7 @@ function panelDugum(id) {
     h += `<p class="ipucu">${[m.yazar, m.kaynak_dosya, m.sayfa_sayisi && `${m.sayfa_sayisi} sayfa`, m.sure && `süre ${m.sure}`, m.olusturma_tarihi].filter(Boolean).map(kac).join(" · ")}${m.kaynak_url ? ` · <a href="${kac(m.kaynak_url)}" target="_blank" rel="noopener">kaynak</a>` : ""}</p>`;
     const ist = S.denetim.istatistik;
     h += `<p class="ipucu">${ist.dugum} düğüm, ${ist.ana_dal} ana dal, ${ist.baglanti} çapraz bağlantı, ${ist.belirsizlik} belirsizlik.</p>`;
-    const ad = S.aracDenetimi;
-    if (ad && ((ad.uyarilar || []).length || ad.sonuc === "KALDI")) h += `<h2>Araç denetiminden (dosyada kayıtlı)</h2><p class="ipucu">Alıntı ve doz denetimi belge metniyle yapılır; sonuç: ${ad.sonuc === "GECTI" ? "geçti" : "kaldı"}${ad.hata_sayisi ? `, ${ad.hata_sayisi} hata` : ""}.</p>${(ad.uyarilar || []).length ? `<ul class="denetim">${ad.uyarilar.map((x) => `<li class="u">${kac(x)}</li>`).join("")}</ul>` : ""}`;
-    if (S.denetim.hatalar.length || S.denetim.uyarilar.length) h += `<h2>Tarayıcı denetimi</h2><ul class="denetim">${S.denetim.hatalar.map((x) => `<li class="h">${kac(x)}</li>`).join("")}${S.denetim.uyarilar.map((x) => `<li class="u">${kac(x)}</li>`).join("")}</ul>`;
+    if (S.denetim.hatalar.length || S.denetim.uyarilar.length) h += `<h2>Doğrulama</h2><ul class="denetim">${S.denetim.hatalar.map((x) => `<li class="h">${kac(x)}</li>`).join("")}${S.denetim.uyarilar.map((x) => `<li class="u">${kac(x)}</li>`).join("")}</ul>`;
     if ((v.belirsizlikler || []).length) h += `<h2>Belirsizlikler</h2>${v.belirsizlikler.map((b) => `<div class="not">${bagDugme(b.kayit)} ${kac(b.neden)}</div>`).join("")}`;
   } else {
     if (d.aciklama) h += `<p class="aciklama">${kac(d.aciklama)}</p>`;
