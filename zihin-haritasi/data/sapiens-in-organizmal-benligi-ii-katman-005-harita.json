@@ -1,0 +1,2054 @@
+{
+ "meta": {
+  "schema_version": "1.0",
+  "baslik": "Sapiens'in Organizmal Benliği (II. Katman 005)",
+  "ozet": "İkinci katman serisinin bu videosu, Sapiens'in üç benliğinden (organizmal, karakter, varoluşsal/gözlemci) ilki olan organizmal benliği ele alıyor. Konuşmacıya göre organizmal benlik yalnız beden değil, beden vasıtasıyla çalışan ve ilk hücreden itibaren diğer tüm benlik duygularını etkileyen bir benliktir; insanı karakter benlikle özdeşleştiren en önemli etkendir ve aynaya her farkındalıksız bakış bu özdeşleşmeye bir düğüm ekler. Beden, zihin ve ruhun ayrı tözler değil aynı şeyin farklı görünümleri olduğu tezi Descartes–Prenses Elizabeth tartışması, 2023 SCAN çalışması, Penfield haritası ve fantom ağrı örnekleriyle destekleniyor. Video, organizmal benliği fark etmeye yönelik pratiklerle ve yanılsamalar–gerçeklikler, umut türleri, metafizikte ahkâm kesmeme gibi konuları işleyen canlı soru-cevapla sürüyor.",
+  "kaynak_dosya": "II_Katman_005__Sapiensin_Organizmal_Benliği_tam_transkript.txt",
+  "kaynak_turu": "youtube",
+  "sha256": "fcb2c24783d7030bb6e7d55344275f566935010bfc30cb66710078306d10fdff",
+  "sayfa_sayisi": 44,
+  "sure": null,
+  "alan": "sohbet",
+  "dil": "tr",
+  "olusturma_tarihi": "2026-09-28",
+  "olusturan": "Claude (zihin haritası talimatı 1.0)",
+  "yazar": null
+ },
+ "parcalar": [
+  {
+   "id": "P1",
+   "baslik": "Sayfa 1–6",
+   "sayfa_baslangic": 1,
+   "sayfa_bitis": 6,
+   "gecis1": true,
+   "gecis2": true,
+   "not": "Sayfalar 2000 karakterlik sanal sayfalardır (kaynak metin dosyası)."
+  },
+  {
+   "id": "P2",
+   "baslik": "Sayfa 7–12",
+   "sayfa_baslangic": 7,
+   "sayfa_bitis": 12,
+   "gecis1": true,
+   "gecis2": true,
+   "not": "Sayfalar 2000 karakterlik sanal sayfalardır (kaynak metin dosyası)."
+  },
+  {
+   "id": "P3",
+   "baslik": "Sayfa 13–18",
+   "sayfa_baslangic": 13,
+   "sayfa_bitis": 18,
+   "gecis1": true,
+   "gecis2": true,
+   "not": "Sayfalar 2000 karakterlik sanal sayfalardır (kaynak metin dosyası)."
+  },
+  {
+   "id": "P4",
+   "baslik": "Sayfa 19–24",
+   "sayfa_baslangic": 19,
+   "sayfa_bitis": 24,
+   "gecis1": true,
+   "gecis2": true,
+   "not": "Sayfalar 2000 karakterlik sanal sayfalardır (kaynak metin dosyası)."
+  },
+  {
+   "id": "P5",
+   "baslik": "Sayfa 25–30",
+   "sayfa_baslangic": 25,
+   "sayfa_bitis": 30,
+   "gecis1": true,
+   "gecis2": true,
+   "not": "Sayfalar 2000 karakterlik sanal sayfalardır (kaynak metin dosyası)."
+  },
+  {
+   "id": "P6",
+   "baslik": "Sayfa 31–36",
+   "sayfa_baslangic": 31,
+   "sayfa_bitis": 36,
+   "gecis1": true,
+   "gecis2": true,
+   "not": "Sayfalar 2000 karakterlik sanal sayfalardır (kaynak metin dosyası)."
+  },
+  {
+   "id": "P7",
+   "baslik": "Sayfa 37–42",
+   "sayfa_baslangic": 37,
+   "sayfa_bitis": 42,
+   "gecis1": true,
+   "gecis2": true,
+   "not": "Sayfalar 2000 karakterlik sanal sayfalardır (kaynak metin dosyası)."
+  },
+  {
+   "id": "P8",
+   "baslik": "Sayfa 43–44",
+   "sayfa_baslangic": 43,
+   "sayfa_bitis": 44,
+   "gecis1": true,
+   "gecis2": true,
+   "not": "Sayfalar 2000 karakterlik sanal sayfalardır (kaynak metin dosyası)."
+  }
+ ],
+ "dugumler": [
+  {
+   "id": "N1",
+   "ebeveyn": null,
+   "sira": 0,
+   "etiket": "Sapiens'in Organizmal Benliği",
+   "kanit": [],
+   "guven": "yuksek"
+  },
+  {
+   "ebeveyn": "N1",
+   "etiket": "Bağlam ve konuşmacılar",
+   "tur": "kategori",
+   "ikon": "🎙️",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 1,
+     "alinti": "devam edelim ikinci katman videolarımıza"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N2",
+   "sira": 0
+  },
+  {
+   "ebeveyn": "N2",
+   "etiket": "Anlatıcı (adı geçmiyor)",
+   "aciklama": "Tek konuşmacılı ders/anlatım videosu. Konuşmacı kendi 'metodunu' ve 'deneyimini' anlatıyor; adını söylemiyor.",
+   "tur": "konuşmacı",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 6,
+     "alinti": "bir deneyimin metodunu"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N3",
+   "sira": 0
+  },
+  {
+   "ebeveyn": "N2",
+   "etiket": "İkinci katman video serisi",
+   "aciklama": "Seri 'insan nedir' sorusundan yola çıktı; soruyu askıya alıp 'Sapiens nasıl çalışır' ile başladı. Önceki video: Sapiens'in nitelikli benlik farkındalığı; sıradaki: karakter benlik. Seri tekil videolardan değil, sırası ve metodu olan oynatma listelerinden oluşur: birinci katman, jargon ve kavram videoları, ikinci katman; başlığı anlamak için yaklaşık yarım saatlik kanal tanıtım videosu öneriliyor. Konuşmacı 2023'ü 'geçen sene' diye andığından kayıt 2024'te yapılmış görünüyor; video canlı yayın olarak soru-cevapla sürüyor.",
+   "tur": "bağlam",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 1,
+     "alinti": "insan nedir sorusunu askıya aldık"
+    },
+    {
+     "parca": "P3",
+     "sayfa": 17,
+     "alinti": "geçen sene iki bin yirmi üç yılında"
+    },
+    {
+     "parca": "P8",
+     "sayfa": 43,
+     "alinti": "jargon ve kavram videoları ve ikinci katman videoları var"
+    },
+    {
+     "parca": "P8",
+     "sayfa": 44,
+     "alinti": "ikinci olarak karakter benliğini bir sonraki videoda"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N4",
+   "sira": 1
+  },
+  {
+   "ebeveyn": "N2",
+   "etiket": "Nitelikli benlik farkındalığı",
+   "aciklama": "Önceki videonun kavramı. Literatürdeki indirgenmiş anlamdan (kendi üzerine düşünme/reflection, aynada kendini fark etme) ayırmak için 'nitelikli' deniyor; nitelikli bir benliğin farkındalığı kastedilmiyor.",
+   "tur": "kavram",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 1,
+     "alinti": "o kadar indirgenmiş bir şey değil"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N5",
+   "sira": 2
+  },
+  {
+   "ebeveyn": "N2",
+   "etiket": "Üç benlik",
+   "aciklama": "Başlangıç için üç tip benlik: organizmal benlik, karakter benlik (ego, kişilik, isim benlik) ve varoluşsal/gözlemci benlik. Her biri ayrı videoda işlenecek.",
+   "tur": "kavram",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 1,
+     "alinti": "üç tip benliğimiz var"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N6",
+   "sira": 3
+  },
+  {
+   "ebeveyn": "N6",
+   "etiket": "Organizmal benlik",
+   "aciklama": "Bu videonun konusu.",
+   "tur": "kavram",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 2,
+     "alinti": "organizmal bir benliğimiz var"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N7",
+   "sira": 0
+  },
+  {
+   "ebeveyn": "N6",
+   "etiket": "Karakter benlik",
+   "aciklama": "Tarih boyunca ego, kişilik, isim benlik gibi adlar almış benlik; bir sonraki videoda ayrıntılı işlenecek.",
+   "tur": "kavram",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 2,
+     "alinti": "adına ego kişilik isim benlik gibi"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N8",
+   "sira": 1
+  },
+  {
+   "ebeveyn": "N6",
+   "etiket": "Varoluşsal / gözlemci benlik",
+   "tur": "kavram",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 2,
+     "alinti": "varoluşsal benlik gözlemci benlik gibi isimler"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N9",
+   "sira": 2
+  },
+  {
+   "ebeveyn": "N1",
+   "etiket": "Ana tez",
+   "tur": "kategori",
+   "ikon": "💡",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 2
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N10",
+   "sira": 1
+  },
+  {
+   "ebeveyn": "N10",
+   "etiket": "Organizmal benlik yalnız beden değil",
+   "aciklama": "'Beden' denmemesinin nedeni: kastedilen, beden vasıtasıyla çalışan bir benlik duygusu/durumu.",
+   "tur": "tez",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 2,
+     "alinti": "beden vasıtasıyla çalışan bir benlik duygusundan bahsediyorum"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N11",
+   "sira": 0
+  },
+  {
+   "ebeveyn": "N10",
+   "etiket": "Beden küçümsenmemeli",
+   "aciklama": "Varoluş sorularını kapsayarak aşmak isteyen için beden 'sadece beden' denemeyecek kadar önemli ve kritik; rolünü fark edenler çok az.",
+   "tur": "tez",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 6,
+     "alinti": "sadece beden olarak isimlendirilemeyecek kadar çok önemli bir şey"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N12",
+   "sira": 2
+  },
+  {
+   "ebeveyn": "N1",
+   "etiket": "Tarihsel görüşler ve eleştiri",
+   "tur": "kategori",
+   "ikon": "⚖️",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 2
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N13",
+   "sira": 3
+  },
+  {
+   "ebeveyn": "N13",
+   "etiket": "İnsan neyden oluşur yanıtları",
+   "aciklama": "Hakikatin dört yetimi alanında (dinler, felsefeler, mistisizmler, bilimler) verilen yanıtlar: beden+ruh; yalnız beden (klasik materyalizm); beden+ruh+can (üçleme).",
+   "tur": "argüman",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 2,
+     "alinti": "insan beden ve ruhtan oluşur"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N14",
+   "sira": 0
+  },
+  {
+   "ebeveyn": "N13",
+   "etiket": "Ruh–zihin kavram karmaşası",
+   "aciklama": "Descartes'tan (17. yy) sonra felsefede ruh kelimesiyle kastedilen, zihin kelimesiyle karşılanmaya çalışıldı; yaklaşık beş bin yıldır süren kavram karmaşası.",
+   "tur": "argüman",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 3,
+     "alinti": "zihin kelimesiyle karşılanmaya çalışıldı"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N15",
+   "sira": 6
+  },
+  {
+   "ebeveyn": "N13",
+   "etiket": "Dinlerde tanrı katında yaratılan ruh",
+   "aciklama": "Genel inanç: asıl benlik tanrı katında ruh olarak yaratılır, anne rahmindeki bedene girer. Bu ruh büyük çoğunlukla Hinduizmdeki atman, yani karakter/isim benliktir.",
+   "tur": "argüman",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 3,
+     "alinti": "büyük çoğunlukla atmandır"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N16",
+   "sira": 1
+  },
+  {
+   "ebeveyn": "N13",
+   "etiket": "Buda'nın anatta reddiyesi",
+   "aciklama": "Pali'de atta = atman, anatta = atman yok; standart bir isim/karakter benliğin reddi, Hinduizmin üç sütununa vurulan darbelerden birincisi.",
+   "tur": "argüman",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 3,
+     "alinti": "an atta atman yok demektir"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N17",
+   "sira": 2
+  },
+  {
+   "ebeveyn": "N13",
+   "etiket": "Kur'an'da bireysel ruh yok",
+   "aciklama": "Konuşmacıya göre Kur'an isim/karakter benlik anlamında standart bir ruhtan söz etmez; 3. yüzyıla kadar kelamcı, filozof ve fakihlerde de böyle bir tanım yok, nefs kavramı var.",
+   "tur": "argüman",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 4,
+     "alinti": "nefs kavramı vardır"
+    }
+   ],
+   "guven": "orta",
+   "id": "N18",
+   "sira": 3
+  },
+  {
+   "ebeveyn": "N13",
+   "etiket": "Bedeni aşağılayan öğretiler",
+   "aciklama": "Eski öğretilerde 'sen o beden değilsin', beden hapishanesi, elbise söylemleri; beden süfli (yeme, içme, üreme, rahat gibi dünyevi zevklerin merkezi), ruh ulvi görüldü. Zihin, ruh, düşünce, bilinç ile uğraşanların çok azı bedenin rolünü fark etti. Konuşmacıya göre bu aşağılama, varoluş sorularının nevrotik ve depresif yaşanmasında büyük etken.",
+   "tur": "karşı_argüman",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 5,
+     "alinti": "sen o beden değilsin"
+    },
+    {
+     "parca": "P1",
+     "sayfa": 6,
+     "alinti": "beden dünyevi zevklerin merkezidir"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N19",
+   "sira": 9
+  },
+  {
+   "ebeveyn": "N13",
+   "etiket": "İtiraz eden bir avuç insan",
+   "aciklama": "Tarih boyunca çok az kişi (bazı dâhiler, filozoflar, mistikler) 'sadece beden demeyin' diyerek bu inceliği fark etti; sesleri milyarların arasında duyulmadı. Konuşmacıya göre literatürde iğneyle kuyu kazar gibi aranırsa eski İndus geleneğinden ve bazı deneyimci mistiklerden birkaç satır bulunur; mistiklerin çoğu bile beden-zihin-ruh ayrımıyla geçiştirir.",
+   "tur": "argüman",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 5,
+     "alinti": "sadece beden demeyin demeye çalışıyorlardı"
+    },
+    {
+     "parca": "P3",
+     "sayfa": 17,
+     "alinti": "ya da deneyimci mistiklerin bazılarından"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N20",
+   "sira": 11
+  },
+  {
+   "ebeveyn": "N1",
+   "etiket": "Örnekler",
+   "tur": "kategori",
+   "ikon": "🔍",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 4
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N21",
+   "sira": 4
+  },
+  {
+   "ebeveyn": "N21",
+   "etiket": "Ayetler: ruhumuzdan üfledik",
+   "aciklama": "'Biz insanı çamurdan yarattık... ona kendi ruhumuzdan üfledik': konuşmacıya göre bu, tüm sapienslere tanrı ruhundan üflendiğini söyler, her birine ayrı ruh değil. 'Sana ruhtan sorarlar' ayetindeki ruh ise vahyin nasıl geldiği sorusudur.",
+   "tur": "örnek",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 4,
+     "alinti": "ona kendi ruhumuzdan üfledikler"
+    }
+   ],
+   "guven": "orta",
+   "id": "N22",
+   "sira": 9
+  },
+  {
+   "ebeveyn": "N21",
+   "etiket": "Tek hücreden ölüme beden",
+   "aciklama": "23 kromozom babanın sperminden, 23 annenin yumurtasından; birleşince 46. Tek hücre bölünerek 9 ay küsur sonra 100 milyarlarca hücreli bebek; 18–22 yaşa kadar fiziksel gelişim, sonra yaşlanma ve ölüm.",
+   "tur": "örnek",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 5,
+     "alinti": "23 artı 23 46 kromozonumuz oluşuveriyor"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N23",
+   "sira": 4
+  },
+  {
+   "ebeveyn": "N1",
+   "etiket": "Açık sorular ve sınırlar",
+   "tur": "kategori",
+   "ikon": "❓",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 6
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N24",
+   "sira": 6
+  },
+  {
+   "ebeveyn": "N24",
+   "etiket": "Ölüm sonrası kapsam dışı",
+   "aciklama": "Metot yaşarken varoluş soru ve sorunlarını kapsayarak aşmayı anlatır; ölüm sonrası kesin bilginin konusu olamaz, inanç ve sezgi alanına bırakılır.",
+   "tur": "sınır",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 6,
+     "alinti": "kat'i bilginin e konusu olamayacağı için"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N25",
+   "sira": 0
+  },
+  {
+   "ebeveyn": "N1",
+   "etiket": "Organizmal benliğin etkisi",
+   "tur": "kategori",
+   "ikon": "⚙️",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 7
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N26",
+   "sira": 2
+  },
+  {
+   "ebeveyn": "N26",
+   "etiket": "İlk hücreden beri etkin",
+   "aciklama": "Nitelikli benliklerin farkına varılmadan önce, ilk hücreden itibaren diğer bütün benlik duygularını etkileyen ve farkında olunmayan bir benlik duygusu doğurur.",
+   "tur": "argüman",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 7,
+     "alinti": "daha ilk hücreden senin o diğer bütün benlik duygularında etkileyen"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N27",
+   "sira": 0
+  },
+  {
+   "ebeveyn": "N26",
+   "etiket": "Özdeşleşmenin en önemli etkeni",
+   "aciklama": "Kişinin kendini isim/karakter benlikle özdeş sanmasında en önemli etken ve özdeşleşmenin 'ilk unsuru'; yolculuğun sonlarında karakter benlikle özdeşleşmekten kurtulma sürecinde çok büyük frenleyici etkisi var. Pek çok kişi inancında bunu kabul ettiği halde bilinç dünyasında tam zıttıyla yaşar. Organizmal benlik bizi karakter benlikle sık dokunmuş bir ipek halı gibi örer. Tanımak, onun gerçekte 'sen' olmadığını göstermeye yarar.",
+   "tur": "argüman",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 8,
+     "alinti": "karakter benlikle özdeş zannetmende en önemli etken"
+    },
+    {
+     "parca": "P5",
+     "sayfa": 30,
+     "alinti": "sık dokunmuş bir ipek halı gibi"
+    },
+    {
+     "parca": "P6",
+     "sayfa": 31,
+     "alinti": "özdeşleşmekten kurtulmakta çok büyük fayda sağlayan bir farkındalık"
+    },
+    {
+     "parca": "P2",
+     "sayfa": 10,
+     "alinti": "organizmal benlik karakter benlikle özdeşleşmemiz de ilk unsur"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N28",
+   "sira": 6
+  },
+  {
+   "ebeveyn": "N26",
+   "etiket": "Her aynaya bakış bir düğüm",
+   "aciklama": "Farkındalık yoksa aynaya her bakış, amaç ne olursa olsun, karakter benlikle özdeşleşmeye bir ilmek/düğüm/çivi daha ekler. Konuşmacı bunu videonun kritik yeri olarak niteliyor.",
+   "tur": "argüman",
+   "onem": 5,
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 9,
+     "alinti": "bir düğüm daha atıyoruz bir çivi daha çakıyoruz"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N29",
+   "sira": 3
+  },
+  {
+   "ebeveyn": "N26",
+   "etiket": "Yansımayı bilinç dışı 'ben' sayma",
+   "aciklama": "Bilinçli tarafta kıyafet, makyaj kontrolü için bakılsa da bilinç dışı olarak yansımanın sen olduğu kabul edilir, onunla yeniden 'sözleşilir' ve içselleştirilir.",
+   "tur": "argüman",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 10,
+     "alinti": "aynadaki yansımanın sen olduğunu sen olduğunu kabul ediyorsun"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N30",
+   "sira": 4
+  },
+  {
+   "ebeveyn": "N26",
+   "etiket": "Ayna evresi ve aile",
+   "aciklama": "Lacan'ın ayna evresi: insan yavrusu genelde 2–2,5 yaştan sonra aynada kendini fark eder. Aile de 'ne tatlıymış' diyerek pekiştirir; ilk özdeşleşmenin ilk aracı yansıma olur.",
+   "tur": "argüman",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 11,
+     "alinti": "o özdeşleşmenin ilk aracı"
+    },
+    {
+     "parca": "P2",
+     "sayfa": 9,
+     "alinti": "genelde iki iki buçuk yaşından sonra"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N31",
+   "sira": 2
+  },
+  {
+   "ebeveyn": "N26",
+   "etiket": "Bütünleşik benlik duygusu",
+   "aciklama": "Üç benliğin hepsini birden temsil eden, 5 yaşından 95 yaşına değişmeden kalan bir sabitlik duygusu da var; organizmal ve karakter benlik değişse de sürer.",
+   "tur": "kavram",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 12,
+     "alinti": "beş yaşından 95 yaşına kadar hep aynı kalan"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N32",
+   "sira": 7
+  },
+  {
+   "ebeveyn": "N13",
+   "etiket": "Beden küçümsemesi bir kibir",
+   "aciklama": "Bedeni süfli görmek yerleşik düzenin sonuçlarından biri (geçiş videosunda anlatılacak). İyi niyetli ama meşum/uğursuz bir kibir: gerçekliğin yarısına yanılsamayla bakmak.",
+   "tur": "karşı_argüman",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 7,
+     "alinti": "iyi niyetli bir kibir ama bir kibir"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N33",
+   "sira": 10
+  },
+  {
+   "ebeveyn": "N21",
+   "etiket": "Aynaya bakma araştırması",
+   "aciklama": "Bir Batı üniversitesinde 3–4 ay, farklı sınıf ve yaşlardan çok denekle; kameralarla günde kaç kez aynaya bakıldığı ölçülmüş. Yayındaki tahminler 5 ve 10 kez. Kapanış toplantılarında denekler cama bile baktıklarını fark ettiklerini söylemiş. Konuşmacıya göre sayı yaşa, cinsiyete, mekâna göre değişir ve önemli değil; ama oldukça yüksek.",
+   "tur": "örnek",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 8,
+     "alinti": "günde kaç kere aynaya baktıklarını ölçmeye çalışmışlar"
+    }
+   ],
+   "guven": "orta",
+   "id": "N34",
+   "sira": 0
+  },
+  {
+   "ebeveyn": "N21",
+   "etiket": "Dükkân düşünce deneyi",
+   "aciklama": "Karakter benliğini yok ettiğini düşün: dükkânda 'hoş bulduk' bile diyemezsin ('hoş bulan kim?'); seni Mazhar Osman'a götürürler. Sosyal hayatta karakter benliğe muhtacız; bu kötü değil.",
+   "tur": "örnek",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 10,
+     "alinti": "hoş bulduk bile diyemezsin hoş bulan kim"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N35",
+   "sira": 3
+  },
+  {
+   "ebeveyn": "N21",
+   "etiket": "Yüz ameliyatı film sahnesi",
+   "aciklama": "Adı hatırlanmayan yabancı bir filmde kahraman yüzü değiştirilince aynadaki yeni suretle 'ben duygusunun bütünlüğünü' kuramıyor; hareketleri bozuluyor, yemek yiyemiyor. Konuşmacı bunu estetik ameliyat ya da saç boyatmanın geçici tuhaflığından ayırıyor: zedelenen bedenin ötesindeki organizmal benlik.",
+   "tur": "örnek",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 12,
+     "alinti": "ben duygusunun bütünlüğünü kuramıyor"
+    },
+    {
+     "parca": "P3",
+     "sayfa": 13,
+     "alinti": "sadece görsel bir alışkanlık değil"
+    }
+   ],
+   "guven": "orta",
+   "id": "N36",
+   "sira": 1
+  },
+  {
+   "ebeveyn": "N21",
+   "etiket": "Maria örneği",
+   "aciklama": "Serinin 'meşhur örneği': Hristiyan, İspanyol, belirli değer yargıları olan Maria; insan yapımı karakter benlik.",
+   "tur": "örnek",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 10,
+     "alinti": "o maria hristiyan olan ispanyol olan"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N37",
+   "sira": 2
+  },
+  {
+   "ebeveyn": "N10",
+   "etiket": "Beden, zihin, ruh ayrı değil",
+   "aciklama": "Konuşmacının 'kritik' dediği kabul: insanın beden, zihin, ruh, can diye sayılan unsurları ayrı departmanlar/tözler/varoluşlar değil, aynı şeyin farklı görünümleridir. İnsanda bir beden bir de 'uçan kaçan' ayrı bir yön yoktur; tüm etkinlik, merkezi merkezi ve çevresel sinir sistemi olan organizmal benlik bütünlüğü içindedir. İnsanı birbirine benzemeyen ayrı unsurlardan oluşmuş sayan herkese karşı çıkılıyor.",
+   "tur": "tez",
+   "onem": 5,
+   "kanit": [
+    {
+     "parca": "P3",
+     "sayfa": 16,
+     "alinti": "onlar aynı şeyin farklı görünümleridir diyorduk"
+    },
+    {
+     "parca": "P4",
+     "sayfa": 20,
+     "alinti": "gerek merkezi gerek çevresel sinir sisteminde"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N38",
+   "sira": 1
+  },
+  {
+   "ebeveyn": "N26",
+   "etiket": "Sahiplenme değil özdeşleşme",
+   "aciklama": "Nesne sahiplenilir; beden görüntüsüyle ilişki bundan öte, varoluşsal özdeşleşmedir: isim/karakter benlikle özdeşleşildiği gibi uzamsal görüntüyle de özdeşleşilir.",
+   "tur": "argüman",
+   "kanit": [
+    {
+     "parca": "P3",
+     "sayfa": 14,
+     "alinti": "sahiplenmekten öte varoluşsal olarak onunla özdeş"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N39",
+   "sira": 5
+  },
+  {
+   "ebeveyn": "N13",
+   "etiket": "Descartes: iki töz",
+   "aciklama": "Descartes insanın düşünce (zihin) ve uzam (beden) olmak üzere iki tözden oluştuğunu söyledi. 'Tek töz tanrıdır' itirazına: tanrı mutlak töz, insan geçici töz diye yanıt verdi.",
+   "tur": "argüman",
+   "kanit": [
+    {
+     "parca": "P3",
+     "sayfa": 15,
+     "alinti": "insan da tözdür ama geçici tözdür dedi"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N40",
+   "sira": 4
+  },
+  {
+   "ebeveyn": "N13",
+   "etiket": "Prenses Elizabeth'in itirazı",
+   "aciklama": "Çağdaşı ve hayranı Bohemya Prensesi Elizabeth mektubunda sordu: zihin bedeni, beden zihni etkiliyor; boyutsuz düşünce ile üç boyutlu uzam, iki ayrı töz nasıl etkileşir? Konuşmacıya göre Descartes'ı çok sarstı.",
+   "tur": "karşı_argüman",
+   "kanit": [
+    {
+     "parca": "P3",
+     "sayfa": 15,
+     "alinti": "iki ayrı töz birbirininle nasıl etkileşim kurar"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N41",
+   "sira": 5
+  },
+  {
+   "ebeveyn": "N21",
+   "etiket": "SCAN çalışması (2023)",
+   "aciklama": "Washington Üniversitesi, 'somato-cognitive action network'; bebek ve çocuklar dahil yaklaşık 50 bin kişi; sonuçlar konuşmacıya göre 19 Nisan 2023'te açıklandı, ilk makale Dr. Evan Gordon. Motor bölgelerdeki nöron ağlarına gömülü üç alan bulundu; bunlar hareketle değil amaç odaklı planlamayla ilgili.",
+   "tur": "örnek",
+   "onem": 5,
+   "kanit": [
+    {
+     "parca": "P3",
+     "sayfa": 17,
+     "alinti": "somato cognitive action network dediler"
+    },
+    {
+     "parca": "P3",
+     "sayfa": 18
+    }
+   ],
+   "guven": "orta",
+   "id": "N42",
+   "sira": 5
+  },
+  {
+   "ebeveyn": "N21",
+   "etiket": "Brodmann ve Penfield haritaları",
+   "aciklama": "Brodmann 20. yy başında yaklaşık 52 beyin bölgesi belirledi, işlevlerini yakın tahmin etti. Penfield bunu ilerletip 'küçük adamcıklar haritası'nı (homunculus) yayımladı.",
+   "tur": "örnek",
+   "kanit": [
+    {
+     "parca": "P3",
+     "sayfa": 17,
+     "alinti": "elli iki beyin bölgesi belirlenmişti"
+    },
+    {
+     "parca": "P3",
+     "sayfa": 18,
+     "alinti": "küçük adamcıklar haritası"
+    }
+   ],
+   "guven": "orta",
+   "id": "N43",
+   "sira": 6
+  },
+  {
+   "ebeveyn": "N42",
+   "etiket": "Nefes ve kalple bağlantılı",
+   "aciklama": "Raporda bu ağların en çok nefes alıp verme ve kalp hareketiyle bağlantılı olduğu yazıyor (konuşmacının aktarımı). Konuşmacıya göre binlerce yıllık nefes terapisinin (diyafram nefesi; panik, kaygı anlarında) zihni sakinleştirmesinin somut cevabı; düşünürken yürüme ihtiyacı, öfkede bedenin hareketleri de buradan.",
+   "tur": "bulgu",
+   "kanit": [
+    {
+     "parca": "P4",
+     "sayfa": 19,
+     "alinti": "nefes aldık vermemiz ve kalp kalp hareketi ile ilgili olduğunu görüyorlar"
+    }
+   ],
+   "guven": "orta",
+   "id": "N44",
+   "sira": 0
+  },
+  {
+   "ebeveyn": "N42",
+   "etiket": "1 yaşta belirir, 9'da olgunlaşır",
+   "aciklama": "Bebek ve çocuk verisinde bölge yaklaşık 1 yaşına kadar görülmüyor, 1 yaşta belirmeye başlıyor, ortalama 9 yaşında olgunlaşıyor; konuşmacıya göre beden-zihin bütünlüğü 9 yaşında tamamlanıyor.",
+   "tur": "bulgu",
+   "kanit": [
+    {
+     "parca": "P4",
+     "sayfa": 20,
+     "alinti": "ortalama 9 yaşında olgunlaştığını gözlemlemişler"
+    }
+   ],
+   "guven": "orta",
+   "id": "N45",
+   "sira": 1
+  },
+  {
+   "ebeveyn": "N10",
+   "etiket": "Yanılsamalar aşılamaz, gerçeklikler aşılabilir",
+   "aciklama": "Her konuda (kuru fasulye yaparken bile) geçerli ilke. Yanlış bir tanım üzerinden gidilirse on trilyon yıl da geçse varoluş meselesi aşılamaz.",
+   "tur": "ilke",
+   "onem": 5,
+   "kanit": [
+    {
+     "parca": "P4",
+     "sayfa": 21,
+     "alinti": "yanılsamalar aşılamaz gerçeklikler aşılabilir"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N46",
+   "sira": 4
+  },
+  {
+   "ebeveyn": "N46",
+   "etiket": "Zihin gerçeklikten dolaştırır",
+   "aciklama": "Gerçeklik çoğu zaman acıdır; zihin bizi yaşatmak için evrimleşmiş, hoşa gitmeyen gerçekliklerin çevresinden dolaştırmakta, pazarlık ettirmekte, beklentili umutlar sunmakta ustadır. Bu kötü değil: delirmemek, intihar etmemek, türü sürdürmek için.",
+   "tur": "argüman",
+   "kanit": [
+    {
+     "parca": "P4",
+     "sayfa": 22,
+     "alinti": "zihin çok mahirdir hoşumuza gitmeyen gerçeklikleri çevresinden bizi dolaştırıp"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N47",
+   "sira": 0
+  },
+  {
+   "ebeveyn": "N46",
+   "etiket": "Umut türleri",
+   "aciklama": "Beklentili umut zehirlidir: insanı yavaş ve tatlı zehirler, yapması gerekenden alıkoyar. Mümkünler umudu beklentili olmadığı için zehirli değil; kendini kandırmanın zararsız yollarından, lunapark gibi.",
+   "tur": "kavram",
+   "kanit": [
+    {
+     "parca": "P4",
+     "sayfa": 22,
+     "alinti": "beklentili umut zehirlidir"
+    },
+    {
+     "parca": "P4",
+     "sayfa": 22,
+     "alinti": "umut en tatlı zehirdir"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N48",
+   "sira": 1
+  },
+  {
+   "ebeveyn": "N46",
+   "etiket": "Toplumlar da yanılsamada",
+   "aciklama": "Uluslararası ve iç siyaset hamaset ve yanılsamalara sarılmış; ordular, silahlar, zaferler nevrotik depresif hayatları düzeltmez. Ama diyalektik çalışır, kimse durduramaz.",
+   "tur": "argüman",
+   "kanit": [
+    {
+     "parca": "P4",
+     "sayfa": 24,
+     "alinti": "hamasetlerle gerçeklik olmayan gazlarla yaşıyorsunuz"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N49",
+   "sira": 2
+  },
+  {
+   "ebeveyn": "N10",
+   "etiket": "Varoluşun ayrılmaz parçası",
+   "aciklama": "Sonuç: organizmal benlik yalnız beden ya da süfli zevklerin merkezi değil; bu dünyada yaşarken benliğin ayrılmaz parçası. Bunu fark etmek, varoluş sorunlarını kapsayarak aşmanın yolunu verir.",
+   "tur": "tez",
+   "kanit": [
+    {
+     "parca": "P4",
+     "sayfa": 24,
+     "alinti": "o senin varoluşunun ayrılmaz bir parçası"
+    },
+    {
+     "parca": "P5",
+     "sayfa": 30,
+     "alinti": "sadece bedeni kastetmediğimizi bir organizmal benliğimizde olduğunu fark ettirmeye çalıştım"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N50",
+   "sira": 3
+  },
+  {
+   "ebeveyn": "N1",
+   "etiket": "Öneriler",
+   "tur": "kategori",
+   "ikon": "🧭",
+   "kanit": [
+    {
+     "parca": "P4",
+     "sayfa": 21
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N51",
+   "sira": 5
+  },
+  {
+   "ebeveyn": "N51",
+   "etiket": "Kendin araştır",
+   "aciklama": "İnsanın ayrı tözlerden mi oluştuğunu, yoksa aynı şeyin farklı görünümleri mi olduğunu tüm araçlarınla kendin incele; konuşmacı kendi incelemesinin özetini sunuyor.",
+   "tur": "öneri",
+   "kanit": [
+    {
+     "parca": "P4",
+     "sayfa": 21,
+     "alinti": "bunu istersen inceleyebilirsin"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N52",
+   "sira": 2
+  },
+  {
+   "ebeveyn": "N51",
+   "etiket": "Gerçekliğin önünde diz çök",
+   "aciklama": "Acı da olsa gerçekliği pazarlıksız, çevresinden dolaşmadan kabul et; meşum kibri kır. Süreç çok acılıdır ama bir sabah her şey bitmiş, kapsayarak aşılmış olur; yeniden doğmuş gibi. Bireyler, gruplar, uluslar ve insanlık için geçerli.",
+   "tur": "öneri",
+   "kanit": [
+    {
+     "parca": "P4",
+     "sayfa": 23,
+     "alinti": "o meşum kibrini kırıp sapiensin önünde diz çökebildiğinde"
+    },
+    {
+     "parca": "P4",
+     "sayfa": 24,
+     "alinti": "yeniden doğmuş gibi olursun"
+    },
+    {
+     "parca": "P5",
+     "sayfa": 26,
+     "alinti": "yolunu yapmak döşenmek ve onda yürümek o herkesin kendi işi"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N53",
+   "sira": 3
+  },
+  {
+   "ebeveyn": "N21",
+   "etiket": "Lunapark ve orgazm anları",
+   "aciklama": "Lunapark heyecanının kısa anlarında organizmal ve karakter benlikle bağ kopar, 'merkeze düşülür' (varoluşsal benlik). Orgazmda yaklaşık 5–10 saniye tüm benliklerden kopulur; bazı ekoller buna tanrısallık demiş. İnsanın bu anlara düşkünlüğünün nedeni.",
+   "tur": "örnek",
+   "kanit": [
+    {
+     "parca": "P4",
+     "sayfa": 23,
+     "alinti": "yaklaşık 5-10 saniyeliğine bütün benliklerinden koptuğun için"
+    }
+   ],
+   "guven": "orta",
+   "id": "N54",
+   "sira": 10
+  },
+  {
+   "ebeveyn": "N24",
+   "etiket": "Bilinç ve keşfedilmemiş alan",
+   "aciklama": "Konuşmacının öngörüsü: kuantum bilgisayarlar (mutlak sıfır, -273 °C koşulları) ve yeni kuramlarla, Faraday'ın elektromanyetik alanı ve Higgs alanı gibi henüz keşfedilmemiş bir alan bulunacak; bilinç, sinirlerdeki elektrokimyasal olayın bu alanla etkileşiminden doğuyor olacak (Higgs alanıyla kütle kazanan kuark ve leptonlar gibi). Bilinç, farkındalık, qualia bugün zihin felsefesinin başat sorunları.",
+   "tur": "öngörü",
+   "kanit": [
+    {
+     "parca": "P4",
+     "sayfa": 20,
+     "alinti": "henüz keşfedilmemiş birkaç tane daha alan olduğunu"
+    },
+    {
+     "parca": "P4",
+     "sayfa": 21,
+     "alinti": "ben bunu şimdiden söylüyorum"
+    }
+   ],
+   "guven": "dusuk",
+   "id": "N55",
+   "sira": 1
+  },
+  {
+   "ebeveyn": "N24",
+   "etiket": "Madde kendinin farkına vardı",
+   "aciklama": "Üçüncü tip materyalistlerin 'madde kendi benliğinin farkına insan beyninde vardı' sözü konuşmacıya göre eksik ama doğru; her şey çan eğrisi ilkesinde, uç noktası Sapiens beyni. Madde-enerjinin ne olduğu sorusu sürüyor.",
+   "tur": "öngörü",
+   "kanit": [
+    {
+     "parca": "P4",
+     "sayfa": 21,
+     "alinti": "madde enerji kendi benliğinin farkına insan beyninde vardı"
+    }
+   ],
+   "guven": "dusuk",
+   "id": "N56",
+   "sira": 2
+  },
+  {
+   "ebeveyn": "N26",
+   "etiket": "Nöral organizmal benlik haritası",
+   "aciklama": "Beyinde, tek hücreden ölene dek süren organizmal benliğin, sinir uçlarının gittiği her noktayı temsil eden eksiksiz bir nöral haritası var (Penfield ve sonrası). Konuşmacıya göre bu, ayrı tözler değil farklı görünen yönler olduğunu gösterir.",
+   "tur": "kavram",
+   "kanit": [
+    {
+     "parca": "P5",
+     "sayfa": 25,
+     "alinti": "organizmal benliğinin nörel bir haritası da var"
+    }
+   ],
+   "guven": "orta",
+   "id": "N57",
+   "sira": 1
+  },
+  {
+   "ebeveyn": "N21",
+   "etiket": "Fantom ağrı",
+   "aciklama": "Savaşta sağ bacağı dizaltından kesilen 22 yaşındaki asker, 15 yıldır olmayan ayak bileğinin ağrıdığını, parmaklarının kaşındığını hisseder; haritanın eksiksiz durmasının sonucu.",
+   "tur": "örnek",
+   "kanit": [
+    {
+     "parca": "P5",
+     "sayfa": 26,
+     "alinti": "sağ ayak bileği 15 yıldır yok"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N58",
+   "sira": 7
+  },
+  {
+   "ebeveyn": "N51",
+   "etiket": "Mekâna girişi dışarıdan izle",
+   "aciklama": "Metodun 'en önemli aracı' farkındalıktan bir alt farkındalık. Kafe, toplantı gibi kalabalık bir yere girerken kendine gözlemci sıfatıyla dışarıdan bak: yalnız isim benlik değil, organizmal benlik de tüm hücreleri ve düşünceleriyle, ikisi bir bütün halinde giriyor. Arkadaşlar seni karakter benliğin ve bedeninle tanır. Diğer insanlar ayna işlevi görür; birkaç kez dene.",
+   "tur": "pratik",
+   "kanit": [
+    {
+     "parca": "P5",
+     "sayfa": 27,
+     "alinti": "dışarıdan kendine gözlemci sıfatıyla bak"
+    },
+    {
+     "parca": "P5",
+     "sayfa": 28
+    },
+    {
+     "parca": "P5",
+     "sayfa": 27,
+     "alinti": "bizim en önemli araçımız olan farkındalıktan"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N59",
+   "sira": 0
+  },
+  {
+   "ebeveyn": "N51",
+   "etiket": "Organizmal benliğe dokunma",
+   "aciklama": "Videonun sonundaki kısa pratik; sonra yalnızken, sessiz ve sakin ortamda tekrar edilmesi öneriliyor. Görüntü ya da dokunma değil, içten hissetme; organizmal benlik haritasının 'resmi geçidi'.",
+   "tur": "pratik",
+   "onem": 4,
+   "kanit": [
+    {
+     "parca": "P5",
+     "sayfa": 26,
+     "alinti": "ilk defa organizmal benliğine dokunmak ister misin"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N60",
+   "sira": 1
+  },
+  {
+   "ebeveyn": "N60",
+   "etiket": "Gözler kapalı beden taraması",
+   "aciklama": "Tüm dikkati ayak başparmağının ucunda topla, sonra tarak kemiği, topuk, ayak bileği, diz kapağı; her birini yabancı bir uzuv gibi ilk kez hisset. Yalnızken tüm vücut için yapılabilir.",
+   "tur": "pratik",
+   "kanit": [
+    {
+     "parca": "P5",
+     "sayfa": 29,
+     "alinti": "ayak baş parmağının en ucunda toplamanı istiyorum"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N61",
+   "sira": 0
+  },
+  {
+   "ebeveyn": "N60",
+   "etiket": "Gözler açık ele bakma",
+   "aciklama": "Elini kaldır, parmaklara ve avuca ilk kez görüyormuş gibi, yabancı bir şeymiş gibi bak; parmakları oynat, yumruk yap, hareketin farkında ol.",
+   "tur": "pratik",
+   "kanit": [
+    {
+     "parca": "P5",
+     "sayfa": 30,
+     "alinti": "yabancı bir şeymiş gibi bak"
+    },
+    {
+     "parca": "P6",
+     "sayfa": 31,
+     "alinti": "ona bir yabancı gibi bile aynı karakter benliğe baktığın gibi"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N62",
+   "sira": 1
+  },
+  {
+   "ebeveyn": "N2",
+   "etiket": "Canlı yayın soru-cevap",
+   "aciklama": "Anlatımın ardından konuşmacı yayındaki dinleyici yorumlarını okuyup yanıtlıyor. Açılışta Yunus Emre'nin 'gören kim görünen kim, kaldık müşkül içinde' dizesi anılıyor.",
+   "tur": "bağlam",
+   "kanit": [
+    {
+     "parca": "P6",
+     "sayfa": 31,
+     "alinti": "gören kim görünen kim kaldık müşkül içinde"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N63",
+   "sira": 4
+  },
+  {
+   "ebeveyn": "N63",
+   "etiket": "Kaya: özdeşleşme zorunlu mu",
+   "aciklama": "Dinleyici Kaya: elektrokimyasal etkinlik sonucu özdeşleşme zorunluluğu oluşuyor, belki böyle olmalı. Yanıt: evet; toplumsal varlık olarak karakter benliğe muhtacız (Zeki Müren'in 'Gitme sana muhtacım' şarkısı anılıyor).",
+   "tur": "soru",
+   "kanit": [
+    {
+     "parca": "P6",
+     "sayfa": 31,
+     "alinti": "elektro kimyasal aktiviteler sonucu özdeşleştirmek zorunluluğu oluşuyor"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N64",
+   "sira": 0
+  },
+  {
+   "ebeveyn": "N63",
+   "etiket": "Savaşçım: umut şu ana kör",
+   "aciklama": "Dinleyici: beklentili umut şu ana kör baktırır. Konuşmacı onaylıyor; Nietzsche başta olmak üzere bunu seslendirenler var. Beklentili umut şu anın körlüğünü yaşatır ve yapılabilecekleri yapmaktan alıkoyar.",
+   "tur": "soru",
+   "kanit": [
+    {
+     "parca": "P6",
+     "sayfa": 31,
+     "alinti": "beklentili umut şu ana kör baktırır"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N65",
+   "sira": 1
+  },
+  {
+   "ebeveyn": "N63",
+   "etiket": "Serdar: izole kabileler",
+   "aciklama": "Soru: izole kabilelerde de nitelikli benlik farkındalığı ve bilinç varken neden bizim gibi gelişmediler, eksikleri ne? Yanıt: belki eksiklik onlarda değil bizdeki fazlalıktır; 'Amerika ne zaman keşfedildi' gibi perspektife bağlı, doğrusal gelişim şartlanmasından gelen bir soru.",
+   "tur": "soru",
+   "kanit": [
+    {
+     "parca": "P6",
+     "sayfa": 32,
+     "alinti": "onlardaki eksiklik değil bizdeki yani ağırlıklı ortalamadaki fazlalıktır"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N66",
+   "sira": 2
+  },
+  {
+   "ebeveyn": "N63",
+   "etiket": "Anlamlandırma çabası yorumu",
+   "aciklama": "Bir dinleyici sorunun yanlışlığını, iyi-kötüden çok insan zihninin evrendeki her şeyi boşluk bırakmadan anlamlandırma çabasına bağlamayı öneriyor.",
+   "tur": "soru",
+   "kanit": [
+    {
+     "parca": "P6",
+     "sayfa": 35,
+     "alinti": "anlamlandırma çabası diyebiliriz bence"
+    }
+   ],
+   "guven": "orta",
+   "id": "N67",
+   "sira": 3
+  },
+  {
+   "ebeveyn": "N63",
+   "etiket": "Enes: İbn Sina'nın düşünce deneyi",
+   "aciklama": "Önceki videoda istenen 'havada asılı duran adam' düşünce deneyi yorumları için iletişim e-postasının kanal 'Hakkında' bölümünde olduğu söyleniyor.",
+   "tur": "soru",
+   "kanit": [
+    {
+     "parca": "P6",
+     "sayfa": 35,
+     "alinti": "düşünce deneyi havada asılı duran adam"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N68",
+   "sira": 4
+  },
+  {
+   "ebeveyn": "N24",
+   "etiket": "Yanlış sorular yanıtsızdır",
+   "aciklama": "Konuşmacıya göre 'neden farklıyız/üstünüz' türü sorular yanlış sorudur; yanıtı yoktur, ama neden yanlış olduğunu fark etmek binlerce yanlış sorudan kurtarır. Nedenin kesin bilgisi insan bilme kapasitesinin ötesinde; 'varoluşa sormalısın'. Metot inançlarını temellendirir ama temellendirmek ispat etmekten farklıdır (birinci katman ve jargon videoları).",
+   "tur": "ilke",
+   "kanit": [
+    {
+     "parca": "P6",
+     "sayfa": 35,
+     "alinti": "yanlış soruların bir cevabı olmaz"
+    },
+    {
+     "parca": "P6",
+     "sayfa": 33,
+     "alinti": "bunu varoluşa sormalısın"
+    },
+    {
+     "parca": "P6",
+     "sayfa": 33,
+     "alinti": "temellendirmek başka bir şeydir ispat etmek başka bir şeydir"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N69",
+   "sira": 3
+  },
+  {
+   "ebeveyn": "N69",
+   "etiket": "Çan eğrisi ilkesi",
+   "aciklama": "Evrende her şey çan eğrisinde: iki uç ve ağırlıklı ortalama; kimi konuda yatay, kimi konuda dik eğri. Toplumlar arası farklar üstünlük-altlık değil, bu ölçünün sonucu.",
+   "tur": "kavram",
+   "kanit": [
+    {
+     "parca": "P6",
+     "sayfa": 33,
+     "alinti": "Üstünlük astınlık meselesi değil bir çan eğrisi ölçüsü"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N70",
+   "sira": 0
+  },
+  {
+   "ebeveyn": "N69",
+   "etiket": "Vahdet ve kesret",
+   "aciklama": "Her şeyin özdeş olduğu evren hareketsiz, değişmeyen bir 'bütün'dür (vahdet); burası ise farklılık ve çokluk (kesret) alemi, değişip dönüşür. Tüm farkları eşitlemek monoblok bir bütün doğurur.",
+   "tur": "kavram",
+   "kanit": [
+    {
+     "parca": "P6",
+     "sayfa": 34,
+     "alinti": "burada kesret var farklılık ve çokluk"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N71",
+   "sira": 1
+  },
+  {
+   "ebeveyn": "N24",
+   "etiket": "Özne evrensel bilinçtir",
+   "aciklama": "Konuşmacının öznel görüşü: asıl özne Sapiens değil, evrensel anlamda bilinç/farkındalık. Sapiens, diyalektiğin bir uğrağında bindiği bir araç; diyalektik onu terk edip daha kullanışlı bir şeye geçebilir.",
+   "tur": "görüş",
+   "kanit": [
+    {
+     "parca": "P6",
+     "sayfa": 36,
+     "alinti": "bir uğrağında bindiği bir araç olarak görür"
+    }
+   ],
+   "guven": "orta",
+   "id": "N72",
+   "sira": 4
+  },
+  {
+   "ebeveyn": "N13",
+   "etiket": "Gazali ile Meşşailer tartışması",
+   "aciklama": "Beden-ruh meselesindeki en cazip tarihî tartışmalardan: Orta Çağ Müslüman coğrafyasında Meşşai filozoflara karşı Gazali'nin reddiyesi; bin yıldır reddiye ve destekleriyle sürüyor.",
+   "tur": "argüman",
+   "kanit": [
+    {
+     "parca": "P6",
+     "sayfa": 36,
+     "alinti": "meşayı filozoflar denen filozoflara karşı gazalinin yazdığı"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N73",
+   "sira": 7
+  },
+  {
+   "ebeveyn": "N73",
+   "etiket": "Bedensel diriliş tekfiri",
+   "aciklama": "Tehâfütü'l-Felâsife'de filozofların kendi jargon ve yöntemiyle yaklaşık 21–22 konuda reddiye; üç konuda tekfir. Biri ahirette bedensel diriliş: filozoflar bedenin bu evrenin sonucu olduğunu, Kur'an anlatısının teşbih olduğunu, asıl dirilişin ruhani olacağını söylemişti. Gazali'ye göre bu, Kur'an'ın iki ana konusundan (tevhid ve mead) birine karşı çıkmaktı.",
+   "tur": "argüman",
+   "kanit": [
+    {
+     "parca": "P7",
+     "sayfa": 37,
+     "alinti": "bunlardan üç tanesinde onları tekfil etmiştir"
+    },
+    {
+     "parca": "P7",
+     "sayfa": 37,
+     "alinti": "birincisi tevhid ikincisi mehad yani ahiretteki diriliş meselesinde"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N74",
+   "sira": 0
+  },
+  {
+   "ebeveyn": "N73",
+   "etiket": "İbn Rüşd'ün karşı reddiyesi",
+   "aciklama": "'Mağrib'in güneşi' İbn Rüşd, Tehâfütü't-Tehâfüt ile Gazali'yi filozofları anlamamakla suçladı: filozoflar ahireti inkâr etmiyor. Aynı beden, bu evrenin (milyarlarca yıllık nedensellik) birebir kopyasını gerektirir; öyleyse reenkarnasyoncular haklı olurdu.",
+   "tur": "karşı_argüman",
+   "kanit": [
+    {
+     "parca": "P7",
+     "sayfa": 37,
+     "alinti": "Gazali'yi filozofların ne dediğini tam anlamamakla suçlamış"
+    },
+    {
+     "parca": "P7",
+     "sayfa": 38
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N75",
+   "sira": 1
+  },
+  {
+   "ebeveyn": "N13",
+   "etiket": "Kant ve İbn Sina: aklın sınırı",
+   "aciklama": "Kant (ve ondan yaklaşık 500–600 yıl önce İbn Sina): saf aklın idelerini (tanrı, sonsuzluk, özgürlük) uzay-zaman kalıbına ve kategorilere (nedensellik, kiplik, nicelik, nitelik) vurursan antinomiler üretirsin.",
+   "tur": "argüman",
+   "kanit": [
+    {
+     "parca": "P7",
+     "sayfa": 40,
+     "alinti": "kaldı ki sevgili immanuel kant da"
+    },
+    {
+     "parca": "P7",
+     "sayfa": 41,
+     "alinti": "ondan sonra antinomiler üretiyorsun"
+    }
+   ],
+   "guven": "orta",
+   "id": "N76",
+   "sira": 8
+  },
+  {
+   "ebeveyn": "N51",
+   "etiket": "Metafizikte ahkâm kesme",
+   "aciklama": "Gazali'nin filozoflara sözü (konuşmacının serbest aktarımı): somut, ölçülebilir alanın kurallarını metafiziğe birebir uyguluyorsunuz. İnsan, hayat, ölüm, anlam, aşk, tanrı gibi konular deney ve gözlemle bilinemez; kesin hüküm verenleri diyalektik ayıklar. 'Hobi olarak düşün, ama ahkâm kesme.' Bir şeyi fark ettirmek için betimleyici cümle kurmak ile onu dogmatik inanç olarak dondurmak arasında büyük fark var.",
+   "tur": "öneri",
+   "kanit": [
+    {
+     "parca": "P7",
+     "sayfa": 39,
+     "alinti": "soyut konulara metafizik konularda da birebir o kuralların"
+    },
+    {
+     "parca": "P7",
+     "sayfa": 41,
+     "alinti": "Ahkam kesme"
+    },
+    {
+     "parca": "P8",
+     "sayfa": 43,
+     "alinti": "dogmatik bir inanç şeklinde budur deyip dondurmak arasında"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N77",
+   "sira": 4
+  },
+  {
+   "ebeveyn": "N51",
+   "etiket": "Yolculuğu keyifle çabala",
+   "aciklama": "Kendini nerede temellendirdiğin önemli ve ciddi çaba ister. Zihin enerji kaybettiren her şeye düşmandır; ama varoluşun ve kendinin gizeminin peşine düşmek hayatın anlamı haline gelirse zevkli bir yolculuktur. Çabalamaktan zevk almak: Sultan IV. Murat'a atfedilen 'Bağdat'ı almaya çalışmak, almaktan güzelmiş' sözü.",
+   "tur": "öneri",
+   "kanit": [
+    {
+     "parca": "P7",
+     "sayfa": 42,
+     "alinti": "zihnimiz enerji kaybettiren her şeye düşmandır"
+    },
+    {
+     "parca": "P8",
+     "sayfa": 43,
+     "alinti": "Bağdat'ı almaya çalışmak Bağdat'ı almaktan daha güzelmiş"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N78",
+   "sira": 5
+  },
+  {
+   "ebeveyn": "N21",
+   "etiket": "Klasik mantığın çöküşü",
+   "aciklama": "Fizikte bile kesin yasalar yıkıldı: Newton mekaniği atom altında geçersiz, üçüncü halin imkânsızlığı ilkesi çöktü (foton hem dalga hem tanecik), Max Planck, kuantum silgi deneyleri.",
+   "tur": "örnek",
+   "kanit": [
+    {
+     "parca": "P7",
+     "sayfa": 40,
+     "alinti": "üçüncü halin imkansızlığı gitti"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N79",
+   "sira": 8
+  },
+  {
+   "ebeveyn": "N63",
+   "etiket": "Dünyaya bakan yön yorumu",
+   "aciklama": "Dinleyici: organizmal benlik dünyaya bakan ve baktıran yönümüz; karakter benlikle bütünleşerek benlik hissini sağlıyor, istersek onu kullanarak içe de bakabiliriz. Bir diğeri: kesrette vahdeti, vahdette kesreti seyretmek mümkün.",
+   "tur": "soru",
+   "kanit": [
+    {
+     "parca": "P7",
+     "sayfa": 41,
+     "alinti": "Organizmal benlik dünyaya bakan ve baktıran yönümüze"
+    }
+   ],
+   "guven": "orta",
+   "id": "N80",
+   "sira": 5
+  },
+  {
+   "ebeveyn": "N24",
+   "etiket": "Tanrı, insan, âlem aynı mı?",
+   "aciklama": "Dinleyici sorusu: her şey birbirinin farklı görünümü mü, her şey aslında 'O' mu? Konuşmacı: belki en yüksek varoluşsal soru; herkesin öznel yanıtlayacağı, başkasına sorulmaması gereken bir soru; adım adım yolculukla gidilmeli.",
+   "tur": "soru",
+   "kanit": [
+    {
+     "parca": "P7",
+     "sayfa": 42,
+     "alinti": "Her şey aslında o mu?"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "N81",
+   "sira": 5
+  }
+ ],
+ "baglantilar": [
+  {
+   "kaynak": "N16",
+   "hedef": "N8",
+   "etiket": "ruh = karakter benlik",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 3,
+     "alinti": "atman yani karakter benlik yani isim benlik"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "L1"
+  },
+  {
+   "kaynak": "N19",
+   "hedef": "N12",
+   "etiket": "eleştirilen görüş",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 6,
+     "alinti": "o kadar küçümsenecek hatta aşağılanacak bir şey değil"
+    }
+   ],
+   "guven": "orta",
+   "id": "L2"
+  },
+  {
+   "kaynak": "N7",
+   "hedef": "N11",
+   "etiket": "tanımlanır",
+   "kanit": [
+    {
+     "parca": "P1",
+     "sayfa": 2,
+     "alinti": "beden değil sadece beden değil"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "L3"
+  },
+  {
+   "kaynak": "N28",
+   "hedef": "N8",
+   "etiket": "özdeşleşmeyi pekiştirir",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 8,
+     "alinti": "karakter benlikle özdeş zannetmende en önemli etken"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "L4"
+  },
+  {
+   "kaynak": "N36",
+   "hedef": "N32",
+   "etiket": "bütünlüğün bozulması",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 12,
+     "alinti": "ben duygusunun bütünlüğünü kuramıyor"
+    }
+   ],
+   "guven": "orta",
+   "id": "L5"
+  },
+  {
+   "kaynak": "N34",
+   "hedef": "N29",
+   "etiket": "sıklığı gösterir",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 9,
+     "alinti": "bu sayılardan tabii ki bayağı yüksek"
+    }
+   ],
+   "guven": "orta",
+   "id": "L6"
+  },
+  {
+   "kaynak": "N37",
+   "hedef": "N8",
+   "etiket": "örnekler",
+   "kanit": [
+    {
+     "parca": "P2",
+     "sayfa": 10,
+     "alinti": "o insan yapımı benlikle bir kere daha özdeşleşiyorsun"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "L7"
+  },
+  {
+   "kaynak": "N41",
+   "hedef": "N38",
+   "etiket": "düalizmin açmazı",
+   "kanit": [
+    {
+     "parca": "P3",
+     "sayfa": 16,
+     "alinti": "onları bölüp birbirinden iki ayrı töz dediğin zaman böyle bir sıkıntı yaşarsın"
+    }
+   ],
+   "guven": "orta",
+   "id": "L8"
+  },
+  {
+   "kaynak": "N42",
+   "hedef": "N38",
+   "etiket": "somut destek",
+   "kanit": [
+    {
+     "parca": "P3",
+     "sayfa": 14,
+     "alinti": "somut nesnel alanda da gözlemlenebilmeye başladı"
+    }
+   ],
+   "guven": "orta",
+   "id": "L9"
+  },
+  {
+   "kaynak": "N14",
+   "hedef": "N38",
+   "etiket": "karşı çıkılan görüş",
+   "kanit": [
+    {
+     "parca": "P3",
+     "sayfa": 16,
+     "alinti": "insanın departmanlardan oluştuğunu söyleyenlere katılmayan"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "L10"
+  },
+  {
+   "kaynak": "N54",
+   "hedef": "N9",
+   "etiket": "merkeze düşme",
+   "kanit": [
+    {
+     "parca": "P4",
+     "sayfa": 23,
+     "alinti": "yani varoluşsal benliğinde o kadar"
+    }
+   ],
+   "guven": "orta",
+   "id": "L11"
+  },
+  {
+   "kaynak": "N48",
+   "hedef": "N54",
+   "etiket": "mümkünler umudu = lunapark",
+   "kanit": [
+    {
+     "parca": "P4",
+     "sayfa": 22,
+     "alinti": "mümkünler umudu bir lunapark gibidir"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "L12"
+  },
+  {
+   "kaynak": "N33",
+   "hedef": "N53",
+   "etiket": "kırılması gereken kibir",
+   "kanit": [
+    {
+     "parca": "P4",
+     "sayfa": 23,
+     "alinti": "o meşum kibrini kırıp"
+    }
+   ],
+   "guven": "orta",
+   "id": "L13"
+  },
+  {
+   "kaynak": "N44",
+   "hedef": "N38",
+   "etiket": "beden-zihin eşlenikliği",
+   "kanit": [
+    {
+     "parca": "P4",
+     "sayfa": 20,
+     "alinti": "öyle ortada insanda bir beden bir de böyle uçan kaçan bir yön yok"
+    }
+   ],
+   "guven": "orta",
+   "id": "L14"
+  },
+  {
+   "kaynak": "N58",
+   "hedef": "N57",
+   "etiket": "haritanın kanıtı",
+   "kanit": [
+    {
+     "parca": "P5",
+     "sayfa": 26,
+     "alinti": "organizmal benlik haritamızın burada eksiksiz bir şekilde orada duruyor olması"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "L15"
+  },
+  {
+   "kaynak": "N61",
+   "hedef": "N57",
+   "etiket": "haritaya dokunur",
+   "kanit": [
+    {
+     "parca": "P5",
+     "sayfa": 30,
+     "alinti": "organizmal benlik haritamdaki ilk defa organizmal benliğinin ayak başpermana dokundun"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "L16"
+  },
+  {
+   "kaynak": "N59",
+   "hedef": "N9",
+   "etiket": "gözlemci benlik izler",
+   "kanit": [
+    {
+     "parca": "P5",
+     "sayfa": 28,
+     "alinti": "gözlemci benliğin çıkıp bu ikisini dışarıdan gözlemliyor"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "L17"
+  },
+  {
+   "kaynak": "N59",
+   "hedef": "N29",
+   "etiket": "aynada da fark edilir",
+   "kanit": [
+    {
+     "parca": "P5",
+     "sayfa": 28,
+     "alinti": "aynada sadece bedenine bakmadığını o gün fark edebilirsin"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "L18"
+  },
+  {
+   "kaynak": "N57",
+   "hedef": "N43",
+   "etiket": "Penfield'den gelir",
+   "kanit": [
+    {
+     "parca": "P5",
+     "sayfa": 25,
+     "alinti": "bunu da sevgili Penfield ve sonrasında fark edilip"
+    }
+   ],
+   "guven": "orta",
+   "id": "L19"
+  },
+  {
+   "kaynak": "N65",
+   "hedef": "N48",
+   "etiket": "beklentili umut",
+   "kanit": [
+    {
+     "parca": "P6",
+     "sayfa": 32,
+     "alinti": "ama mümkün umut güzeldir"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "L20"
+  },
+  {
+   "kaynak": "N64",
+   "hedef": "N35",
+   "etiket": "karakter benliğe muhtaçlık",
+   "kanit": [
+    {
+     "parca": "P6",
+     "sayfa": 31,
+     "alinti": "yaşamak için ona muhtacız"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "L21"
+  },
+  {
+   "kaynak": "N66",
+   "hedef": "N69",
+   "etiket": "yanlış soru örneği",
+   "kanit": [
+    {
+     "parca": "P6",
+     "sayfa": 35,
+     "alinti": "bu tip sorular dostum yanlış sorulardır"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "L22"
+  },
+  {
+   "kaynak": "N76",
+   "hedef": "N77",
+   "etiket": "aynı uyarı",
+   "kanit": [
+    {
+     "parca": "P7",
+     "sayfa": 41,
+     "alinti": "yani bunların mutlak doğrultusunu söyleyemezsin"
+    }
+   ],
+   "guven": "orta",
+   "id": "L23"
+  },
+  {
+   "kaynak": "N79",
+   "hedef": "N77",
+   "etiket": "somutta bile yanılgı",
+   "kanit": [
+    {
+     "parca": "P7",
+     "sayfa": 40,
+     "alinti": "somut nesnel alanda bile kanun vazetmek yani"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "L24"
+  },
+  {
+   "kaynak": "N81",
+   "hedef": "N38",
+   "etiket": "tezin genişletilmesi",
+   "kanit": [
+    {
+     "parca": "P7",
+     "sayfa": 42,
+     "alinti": "Yani her şey birbirlerinin farklı görünümleri mi?"
+    }
+   ],
+   "guven": "orta",
+   "id": "L25"
+  },
+  {
+   "kaynak": "N80",
+   "hedef": "N71",
+   "etiket": "kesrette vahdet",
+   "kanit": [
+    {
+     "parca": "P7",
+     "sayfa": 41,
+     "alinti": "kesrette vahdeti, vahdette kesreti seyretmek de mümkündür"
+    }
+   ],
+   "guven": "orta",
+   "id": "L26"
+  },
+  {
+   "kaynak": "N20",
+   "hedef": "N38",
+   "etiket": "aynı azınlık görüşü",
+   "kanit": [
+    {
+     "parca": "P3",
+     "sayfa": 16,
+     "alinti": "insanın departmanlardan oluştuğunu söyleyenlere katılmayan azıcık bir grup"
+    }
+   ],
+   "guven": "yuksek",
+   "id": "L27"
+  }
+ ],
+ "ozetler": [
+  {
+   "ebeveyn": "N21",
+   "bas": 0,
+   "son": 2,
+   "etiket": "Ayna ve suret",
+   "id": "Z1"
+  },
+  {
+   "ebeveyn": "N21",
+   "bas": 4,
+   "son": 7,
+   "etiket": "Biyoloji ve beyin bilimi",
+   "id": "Z2"
+  },
+  {
+   "ebeveyn": "N13",
+   "bas": 1,
+   "son": 3,
+   "etiket": "Dinlerde ruh",
+   "id": "Z3"
+  },
+  {
+   "ebeveyn": "N13",
+   "bas": 4,
+   "son": 8,
+   "etiket": "Felsefede töz ve akıl",
+   "id": "Z4"
+  },
+  {
+   "ebeveyn": "N13",
+   "bas": 9,
+   "son": 11,
+   "etiket": "Bedenin küçümsenmesi",
+   "id": "Z5"
+  },
+  {
+   "ebeveyn": "N26",
+   "bas": 2,
+   "son": 5,
+   "etiket": "Ayna yoluyla özdeşleşme",
+   "id": "Z6"
+  },
+  {
+   "ebeveyn": "N51",
+   "bas": 0,
+   "son": 1,
+   "etiket": "Deneyimsel pratikler",
+   "id": "Z7"
+  },
+  {
+   "ebeveyn": "N51",
+   "bas": 2,
+   "son": 5,
+   "etiket": "Tutum önerileri",
+   "id": "Z8"
+  }
+ ],
+ "belirsizlikler": [
+  {
+   "kayit": "N3",
+   "tur": "eksik",
+   "neden": "Transkriptte konuşmacının adı ve kanal/video bağlantısı geçmiyor; kaynak_url boş."
+  },
+  {
+   "kayit": "N18",
+   "tur": "yorum",
+   "neden": "Kur'an ve erken dönem İslam düşüncesine dair iddialar konuşmacının yorumudur; transkript bunları kaynakla desteklemiyor."
+  },
+  {
+   "kayit": "N34",
+   "tur": "kanit_zayif",
+   "neden": "Aynaya bakma araştırmasının üniversitesi, yılı ve sonuç sayısı verilmiyor; konuşmacı hafızadan aktarıyor."
+  },
+  {
+   "kayit": "N36",
+   "tur": "eksik",
+   "neden": "Filmin adı belirsiz; konuşmacı ve dinleyiciler 'Face Off' (Nicolas Cage, John Travolta) olabileceğini söylüyor, kesinleşmiyor."
+  },
+  {
+   "kayit": "N29",
+   "tur": "yorum",
+   "neden": "Aynaya bakışın karakter benlikle özdeşleşmeyi pekiştirdiği konuşmacının metoduna dayalı iddiasıdır; araştırmayla desteklenmiyor."
+  },
+  {
+   "kayit": "N42",
+   "tur": "kanit_zayif",
+   "neden": "SCAN çalışmasının tarihi, katılımcı sayısı ve bebek/çocuk dahil edilmesi konuşmacının aktarımıdır ('yanılmıyorsam' diyor); kaynak gösterilmiyor. Yayımlanmış makale Nature'da Gordon ve ark. (2023) olarak bilinir ancak ayrıntılar transkriptte doğrulanamaz."
+  },
+  {
+   "kayit": "N55",
+   "tur": "yorum",
+   "neden": "Bilincin keşfedilmemiş bir alanla etkileşimden doğacağı konuşmacının kendi spekülatif öngörüsüdür; kanıt sunulmuyor. Konuşmacı Higgs'in keşfini '20. yüzyılın sonu' diye anıyor; bu tarih transkriptte doğrulanamaz."
+  },
+  {
+   "kayit": "N45",
+   "tur": "kanit_zayif",
+   "neden": "1 ve 9 yaş eşikleri konuşmacının araştırmadan aktarımıdır; özgün makalede doğrulanmadı."
+  },
+  {
+   "kayit": "N54",
+   "tur": "yorum",
+   "neden": "Lunapark ve orgazm anlarında benliklerden kopulduğu yorumu konuşmacının metoduna aittir."
+  },
+  {
+   "kayit": "N28",
+   "tur": "celiski",
+   "neden": "Konuşmacı organizmal benliği 'varoluşun ayrılmaz parçası' ve 'sen' olarak temsil eden bir bütünlük sayarken (s. 24, 28), tanımanın onun 'gerçekte sen olmadığını' göstereceğini de söylüyor (s. 26). Transkriptte iki ifade uzlaştırılmıyor."
+  },
+  {
+   "kayit": "N63",
+   "tur": "eksik",
+   "neden": "Dinleyici yorumları yalnızca konuşmacının sesli okumasıyla aktarılıyor; yorumların tam metni ve yazarların kimliği transkriptte net değil (Kaya, Savaşçım, Serdar, Enes, Mustafa)."
+  },
+  {
+   "kayit": "N72",
+   "tur": "yorum",
+   "neden": "Konuşmacı bu görüşü açıkça 'öznel bakış açım' ve inanç alanı olarak sunuyor."
+  },
+  {
+   "kayit": "N77",
+   "tur": "yorum",
+   "neden": "Konuşmacı Gazali'ye atfettiği sözün birebir onun olmadığını açıkça belirtiyor; serbest aktarım."
+  },
+  {
+   "kayit": "N76",
+   "tur": "kanit_zayif",
+   "neden": "İbn Sina'nın Kant'tan 500–600 yıl önce benzer şeyi söylediği iddiası gerekçelendirilmiyor; konuşmacı tarihi de düzeltiyor ('bin demeyelim')."
+  },
+  {
+   "kayit": "N4",
+   "tur": "yorum",
+   "neden": "Kayıt yılı (2024) konuşmacının '2023 geçen sene' ifadesinden çıkarım; transkriptte tarih yok."
+  },
+  {
+   "kayit": "N66",
+   "tur": "eksik",
+   "neden": "Transkriptte 'fuat basar sem a / fbs' diye geçen ifade ses tanıma bozulması; konuşmacı aynı cümlede 'nitelikli benlik farkındalığı ve bilinç farkındalık' diyerek açıklıyor, kısaltmanın tam karşılığı belirsiz."
+  }
+ ],
+ "kalite": {
+  "parca_sayisi": 8,
+  "gecis2_eklenen": 1,
+  "gecis2_dusurulen": 1,
+  "dogrulama": {
+   "sonuc": "GECTI",
+   "hata_sayisi": 0,
+   "uyari_sayisi": 1,
+   "uyarilar": [
+    "meta.kaynak_url: YouTube kaynağında video bağlantısı önerilir"
+   ]
+  }
+ }
+}
