@@ -891,7 +891,41 @@ function paragrafBirlestir(metin) {
 const FFFD = "\ufffd"
 const MADDE_FFFD_RE = /^\s*\ufffd(\s|$)/
 // Türkçe OCR'ın zaman zaman verdiği, Türkçede bulunmayan benzer harfler (gerçek PDF'te ölçüldü: SAČLIK → SAĞLIK)
-const OCR_TR_EK = { "Č": "Ğ", "č": "ğ", "Ǧ": "Ğ", "ǧ": "ğ", "Ú": "Ü", "ú": "ü", "õ": "ö", "Õ": "Ö", "ů": "ü", "Ů": "Ü", "ű": "ü", "Ű": "Ü", "ő": "ö", "Ő": "Ö" }
+// 335 sayfalık gerçek belgede ölçülen tam liste (YÔNELIK, ERÍŞKIN, SAＧLIK, gūn, Haštanesi, KONTRÓL, ręhberine …).
+// â î û Türkçede geçerli olduğu için listede yok; "Ğ/Ç" belirsiz harfler (Č Ć Ｇ) sesli harften sonra Ğ, değilse Ç olur.
+const OCR_TR_EK = {
+  "Ǧ": "Ğ", "ǧ": "ğ", "Ú": "Ü", "ú": "ü", "Ù": "Ü", "ù": "ü", "Û": "Ü", "ů": "ü", "Ů": "Ü", "ű": "ü", "Ű": "Ü", "ū": "ü", "Ū": "Ü", "ũ": "ü",
+  "õ": "ö", "Õ": "Ö", "ő": "ö", "Ő": "Ö", "Ô": "Ö", "ô": "ö", "ō": "ö", "Ō": "Ö", "ó": "o", "Ó": "O", "ò": "o", "Ò": "O",
+  "Í": "İ", "Ì": "İ", "Î": "İ", "Ï": "İ", "í": "i", "ì": "i", "ǐ": "i", "ī": "ı",
+  "š": "ş", "Š": "Ş", "ś": "ş", "Ś": "Ş", "ș": "ş", "Ș": "Ş",
+  "É": "E", "é": "e", "È": "E", "è": "e", "Ê": "E", "ê": "e", "Ë": "E", "ë": "e", "Ě": "E", "ě": "e", "ę": "e", "Ę": "E", "ė": "e", "ē": "e",
+  "Á": "A", "á": "a", "À": "A", "à": "a", "Ä": "A", "ä": "a", "Å": "A", "å": "a", "ā": "a", "ą": "a", "ă": "a", "Ã": "A", "ã": "a",
+  "Ċ": "Ç", "ċ": "ç", "Ř": "R", "ř": "r", "ļ": "l", "ľ": "l", "Ľ": "L", "ķ": "k", "ț": "t", "Ž": "Z", "ž": "z", "Ż": "Z", "ż": "z", "Ñ": "N", "ñ": "n",
+}
+const OCR_TR_BELIRSIZ = { "Č": ["Ğ", "Ç"], "č": ["ğ", "ç"], "Ć": ["Ğ", "Ç"], "ć": ["ğ", "ç"], "Ｇ": ["Ğ", "G"] }
+const SESLI = /[aeıioöuüAEIİOÖUÜâîû]/
+function ocrTrHarfDuzelt(metin, sayac) {
+  const tum = Object.keys(OCR_TR_EK).join("") + Object.keys(OCR_TR_BELIRSIZ).join("")
+  const re = new RegExp("[" + tum + "]", "g")
+  let y = metin.replace(re, (c, i, s) => {
+    sayac.n++
+    if (OCR_TR_EK[c]) return OCR_TR_EK[c]
+    // ğ yalnız sesli harften sonra gelir; önceki harf de düzeltilecek olabilir, ona göre bak
+    let onceki = s[i - 1] || ""
+    if (OCR_TR_EK[onceki]) onceki = OCR_TR_EK[onceki]
+    return OCR_TR_BELIRSIZ[c][SESLI.test(onceki) ? 0 : 1]
+  })
+  // büyük harfli kelimede küçük "i": EDILMELi, PNÖMONi, ERišKiN → İ (en az iki büyük harf, küçük harf olarak yalnız i)
+  // ERİşKIN, ERIšKIN gibi: küçük harf olarak yalnız i ş ğ ç ö ü varsa ve en az iki büyük harf varsa kelime büyük harflidir
+  y = y.replace(/\p{L}{3,}/gu, (w) => {
+    const kucuk = w.match(/\p{Ll}/gu) || []
+    if (!kucuk.length || kucuk.some((c) => !"işğçöü".includes(c))) return w
+    if ((w.match(/\p{Lu}/gu) || []).length < Math.max(2, kucuk.length)) return w
+    sayac.n++
+    return w.toLocaleUpperCase("tr")
+  })
+  return y
+}
 const OKUNAMAZ_ESIK = 0.10  // pymupdf4llm'in BAD_CHAR_THRESHOLD değeriyle aynı
 const OKUNAMAZ_ADET = 20    // oran düşük olsa da bu kadar okunamayan karakter bir metin bölümünün kaybı demektir
 function okunamazOrani(metin) {
@@ -908,7 +942,9 @@ function belgeTurkceMi(ornek) {
   const tr = (ornek.match(TR_SOZCUK_RE) || []).length
   const yabanci = (ornek.match(/[řěůťďňĺľŕæøå]/gi) || []).length
   const sozcuk = (ornek.match(/\S+/g) || []).length || 1
-  return tr >= 5 && tr / sozcuk >= 0.02 && yabanci === 0
+  // OCR, Türkçe belgede de ara sıra ů/Ř/ľ üretir (335 sayfada 35 adet ≈ sözcüklerin %0,04'ü): sıfır değil oran şartı.
+  // Gerçek Çekçe/Slovakça metinde bu harfler sözcüklerin %10'undan fazlasında geçer.
+  return tr >= 5 && tr / sozcuk >= 0.02 && yabanci <= 0.005 * sozcuk
 }
 function eskiTrDuzelt(metin) {
   let adet = 0
@@ -933,15 +969,39 @@ async function sozlukYukle() {
   SOZLUK = { L, F }
   return SOZLUK
 }
+// Türkçe sözlükte olmayıp bir Türkçe kelimeye benzeyen tıp/Latince terimler (gerçek belgede ölçüldü: kistik → kıstık, dermis → dermiş)
+const SZ_KORU = new Set(["kistik", "dermis", "epidermis", "basis", "fetus", "sinus", "virus", "corpus", "status", "minor", "major", "iris", "pubis", "tinnitus", "pemfigus", "herpes", "lupus", "tetanus", "diabetes", "mellitus"])
 const SZ_CIFT = { i: "ı", ı: "i" }, SZ_ASC = { g: "ğ", s: "ş", o: "ö", u: "ü", c: "ç" }
 function sozlukDuzeltKelime(w, sz, sayac) {
   const { L, F } = sz
   const harf = [...w]
   if (harf.length < 3) return w
   const hepsiBuyuk = w === w.toLocaleUpperCase("tr") && w !== w.toLocaleLowerCase("tr")
-  if (hepsiBuyuk && harf.length <= 4) return w  // kısaltmalar (NICE, AME …)
+  if (hepsiBuyuk && harf.length <= 4) {  // kısaltmalar (NICE, AME …) korunur; yalnız I/İ değişimiyle çok yaygın bir kelimeye dönüşenler (ILK, ILE, İÇI) düzeltilir
+    const kk = w.toLocaleLowerCase("tr")
+    if (!/[ıi]/.test(kk) || L.has(kk) || (F.get(kk) || 0) >= 1000) return w
+    const ad = [...kk].map((c, i) => (harf[i] === "I" || harf[i] === "İ") ? [c, SZ_CIFT[c]] : [c])
+    let enK = null
+    const dolas = (i, acc) => {
+      if (i === ad.length) {
+        const f = F.get(acc) || 0
+        // ICIN → "icin" yaygın ama asıl yazımı "için": noktalı değişkeni daha yaygınsa dokunma
+        const noktali = [...acc].some((c, j) => SZ_ASC[c] && (F.get([...acc].map((d, m) => (m === j ? SZ_ASC[d] : d)).join("")) || 0) > f)
+        if (f >= 5000 && !noktali && (!enK || f > enK[1])) enK = [acc, f]
+        return
+      }
+      for (const c of ad[i]) dolas(i + 1, acc + c)
+    }
+    dolas(0, "")
+    if (!enK) return w
+    const y = enK[0].toLocaleUpperCase("tr")
+    if (y !== w) { sayac.n++; if (sayac.ornek.length < 12) sayac.ornek.push(`${w}→${y}`) }
+    return y
+  }
+  if (!hepsiBuyuk && harf.slice(1).some((c) => c !== c.toLocaleLowerCase("tr"))) return w  // NaCl, mEq, HbA1c gibi karışık yazımlar
   const k = w.toLocaleLowerCase("tr"), kh = [...k]
   if (kh.length !== harf.length) return w
+  if (SZ_KORU.has(k)) return w
   const gecerli = (x, enF = 0) => {
     if (L.has(x)) return true
     const f = F.get(x) || 0
@@ -962,11 +1022,13 @@ function sozlukDuzeltKelime(w, sz, sayac) {
     vs.push([n, x.join("")])
   }
   const enF = Math.max(0, ...vs.map(([, v]) => F.get(v) || 0))
-  if (gecerli(k, enF)) return w
+  // büyük harfli kelimede I serbest olduğu için özgün yazım ancak tam eşleşmeyle geçerli sayılır (YÖNELIK: "yönel" önekiyle geçmesin)
+  const ozgunGecerli = bedava.size ? (L.has(k) || ((F.get(k) || 0) > 0 && (F.get(k) || 0) >= 0.2 * enF)) : gecerli(k, enF)
+  if (ozgunGecerli) return w
   let en = null
   for (const [n, v] of vs) {
-    if (!(L.has(v) || (F.get(v) || 0) >= 50) || !gecerli(v)) continue
-    const anahtar = [n, L.has(v) ? 0 : 1, -(F.get(v) || 0)]
+    if (!(L.has(v) || (F.get(v) || 0) >= 50 || (n === 0 && bedava.size && (F.get(v) || 0) > 0)) || !gecerli(v)) continue  // n=0: yalnız I/İ değişti, sıklık listesinde var
+    const anahtar = [n, -(F.get(v) || 0), L.has(v) ? 0 : 1]  // eşit değişiklikte yaygın olan (katıliyor → katılıyor, katiliyor değil)
     if (!en || anahtar[0] < en[0][0] || (anahtar[0] === en[0][0] && (anahtar[1] < en[0][1] || (anahtar[1] === en[0][1] && anahtar[2] < en[0][2])))) en = [anahtar, v]
   }
   if (!en) return w
@@ -978,7 +1040,20 @@ function sozlukDuzeltKelime(w, sz, sayac) {
   if (y !== w) { sayac.n++; if (sayac.ornek.length < 12) sayac.ornek.push(`${w}→${y}`) }
   return y
 }
-function sozlukDuzelt(metin, sz, sayac) { return metin.replace(/\p{L}+/gu, (w) => sozlukDuzeltKelime(w, sz, sayac)) }
+// Türkçe belgelerdeki İngilizce satırlar (kaynakça, alıntı) düzeltilmez: "Primary Care" → "Çare", "Iron" → "İron" olmasın
+const EN_SOZCUK_RE = /(^|[^\p{L}])(the|of|and|for|with|in|on|by|from|to|an|during|patients?|study|trial|review|guidelines?|management|treatment|clinical|care|med|et al)(?=[^\p{L}]|$)/giu
+function ingilizceSatirMi(satir) {
+  const en = (satir.match(EN_SOZCUK_RE) || []).length
+  if (en < 2) return false
+  const tr = (satir.match(TR_SOZCUK_RE) || []).length
+  return en > 2 * tr
+}
+function sozlukDuzelt(metin, sz, sayac) {
+  return metin.split("\n").map((satir) => {
+    if (ingilizceSatirMi(satir)) { sayac.ingilizce = (sayac.ingilizce || 0) + 1; return satir }
+    return satir.replace(/\p{L}+/gu, (w) => sozlukDuzeltKelime(w, sz, sayac))
+  }).join("\n")
+}
 
 function kelimeler(metin) {
   const c = new Map()
@@ -1713,13 +1788,12 @@ class PdfDonusturucu {
         } else log(`   ý/þ/ð harfleri var ama belge Türkçe görünmüyor → değiştirilmedi`, "uyari")
       }
       // OCR'ın Türkçede olmayan benzer harfleri (Č→Ğ, õ→ö, ů→ü …): yalnız OCR'lı sayfalarda ve Türkçe belgede
-      const ocrTrRe = new RegExp("[" + Object.keys(OCR_TR_EK).join("") + "]", "g"), ocrTrVar = new RegExp(ocrTrRe.source)  // test için g bayraksız (lastIndex tuzağı)
-      if (ham.some((h, i) => h.bilgi.ocr && ocrTrVar.test(sayfaMetinleri[i])) && turkceMi()) {
-        for (let i = 0; i < ham.length; i++) {
-          if (!ham[i].bilgi.ocr) continue
-          sayfaMetinleri[i] = sayfaMetinleri[i].replace(ocrTrRe, (c) => { ocrTrDuzeltilen++; return OCR_TR_EK[c] })
-        }
+      if (ham.some((h) => h.bilgi.ocr) && turkceMi()) {
+        const sy = { n: 0 }
+        for (let i = 0; i < ham.length; i++) if (ham[i].bilgi.ocr) sayfaMetinleri[i] = ocrTrHarfDuzelt(sayfaMetinleri[i], sy)
+        ocrTrDuzeltilen = sy.n
       }
+      if (trKarar === false && ham.some((h) => h.bilgi.ocr)) log(`   belge Türkçe görünmüyor → OCR harf/sözlük düzeltmesi yapılmadı`, "uyari")
       // OCR'lı sayfalarda Türkçe sözlük düzeltmesi (ı/i, ş, ğ, ö, ü, ç)
       const sozlukSayac = { n: 0, ornek: [] }
       if (this.a.ocr_sozluk !== false && ham.some((h) => h.bilgi.ocr) && turkceMi()) {
