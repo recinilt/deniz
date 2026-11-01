@@ -1,0 +1,2018 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PDF → TXT Dönüştürücü</title>
+<style>
+:root {
+  --zemin: #f4f5f7; --panel: #ffffff; --yazi: #1d2330; --soluk: #5b6474; --cizgi: #d5d9e0;
+  --vurgu: #2457c5; --vurgu-yazi: #ffffff; --uyari: #9a6200; --hata: #b42318; --basari: #1f7a3a; --log: #0f1724; --log-yazi: #dbe3ef;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --zemin: #12151b; --panel: #1b2029; --yazi: #e6e9ef; --soluk: #9aa3b2; --cizgi: #2e3542;
+    --vurgu: #6d9bff; --vurgu-yazi: #0d1220; --uyari: #f0b44c; --hata: #ff7b72; --basari: #56d37f; --log: #0b0f15; --log-yazi: #cfd8e6;
+  }
+}
+:root[data-theme="dark"] {
+  --zemin: #12151b; --panel: #1b2029; --yazi: #e6e9ef; --soluk: #9aa3b2; --cizgi: #2e3542;
+  --vurgu: #6d9bff; --vurgu-yazi: #0d1220; --uyari: #f0b44c; --hata: #ff7b72; --basari: #56d37f; --log: #0b0f15; --log-yazi: #cfd8e6;
+}
+* { box-sizing: border-box; }
+html { overflow: auto; height: 100%; }
+body { margin: 0; background: var(--zemin); color: var(--yazi); font: 14px/1.45 system-ui, "Segoe UI", Roboto, sans-serif; min-height: 100%; }
+/* tam sayfa kaydırma: içerik dar pencerede yatay, uzun içerikte dikey kayar */
+#sayfa { min-width: 880px; max-width: 1180px; margin: 0 auto; padding: 16px 16px 190px; }
+h1 { font-size: 20px; margin: 4px 0 2px; }
+.alt-baslik { color: var(--soluk); margin: 0 0 12px; }
+fieldset { background: var(--panel); border: 1px solid var(--cizgi); border-radius: 8px; margin: 0 0 12px; padding: 10px 14px 12px; min-width: 0; }
+legend { font-weight: 600; padding: 0 6px; }
+.satir { display: flex; align-items: center; gap: 8px; margin: 6px 0; flex-wrap: nowrap; }
+.satir > label.etiket { min-width: 130px; color: var(--soluk); }
+.not { color: var(--soluk); font-size: 12.5px; }
+select, input[type=text], input[type=number], input[type=password] {
+  font: inherit; color: var(--yazi); background: var(--zemin); border: 1px solid var(--cizgi); border-radius: 5px; padding: 4px 6px;
+}
+select { max-width: 640px; }
+button { font: inherit; border: 1px solid var(--cizgi); background: var(--panel); color: var(--yazi); border-radius: 6px; padding: 5px 12px; cursor: pointer; white-space: nowrap; }
+button:hover:not(:disabled) { border-color: var(--vurgu); }
+button.ana { background: var(--vurgu); color: var(--vurgu-yazi); border-color: var(--vurgu); font-weight: 600; }
+button:disabled { opacity: .5; cursor: not-allowed; }
+label.kutu { display: flex; align-items: center; gap: 6px; margin: 4px 0; }
+#dosyaAlani { display: grid; grid-template-columns: 1fr auto; gap: 10px; }
+#liste { height: 160px; overflow: auto; min-width: 0; border: 1px dashed var(--cizgi); border-radius: 6px; background: var(--zemin); padding: 2px; }
+#liste.surukle { border-color: var(--vurgu); }
+#liste .oge { padding: 2px 6px; white-space: nowrap; cursor: default; border-radius: 3px; user-select: none; }
+#liste .oge.secili { background: var(--vurgu); color: var(--vurgu-yazi); }
+#liste .bos { color: var(--soluk); padding: 8px; }
+#dugmeler { display: flex; flex-direction: column; gap: 6px; }
+#gunluk { height: 260px; overflow: auto; max-width: 100%; background: var(--log); color: var(--log-yazi); border-radius: 6px; padding: 8px; margin: 0;
+  font: 12.5px/1.45 ui-monospace, Consolas, "Cascadia Mono", monospace; white-space: pre; }
+#gunluk .uyari { color: #f0b44c; } #gunluk .hata { color: #ff8a80; } #gunluk .test { color: #8fa3bf; } #gunluk .tamam { color: #7ee2a0; }
+#altCubuk { position: fixed; left: 0; right: 0; bottom: 0; background: var(--panel); border-top: 1px solid var(--cizgi); padding: 8px 16px 10px; z-index: 5; }
+#altIc { max-width: 1180px; margin: 0 auto; }
+#ilerleme { width: 100%; height: 14px; margin: 4px 0 2px; accent-color: var(--vurgu); }
+#durum { font-weight: 600; } #ayrinti { color: var(--soluk); font-size: 12.5px; min-height: 18px; }
+#altDugmeler { display: flex; gap: 8px; margin-top: 6px; align-items: center; }
+#altDugmeler .bosluk { flex: 1; }
+#kutuphane { font-size: 12.5px; margin: 0 0 10px; padding: 6px 10px; border-radius: 6px; background: var(--panel); border: 1px solid var(--cizgi); }
+#kutuphane.hata { border-color: var(--hata); color: var(--hata); }
+#sonuclar a { color: var(--vurgu); margin-right: 10px; }
+dialog { border: 1px solid var(--cizgi); border-radius: 8px; background: var(--panel); color: var(--yazi); min-width: 380px; }
+dialog::backdrop { background: rgba(0,0,0,.35); }
+.yan { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; }
+</style>
+</head>
+<body>
+<div id="sayfa">
+  <h1>📄 PDF → TXT Dönüştürücü</h1>
+  <p class="alt-baslik">Dosyalarınız bilgisayarınızdan çıkmaz: dönüştürme tamamen bu tarayıcıda çalışır. İnternet yalnız kütüphaneleri (≈52 MB, tarayıcı önbelleğe alır) ve ilk OCR'da Türkçe modelleri (≈32 MB, bir kez indirilip saklanır) almak için gerekir.</p>
+  <div id="kutuphane">Kütüphaneler yükleniyor…</div>
+
+  <fieldset>
+    <legend>1) PDF dosyaları</legend>
+    <div id="dosyaAlani">
+      <div id="liste" tabindex="0"><div class="bos">PDF'leri buraya sürükleyin ya da sağdaki düğmelerle ekleyin.</div></div>
+      <div id="dugmeler">
+        <button id="bDosya">📄 Dosya ekle…</button>
+        <button id="bKlasor">📁 Klasör ekle…</button>
+        <label class="kutu"><input type="checkbox" id="altKlasor" checked> Alt klasörler dahil</label>
+        <button id="bCikar">Seçileni çıkar</button>
+        <button id="bTemizle">Listeyi temizle</button>
+      </div>
+    </div>
+    <input type="file" id="dosyaGirdi" accept="application/pdf,.pdf" multiple hidden>
+    <input type="file" id="klasorGirdi" webkitdirectory multiple hidden>
+  </fieldset>
+
+  <fieldset>
+    <legend>2) Çıktı</legend>
+    <label class="kutu"><input type="radio" name="hedef" value="indir" checked> İndir (her TXT tarayıcının İndirilenler klasörüne iner)</label>
+    <div class="satir">
+      <label class="kutu" style="margin:0"><input type="radio" name="hedef" value="klasor"> Seçilen klasöre kaydet</label>
+      <button id="bHedef">Klasör seç…</button><span id="hedefAd" class="not">(seçilmedi)</span>
+    </div>
+    <label class="kutu"><input type="radio" name="hedef" value="yanina"> PDF'lerin yanına kaydet (yalnız "Klasör ekle" ile eklenen PDF'ler için)</label>
+    <div class="not" id="hedefNot"></div>
+    <div class="satir"><label class="etiket" for="satirSonu">Satır sonu:</label>
+      <select id="satirSonu"><option value="crlf">Windows (CRLF)</option><option value="lf">Unix (LF)</option></select>
+      <span class="not">Kodlama: UTF-8 (BOM'suz)</span></div>
+  </fieldset>
+
+  <fieldset>
+    <legend>3) Yöntem</legend>
+    <div class="satir"><label class="etiket" for="kip">Kip:</label><select id="kip"></select></div>
+    <div class="satir"><label class="etiket" for="sira">Okuma sırası:</label>
+      <select id="sira"><option value="xy">Sütun sürekliliğini koru (önerilen)</option><option value="model">MuPDF'in kendi blok sırası</option></select></div>
+    <div class="satir"><label class="etiket" for="aralik">Sayfa aralığı:</label>
+      <input type="text" id="aralik" size="22"><span class="not">örn: 1-3, 5, 8- &nbsp;(boş = tüm sayfalar)</span></div>
+  </fieldset>
+
+  <fieldset>
+    <legend>4) OCR (taranmış / görsel sayfalar) — Türkçe PP-OCRv6</legend>
+    <div class="satir"><label class="etiket" for="model">Model:</label>
+      <select id="model">
+        <option value="small">Standart (PP-OCRv6 small, ≈21 MB) — önerilen</option>
+        <option value="medium">Yüksek doğruluk (PP-OCRv6 medium, ≈77 MB; kirli taramada daha az hata, çok daha yavaş)</option>
+      </select></div>
+    <div class="satir"><label class="etiket" for="dpi">Çözünürlük:</label>
+      <select id="dpi">
+        <option value="otomatik">Otomatik: taramanın kendi çözünürlüğü (200-400) — önerilen</option>
+        <option value="200">200 DPI</option><option value="300">300 DPI</option>
+      </select></div>
+    <div class="satir"><label class="etiket" for="hiz">Hızlandırma:</label>
+      <select id="hiz">
+        <option value="webgpu">Ekran kartı (WebGPU) varsa onu kullan — önerilen</option>
+        <option value="wasm">Yalnız işlemci (WASM)</option>
+      </select><span class="not" id="hizNot"></span></div>
+    <label class="kutu"><input type="checkbox" id="egim" checked> Eğim düzelt (±5°) ve sayfa yönünü (90°/180°/270°) otomatik bul</label>
+    <label class="kutu"><input type="checkbox" id="gurultu" checked> Tarama gürültüsünü temizle (median filtre)</label>
+  </fieldset>
+
+  <fieldset>
+    <legend>5) Metin biçimi</legend>
+    <label class="kutu"><input type="checkbox" id="ust" checked> Sayfa üst bilgilerini dahil et (sayfalarda tekrar eden üst satırlar)</label>
+    <label class="kutu"><input type="checkbox" id="alt" checked> Sayfa alt bilgilerini / sayfa numaralarını dahil et</label>
+    <label class="kutu"><input type="checkbox" id="ayirici"> Sayfa ayırıcı ekle &nbsp;(===== Sayfa N =====)</label>
+    <label class="kutu"><input type="checkbox" id="tire" checked> Satır sonu tirelerini birleştir &nbsp;(dijital-↵leştirme → dijitalleştirme; e-posta korunur)</label>
+    <label class="kutu"><input type="checkbox" id="paragraf"> Paragraf içindeki satırları birleştir &nbsp;(tablo ve liste maddelerine dokunmaz)</label>
+    <label class="kutu"><input type="checkbox" id="eskiTr" checked> Eski Türkçe yazı tiplerini düzelt &nbsp;(ý→ı, þ→ş, ð→ğ, Ý→İ, Þ→Ş, Ð→Ğ; yalnız Türkçe belgelerde)</label>
+    <div class="satir"><label class="etiket" for="tablo">Tablolar:</label>
+      <select id="tablo">
+        <option value="dogrusal">Başlıklı, satır satır &nbsp;(İzmir — Üretim - 2025: 1.250) — önerilen</option>
+        <option value="izgara">Izgara &nbsp;(+---+ çizgili tablo)</option>
+        <option value="ikisi">İkisi birden &nbsp;(önce ızgara, sonra başlıklı satırlar)</option>
+      </select></div>
+  </fieldset>
+
+  <fieldset>
+    <legend>6) Kayıp kapısı (sessiz metin kaybını önler)</legend>
+    <div class="satir">Düzen çıktısı, sayfanın ham metnindeki kelimelerin en az
+      <input type="number" id="esik" min="80" max="100" step="1" style="width:64px"> %'ini içermeli.</div>
+    <label class="kutu"><input type="checkbox" id="kayiptaHam" checked> Eşiğin altındaysa o sayfa için ham metni kullan (kapalıysa yalnız uyarır)</label>
+  </fieldset>
+
+  <fieldset>
+    <legend>Günlük</legend>
+    <pre id="gunluk"></pre>
+    <div id="sonuclar" class="not"></div>
+  </fieldset>
+</div>
+
+<div id="altCubuk"><div id="altIc">
+  <div id="durum">Bekliyor</div>
+  <progress id="ilerleme" max="1000" value="0"></progress>
+  <div id="ayrinti"></div>
+  <div id="altDugmeler">
+    <button class="ana" id="bBaslat" disabled>▶️ Dönüştür</button>
+    <button id="bDurdur" disabled>⏹ Durdur</button>
+    <span class="bosluk"></span>
+    <button id="bVarsayilan">Varsayılan ayarlar</button>
+  </div>
+</div></div>
+
+<dialog id="dlgParola"><form method="dialog">
+  <div id="parolaMetin"></div>
+  <p><input type="password" id="parolaGirdi" style="width:100%" autocomplete="off"></p>
+  <div class="yan"><button value="iptal">Atla</button><button class="ana" value="tamam">Tamam</button></div>
+</form></dialog>
+<dialog id="dlgVar"><form method="dialog">
+  <div id="varMetin"></div>
+  <div class="yan"><button value="vazgec">Vazgeç</button><button value="yeni">Yeni ad ver (_1, _2 …)</button><button class="ana" value="uzerine">Üzerine yaz</button></div>
+</form></dialog>
+
+<script type="text/plain" id="isci-kodu">// ===================================================================== PDF2TXT motor (Web Worker)
+// Python sürümündeki pdf_motor.py'nin JavaScript karşılığı.
+// PDF: MuPDF.js (PyMuPDF ile aynı MuPDF çekirdeği) · OCR: RapidOCR PP-OCRv6 'tr' ONNX modelleri
+// (onnxruntime-web, WebGPU → WASM) · Görüntü işleme: OpenCV.js (Python'daki cv2 çağrılarının birebiri)
+const SURUM = "PDF2TXT-HTML 1.0"
+const CDN = {
+  mupdf: "https://cdn.jsdelivr.net/npm/mupdf@1.28.1/dist/mupdf.js",
+  ort: "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.30.0/dist/ort.all.min.mjs",
+  ortWasm: "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.30.0/dist/",
+  opencv: "https://cdn.jsdelivr.net/npm/@techstark/opencv-js@5.0.0-release.1/dist/opencv.js",
+}
+const MODEL_KOK = "https://www.modelscope.cn/models/RapidAI/RapidOCR/resolve/v3.10.0/onnx/"
+const MODELLER = {
+  det: { url: MODEL_KOK + "PP-OCRv6/det/PP-OCRv6_det_small.onnx", sha: "090f04abcd9d9a7498bc4ebf677e4cb9bdce1fe4197ddb7e529f1ef44e1ff94f", mb: 9.9 },
+  cls: { url: MODEL_KOK + "PP-OCRv4/cls/ch_ppocr_mobile_v2.0_cls_mobile.onnx", sha: "e47acedf663230f8863ff1ab0e64dd2d82b838fceb5957146dab185a89d6215c", mb: 0.6 },
+  small: { url: MODEL_KOK + "PP-OCRv6/rec/PP-OCRv6_rec_small.onnx", sha: "6f327246b50388f3c176ae304bd95767ea6dc0c9ae92153ef8cbe210b3c14884", mb: 21.2 },
+  medium: { url: MODEL_KOK + "PP-OCRv6/rec/PP-OCRv6_rec_medium.onnx", sha: "eef444829dbbe18d7fea59a3f6eb75647518d2b3a9568d27c92e42940204894b", mb: 76.6 },
+}
+
+let mupdf = null, ort = null, cv = null
+let TEST = false, TEST_GPU_HATA = false, GPU_ZAMAN_ASIMI_SN = 120
+const istat = { toplam: 0, basarili: 0, hatali: 0, ms: 0 }
+let iptalIstendi = false
+let parolaCozucu = null, havuzCozucu = null
+const veriBekleyen = new Map()
+function veriIste(kimlik) { return new Promise((coz, red) => { veriBekleyen.set(kimlik, { coz, red }); gonder({ tur: "veri_iste", kimlik }) }) }
+const gonder = (o) => (typeof altPort !== "undefined" && altPort ? altPort : self).postMessage(o)
+const log = (metin, seviye = "bilgi") => gonder({ tur: "log", metin, seviye })
+
+// ------------------------------------------------------------------ TEST_MODE izleme (debug_logger karşılığı)
+async function izle(ad, fn) {
+  if (!TEST) return fn()
+  const t = performance.now()
+  try {
+    const r = await fn()
+    const ms = performance.now() - t
+    istat.toplam++; istat.basarili++; istat.ms += ms
+    log(`✔ ${ad}  [${ms.toFixed(1)} ms]`, "test")
+    return r
+  } catch (e) {
+    const ms = performance.now() - t
+    istat.toplam++; istat.hatali++; istat.ms += ms
+    log(`✘ ${ad} HATA: ${e && e.name}: ${e && e.message}  [${ms.toFixed(1)} ms]`, "test")
+    throw e
+  }
+}
+function testOzeti() {
+  if (!TEST) return ""
+  const ort_ = istat.toplam ? istat.ms / istat.toplam : 0
+  return `Toplam ${istat.toplam} fonksiyon çağrıldı, ${istat.basarili} başarılı, ${istat.hatali} hatalı, ortalama süre ${ort_.toFixed(1)} ms`
+}
+
+class GpuZamanAsimi extends Error { constructor(m) { super(m); this.name = "GpuZamanAsimi" } }
+class IptalEdildi extends Error { constructor() { super("Kullanıcı durdurdu"); this.name = "IptalEdildi" } }
+class SifreGerekli extends Error { constructor(d) { super("Parola gerekli: " + d); this.name = "SifreGerekli" } }
+function iptalMi() { if (iptalIstendi) throw new IptalEdildi() }
+const bekle0 = () => new Promise((r) => setTimeout(r, 0))
+
+// ------------------------------------------------------------------ KÜTÜPHANE KONTROL
+async function kutuphaneleriYukle(pdfDe = true) {
+  const durum = {}
+  if (pdfDe) { try { mupdf = await import(CDN.mupdf); durum["MuPDF.js 1.28.1"] = true } catch (e) { durum["MuPDF.js 1.28.1"] = String(e) } }
+  try {
+    ort = await import(CDN.ort)
+    ort.env.wasm.wasmPaths = CDN.ortWasm
+    ort.env.wasm.numThreads = self.crossOriginIsolated ? Math.min(8, navigator.hardwareConcurrency || 4) : 1
+    durum["onnxruntime-web 1.30.0"] = true
+  } catch (e) { durum["onnxruntime-web 1.30.0"] = String(e) }
+  try {
+    const kod = await (await fetch(CDN.opencv)).text()
+    const g = (0, eval)  // dolaylı eval: UMD paketi global 'cv' tanımlar
+    g(kod)
+    let c = self.cv
+    if (c && typeof c.then === "function") c = await c
+    else if (c && !c.Mat) await new Promise((r) => { c.onRuntimeInitialized = r })
+    cv = c
+    if (!cv || !cv.Mat) throw new Error("cv.Mat yok")
+    durum["OpenCV.js 5.0.0"] = true
+  } catch (e) { durum["OpenCV.js 5.0.0"] = String(e) }
+  return durum
+}
+
+// ------------------------------------------------------------------ model indirme + SHA256 + IndexedDB önbellek
+function idbAc() {
+  return new Promise((coz, red) => {
+    let istek
+    try { istek = indexedDB.open("pdf2txt-modeller", 1) } catch (e) { red(e); return }
+    istek.onupgradeneeded = () => istek.result.createObjectStore("m")
+    istek.onsuccess = () => coz(istek.result)
+    istek.onerror = () => red(istek.error)
+  })
+}
+async function idbAl(anahtar) {
+  try {
+    const db = await idbAc()
+    return await new Promise((coz) => {
+      const t = db.transaction("m", "readonly").objectStore("m").get(anahtar)
+      t.onsuccess = () => coz(t.result || null); t.onerror = () => coz(null)
+    })
+  } catch (e) { log(`Önbellek okunamadı (model her açılışta indirilir): ${e}`, "uyari"); return null }
+}
+async function idbKoy(anahtar, deger) {
+  try {
+    const db = await idbAc()
+    await new Promise((coz, red) => {
+      const t = db.transaction("m", "readwrite"); t.objectStore("m").put(deger, anahtar)
+      t.oncomplete = coz; t.onerror = () => red(t.error)
+    })
+  } catch (e) { log(`Model önbelleğe yazılamadı: ${e}`, "uyari") }
+}
+async function sha256(buf) {
+  const h = await crypto.subtle.digest("SHA-256", buf)
+  return [...new Uint8Array(h)].map((b) => b.toString(16).padStart(2, "0")).join("")
+}
+async function modelGetir(ad) {
+  const m = MODELLER[ad]
+  const onbellek = await idbAl(m.sha)
+  if (onbellek && (await sha256(onbellek)) === m.sha) return onbellek
+  for (let deneme = 1; deneme <= 3; deneme++) {
+    try {
+      const yanit = await fetch(m.url)
+      if (!yanit.ok) throw new Error(`HTTP ${yanit.status}`)
+      const toplam = +yanit.headers.get("Content-Length") || Math.round(m.mb * 1e6)
+      const okuyucu = yanit.body.getReader()
+      const parcalar = []; let inen = 0; const t0 = performance.now(); let son = 0
+      for (;;) {
+        const { done, value } = await okuyucu.read()
+        if (done) break
+        if (iptalIstendi) { await okuyucu.cancel(); throw new IptalEdildi() }
+        parcalar.push(value); inen += value.length
+        const simdi = performance.now()
+        if (simdi - son > 300) {
+          son = simdi
+          const hiz = inen / Math.max(0.001, (simdi - t0) / 1000)
+          gonder({ tur: "indirme", model: ad, inen, toplam, hiz, kalan: hiz > 0 ? (toplam - inen) / hiz : null })
+        }
+      }
+      const buf = new Uint8Array(inen); let o = 0
+      for (const p of parcalar) { buf.set(p, o); o += p.length }
+      const gercek = await sha256(buf.buffer)
+      if (gercek !== m.sha) throw new Error(`SHA256 uyuşmadı (beklenen ${m.sha.slice(0, 12)}…, gelen ${gercek.slice(0, 12)}…)`)
+      await idbKoy(m.sha, buf.buffer)
+      return buf.buffer
+    } catch (e) {
+      if (e instanceof IptalEdildi) throw e
+      log(`Model indirme hatası (${ad}, deneme ${deneme}/3): ${e.message || e}`, "uyari")
+      if (deneme === 3) throw new Error(`Model indirilemedi: ${m.url} — ${e.message || e}`)
+      await new Promise((r) => setTimeout(r, 2000 * deneme))
+    }
+  }
+}
+
+// ONNX metadata (custom_metadata_map) — protobuf üst düzey alan 14
+function onnxMetadata(buf) {
+  const b = new Uint8Array(buf), p = { i: 0 }, cikti = {}, td = new TextDecoder()
+  const varint = (q) => { let r = 0, m = 1, x; do { x = b[q.i++]; r += (x & 127) * m; m *= 128 } while (x & 128); return r }
+  while (p.i < b.length) {
+    const etiket = varint(p), alan = Math.floor(etiket / 8), tip = etiket & 7
+    if (tip === 0) varint(p)
+    else if (tip === 1) p.i += 8
+    else if (tip === 5) p.i += 4
+    else if (tip === 2) {
+      const L = varint(p), bas = p.i, son = bas + L
+      if (alan === 14) {
+        const q = { i: bas }; let k = "", v = ""
+        while (q.i < son) { const t2 = varint(q), f2 = t2 >> 3, L2 = varint(q); const s = td.decode(b.subarray(q.i, q.i + L2)); q.i += L2; if (f2 === 1) k = s; else if (f2 === 2) v = s }
+        cikti[k] = v
+      }
+      p.i = son
+    } else throw new Error("ONNX ayrıştırma: bilinmeyen alan tipi " + tip)
+  }
+  return cikti
+}
+
+// ------------------------------------------------------------------ ONNX oturumu (WebGPU → WASM yedek)
+class Oturum {
+  constructor(ad, buf) { this.ad = ad; this.buf = buf; this.s = null; this.ep = null }
+  async ac(tercih) {
+    if (tercih === "webgpu" && self.navigator && navigator.gpu) {
+      try {
+        this.s = await ort.InferenceSession.create(this.buf, { executionProviders: ["webgpu"] })
+        this.ep = "webgpu"; return
+      } catch (e) { log(`${this.ad}: WebGPU açılamadı, WASM'a geçildi (${e.message || e})`, "uyari") }
+    }
+    this.s = await ort.InferenceSession.create(this.buf, { executionProviders: ["wasm"] })
+    this.ep = "wasm"
+  }
+  async calistir(veri, sekil) {
+    const girdi = { [this.s.inputNames[0]]: new ort.Tensor("float32", veri, sekil) }
+    try {
+      if (TEST_GPU_HATA && this.ep === "webgpu") { TEST_GPU_HATA = false; throw new Error("TEST: yapay WebGPU hatası") }
+      let r
+      if (this.ep === "webgpu") {
+        // bekçi: sürücü/GPU takılırsa iş sonsuza dek beklemesin; süre aşımında WASM'a geçilir
+        let zamanlayici
+        const sure = GPU_ZAMAN_ASIMI_SN * 1000
+        r = await Promise.race([this.s.run(girdi), new Promise((_, red) => { zamanlayici = setTimeout(() => red(new GpuZamanAsimi(`${this.ad}: WebGPU ${GPU_ZAMAN_ASIMI_SN} sn içinde yanıt vermedi`)), sure) })])
+        clearTimeout(zamanlayici)
+      } else r = await this.s.run(girdi)
+      return r[this.s.outputNames[0]]
+    } catch (e) {
+      // takılan GPU işi bu işçinin ORT örneğini meşgul tutar (aynı örnekte WASM da çalışamaz, ölçüldü):
+      // üst katman OCR'u ayrı işçilerdeki WASM havuzuna taşır
+      if (e instanceof GpuZamanAsimi || this.ep !== "webgpu") throw e
+      log(`${this.ad}: WebGPU çalıştırma hatası (${e.message || e}) → bu ve sonraki işler WASM (işlemci) ile yapılıyor`, "uyari")
+      const eski = this.s
+      Promise.resolve().then(() => eski.release()).catch(() => { /* takılı/bozuk oturum */ })
+      this.s = await ort.InferenceSession.create(this.buf, { executionProviders: ["wasm"] })
+      this.ep = "wasm"
+      const r = await this.s.run({ [this.s.inputNames[0]]: new ort.Tensor("float32", veri, sekil) })
+      return r[this.s.outputNames[0]]
+    }
+  }
+}
+
+// ------------------------------------------------------------------ Python yardımcıları (birebir davranış)
+function pyRound(x) {  // Python round(): yarıda çifte yuvarlar
+  const f = Math.floor(x), d = x - f
+  if (d > 0.5) return f + 1
+  if (d < 0.5) return f
+  return f % 2 === 0 ? f : f + 1
+}
+const trunc = Math.trunc
+function argsortStabil(dizi) { return dizi.map((v, i) => [v, i]).sort((a, b) => a[0] - b[0] || a[1] - b[1]).map((x) => x[1]) }
+
+// ------------------------------------------------------------------ RapidOCR boru hattı (det → cls → rec)
+class OcrMotoru {
+  constructor(ayar) {
+    this.model = ayar.ocr_model
+    this.dpi = ayar.ocr_dpi
+    this.egim_duzelt = ayar.egim_duzelt
+    this.gurultu_temizle = ayar.gurultu_temizle
+    this.tercih = ayar.hizlandirma
+    this.det = this.cls = this.rec = null
+    this.karakterler = null
+    this.son_aci = 0; this.son_dpi = null
+  }
+  async hazirla() {
+    const det = await modelGetir("det"), cls = await modelGetir("cls"), rec = await modelGetir(this.model)
+    this.tamponlar = { det, cls, rec }
+    return this.tampondanAc(this.tamponlar)
+  }
+  async tampondanAc({ det, cls, rec }) {
+    const meta = onnxMetadata(rec)
+    if (!meta.character) throw new Error("Tanıma modelinde karakter sözlüğü yok")
+    // Python str.splitlines() ile aynı ayırıcılar
+    const ch = meta.character.split(/\r\n|[\n\r\v\f\x1c\x1d\x1e\x85\u2028\u2029]/)
+    if (ch.length && ch[ch.length - 1] === "" && /[\n\r]$/.test(meta.character)) ch.pop()
+    this.karakterler = ["blank", ...ch, " "]
+    this.det = new Oturum("det", det); await this.det.ac(this.tercih)
+    this.cls = new Oturum("cls", cls); await this.cls.ac(this.tercih)
+    this.rec = new Oturum("rec", rec); await this.rec.ac(this.tercih)
+    return { det: this.det.ep, cls: this.cls.ep, rec: this.rec.ep, karakter: ch.length }
+  }
+
+  // --- yardımcı: Mat (RGB, CV_8UC3) → CHW float32, (x/255 - 0.5)/0.5
+  static normCHW(mat, genislikHedef) {
+    const h = mat.rows, w = mat.cols, W = genislikHedef || w
+    const cikti = new Float32Array(3 * h * W)
+    const d = mat.data
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const i = (y * w + x) * 3
+      for (let c = 0; c < 3; c++) cikti[c * h * W + y * W + x] = (d[i + c] / 255 - 0.5) / 0.5
+    }
+    return cikti
+  }
+
+  // --- DET
+  async tespit(img) {  // img: RGB Mat → [{pts:[[x,y]x4] (int), skor}]
+    const h = img.rows, w = img.cols
+    let oran = 1.0
+    if (Math.min(h, w) < 736) oran = h < w ? 736 / h : 736 / w
+    let rh = trunc(h * oran), rw = trunc(w * oran)
+    rh = pyRound(rh / 32) * 32; rw = pyRound(rw / 32) * 32
+    if (rh <= 0 || rw <= 0) return []
+    const kucuk = new cv.Mat()
+    cv.resize(img, kucuk, new cv.Size(rw, rh))
+    const girdi = OcrMotoru.normCHW(kucuk); kucuk.delete()
+    const cikti = await this.det.calistir(girdi, [1, 3, rh, rw])
+    const H = cikti.dims[2], W = cikti.dims[3]
+    const pred = cikti.data
+    const predMat = cv.matFromArray(H, W, cv.CV_32F, pred)
+    const maske = new cv.Mat(H, W, cv.CV_8U)
+    const md = maske.data
+    for (let i = 0; i < H * W; i++) md[i] = pred[i] > 0.3 ? 1 : 0
+    const ker = cv.Mat.ones(2, 2, cv.CV_8U)
+    const genis = new cv.Mat(); cv.dilate(maske, genis, ker); ker.delete(); maske.delete()
+    const g255 = new cv.Mat(); genis.convertTo(g255, cv.CV_8U, 255); genis.delete()
+    const konturlar = new cv.MatVector(), hiy = new cv.Mat()
+    cv.findContours(g255, konturlar, hiy, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE); g255.delete(); hiy.delete()
+    const sonuc = []
+    const n = Math.min(konturlar.size(), 1000)
+    for (let k = 0; k < n; k++) {
+      const kontur = konturlar.get(k)
+      const [noktalar, kisa] = OcrMotoru.miniKutu(cv.minAreaRect(kontur)); kontur.delete()
+      if (kisa < 3) continue
+      const skor = OcrMotoru.kutuSkoruHizli(predMat, noktalar)
+      if (0.5 > skor) continue
+      const genisNokta = OcrMotoru.unclip(noktalar, 1.6)
+      const gm = cv.matFromArray(genisNokta.length, 1, cv.CV_32FC2, genisNokta.flat())
+      const [kutu, kisa2] = OcrMotoru.miniKutu(cv.minAreaRect(gm)); gm.delete()
+      if (kisa2 < 3 + 2) continue
+      const son = kutu.map(([x, y]) => [
+        trunc(Math.min(Math.max(pyRound(x / W * w), 0), w)),
+        trunc(Math.min(Math.max(pyRound(y / H * h), 0), h)),
+      ])
+      sonuc.push({ pts: son, skor })
+    }
+    konturlar.delete(); predMat.delete()
+    // filter_det_res
+    const filtre = []
+    for (const s of sonuc) {
+      const p = OcrMotoru.saatYonu(s.pts).map(([x, y]) => [trunc(Math.min(Math.max(x, 0), w - 1)), trunc(Math.min(Math.max(y, 0), h - 1))])
+      const gw = trunc(Math.hypot(p[0][0] - p[1][0], p[0][1] - p[1][1]))
+      const gh = trunc(Math.hypot(p[0][0] - p[3][0], p[0][1] - p[3][1]))
+      if (gw <= 3 || gh <= 3) continue
+      filtre.push({ pts: p, skor: s.skor })
+    }
+    return OcrMotoru.kutulariSirala(filtre)
+  }
+  static miniKutu(rr) {
+    const v = cv.RotatedRect.points(rr).map((p) => [p.x, p.y])
+    const n = v.map((p, i) => [p, i]).sort((a, b) => a[0][0] - b[0][0] || a[1] - b[1]).map((x) => x[0])
+    let i1, i2, i3, i4
+    if (n[1][1] > n[0][1]) { i1 = 0; i4 = 1 } else { i1 = 1; i4 = 0 }
+    if (n[3][1] > n[2][1]) { i2 = 2; i3 = 3 } else { i2 = 3; i3 = 2 }
+    return [[n[i1], n[i2], n[i3], n[i4]], Math.min(rr.size.width, rr.size.height)]
+  }
+  static kutuSkoruHizli(pred, kutu) {
+    const h = pred.rows, w = pred.cols
+    const xs = kutu.map((p) => p[0]), ys = kutu.map((p) => p[1])
+    const kl = (v, a, b) => Math.min(Math.max(v, a), b)
+    const xmin = kl(Math.floor(Math.min(...xs)), 0, w - 1), xmax = kl(Math.ceil(Math.max(...xs)), 0, w - 1)
+    const ymin = kl(Math.floor(Math.min(...ys)), 0, h - 1), ymax = kl(Math.ceil(Math.max(...ys)), 0, h - 1)
+    const maske = cv.Mat.zeros(ymax - ymin + 1, xmax - xmin + 1, cv.CV_8U)
+    const pts = kutu.map(([x, y]) => [trunc(x - xmin), trunc(y - ymin)])
+    const pm = cv.matFromArray(4, 1, cv.CV_32SC2, pts.flat())
+    const mv = new cv.MatVector(); mv.push_back(pm)
+    cv.fillPoly(maske, mv, new cv.Scalar(1)); mv.delete(); pm.delete()
+    const roi = pred.roi(new cv.Rect(xmin, ymin, xmax - xmin + 1, ymax - ymin + 1))
+    const ort_ = cv.mean(roi, maske)[0]; roi.delete(); maske.delete()
+    return ort_
+  }
+  static unclip(kutu, oran) {
+    // pyclipper JT_ROUND ofseti: tamsayı köşeler + yay yaklaşımı (ArcTolerance 0.25)
+    const p = kutu.map(([x, y]) => [trunc(x), trunc(y)])
+    let alan = 0, cevre = 0
+    for (let i = 0; i < 4; i++) {
+      const [x1, y1] = kutu[i], [x2, y2] = kutu[(i + 1) % 4]
+      alan += x1 * y2 - x2 * y1; cevre += Math.hypot(x2 - x1, y2 - y1)
+    }
+    alan = Math.abs(alan) / 2
+    const d = alan * oran / cevre
+    const adim = Math.max(4, Math.ceil(Math.PI / Math.acos(1 - Math.min(0.25 / Math.max(d, 1e-6), 1))))
+    const nokta = []
+    for (const [x, y] of p) for (let i = 0; i < adim * 2; i++) {
+      const a = (i / (adim * 2)) * 2 * Math.PI
+      nokta.push([pyRound(x + d * Math.cos(a)), pyRound(y + d * Math.sin(a))])
+    }
+    return nokta
+  }
+  static saatYonu(pts) {
+    const xs = argsortStabil(pts.map((p) => p[0])).map((i) => pts[i])
+    let sol = xs.slice(0, 2), sag = xs.slice(2)
+    sol = argsortStabil(sol.map((p) => p[1])).map((i) => sol[i])
+    sag = argsortStabil(sag.map((p) => p[1])).map((i) => sag[i])
+    return [sol[0], sag[0], sag[1], sol[1]]
+  }
+  static kutulariSirala(kutular) {
+    if (!kutular.length) return kutular
+    const sira = argsortStabil(kutular.map((k) => k.pts[0][1]))
+    const ys = sira.map((i) => kutular[i])
+    const satir = [0]
+    for (let i = 1; i < ys.length; i++) satir.push(satir[i - 1] + (ys[i].pts[0][1] - ys[i - 1].pts[0][1] >= 10 ? 1 : 0))
+    const idx = ys.map((_, i) => i).sort((a, b) => satir[a] - satir[b] || ys[a].pts[0][0] - ys[b].pts[0][0] || a - b)
+    return idx.map((i) => ys[i])
+  }
+  static kirp(img, pts) {
+    const n = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1])
+    const gw = trunc(Math.max(n(pts[0], pts[1]), n(pts[2], pts[3])))
+    const gh = trunc(Math.max(n(pts[0], pts[3]), n(pts[1], pts[2])))
+    const kaynak = cv.matFromArray(4, 1, cv.CV_32FC2, pts.flat())
+    const hedef = cv.matFromArray(4, 1, cv.CV_32FC2, [0, 0, gw, 0, gw, gh, 0, gh])
+    const M = cv.getPerspectiveTransform(kaynak, hedef); kaynak.delete(); hedef.delete()
+    const dst = new cv.Mat()
+    cv.warpPerspective(img, dst, M, new cv.Size(gw, gh), cv.INTER_CUBIC, cv.BORDER_REPLICATE); M.delete()
+    if (dst.rows / dst.cols >= 1.5) { const r = new cv.Mat(); cv.rotate(dst, r, cv.ROTATE_90_COUNTERCLOCKWISE); dst.delete(); return r }
+    return dst
+  }
+  // --- CLS (180° satır düzeltme)
+  async yonSiniflandir(kirpimlar) {
+    const donen = []  // 180° çevrilen satır indeksleri
+    const oranlar = kirpimlar.map((m) => m.cols / m.rows)
+    const sira = argsortStabil(oranlar)
+    for (let bas = 0; bas < kirpimlar.length; bas += 6) {
+      const son = Math.min(kirpimlar.length, bas + 6), adet = son - bas
+      const veri = new Float32Array(adet * 3 * 48 * 192)
+      for (let k = 0; k < adet; k++) {
+        const m = kirpimlar[sira[bas + k]]
+        const oran = m.cols / m.rows
+        const rw = Math.ceil(48 * oran) > 192 ? 192 : Math.ceil(48 * oran)
+        const r = new cv.Mat(); cv.resize(m, r, new cv.Size(rw, 48), 0, 0, cv.INTER_LINEAR)
+        veri.set(OcrMotoru.normCHW(r, 192), k * 3 * 48 * 192); r.delete()
+      }
+      const c = await this.cls.calistir(veri, [adet, 3, 48, 192])
+      for (let k = 0; k < adet; k++) {
+        const p0 = c.data[k * 2], p1 = c.data[k * 2 + 1]
+        const etiket = p1 > p0 ? 1 : 0, skor = Math.max(p0, p1)
+        if (etiket === 1 && skor > 0.9) {
+          const i = sira[bas + k], d = new cv.Mat(); cv.rotate(kirpimlar[i], d, cv.ROTATE_180); kirpimlar[i].delete(); kirpimlar[i] = d
+          donen.push(i)
+        }
+      }
+    }
+    return donen
+  }
+  // --- REC (CTC)
+  async tani(kirpimlar) {
+    const oranlar = kirpimlar.map((m) => m.cols / m.rows)
+    const sira = argsortStabil(oranlar)
+    const sonuc = new Array(kirpimlar.length)
+    const C = this.karakterler.length
+    for (let bas = 0; bas < kirpimlar.length; bas += 6) {
+      iptalMi()
+      const son = Math.min(kirpimlar.length, bas + 6), adet = son - bas
+      let maxOran = 320 / 48
+      for (let k = bas; k < son; k++) maxOran = Math.max(maxOran, oranlar[sira[k]])
+      const W = trunc(48 * maxOran)
+      const veri = new Float32Array(adet * 3 * 48 * W)
+      for (let k = 0; k < adet; k++) {
+        const m = kirpimlar[sira[bas + k]]
+        const oran = m.cols / m.rows
+        const rw = Math.ceil(48 * oran) > W ? W : Math.ceil(48 * oran)
+        const r = new cv.Mat(); cv.resize(m, r, new cv.Size(rw, 48)); veri.set(OcrMotoru.normCHW(r, W), k * 3 * 48 * W); r.delete()
+      }
+      const t = await this.rec.calistir(veri, [adet, 3, 48, W])
+      const T = t.dims[1], D = t.dims[2]
+      if (D !== C) throw new Error(`Sözlük boyutu (${C}) model çıktısıyla (${D}) uyuşmuyor`)
+      for (let k = 0; k < adet; k++) {
+        let metin = "", onceki = -1; const guven = []
+        for (let s = 0; s < T; s++) {
+          const o = (k * T + s) * D
+          let enI = 0, enV = -Infinity
+          for (let c = 0; c < D; c++) { const v = t.data[o + c]; if (v > enV) { enV = v; enI = c } }
+          if (enI !== onceki && enI !== 0) { metin += this.karakterler[enI]; guven.push(Math.round(enV * 1e5) / 1e5) }
+          onceki = enI
+        }
+        const skor = guven.length ? guven.reduce((a, b) => a + b, 0) / guven.length : 0
+        sonuc[sira[bas + k]] = { metin, skor: Math.round(skor * 1e5) / 1e5 }
+      }
+      await bekle0()
+    }
+    return sonuc
+  }
+  // --- tam OCR: [{pts, metin, skor}] (görüntü koordinatı)
+  async ocr(img, { cls = true, rec = true } = {}) {
+    const kutular = await this.tespit(img)
+    if (!rec) return kutular.map((k) => ({ pts: k.pts, metin: "", skor: k.skor }))
+    if (!kutular.length) return []
+    const kirpimlar = kutular.map((k) => OcrMotoru.kirp(img, k.pts))
+    const donen = cls ? await this.yonSiniflandir(kirpimlar) : []
+    const r = await this.tani(kirpimlar)
+    if (donen.length) {
+      // Yön sınıflandırıcı çok geniş satırlarda kararsız (aynı satırda Python 0.81, burada 0.96 verdi; ölçüldü).
+      // Çevrilen satırın çevrilmemiş hâli de tanınır; tanıma güveni yüksek olan yön seçilir.
+      const geri = donen.map((i) => { const d = new cv.Mat(); cv.rotate(kirpimlar[i], d, cv.ROTATE_180); return d })
+      const r2 = await this.tani(geri); geri.forEach((m) => m.delete())
+      donen.forEach((i, j) => {
+        const sec = r2[j].skor > r[i].skor
+        if (TEST) log(`   cls: satır ${i} 180° önerildi → ${sec ? "geri alındı" : "kabul"} (çevrik ${r[i].skor}, düz ${r2[j].skor})`, "test")
+        if (sec) r[i] = r2[j]
+      })
+    }
+    kirpimlar.forEach((m) => m.delete())
+    const cikti = []
+    kutular.forEach((k, i) => { if (r[i].metin.trim() && r[i].skor >= 0.5) cikti.push({ pts: k.pts, metin: r[i].metin, skor: r[i].skor }) })
+    return cikti
+  }
+
+  // --- ön işleme (pdf_motor.OcrMotoru.on_isle / egim_acisi birebir)
+  static egimAcisi(gri) {
+    const kucuk = new cv.Mat()
+    cv.resize(gri, kucuk, new cv.Size(0, 0), 0.5, 0.5, cv.INTER_AREA)
+    const bw = new cv.Mat()
+    cv.threshold(kucuk, bw, 0, 255, cv.THRESH_BINARY_INV + cv.THRESH_OTSU); kucuk.delete()
+    if (cv.mean(bw)[0] < 0.5) { bw.delete(); return 0.0 }
+    const h = bw.rows, w = bw.cols, merkez = new cv.Point(w / 2, h / 2)
+    const r = new cv.Mat()
+    const puan = (a) => {
+      const m = cv.getRotationMatrix2D(merkez, a, 1)
+      cv.warpAffine(bw, r, m, new cv.Size(w, h), cv.INTER_NEAREST); m.delete()
+      const d = r.data, satir = new Float64Array(h)
+      for (let y = 0; y < h; y++) { let s = 0; const o = y * w; for (let x = 0; x < w; x++) s += d[o + x]; satir[y] = s }
+      let top = 0; const fark = new Float64Array(h - 1)
+      for (let y = 0; y < h - 1; y++) { fark[y] = satir[y + 1] - satir[y]; top += fark[y] }
+      const ort_ = top / (h - 1); let v = 0
+      for (let y = 0; y < h - 1; y++) v += (fark[y] - ort_) ** 2
+      return v / (h - 1)
+    }
+    const arama = (bas, bit, adim) => {  // np.arange(bas, bit, adim) + Python max (ilk en büyük)
+      let enA = null, enP = -Infinity
+      for (let i = 0; ; i++) { const a = bas + i * adim; if (a >= bit) break; const p = puan(a); if (p > enP) { enP = p; enA = a } }
+      return enA
+    }
+    let a = arama(-5, 5.001, 0.25)
+    a = arama(a - 0.25, a + 0.2501, 0.05)
+    a = arama(a - 0.05, a + 0.0501, 0.01)
+    r.delete(); bw.delete()
+    return pyRound(a * 100) / 100
+  }
+  onIsle(rgb) {
+    let gri = new cv.Mat(); cv.cvtColor(rgb, gri, cv.COLOR_RGB2GRAY)
+    if (this.gurultu_temizle) { const g2 = new cv.Mat(); cv.medianBlur(gri, g2, 3); gri.delete(); gri = g2 }
+    let aci = 0.0, ters = null
+    if (this.egim_duzelt) {
+      aci = OcrMotoru.egimAcisi(gri)
+      if (Math.abs(aci) >= 0.05) {
+        const m = cv.getRotationMatrix2D(new cv.Point(gri.cols / 2, gri.rows / 2), aci, 1)
+        const g2 = new cv.Mat()
+        cv.warpAffine(gri, g2, m, new cv.Size(gri.cols, gri.rows), cv.INTER_CUBIC, cv.BORDER_CONSTANT, new cv.Scalar(255))
+        gri.delete(); gri = g2
+        const tm = new cv.Mat(); cv.invertAffineTransform(m, tm); m.delete()
+        ters = [...tm.data64F]; tm.delete()
+      }
+    }
+    const cikti = new cv.Mat(); cv.cvtColor(gri, cikti, cv.COLOR_GRAY2RGB); gri.delete()
+    return { img: cikti, ters, aci }
+  }
+  async tamOcr(rgb) {
+    const { img, ters, aci } = this.onIsle(rgb)
+    this.son_aci = aci
+    const r = await this.ocr(img); img.delete()
+    return r.map((x) => {
+      let pts = x.pts
+      if (ters) pts = pts.map(([px, py]) => [ters[0] * px + ters[1] * py + ters[2], ters[3] * px + ters[4] * py + ters[5]])
+      return { pts, metin: x.metin.trim(), skor: x.skor }
+    })
+  }
+  // --- sayfa yönü (yon_bul birebir)
+  async yonHesapla(img) {
+    // pdf_motor.yon_bul ile aynı karar: dikey kutu çoğunluğu → {90,270}, değilse {0,180}; adaylardan
+    // tanıma güveni (skor×uzunluk ağırlıklı) yüksek olan seçilir. Hız için det bir kez çalışır ve
+    // en büyük 10 satır kırpımı aday yönlere döndürülüp tanınır (Python'da tüm sayfa yeniden OCR'lanıyordu).
+    const det = await this.tespit(img)
+    if (det.length < 3) return { yon: 0, puanlar: {} }
+    const oranlar = [], alanlar = []
+    for (const k of det) {
+      const w = Math.hypot(k.pts[1][0] - k.pts[0][0], k.pts[1][1] - k.pts[0][1])
+      const h = Math.hypot(k.pts[3][0] - k.pts[0][0], k.pts[3][1] - k.pts[0][1])
+      if (w > 0) oranlar.push(h / w)
+      alanlar.push(w * h)
+    }
+    const dikey = oranlar.filter((o) => o > 1.5).length > 0.6 * oranlar.length
+    const adaylar = dikey ? [90, 270] : [0, 180]
+    const secim = det.map((k, i) => [alanlar[i], i]).sort((a, b) => b[0] - a[0]).slice(0, 10).map((x) => det[x[1]])
+    const kod = { 90: cv.ROTATE_90_CLOCKWISE, 180: cv.ROTATE_180, 270: cv.ROTATE_90_COUNTERCLOCKWISE }
+    const hamKirp = secim.map((k) => {  // otomatik 90° döndürme yapmadan kırp
+      const n = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1])
+      const gw = trunc(Math.max(n(k.pts[0], k.pts[1]), n(k.pts[2], k.pts[3]))), gh = trunc(Math.max(n(k.pts[0], k.pts[3]), n(k.pts[1], k.pts[2])))
+      const ka = cv.matFromArray(4, 1, cv.CV_32FC2, k.pts.flat()), he = cv.matFromArray(4, 1, cv.CV_32FC2, [0, 0, gw, 0, gw, gh, 0, gh])
+      const M = cv.getPerspectiveTransform(ka, he); ka.delete(); he.delete()
+      const d = new cv.Mat(); cv.warpPerspective(img, d, M, new cv.Size(gw, gh), cv.INTER_CUBIC, cv.BORDER_REPLICATE); M.delete()
+      return d
+    }).filter((m) => m.rows > 0 && m.cols > 0)
+    const puanlar = {}
+    for (const a of adaylar) {
+      const kirp = hamKirp.map((m) => { if (!a) return m.clone(); const r = new cv.Mat(); cv.rotate(m, r, kod[a]); return r })
+      const r = await this.tani(kirp); kirp.forEach((m) => m.delete())
+      const gecerli = r.filter((x) => x.metin.trim())
+      const top = gecerli.reduce((t, x) => t + x.metin.length, 0)
+      puanlar[a] = gecerli.length ? gecerli.reduce((t, x) => t + x.skor * x.metin.length, 0) / Math.max(1, top) : 0
+    }
+    hamKirp.forEach((m) => m.delete())
+    let en = adaylar[0]
+    for (const a of adaylar) if (puanlar[a] > puanlar[en]) en = a
+    return { yon: en, puanlar }
+  }
+}
+
+// ------------------------------------------------------------------ OCR havuzu: işlemci (WASM) yolunda sayfaları paralel OCR'la
+// file:// ile açılan sayfa çapraz-köken yalıtımlı olamadığı için ORT WASM tek iş parçacığına düşer;
+// her biri tek iş parçacıklı birden çok alt işçi, çok çekirdekli işlemcide sayfaları aynı anda işler.
+class OcrHavuzu {
+  constructor(motor, adet) { this.motor = motor; this.adet = adet; this.isciler = []; this.bos = []; this.bekleyen = []; this.sayac = 0; this.cozucu = new Map() }
+  async hazirla() {
+    // file:// sayfada işçi içinden yeni işçi açılamıyor (blob:null güvenlik kuralı, ölçüldü);
+    // alt işçileri ana sayfa açar ve her birine MessageChannel portu ile bağlanılır.
+    const portlar = await new Promise((coz) => { havuzCozucu = coz; gonder({ tur: "havuz_iste", adet: this.adet }) })
+    if (!portlar || !portlar.length) throw new Error("ana sayfa alt işçi açamadı")
+    const sonuc = []
+    for (const w of portlar) {
+      w.onmessage = (ev) => { const m = ev.data; if (m.tur === "log") { gonder(m); return } const c = this.cozucu.get(m.id); if (c) { this.cozucu.delete(m.id); m.hata ? c.red(new Error(m.hata)) : c.coz(m.sonuc) } }
+      this.isciler.push(w)
+      sonuc.push(this.istek(w, { tur: "alt_hazirla", test: TEST, ayar: { ocr_model: this.motor.model, ocr_dpi: this.motor.dpi, egim_duzelt: this.motor.egim_duzelt, gurultu_temizle: this.motor.gurultu_temizle, hizlandirma: "wasm" }, tamponlar: { det: this.motor.tamponlar.det.slice(0), cls: this.motor.tamponlar.cls.slice(0), rec: this.motor.tamponlar.rec.slice(0) } }))
+    }
+    await Promise.all(sonuc)
+    this.bos = this.isciler.slice()
+  }
+  istek(w, mesaj, aktar = []) {
+    const id = ++this.sayac
+    return new Promise((coz, red) => { this.cozucu.set(id, { coz, red }); w.postMessage({ ...mesaj, id }, aktar) })
+  }
+  async calistir(tur, img) {
+    const w = this.bos.length ? this.bos.pop() : await new Promise((r) => this.bekleyen.push(r))
+    try {
+      const veri = new Uint8Array(img.data)  // kopya; aktarılır
+      return await this.istek(w, { tur: "alt_is", is: tur, w: img.cols, h: img.rows, veri }, [veri.buffer])
+    } finally {
+      const sira = this.bekleyen.shift()
+      if (sira) sira(w); else this.bos.push(w)
+    }
+  }
+  kapat() { this.isciler.forEach((w) => { try { w.close() } catch (_) { /* port zaten kapalı */ } }); this.isciler = []; this.bos = []; gonder({ tur: "havuz_kapat" }) }
+}
+
+// ------------------------------------------------------------------ MuPDF yardımcıları
+function sayfaGoruntu(sayfa, dpi, donme = 0) {
+  const pix = sayfa.toPixmap(mupdf.Matrix.scale(dpi / 72, dpi / 72), mupdf.ColorSpace.DeviceRGB, false, true)
+  const w = pix.getWidth(), h = pix.getHeight(), n = pix.getNumberOfComponents(), stride = pix.getStride()
+  const p = pix.getPixels()
+  const m = new cv.Mat(h, w, cv.CV_8UC3)
+  if (stride === w * 3 && n === 3) m.data.set(p.subarray(0, w * h * 3))
+  else for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) for (let c = 0; c < 3; c++) m.data[(y * w + x) * 3 + c] = p[y * stride + x * n + c]
+  pix.destroy()
+  if (donme) {
+    const kod = { 90: cv.ROTATE_90_CLOCKWISE, 180: cv.ROTATE_180, 270: cv.ROTATE_90_COUNTERCLOCKWISE }[donme]
+    const r = new cv.Mat(); cv.rotate(m, r, kod); m.delete(); return r
+  }
+  return m
+}
+function sayfaCozumle(sayfa) {
+  // görünür / görünmez (eski OCR) metin ve görüntü yerleşimi — PyMuPDF analyze_page karşılığı
+  const st = { gorunur: 0, gorunmez: 0, gorseller: [] }
+  const dev = new mupdf.Device({
+    fillText(text) { text.walk({ showGlyph() { st.gorunur++ } }) },
+    strokeText(text) { text.walk({ showGlyph() { st.gorunur++ } }) },
+    ignoreText(text) { text.walk({ showGlyph() { st.gorunmez++ } }) },
+    fillImage(img, ctm) { st.gorseller.push({ w: img.getWidth(), h: img.getHeight(), ctm: [...ctm] }) },
+  })
+  sayfa.run(dev, mupdf.Matrix.identity); dev.close()
+  return st
+}
+function dogalDpi(sayfa, analiz, varsayilan = 300, alt = 200, ust = 400) {
+  const b = sayfa.getBounds(), sayfaAlan = (b[2] - b[0]) * (b[3] - b[1])
+  let enIyi = null, alan = 0
+  for (const g of analiz.gorseller) {
+    const [a, bb, c, d] = g.ctm
+    const yerAlan = Math.abs(a * d - bb * c)
+    if (yerAlan < 1) continue
+    const kesik = Math.min(yerAlan, sayfaAlan)
+    if (kesik > alan) { alan = kesik; enIyi = Math.sqrt((g.w * g.h) / (yerAlan / (72 * 72))) }
+  }
+  if (enIyi === null || alan < 0.25 * sayfaAlan) return varsayilan
+  return pyRound(Math.min(ust, Math.max(alt, enIyi)))
+}
+function maxDpi(sayfa) {  // pymupdf4llm: en fazla 10 milyon piksel
+  const b = sayfa.getBounds(), a = (b[2] - b[0]) / 72, c = (b[3] - b[1]) / 72
+  return trunc(Math.sqrt(10e6 / (a * c)))
+}
+
+// ------------------------------------------------------------------ metin temizleme (pdf_motor birebir)
+const BAG_HARF = { "\ufb00": "ff", "\ufb01": "fi", "\ufb02": "fl", "\ufb03": "ffi", "\ufb04": "ffl", "\ufb05": "st", "\ufb06": "st" }
+const SILINECEK = /[\u00ad\u200b\u200c\u200d\u2060\ufeff]/g
+const OCR_TR_DUZELT = { "Ġ": "Ğ", "ġ": "ğ", "ș": "ş", "Ș": "Ş", "ţ": "ş", "Ţ": "Ş", "ĝ": "ğ", "Ĝ": "Ğ" }
+const W = "[\\p{L}\\p{N}\\p{M}_]"  // Python \w (Unicode)
+const KUCUK = "[a-zçğıöşüâîû]"
+const TIRE_RE = new RegExp(`(${W}${W})-\\n(?=${KUCUK})`, "gu")
+const TEK_HARF_TIRE_RE = new RegExp(`(?<!${W})(${W})-\\n(?=${KUCUK})`, "gu")
+const KELIME_RE = new RegExp(`${W}+`, "gu")
+function metniTemizle(metin, tireBirlestir = true, ocrDuzelt = false) {
+  metin = metin.normalize("NFC")
+  for (const [k, v] of Object.entries(BAG_HARF)) metin = metin.split(k).join(v)
+  metin = metin.replace(SILINECEK, "")
+  if (ocrDuzelt) for (const [k, v] of Object.entries(OCR_TR_DUZELT)) metin = metin.split(k).join(v)
+  metin = metin.replace(/\r\n/g, "\n").replace(/\r/g, "\n")
+  metin = metin.split("\n").map((s) => s.replace(/\s+$/u, "")).join("\n")
+  if (tireBirlestir) { metin = metin.replace(TEK_HARF_TIRE_RE, "$1-"); metin = metin.replace(TIRE_RE, "$1") }
+  metin = metin.replace(/\n{3,}/g, "\n\n")
+  return metin.replace(/^\n+|\n+$/g, "")
+}
+const LISTE_RE = /^\s*([-–•●▪◦*]|\d{1,3}[.)]|[a-zA-Z][.)]|[IVXLC]{1,5}[.)])\s+/
+const TABLO_RE = /^\s*[+|]/
+function paragrafBirlestir(metin) {
+  const cikti = []
+  for (const blok of metin.split("\n\n")) {
+    const satirlar = blok.split("\n")
+    if (satirlar.some((x) => TABLO_RE.test(x) || x.startsWith("[Tablo "))) { cikti.push(blok); continue }
+    const enUzun = Math.max(0, ...satirlar.map((x) => x.trim().length))
+    const birlesik = []; let oncekiUz = 0
+    for (const satir of satirlar) {
+      const dolu = enUzun > 0 && oncekiUz >= 0.6 * enUzun
+      oncekiUz = satir.trim().length
+      if (birlesik.length && dolu && satir.trim() && !LISTE_RE.test(satir) && birlesik[birlesik.length - 1].trim() && !satir.startsWith("===== Sayfa "))
+        birlesik[birlesik.length - 1] = birlesik[birlesik.length - 1].replace(/\s+$/u, "") + " " + satir.replace(/^\s+/u, "")
+      else birlesik.push(satir)
+    }
+    cikti.push(birlesik.join("\n"))
+  }
+  return cikti.join("\n\n")
+}
+// ------------------------------------------------------------------ okunamayan metin (U+FFFD) ve eski Türkçe yazı tipleri
+// Yazı tipinde "şekil → harf" tablosu (ToUnicode) yoksa MuPDF harfi U+FFFD (�) olarak verir; bu metin ancak OCR ile okunur.
+const FFFD = "\ufffd"
+const OKUNAMAZ_ESIK = 0.10  // pymupdf4llm'in BAD_CHAR_THRESHOLD değeriyle aynı
+const OKUNAMAZ_ADET = 20    // oran düşük olsa da bu kadar okunamayan karakter bir metin bölümünün kaybı demektir
+function okunamazOrani(metin) {
+  let bad = 0, top = 0
+  for (const c of metin) { if (/\s/u.test(c)) continue; top++; if (c === FFFD) bad++ }
+  return { oran: top ? bad / top : 0, adet: bad, toplam: top }
+}
+// 1990-2000'lerin Türkçe yazı tipleri ı ş ğ İ Ş Ğ harflerini Windows-1252'deki ý þ ð Ý Þ Ð yerine koyar (Windows-1254 düzeni)
+const ESKI_TR = { "ý": "ı", "þ": "ş", "ð": "ğ", "Ý": "İ", "Þ": "Ş", "Ð": "Ğ" }
+const ESKI_TR_RE = /[ýþðÝÞÐ]/g
+const TR_SOZCUK_RE = /(^|[\s(«"'“])(ve|bir|ile|için|bu|da|de|olan|olarak|gibi|daha|veya|her|çok|en|ya|ki)(?=[\s,.;:)»"'”]|$)/giu
+function belgeTurkceMi(ornek) {
+  // ý/þ/ð Çek, Slovak, İzlanda dillerinde gerçek harflerdir: yalnız Türkçe olduğu açık belgelerde düzelt
+  const tr = (ornek.match(TR_SOZCUK_RE) || []).length
+  const yabanci = (ornek.match(/[řěůťďňĺľŕæøå]/gi) || []).length
+  const sozcuk = (ornek.match(/\S+/g) || []).length || 1
+  return tr >= 5 && tr / sozcuk >= 0.02 && yabanci === 0
+}
+function eskiTrDuzelt(metin) {
+  let adet = 0
+  const yeni = metin.replace(ESKI_TR_RE, (c) => { adet++; return ESKI_TR[c] })
+  return [yeni, adet]
+}
+
+function kelimeler(metin) {
+  const c = new Map()
+  for (const w of metin.normalize("NFC").match(KELIME_RE) || []) { const k = w.toLocaleLowerCase("tr"); c.set(k, (c.get(k) || 0) + 1) }
+  return c
+}
+function kapsamaOrani(kaynak, cikti) {
+  const a = kelimeler(kaynak), b = kelimeler(cikti)
+  let top = 0, ortak = 0
+  for (const [k, v] of a) { top += v; ortak += Math.min(v, b.get(k) || 0) }
+  return top ? ortak / top : 1.0
+}
+
+// ------------------------------------------------------------------ okuma sırası (XY-cut + bant birleştirme, birebir)
+function bosluklar(araliklar, enAz) {
+  araliklar = araliklar.slice().sort((a, b) => a[0] - b[0] || a[1] - b[1])
+  const kes = []; let bitis = araliklar[0][1]
+  for (const [a, b] of araliklar.slice(1)) { if (a - bitis >= enAz) kes.push((bitis + a) / 2); bitis = Math.max(bitis, b) }
+  return kes
+}
+function grupla(kutular, kesimler, anahtar) {
+  const g = Array.from({ length: kesimler.length + 1 }, () => [])
+  for (const k of kutular) { const o = anahtar(k); g[kesimler.filter((c) => o > c).length].push(k) }
+  return g.filter((x) => x.length)
+}
+function xyKesimSirala(kutular, sb = 6.0, yb = 1.0, der = 0) {
+  if (kutular.length <= 1 || der > 60) return kutular.slice()
+  const dikey = bosluklar(kutular.map((k) => [k.x0, k.x1]), sb)
+  if (dikey.length) {
+    const g = grupla(kutular, dikey, (k) => (k.x0 + k.x1) / 2)
+    if (g.length > 1) return g.flatMap((x) => xyKesimSirala(x, sb, yb, der + 1))
+  }
+  const yatay = bosluklar(kutular.map((k) => [k.y0, k.y1]), yb)
+  if (yatay.length) {
+    const g = grupla(kutular, yatay, (k) => (k.y0 + k.y1) / 2)
+    if (g.length > 1) return g.flatMap((x) => xyKesimSirala(x, sb, yb, der + 1))
+  }
+  return kutular.slice().sort((a, b) => Math.round(a.y0 * 10) / 10 - Math.round(b.y0 * 10) / 10 || a.x0 - b.x0)
+}
+function sutunlar(kutular, sb) {
+  const kes = bosluklar(kutular.map((k) => [k.x0, k.x1]), sb)
+  const g = kes.length ? grupla(kutular, kes, (k) => (k.x0 + k.x1) / 2) : [kutular.slice()]
+  return g.map((x) => [Math.min(...x.map((k) => k.x0)), Math.max(...x.map((k) => k.x1)), x])
+}
+const BASLIK_SINIF = ["section-header", "title"]
+function oturt(blok, bs, sb) {
+  if (blok.length < 2 || bs.length > blok.length) return null
+  const es = {}
+  for (let i = 0; i < bs.length; i++) {
+    const [x0, x1] = bs[i], gen = Math.max(1e-6, x1 - x0)
+    const aday = [], tasan = []
+    blok.forEach(([bx0, bx1], j) => { if ((Math.min(x1, bx1 + sb) - Math.max(x0, bx0 - sb)) / gen >= 0.95) aday.push(j) })
+    blok.forEach(([bx0, bx1], j) => { if (!aday.includes(j) && Math.min(x1, bx1) - Math.max(x0, bx0) > sb) tasan.push(j) })
+    if (aday.length !== 1 || tasan.length) return null
+    es[i] = aday[0]
+  }
+  if (new Set(Object.values(es)).size !== bs.length) return null
+  return es
+}
+function bantBirlestirSirala(kutular, sb = 6.0, yb = 1.0) {
+  if (kutular.length <= 1) return kutular.slice()
+  const yatay = bosluklar(kutular.map((k) => [k.y0, k.y1]), yb)
+  const bantlar = yatay.length ? grupla(kutular, yatay, (k) => (k.y0 + k.y1) / 2) : [kutular.slice()]
+  const yapilar = bantlar.map((b) => sutunlar(b, sb))
+  const bloklar = []
+  bantlar.forEach((bant, n) => {
+    const bs = yapilar[n]
+    let es = bloklar.length ? oturt(bloklar[bloklar.length - 1], bs, sb) : null
+    if (es && bant.some((k) => BASLIK_SINIF.includes(k.sinif))) {
+      const sonraki = n + 1 < yapilar.length ? yapilar[n + 1] : null
+      if (!sonraki || !oturt(bloklar[bloklar.length - 1], sonraki, sb)) es = null
+    }
+    if (es) {
+      const blok = bloklar[bloklar.length - 1]
+      bs.forEach(([x0, x1, g], i) => { const h = blok[es[i]]; h[0] = Math.min(h[0], x0); h[1] = Math.max(h[1], x1); h[2].push(...g) })
+    } else bloklar.push(bs.map(([x0, x1, g]) => [x0, x1, g.slice()]))
+  })
+  const sonuc = []
+  for (const blok of bloklar) for (const [, , g] of blok) sonuc.push(...xyKesimSirala(g, sb, yb))
+  return sonuc
+}
+function kutulariSirala(kutular) {
+  const ust = kutular.filter((k) => k.sinif === "page-header").sort((a, b) => a.y0 - b.y0 || a.x0 - b.x0)
+  const alt = kutular.filter((k) => k.sinif === "page-footer").sort((a, b) => a.y0 - b.y0 || a.x0 - b.x0)
+  const govde = kutular.filter((k) => k.sinif !== "page-header" && k.sinif !== "page-footer")
+  return [...ust, ...bantBirlestirSirala(govde), ...alt]
+}
+
+// ------------------------------------------------------------------ tablo: başlıklı satır satır (pdf_motor birebir)
+const SAYI_RE = /^[-+−±]?\(?\d[\d.,\s]*\)?\s*[%‰]?\s*[A-Za-zçğıöşüÇĞİÖŞÜ₺$€£]{0,4}\.?$/u
+const sayiMi = (m) => { m = (m || "").trim(); return !!m && SAYI_RE.test(m) }
+const hucre = (m) => (m || "").replace(/\s+/gu, " ").trim()
+function tabloYapisi(extract, kalin) {
+  let m = extract.map((r) => r.map(hucre))
+  const gen = Math.max(0, ...m.map((r) => r.length))
+  m = m.map((r) => r.concat(Array(gen - r.length).fill("")))
+  let k = kalin ? kalin.map((r) => r.concat(Array(gen - r.length).fill(null))) : null
+  const doluS = m.map((r, i) => (r.some((x) => x) ? i : -1)).filter((i) => i >= 0)
+  const doluC = [...Array(gen).keys()].filter((j) => doluS.some((i) => m[i][j]))
+  m = doluS.map((i) => doluC.map((j) => m[i][j]))
+  if (k) k = doluS.map((i) => doluC.map((j) => k[i][j]))
+  const n = m.length, c = m.length ? m[0].length : 0
+  const sebep = []
+  if (n < 2 || c < 2) return [m, 0, 0, ["tablo 2x2'den küçük"]]
+  const kalinOran = (s) => {
+    if (!k) return null
+    const d = []; for (let j = 0; j < c; j++) if (m[s][j] && k[s][j] !== null && k[s][j] !== undefined) d.push(k[s][j] ? 1 : 0)
+    return d.length ? d.reduce((a, b) => a + b, 0) / d.length : null
+  }
+  let h = 1
+  while (h < Math.min(n - 1, 4)) {
+    const onc = m[h - 1], bu = m[h]
+    let colspan = false
+    for (let j = 1; j < c; j++) if (!onc[j] && onc[j - 1] && bu[j]) colspan = true
+    let geri = false; for (let j = 1; j < c; j++) if (bu[j]) geri = true
+    const rowspan = !bu[0] && !!onc[0] && geri
+    const kb = kalinOran(h), kg = []; for (let i = h + 1; i < n; i++) kg.push(kalinOran(i))
+    const kalinS = kb !== null && kb >= 0.8 && kg.some((x) => x !== null && x < 0.5)
+    if (colspan || rowspan || kalinS) {
+      sebep.push(`satır ${h + 1} başlık: ` + [["birleşik üst hücre", colspan], ["boş ilk hücre", rowspan], ["kalın", kalinS]].filter((x) => x[1]).map((x) => x[0]).join(", "))
+      h++
+    } else break
+  }
+  const govde = m.slice(h), ilk = govde.map((r) => r[0]), dolu = ilk.filter((x) => x)
+  let s = 0
+  if (dolu.length >= 0.9 * ilk.length) {
+    const diger = []; for (const r of govde) for (let j = 1; j < c; j++) if (r[j]) diger.push(r[j])
+    const sayIlk = dolu.filter(sayiMi).length / dolu.length
+    const sayDiger = diger.length ? diger.filter(sayiMi).length / diger.length : 0.0
+    let kalinIlk = null
+    if (k) { const kd = []; for (let i = h; i < n; i++) if (m[i][0] && k[i][0] !== null && k[i][0] !== undefined) kd.push(k[i][0] ? 1 : 0); kalinIlk = kd.length ? kd.reduce((a, b) => a + b, 0) / kd.length : null }
+    const benzersiz = new Set(dolu).size === dolu.length
+    let neden = ""
+    if (kalinIlk !== null && kalinIlk >= 0.8) { s = 1; neden = "ilk sütun kalın" }
+    else if (sayIlk < 0.5 && 0.5 <= sayDiger) { s = 1; neden = "ilk sütun metin, diğerleri sayı" }
+    else if (benzersiz) { s = 1; neden = "ilk sütun değerleri benzersiz" }
+    if (s) sebep.push(`satır başlığı: ${neden}`)
+  } else if (dolu.length) {
+    if (govde.length && govde[0][0]) { s = 1; sebep.push("satır başlığı: gruplanmış ilk sütun (boşlar üstten dolduruldu)") }
+  }
+  if (!s) sebep.push("satır başlığı yok → satır numarası kullanıldı")
+  return [m, h, s, sebep]
+}
+function tabloDogrusal(extract, kalin, sira) {
+  const [m, h, s, sebep] = tabloYapisi(extract, kalin)
+  const n = m.length, c = m.length ? m[0].length : 0
+  if (h === 0 || n - h < 1) return [null, { sebep: sebep.length ? sebep : ["başlık bulunamadı"], hucre: 0 }]
+  const bas = m.slice(0, h).map((r) => r.slice())
+  for (let r = 0; r < h - 1; r++) for (let j = s ? s + 1 : 1; j < c; j++) {
+    let alti = false; for (let x = r + 1; x < h; x++) if (bas[x][j]) alti = true
+    if (!bas[r][j] && bas[r][j - 1] && alti) bas[r][j] = bas[r][j - 1]
+  }
+  const ad = []
+  for (let j = 0; j < c; j++) {
+    const p = []
+    for (let r = 0; r < h; r++) { const x = bas[r][j]; if (x && (!p.length || p[p.length - 1] !== x)) p.push(x) }
+    ad.push(p.join(" - ") || `Sütun ${j + 1}`)
+  }
+  const kose = s && !ad[0].startsWith("Sütun ") ? ad[0] : ""
+  const satirlar = [`[Tablo ${sira}: ${n - h} satır × ${c - s} sütun` + (kose ? `; satır başlığı: ${kose}` : "") + "]"]
+  let say = 0, oncEt = ""
+  for (let i = h; i < n; i++) {
+    const r = m[i]; let et
+    if (s) { et = r[0] || oncEt; oncEt = et } else et = `Satır ${i - h + 1}`
+    for (let j = s; j < c; j++) { satirlar.push(`${et} — ${ad[j]}: ${r[j] ? r[j] : "(boş)"}`); say++ }
+  }
+  return [satirlar.join("\n"), { sebep, hucre: say, baslik_satiri: h, satir_basligi: !!s, sutunlar: ad.slice(s) }]
+}
+function izgara(extract) {  // tabulate tablefmt="grid", disable_numparse, sola dayalı
+  const m = extract.map((r) => r.map((x) => (x == null ? "" : String(x))))
+  const c = Math.max(0, ...m.map((r) => r.length))
+  const rows = m.map((r) => r.concat(Array(c - r.length).fill("")))
+  const gen = Array(c).fill(0)
+  for (const r of rows) r.forEach((x, j) => { for (const l of x.split("\n")) gen[j] = Math.max(gen[j], [...l].length) })
+  const cizgi = "+" + gen.map((g) => "-".repeat(g + 2)).join("+") + "+"
+  const out = [cizgi]
+  for (const r of rows) {
+    const parca = r.map((x) => x.split("\n")), yuk = Math.max(1, ...parca.map((p) => p.length))
+    for (let l = 0; l < yuk; l++) out.push("|" + parca.map((p, j) => " " + (p[l] || "") + " ".repeat(gen[j] - [...(p[l] || "")].length) + " ").join("|") + "|")
+    out.push(cizgi)
+  }
+  return out.join("\n")
+}
+
+// ------------------------------------------------------------------ sayfa → kutular (düzen)
+const kutuBirlesim = (ks) => ({ x0: Math.min(...ks.map((k) => k.x0)), y0: Math.min(...ks.map((k) => k.y0)), x1: Math.max(...ks.map((k) => k.x1)), y1: Math.max(...ks.map((k) => k.y1)) })
+function stextBloklari(sayfa) {
+  // MuPDF segment + table-hunt: metin blokları ve çizgili tablolar
+  const j = JSON.parse(sayfa.toStructuredText("segment,table-hunt").asJSON())
+  const bloklar = [], tablolar = []
+  const satirlariAl = (b) => (b.lines || []).map((l) => ({
+    x0: l.bbox.x, y0: l.bbox.y, x1: l.bbox.x + l.bbox.w, y1: l.bbox.y + l.bbox.h, metin: l.text || "",
+    boyut: l.font ? l.font.size : 0, kalin: !!(l.font && (l.font.weight === "bold" || /bold|black|heavy/i.test(l.font.name || ""))),
+  })).filter((l) => l.metin.trim())
+  const metinTopla = (dugum, hedef) => {
+    for (const b of dugum) {
+      if (b.type === "text") hedef.push(...satirlariAl(b))
+      else if (b.contents) metinTopla(b.contents, hedef)
+    }
+  }
+  const yuru = (dugum) => {
+    for (const b of dugum) {
+      if (b.type === "text") { const s = satirlariAl(b); if (s.length) bloklar.push({ ...kutuBirlesim(s), satirlar: s, sinif: "text" }) }
+      else if (b.type === "structure" && b.raw === "Table") {
+        const izg = (b.contents || []).find((x) => x.type === "grid")
+        const trler = (b.contents || []).filter((x) => x.type === "structure" && x.raw === "TR")
+        const ext = [], kal = [], tumSatir = []
+        for (const tr of trler) {
+          const er = [], kr = []
+          for (const td of (tr.contents || []).filter((x) => x.type === "structure")) {
+            const s = []; metinTopla(td.contents || [], s); tumSatir.push(...s)
+            er.push(s.map((x) => x.metin.trim()).join("\n"))
+            kr.push(s.length ? s.filter((x) => x.kalin).length / s.length >= 0.5 : null)
+          }
+          ext.push(er); kal.push(kr)
+        }
+        let kutu = tumSatir.length ? kutuBirlesim(tumSatir) : null
+        if (izg && izg.xpos && izg.ypos) kutu = { x0: Math.min(...izg.xpos), x1: Math.max(...izg.xpos), y0: Math.min(...izg.ypos), y1: Math.max(...izg.ypos) }
+        if (kutu && ext.length) tablolar.push({ ...kutu, sinif: "table", extract: ext, kalin: kal, satirlar: tumSatir, satirSinirlari: izg ? izg.ypos : null })
+      } else if (b.contents) yuru(b.contents)
+    }
+  }
+  yuru(j.blocks || [])
+  return { bloklar, tablolar }
+}
+function duzYaziMi(metinler) {
+  // Çok sütunlu düz yazının satırları da hizalı "ızgara" oluşturur (ölçüldü). Tablo hücreleri kısa ifadeler ya da
+  // sayılardır; düz yazı satırları uzun ve çok kelimelidir.
+  const m = metinler.map((x) => (x || "").trim()).filter((x) => x)
+  if (!m.length) return true
+  const med = (a) => { const x = a.slice().sort((p, q) => p - q); return x[x.length >> 1] }
+  const sayisal = m.filter(sayiMi).length / m.length
+  if (sayisal >= 0.5) return false
+  const kelime = med(m.map((x) => x.split(/\s+/).length)), karakter = med(m.map((x) => x.length))
+  return kelime >= 3 || karakter > 30
+}
+function tabloGecerli(t) {
+  // table-hunt düz yazıyı da tablo sanabiliyor (ölçüldü): hücre satırları kısa ya da sayısal olmalı
+  const hucreler = t.extract.flat().map((x) => (x || "").trim()).filter((x) => x)
+  if (t.extract.length < 2 || Math.max(0, ...t.extract.map((r) => r.length)) < 2 || hucreler.length < 3) return false
+  return !duzYaziMi(hucreler.flatMap((x) => x.split("\n")))
+}
+function tabloGenislet(tablo, bloklar) {
+  // table-hunt'ın dışarıda bıraktığı, satır bantlarıyla birebir hizalı komşu sütunları tabloya kat
+  if (!tablo.satirSinirlari || tablo.satirSinirlari.length < 3) return bloklar
+  const ys = tablo.satirSinirlari.slice().sort((a, b) => a - b), satirSay = ys.length - 1
+  if (tablo.extract.length !== satirSay) return bloklar
+  const bandi = (s) => { const yc = (s.y0 + s.y1) / 2; for (let i = 0; i < satirSay; i++) if (yc >= ys[i] && yc <= ys[i + 1]) return i; return -1 }
+  for (let tur = 0; tur < 20; tur++) {
+    let eklendi = false
+    for (const yon of ["sag", "sol"]) {
+      const aday = bloklar.flatMap((b) => b.satirlar.map((s) => ({ s, b }))).filter(({ s }) => bandi(s) >= 0 &&
+        (yon === "sag" ? s.x0 >= tablo.x1 - 2 && s.x0 - tablo.x1 < 150 : s.x1 <= tablo.x0 + 2 && tablo.x0 - s.x1 < 150))
+      if (!aday.length) continue
+      const kes = bosluklar(aday.map(({ s }) => [s.x0, s.x1]), 6)
+      const gruplar = kes.length ? grupla(aday, kes, ({ s }) => (s.x0 + s.x1) / 2) : [aday]
+      const grup = yon === "sag" ? gruplar[0] : gruplar[gruplar.length - 1]  // tabloya en yakın sütun
+      const yer = Array(satirSay).fill(null); let uygun = true
+      for (const g of grup) { const r = bandi(g.s); if (yer[r]) { uygun = false; break } yer[r] = g }
+      if (!uygun || yer.filter((x) => x).length < Math.max(2, 0.5 * satirSay)) continue
+      tablo.extract.forEach((r, i) => { const v = yer[i] ? yer[i].s.metin.trim() : ""; if (yon === "sag") r.push(v); else r.unshift(v) })
+      tablo.kalin.forEach((r, i) => { const v = yer[i] ? yer[i].s.kalin : null; if (yon === "sag") r.push(v); else r.unshift(v) })
+      const alinan = new Set(grup.map((g) => g.s))
+      tablo.satirlar.push(...alinan)
+      Object.assign(tablo, kutuBirlesim([tablo, ...alinan]))
+      bloklar = bloklar.map((b) => { const k = b.satirlar.filter((x) => !alinan.has(x)); return k.length === b.satirlar.length ? b : k.length ? { ...b, ...kutuBirlesim(k), satirlar: k } : null }).filter((b) => b)
+      eklendi = true
+    }
+    if (!eklendi) break
+  }
+  return bloklar
+}
+function hizaliTabloBul(satirlar, sayfaGen) {
+  // Çizgisi olmayan / taranmış tablolar: hizalı hücre ızgarası. Çift sütunlu düz yazıyı tablo saymamak için koruma var.
+  if (satirlar.length < 6) return { tablolar: [], kalan: satirlar }
+  const yuk = satirlar.map((s) => s.y1 - s.y0).sort((a, b) => a - b), medH = yuk[yuk.length >> 1]
+  const sira = satirlar.slice().sort((a, b) => (a.y0 + a.y1) / 2 - (b.y0 + b.y1) / 2)
+  const sat = []
+  for (const s of sira) {
+    const yc = (s.y0 + s.y1) / 2, son = sat[sat.length - 1]
+    if (son && yc - son.yc <= 0.5 * medH) { son.ogeler.push(s); son.yc = son.ogeler.reduce((a, x) => a + (x.y0 + x.y1) / 2, 0) / son.ogeler.length; son.y1 = Math.max(son.y1, s.y1) }
+    else sat.push({ yc, y0: s.y0, y1: s.y1, ogeler: [s] })
+  }
+  const tablolar = [], kullanilan = new Set()
+  let i = 0
+  while (i < sat.length) {
+    if (sat[i].ogeler.length < 2) { i++; continue }
+    let j = i
+    while (j + 1 < sat.length && sat[j + 1].ogeler.length >= 2 && sat[j + 1].y0 - sat[j].y1 <= 2.5 * medH) j++
+    const kosu = sat.slice(i, j + 1)
+    i = j + 1
+    if (kosu.length < 3) continue
+    const ogeler = kosu.flatMap((r) => r.ogeler)
+    const kes = bosluklar(ogeler.map((o) => [o.x0, o.x1]), 6)
+    const sutSay = kes.length + 1
+    if (sutSay < 2) continue
+    const bolge = kutuBirlesim(ogeler), bolgeGen = bolge.x1 - bolge.x0
+    const genler = ogeler.map((o) => o.x1 - o.x0).sort((a, b) => a - b), medW = genler[genler.length >> 1]
+    const sayisal = ogeler.filter((o) => sayiMi(o.metin)).length / ogeler.length
+    if (duzYaziMi(ogeler.map((o) => o.metin))) continue  // hücreler kısa olur; uzun/çok kelimeli satırlar düz yazıdır
+    if (medW > 0.3 * bolgeGen && !(sutSay >= 2 && sayisal >= 0.5)) continue  // çift sütunlu düz yazı koruması
+    if (sutSay === 2 && sayisal < 0.5) continue
+    if (bolgeGen > 0.98 * sayfaGen && sutSay === 2) continue
+    const ext = kosu.map((r) => { const e = Array(sutSay).fill(""); for (const o of r.ogeler.sort((a, b) => a.x0 - b.x0)) { const c = kes.filter((x) => (o.x0 + o.x1) / 2 > x).length; e[c] = e[c] ? e[c] + " " + o.metin.trim() : o.metin.trim() } return e })
+    const kal = kosu.map((r) => { const e = Array(sutSay).fill(null); for (const o of r.ogeler) { const c = kes.filter((x) => (o.x0 + o.x1) / 2 > x).length; e[c] = o.kalin } return e })
+    ogeler.forEach((o) => kullanilan.add(o))
+    tablolar.push({ ...bolge, sinif: "table", extract: ext, kalin: kal, satirlar: ogeler, hizali: true })
+  }
+  return { tablolar, kalan: satirlar.filter((s) => !kullanilan.has(s)) }
+}
+function satirlariBlokla(satirlar) {
+  // OCR satırları → paragraf blokları (dikey yakınlık + yatay örtüşme)
+  const sira = satirlar.slice().sort((a, b) => a.y0 - b.y0 || a.x0 - b.x0)
+  const bloklar = []
+  for (const s of sira) {
+    const h = s.y1 - s.y0
+    let hedef = null
+    for (let k = bloklar.length - 1; k >= 0; k--) {
+      const b = bloklar[k], son = b.satirlar[b.satirlar.length - 1]
+      const ortus = Math.min(s.x1, b.x1) - Math.max(s.x0, b.x0)
+      if (ortus > 0.5 * Math.min(s.x1 - s.x0, b.x1 - b.x0) && s.y0 - son.y1 < 0.55 * h && s.y0 >= son.y0 + 0.5 * h) { hedef = b; break }
+    }
+    if (hedef) { hedef.satirlar.push(s); Object.assign(hedef, kutuBirlesim([hedef, s])) }
+    else bloklar.push({ x0: s.x0, y0: s.y0, x1: s.x1, y1: s.y1, satirlar: [s], sinif: "text" })
+  }
+  return bloklar
+}
+function baslikSiniflandir(bloklar) {
+  const govdeBoyut = [], govdeYuk = []
+  for (const b of bloklar) for (const s of b.satirlar) { if (s.boyut) govdeBoyut.push(s.boyut); govdeYuk.push(s.y1 - s.y0) }
+  const med = (a) => { if (!a.length) return 0; const x = a.slice().sort((p, q) => p - q); return x[x.length >> 1] }
+  const mb = med(govdeBoyut), mh = med(govdeYuk)
+  for (const b of bloklar) {
+    if (b.sinif !== "text" || b.satirlar.length > 2) continue
+    const metin = b.satirlar.map((s) => s.metin).join(" ").trim()
+    if (metin.length > 120 || /[.;:,]$/.test(metin)) continue
+    const boyut = Math.max(...b.satirlar.map((s) => s.boyut || 0)), yuk = Math.max(...b.satirlar.map((s) => s.y1 - s.y0))
+    const kalin = b.satirlar.every((s) => s.kalin)
+    if ((mb && boyut >= 1.15 * mb) || (!mb && mh && yuk >= 1.3 * mh) || (kalin && b.satirlar.length === 1 && !b.satirlar.every((s) => s.kalin === undefined)))
+      b.sinif = "section-header"
+  }
+}
+const SAYFA_NO_RE = /^[\s\-—–·•|]*((sayfa|page|s\.)\s*)?\d{1,4}(\s*(\/|of|\/)\s*\d{1,4})?[\s\-—–·•|]*$/iu
+function ustAltBilgiBul(sayfalar) {
+  // sayfalar arası tekrar eden üst/alt şeritteki bloklar + sayfa numaraları (pymupdf-layout page-header/footer yerine)
+  const anahtar = (m) => m.toLocaleLowerCase("tr").replace(/\d+/g, "#").replace(/\s+/g, " ").trim()
+  const sayac = { ust: new Map(), alt: new Map() }
+  for (const s of sayfalar) {
+    const gorulen = { ust: new Set(), alt: new Set() }
+    for (const b of s.kutular) {
+      if (b.sinif === "table") continue
+      const bolge = b.y1 <= 0.1 * s.yuk ? "ust" : b.y0 >= 0.9 * s.yuk ? "alt" : null
+      if (!bolge) continue
+      const k = anahtar(b.satirlar.map((x) => x.metin).join(" "))
+      if (k && !gorulen[bolge].has(k)) { gorulen[bolge].add(k); sayac[bolge].set(k, (sayac[bolge].get(k) || 0) + 1) }
+    }
+  }
+  const esik = sayfalar.length >= 3 ? Math.max(2, Math.ceil(0.5 * sayfalar.length)) : 2
+  for (const s of sayfalar) for (const b of s.kutular) {
+    if (b.sinif === "table") continue
+    const metin = b.satirlar.map((x) => x.metin).join(" ")
+    const bolge = b.y1 <= 0.1 * s.yuk ? "ust" : b.y0 >= 0.9 * s.yuk ? "alt" : null
+    if (!bolge) continue
+    if ((sayac[bolge].get(anahtar(metin)) || 0) >= esik || SAYFA_NO_RE.test(metin.trim()))
+      b.sinif = bolge === "ust" ? "page-header" : "page-footer"
+  }
+}
+
+// ------------------------------------------------------------------ dönüştürücü
+const KIP_OTOMATIK_KORU = "otomatik_koru", KIP_OTOMATIK_YENILE = "otomatik_yenile", KIP_TUMU_OCR = "tumu_ocr", KIP_DUZEN_OCRSIZ = "duzen_ocrsiz", KIP_HAM = "ham"
+const KIP_ETIKET = {
+  [KIP_OTOMATIK_KORU]: "Otomatik: gerekirse OCR (var olan OCR katmanını koru) — önerilen",
+  [KIP_OTOMATIK_YENILE]: "Otomatik: gerekirse OCR + eski (görünmez) OCR katmanı olan sayfaları yeniden OCR'la",
+  [KIP_TUMU_OCR]: "Görsel içeren tüm sayfaları OCR'la (eski OCR katmanını yenile)",
+  [KIP_DUZEN_OCRSIZ]: "Sadece düzen analizi (OCR yok)",
+  [KIP_HAM]: "Ham metin: PDF iç sırası (düzen analizi ve OCR yok, en hızlı)",
+}
+function sayfaListesi(aralik, n) {
+  aralik = (aralik || "").trim()
+  if (!aralik) return [...Array(n).keys()]
+  const secim = new Set()
+  for (let p of aralik.replace(/;/g, ",").split(",")) {
+    p = p.trim(); if (!p) continue
+    const m = /^(\d*)\s*-\s*(\d*)$/.exec(p); let bas, son
+    if (m) { bas = m[1] ? +m[1] : 1; son = m[2] ? +m[2] : n }
+    else if (/^\d+$/.test(p)) bas = son = +p
+    else throw new RangeError(`Geçersiz sayfa aralığı: '${p}'`)
+    if (bas < 1 || son < bas) throw new RangeError(`Geçersiz sayfa aralığı: '${p}'`)
+    if (bas > n) throw new RangeError(`'${p}': belgede ${n} sayfa var`)
+    for (let i = bas - 1; i < Math.min(son, n); i++) secim.add(i)
+  }
+  if (!secim.size) throw new RangeError("Sayfa aralığı boş")
+  return [...secim].sort((a, b) => a - b)
+}
+function hamMetin(sayfa) { return sayfa.toStructuredText("preserve-whitespace").asText() }
+function kutuMetni(k) {
+  // pymupdf4llm get_plain_text birebir: satırlar boşlukla birleşir, "kelime- " (3+ harf) tiresi kaldırılır
+  let out = ""
+  for (const s of k.satirlar) {
+    const t = s.metin.trim()
+    if (out.endsWith("- ")) { const p = out.split(/\s+/).filter((x) => x); if (p.length && p[p.length - 1].length > 2) out = out.slice(0, -2) }
+    out += t + " "
+  }
+  return out
+}
+
+class PdfDonusturucu {
+  constructor(ayar) { this.a = ayar; this.ocr = null; this.havuz = null; this.havuzSoz = null; this.paralel = 1; this.tabloSayaci = 0 }
+  async hazirla() {
+    if (this.a.kip !== KIP_HAM && this.a.kip !== KIP_DUZEN_OCRSIZ) {
+      this.ocr = new OcrMotoru(this.a)
+      const b = await izle("OcrMotoru.hazirla", () => this.ocr.hazirla())
+      const cekirdek = navigator.hardwareConcurrency || 4
+      const hepsiWasm = b.det === "wasm" && b.rec === "wasm"
+      this.paralel = hepsiWasm && ort.env.wasm.numThreads === 1 ? Math.max(1, Math.min(4, Math.floor(cekirdek / 2))) : 1
+      if (hepsiWasm && this.a.paralel_zorla) this.paralel = this.a.paralel_zorla  // yalnız test: ?paralel=N
+      if (this.paralel > 1) {
+        try {
+          this.havuz = new OcrHavuzu(this.ocr, this.paralel)
+          await izle("OcrHavuzu.hazirla", () => this.havuz.hazirla())
+        } catch (e) {
+          log(`Paralel OCR başlatılamadı, tek iş parçacığıyla devam (${e.message || e})`, "uyari")
+          if (this.havuz) this.havuz.kapat()
+          this.havuz = null; this.paralel = 1
+        }
+      }
+      log(`OCR hazır: det=${b.det}, cls=${b.cls}, rec=${b.rec} (${this.a.ocr_model}), sözlük ${b.karakter} karakter, ` +
+        (b.rec === "webgpu" ? "ekran kartı (WebGPU)" : `işlemci: ${this.paralel} paralel sayfa × ${ort.env.wasm.numThreads} iş parçacığı`))
+    }
+  }
+  kapat() { if (this.havuz) { this.havuz.kapat(); this.havuz = null } }
+  async havuzaGec(e) {
+    if (!this.havuzSoz) {
+      this.havuzSoz = (async () => {
+        const adet = Math.max(1, Math.min(4, Math.floor((navigator.hardwareConcurrency || 4) / 2)))
+        log(`${e.message} → OCR, ayrı işçilerde ${adet} paralel WASM (işlemci) ile sürdürülüyor`, "uyari")
+        const h = new OcrHavuzu(this.ocr, adet); await h.hazirla(); this.havuz = h
+      })()
+    }
+    await this.havuzSoz
+  }
+  async gpuKorumali(fn) {
+    try { return await fn() } catch (e) {
+      if (!(e instanceof GpuZamanAsimi) || this.havuz) throw e
+      await this.havuzaGec(e)
+      return fn()
+    }
+  }
+  async ocrYon(sayfa, no) {
+    const img = sayfaGoruntu(sayfa, 110)
+    try {
+      const r = await this.gpuKorumali(() => this.havuz ? this.havuz.calistir("yon", img) : this.ocr.yonHesapla(img))
+      log(`   s.${no}: yön puanları ${JSON.stringify(r.puanlar)} → ${r.yon}°`, "test")
+      return r.yon
+    } finally { img.delete() }
+  }
+  async ocrTam(img) {
+    return this.gpuKorumali(async () => {
+      if (this.havuz) return this.havuz.calistir("ocr", img)
+      const satirlar = await this.ocr.tamOcr(img)
+      return { satirlar, aci: this.ocr.son_aci }
+    })
+  }
+  belgeAc(veri, ad) {
+    const doc = mupdf.Document.openDocument(veri, "application/pdf")
+    if (doc.needsPassword()) {
+      if (!this.a.parola || !doc.authenticatePassword(this.a.parola)) { doc.destroy(); throw new SifreGerekli(ad) }
+    }
+    return doc
+  }
+  async sayfaIsle(doc, pno) {
+    const sayfa = doc.loadPage(pno)
+    const b = sayfa.getBounds()
+    let gen = b[2] - b[0], yuk = b[3] - b[1]
+    const bilgi = { sayfa: pno + 1, yontem: "düzen", ocr: false, kapsama: null, aci: null, yon: 0 }
+    const analiz = sayfaCozumle(sayfa)
+    const st = stextBloklari(sayfa)
+    let stBlok = st.bloklar
+    const tablolar = []
+    for (const t of st.tablolar) { if (tabloGecerli(t)) tablolar.push(t); else stBlok = stBlok.concat(satirlariBlokla(t.satirlar)) }
+    for (const t of tablolar) stBlok = tabloGenislet(t, stBlok)
+    // okunamayan karakter oranı (yalnız görünür yerel metin)
+    const yerelSatir = stBlok.flatMap((bb) => bb.satirlar).concat(tablolar.flatMap((t) => t.satirlar))
+    const ok = okunamazOrani(yerelSatir.map((x) => x.metin).join(" "))
+    bilgi.okunamaz = ok.oran; bilgi.okunamaz_adet = ok.adet
+    const okunamaz = ok.oran >= OKUNAMAZ_ESIK || ok.adet >= OKUNAMAZ_ADET
+    let kutular = stBlok
+    const ocrIzni = this.ocr !== null
+    const eskiOcr = analiz.gorunmez > 0 && analiz.gorunmez >= analiz.gorunur
+    const gorselVar = analiz.gorseller.length > 0
+    const zayif = analiz.gorunur < 30 && gorselVar
+    let ocrYap = false
+    if (ocrIzni && gorselVar) {
+      if (this.a.kip === KIP_TUMU_OCR) ocrYap = true
+      else if (eskiOcr) ocrYap = this.a.kip === KIP_OTOMATIK_YENILE
+      else ocrYap = zayif
+    }
+    // harf tablosu olmayan yazı tipi: metin var ama okunamıyor → sayfa yazılarıyla birlikte çizilip OCR'lanır
+    if (ocrIzni && okunamaz && !eskiOcr) { ocrYap = true; bilgi.okunamaz_ocr = true }
+    if (eskiOcr && ocrYap) bilgi.eski_ocr = true
+    let hamKaynak = hamMetin(sayfa)
+    if (ocrYap && ok.adet) {
+      // okunamayan (�) satırlar yerel metinden çıkarılır; o bölgelerin metnini OCR verir
+      const iyiMi = (x) => !x.metin.includes(FFFD)
+      stBlok = stBlok.map((bb) => { const k = bb.satirlar.filter(iyiMi); return k.length === bb.satirlar.length ? bb : k.length ? { ...bb, ...kutuBirlesim(k), satirlar: k } : null }).filter((bb) => bb)
+      for (let i = tablolar.length - 1; i >= 0; i--) if (tablolar[i].satirlar.some((x) => !iyiMi(x))) tablolar.splice(i, 1)
+      kutular = stBlok
+      hamKaynak = hamKaynak.split("\n").filter((x) => !x.includes(FFFD)).join("\n")
+    }
+    if (ocrYap) {
+      iptalMi()
+      let yon = 0
+      if (this.ocr.egim_duzelt && (zayif || eskiOcr)) { yon = await izle("ocrYon", () => this.ocrYon(sayfa, pno + 1)); bilgi.yon = yon }
+      let dpi = this.ocr.dpi === "otomatik" ? dogalDpi(sayfa, analiz) : this.ocr.dpi
+      const ust = maxDpi(sayfa)
+      if (dpi > ust) { log(`   s.${pno + 1}: ${dpi} dpi çok büyük, ${ust} dpi'ye düşürüldü (10 milyon piksel sınırı)`, "uyari"); dpi = ust }
+      const img = sayfaGoruntu(sayfa, dpi, yon)
+      let ocrSonuc
+      try { ocrSonuc = await izle("ocrTam", () => this.ocrTam(img)) } finally { img.delete() }
+      const satirlar = ocrSonuc.satirlar
+      const k = 72 / dpi
+      if (yon === 90 || yon === 270) [gen, yuk] = [yuk, gen]
+      let ocrSatir = satirlar.map((x) => {
+        const xs = x.pts.map((p) => p[0] * k), ys = x.pts.map((p) => p[1] * k)
+        return { x0: Math.min(...xs), y0: Math.min(...ys), x1: Math.max(...xs), y1: Math.max(...ys), metin: x.metin, boyut: 0, kalin: undefined }
+      })
+      // görünür (iyi) metin korunur; OCR yalnız metin olmayan bölgeler için (pymupdf4llm exec_ocr_full gibi)
+      const iyi = eskiOcr ? [] : stBlok.flatMap((bb) => bb.satirlar).concat(tablolar.flatMap((t) => t.satirlar))
+      if (iyi.length && !yon) {
+        ocrSatir = ocrSatir.filter((o) => {
+          const alan = (o.x1 - o.x0) * (o.y1 - o.y0) || 1
+          return !iyi.some((s) => Math.max(0, Math.min(o.x1, s.x1) - Math.max(o.x0, s.x0)) * Math.max(0, Math.min(o.y1, s.y1) - Math.max(o.y0, s.y0)) > 0.5 * alan)
+        })
+      }
+      bilgi.ocr = ocrSatir.length > 0
+      bilgi.aci = ocrSonuc.aci; bilgi.dpi = dpi
+      const ocrHam = OcrMotoru.kutulariSirala(ocrSatir.map((s) => ({ pts: [[s.x0, s.y0]], s }))).map((x) => x.s.metin).join("\n")
+      if (eskiOcr || yon) { kutular = []; tablolar.length = 0; hamKaynak = ocrHam }
+      else hamKaynak = (hamKaynak.trim() ? hamKaynak + "\n" : "") + ocrHam
+      const ht = hizaliTabloBul(ocrSatir, gen)
+      tablolar.push(...ht.tablolar)
+      kutular = kutular.concat(satirlariBlokla(ht.kalan))
+    } else {
+      // çizgisiz tablolar: table-hunt hiç bulamadıysa hizalı ızgara ara
+      const tekSatirli = kutular.filter((k) => k.satirlar.length >= 1)
+      const tumSatir = tekSatirli.flatMap((k) => k.satirlar.map((s) => ({ ...s, _blok: k })))
+      const ht = hizaliTabloBul(tumSatir, gen)
+      if (ht.tablolar.length) {
+        const yeni = []
+        for (const k of kutular) {
+          const s = ht.kalan.filter((x) => x._blok === k)
+          if (s.length === k.satirlar.length) yeni.push(k)
+          else if (s.length) yeni.push({ ...kutuBirlesim(s), satirlar: s, sinif: k.sinif })
+        }
+        kutular = yeni; tablolar.push(...ht.tablolar)
+      }
+    }
+    baslikSiniflandir(kutular)
+    return { sayfa: pno, gen, yuk, kutular: kutular.concat(tablolar), bilgi, hamKaynak, ocrMu: bilgi.ocr }
+  }
+  sayfaMetni(s) {
+    const bicim = this.a.tablo_bicimi || "izgara"
+    let kutular = s.kutular
+    if (this.a.okuma_sirasi === "xy") kutular = kutulariSirala(kutular)
+    else {
+      // MuPDF'in kendi blok sırası; tablolar, y konumuna göre araya yerleştirilir
+      const ust = kutular.filter((k) => k.sinif === "page-header"), alt = kutular.filter((k) => k.sinif === "page-footer")
+      const govde = kutular.filter((k) => k.sinif !== "page-header" && k.sinif !== "page-footer" && k.sinif !== "table")
+      for (const t of kutular.filter((k) => k.sinif === "table")) {
+        const i = govde.findIndex((k) => k.y0 > t.y0)
+        if (i < 0) govde.push(t); else govde.splice(i, 0, t)
+      }
+      kutular = [...ust, ...govde, ...alt]
+    }
+    const parcala = (ustDahil, altDahil) => {
+      const p = []
+      for (const k of kutular) {
+        if (k.sinif === "page-header" && !ustDahil) continue
+        if (k.sinif === "page-footer" && !altDahil) continue
+        if (k.sinif === "table") {
+          if (bicim === "izgara" || !k._dogrusal) p.push(izgara(k.extract))
+          else p.push(bicim === "dogrusal" ? k._dogrusal : izgara(k.extract) + "\n\n" + k._dogrusal)
+        } else p.push(kutuMetni(k))
+      }
+      return p.join("\n\n")
+    }
+    s.bilgi.tablolar = []
+    for (const k of kutular) if (k.sinif === "table") {
+      this.tabloSayaci++
+      const [d, tb] = tabloDogrusal(k.extract, s.ocrMu ? null : k.kalin, this.tabloSayaci)
+      tb.sira = this.tabloSayaci; k._dogrusal = d; s.bilgi.tablolar.push(tb)
+    }
+    const tam = parcala(true, true)
+    const secilen = this.a.ust_bilgi && this.a.alt_bilgi ? tam : parcala(this.a.ust_bilgi, this.a.alt_bilgi)
+    const oran = kapsamaOrani(s.hamKaynak, tam)
+    s.bilgi.kapsama = oran
+    if (oran < this.a.kayip_esigi && s.hamKaynak.trim() && this.a.kayipta_ham) { s.bilgi.yontem = "ham (kayıp kapısı)"; return s.hamKaynak }
+    return secilen
+  }
+  async donustur(veri, ad) {
+    const t0 = performance.now()
+    this.tabloSayaci = 0
+    const doc = this.belgeAc(veri, ad)
+    try {
+      const sayfalar = sayfaListesi(this.a.sayfa_araligi, doc.countPages())
+      const ham = [], uyarilar = [], bilgiler = []
+      // sayfalar paralel OCR havuzu boyutu kadar aynı anda işlenir; sonuçlar sayfa sırasıyla birleştirilir
+      const sonucDizi = new Array(sayfalar.length)
+      let siradaki = 0, biten = 0
+      const kosucu = async () => {
+        while (siradaki < sayfalar.length) {
+          iptalMi()
+          const k = siradaki++, pno = sayfalar[k], ts = performance.now()
+          let kayit
+          if (this.a.kip === KIP_HAM) {
+            const sayfa = doc.loadPage(pno), hm = hamMetin(sayfa), ok = okunamazOrani(hm)
+            kayit = { pno, metin: metniTemizle(hm, this.a.tire_birlestir, false), bilgi: { sayfa: pno + 1, yontem: "ham", ocr: false, kapsama: null, aci: null, yon: 0, okunamaz: ok.oran, okunamaz_adet: ok.adet } }
+          } else {
+            const s = await izle(`sayfaIsle(${pno + 1})`, () => this.sayfaIsle(doc, pno))
+            kayit = { pno, s, bilgi: s.bilgi }
+          }
+          kayit.bilgi.sure = (performance.now() - ts) / 1000
+          sonucDizi[k] = kayit; biten++
+          gonder({ tur: "sayfa", sira: biten, toplam: sayfalar.length, bilgi: { ...kayit.bilgi, karakter: null } })
+          await bekle0()
+        }
+      }
+      const kosucular = []
+      for (let i = 0; i < Math.max(1, Math.min(this.paralel, sayfalar.length)); i++) kosucular.push(kosucu())
+      const durumlar = await Promise.allSettled(kosucular)
+      const red = durumlar.find((d) => d.status === "rejected")
+      if (red) throw red.reason
+      ham.push(...sonucDizi)
+      if (this.a.kip !== KIP_HAM) ustAltBilgiBul(ham.map((x) => x.s))
+      const parcalar = []
+      const sayfaMetinleri = ham.map((h) => {
+        let metin = h.metin
+        if (h.s) { metin = this.sayfaMetni(h.s); metin = metniTemizle(metin, this.a.tire_birlestir, h.bilgi.ocr) }
+        return metin
+      })
+      // eski Türkçe yazı tipi (ý þ ð → ı ş ğ): belgenin tamamına bakılarak karar verilir
+      let trDuzeltilen = 0
+      if (this.a.eski_tr_font !== false && /[ýþðÝÞÐ]/.test(sayfaMetinleri.join(""))) {
+        const ornek = sayfaMetinleri.join(" ").slice(0, 400000).replace(ESKI_TR_RE, (c) => ESKI_TR[c])
+        if (belgeTurkceMi(ornek)) {
+          for (let i = 0; i < sayfaMetinleri.length; i++) { const [y, n] = eskiTrDuzelt(sayfaMetinleri[i]); sayfaMetinleri[i] = y; trDuzeltilen += n; ham[i].bilgi.tr_duzeltme = n }
+        } else log(`   ý/þ/ð harfleri var ama belge Türkçe görünmüyor → değiştirilmedi`, "uyari")
+      }
+      for (let i = 0; i < ham.length; i++) {
+        const h = ham[i]
+        let metin = sayfaMetinleri[i]
+        if (this.a.paragraf_birlestir) metin = paragrafBirlestir(metin)
+        h.bilgi.karakter = metin.length
+        const b = h.bilgi
+        const kalan = okunamazOrani(metin)
+        b.okunamaz_kalan = kalan.adet
+        if ((b.okunamaz >= OKUNAMAZ_ESIK || b.okunamaz_adet >= OKUNAMAZ_ADET) && !b.okunamaz_ocr)
+          uyarilar.push(`Sayfa ${h.pno + 1}: ${b.okunamaz_adet} karakter (%${(100 * b.okunamaz).toFixed(1)}) okunamıyor (yazı tipinde harf tablosu yok) → ` +
+            (this.ocr === null ? "OCR'lı bir kip seçin" : "OCR yapılamadı"))
+        else if (kalan.adet) uyarilar.push(`Sayfa ${h.pno + 1}: çıktıda ${kalan.adet} okunamayan karakter (�) kaldı`)
+        if (!metin.trim()) uyarilar.push(`Sayfa ${h.pno + 1}: metin bulunamadı` + (this.ocr === null ? " (OCR kapalı kipte görsel sayfa olabilir)" : ""))
+        if (b.kapsama !== null && b.kapsama < this.a.kayip_esigi)
+          uyarilar.push(`Sayfa ${h.pno + 1}: düzen çıktısı ham metnin %${(100 * b.kapsama).toFixed(1)}'ini kapsıyor` + (b.yontem.startsWith("ham") ? " → ham metin kullanıldı" : ""))
+        for (const tb of b.tablolar || []) if (!tb.hucre) uyarilar.push(`Sayfa ${h.pno + 1}, tablo ${tb.sira}: başlık çözülemedi (${tb.sebep.join("; ")}) → ızgara olarak bırakıldı`)
+        bilgiler.push(b); parcalar.push([h.pno, metin])
+      }
+      let govde
+      if (this.a.sayfa_ayirici) govde = parcalar.map(([p, m]) => `===== Sayfa ${p + 1} =====\n${m}`).join("\n\n")
+      else govde = parcalar.filter(([, m]) => m.trim()).map(([, m]) => m).join("\n\n")
+      if (!parcalar.some(([, m]) => m.trim())) {
+        const sebep = uyarilar.join("; ") || "PDF'te çıkarılabilir metin yok"
+        govde = `[PDF2TXT] Bu PDF'ten metin çıkarılamadı.\nKaynak: ${ad}\nKip: ${KIP_ETIKET[this.a.kip]}\nSebep: ${sebep}\n`
+        uyarilar.push("Çıktı boş; sebep TXT dosyasının içine yazıldı")
+      }
+      let metin = govde + "\n"
+      if (this.a.satir_sonu === "crlf") metin = metin.replace(/\n/g, "\r\n")
+      return { metin, ozet: { dosya: ad, sayfa: sayfalar.length, ocr_sayfa: bilgiler.filter((b) => b.ocr).length, karakter: govde.length, sure: (performance.now() - t0) / 1000, uyarilar, bilgiler,
+        okunamaz_ocr_sayfa: bilgiler.filter((b) => b.okunamaz_ocr).length, tr_duzeltme: trDuzeltilen, okunamaz_kalan: okunamazOrani(govde).adet } }
+    } finally { doc.destroy() }
+  }
+}
+
+// ------------------------------------------------------------------ mesajlaşma
+let donusturucu = null, altMotor = null
+let altPort = null
+const altYanit = (o) => (altPort || self).postMessage(o)
+self.onmessage = async (ev) => {
+  const m = ev.data
+  if (m.tur === "alt_port") {  // bu işçi bir OCR havuzu üyesi: istekler port üzerinden gelir
+    altPort = m.port
+    altPort.onmessage = (e) => self.onmessage({ data: e.data })
+    return
+  }
+  if (m.tur === "havuz_portlari") { if (havuzCozucu) { havuzCozucu(m.portlar); havuzCozucu = null } return }
+  if (m.tur === "iptal") { iptalIstendi = true; if (parolaCozucu) { parolaCozucu(null); parolaCozucu = null } return }
+  if (m.tur === "veri") { const b = veriBekleyen.get(m.kimlik); veriBekleyen.delete(m.kimlik); if (b) { if (m.hata) b.red(new Error("Dosya okunamadı: " + m.hata)); else b.coz(m.veri) } return }
+  if (m.tur === "parola_cevap") { if (parolaCozucu) { parolaCozucu(m.parola); parolaCozucu = null } return }
+  if (m.tur === "alt_hazirla") {  // OCR havuzu alt işçisi
+    try {
+      TEST = !!m.test
+      const d = await kutuphaneleriYukle(false)
+      const hatali = Object.entries(d).filter(([, v]) => v !== true)
+      if (hatali.length) throw new Error(hatali.map(([k, v]) => `${k}: ${v}`).join("; "))
+      altMotor = new OcrMotoru(m.ayar)
+      const r = await altMotor.tampondanAc(m.tamponlar)
+      altYanit({ id: m.id, sonuc: r })
+    } catch (e) { altYanit({ id: m.id, hata: String(e.message || e) }) }
+    return
+  }
+  if (m.tur === "alt_is") {
+    let img = null
+    try {
+      img = new cv.Mat(m.h, m.w, cv.CV_8UC3); img.data.set(m.veri)
+      let sonuc
+      if (m.is === "yon") sonuc = await altMotor.yonHesapla(img)
+      else sonuc = { satirlar: await altMotor.tamOcr(img), aci: altMotor.son_aci }
+      altYanit({ id: m.id, sonuc })
+    } catch (e) { altYanit({ id: m.id, hata: String(e.message || e) }) }
+    finally { if (img) img.delete() }
+    return
+  }
+  if (m.tur === "baslat_kutuphane") {
+    TEST = !!m.test; TEST_GPU_HATA = !!m.gpuHata
+    if (m.gpuZaman) GPU_ZAMAN_ASIMI_SN = m.gpuZaman
+    const d = await kutuphaneleriYukle()
+    const hatali = Object.entries(d).filter(([, v]) => v !== true)
+    gonder({ tur: "kutuphane", durum: d, tamam: hatali.length === 0, webgpu: !!(self.navigator && navigator.gpu), yalitim: !!self.crossOriginIsolated, surum: SURUM })
+    return
+  }
+  if (m.tur === "donustur") {
+    iptalIstendi = false
+    const sonuclar = []; const t0 = performance.now(); let genelHata = null
+    try {
+      donusturucu = new PdfDonusturucu(m.ayar)
+      gonder({ tur: "mesaj", metin: donusturucu.a.kip === KIP_HAM || donusturucu.a.kip === KIP_DUZEN_OCRSIZ ? "Hazırlanıyor…" : "OCR modelleri hazırlanıyor…" })
+      await donusturucu.hazirla()
+      for (let n = 0; n < m.isler.length; n++) {
+        if (iptalIstendi) break
+        const is = m.isler[n]
+        gonder({ tur: "dosya", sira: n + 1, toplam: m.isler.length, dosya: is.ad, kimlik: is.kimlik })
+        let ayar = { ...m.ayar }, deneme = 0
+        let veri
+        try { veri = new Uint8Array(await veriIste(is.kimlik)) }
+        catch (e) { sonuclar.push({ durum: "hata", ad: is.ad }); gonder({ tur: "hata", dosya: is.ad, metin: e.message }); continue }
+        for (;;) {
+          try {
+            donusturucu.a = ayar
+            const r = await izle(`donustur(${is.ad})`, () => donusturucu.donustur(veri, is.ad))
+            sonuclar.push({ durum: "tamam", ad: is.ad })
+            gonder({ tur: "dosya_bitti", kimlik: is.kimlik, ad: is.ad, metin: r.metin, ozet: r.ozet })
+            break
+          } catch (e) {
+            if (e instanceof SifreGerekli) {
+              deneme++
+              const parola = deneme <= 3 ? await new Promise((coz) => { parolaCozucu = coz; gonder({ tur: "parola", dosya: is.ad }) }) : null
+              if (!parola) { sonuclar.push({ durum: "hata", ad: is.ad }); gonder({ tur: "hata", dosya: is.ad, metin: "Parola gerekli / yanlış — atlandı" }); break }
+              ayar = { ...m.ayar, parola }
+            } else if (e instanceof IptalEdildi) throw e
+            else { sonuclar.push({ durum: "hata", ad: is.ad }); gonder({ tur: "hata", dosya: is.ad, metin: `${e.name}: ${e.message}` }); break }
+          }
+        }
+      }
+    } catch (e) {
+      if (e instanceof IptalEdildi) gonder({ tur: "mesaj", metin: "Kullanıcı durdurdu (yarım kalan dosyanın TXT'si yazılmadı)." })
+      else { genelHata = `${e.name}: ${e.message}`; gonder({ tur: "hata", dosya: "", metin: genelHata }) }
+    } finally {
+      if (donusturucu) donusturucu.kapat()
+      gonder({ tur: "bitti", sonuclar, sure: (performance.now() - t0) / 1000, iptal: iptalIstendi, testOzeti: testOzeti(), genelHata,
+        islenmeyen: m.isler.length - sonuclar.length })
+    }
+  }
+}
+</script>
+<script>
+"use strict";
+// ===================================================================== arayüz (ana iş parçacığı) — motor ayrı Web Worker'da
+const $ = (id) => document.getElementById(id)
+const PARAM = new URLSearchParams(location.search)
+const TEST = PARAM.get("test") === "1"
+const KIP = {
+  otomatik_koru: "Otomatik: gerekirse OCR (var olan OCR katmanını koru) — önerilen",
+  otomatik_yenile: "Otomatik: gerekirse OCR + eski (görünmez) OCR katmanı olan sayfaları yeniden OCR'la",
+  tumu_ocr: "Görsel içeren tüm sayfaları OCR'la (eski OCR katmanını yenile)",
+  duzen_ocrsiz: "Sadece düzen analizi (OCR yok)",
+  ham: "Ham metin: PDF iç sırası (düzen analizi ve OCR yok, en hızlı)",
+}
+for (const [k, v] of Object.entries(KIP)) { const o = document.createElement("option"); o.value = k; o.textContent = v; $("kip").appendChild(o) }
+
+const VARSAYILAN = {
+  kip: "otomatik_koru", ocr_model: "small", ocr_dpi: "otomatik", hizlandirma: "webgpu", egim_duzelt: true, gurultu_temizle: true,
+  ust_bilgi: true, alt_bilgi: true, sayfa_ayirici: false, tire_birlestir: true, paragraf_birlestir: false, tablo_bicimi: "dogrusal",
+  okuma_sirasi: "xy", eski_tr_font: true, kayip_esigi: 0.98, kayipta_ham: true, satir_sonu: "crlf", sayfa_araligi: "", hedef: "indir", alt_klasorler: true,
+}
+const AYAR_ANAHTAR = "pdf2txt_ayarlar_v1"
+function ayarYukle() {
+  try { const v = JSON.parse(localStorage.getItem(AYAR_ANAHTAR) || "{}"); return { ...VARSAYILAN, ...Object.fromEntries(Object.entries(v).filter(([k, x]) => k in VARSAYILAN && typeof x === typeof VARSAYILAN[k])) } }
+  catch (e) { return { ...VARSAYILAN } }
+}
+function ayarKaydet(a) { try { localStorage.setItem(AYAR_ANAHTAR, JSON.stringify(Object.fromEntries(Object.keys(VARSAYILAN).map((k) => [k, a[k]])))) } catch (e) { logYaz("Ayarlar bu tarayıcıda kaydedilemedi: " + e, "uyari") } }
+function formaYaz(a) {
+  $("kip").value = a.kip; $("model").value = a.ocr_model; $("dpi").value = String(a.ocr_dpi); $("hiz").value = a.hizlandirma
+  $("egim").checked = a.egim_duzelt; $("gurultu").checked = a.gurultu_temizle; $("ust").checked = a.ust_bilgi; $("alt").checked = a.alt_bilgi
+  $("ayirici").checked = a.sayfa_ayirici; $("tire").checked = a.tire_birlestir; $("paragraf").checked = a.paragraf_birlestir; $("tablo").value = a.tablo_bicimi; $("eskiTr").checked = a.eski_tr_font
+  $("sira").value = a.okuma_sirasi; $("esik").value = Math.round(a.kayip_esigi * 100); $("kayiptaHam").checked = a.kayipta_ham
+  $("satirSonu").value = a.satir_sonu; $("aralik").value = a.sayfa_araligi; $("altKlasor").checked = a.alt_klasorler
+  document.querySelector(`input[name=hedef][value=${a.hedef}]`).checked = true
+  durumGuncelle()
+}
+function formdanOku() {
+  const esik = Number(String($("esik").value).replace(",", "."))
+  if (!Number.isFinite(esik) || esik < 80 || esik > 100) throw new Error("Kayıp kapısı eşiği 80 ile 100 arasında olmalı.")
+  return {
+    kip: $("kip").value, ocr_model: $("model").value, ocr_dpi: $("dpi").value === "otomatik" ? "otomatik" : Number($("dpi").value),
+    hizlandirma: $("hiz").value, egim_duzelt: $("egim").checked, gurultu_temizle: $("gurultu").checked, ust_bilgi: $("ust").checked,
+    alt_bilgi: $("alt").checked, sayfa_ayirici: $("ayirici").checked, tire_birlestir: $("tire").checked, paragraf_birlestir: $("paragraf").checked,
+    tablo_bicimi: $("tablo").value, eski_tr_font: $("eskiTr").checked, okuma_sirasi: $("sira").value, kayip_esigi: esik / 100, kayipta_ham: $("kayiptaHam").checked,
+    satir_sonu: $("satirSonu").value, sayfa_araligi: $("aralik").value.trim(), hedef: document.querySelector("input[name=hedef]:checked").value,
+    alt_klasorler: $("altKlasor").checked, parola: "",
+    ...(TEST && PARAM.get("paralel") ? { paralel_zorla: Math.max(1, Math.min(8, Number(PARAM.get("paralel")) || 1)) } : {}),
+  }
+}
+function durumGuncelle() {
+  const kip = $("kip").value
+  const ocr = ["otomatik_koru", "otomatik_yenile", "tumu_ocr"].includes(kip), duzen = kip !== "ham"
+  for (const id of ["model", "dpi", "hiz", "egim", "gurultu"]) $(id).disabled = !ocr
+  for (const id of ["sira", "ust", "alt", "tablo", "esik", "kayiptaHam"]) $(id).disabled = !duzen
+}
+$("kip").addEventListener("change", durumGuncelle)
+
+// ------------------------------------------------------------------ günlük
+function saat() { return new Date().toTimeString().slice(0, 8) }
+function logYaz(metin, sinif = "") {
+  if (sinif === "test" && !TEST) return
+  const g = $("gunluk"), sat = document.createElement("span")
+  if (sinif) sat.className = sinif
+  sat.textContent = `${saat()}  ${metin}\n`
+  g.appendChild(sat); g.scrollTop = g.scrollHeight
+  if (TEST) console.log(`[PDF2TXT] ${metin}`)
+}
+
+// ------------------------------------------------------------------ dosya listesi
+let dosyalar = [], sayac = 0
+function listeyiCiz() {
+  const l = $("liste"); l.innerHTML = ""
+  if (!dosyalar.length) { l.innerHTML = '<div class="bos">PDF\'leri buraya sürükleyin ya da sağdaki düğmelerle ekleyin.</div>'; return }
+  for (const d of dosyalar) {
+    const o = document.createElement("div"); o.className = "oge" + (d.secili ? " secili" : ""); o.textContent = d.yol
+    o.title = d.klasor ? "Klasörle eklendi (PDF'in yanına kaydedilebilir)" : "Dosya olarak eklendi"
+    o.onclick = (e) => { if (!e.ctrlKey && !e.metaKey && !e.shiftKey) dosyalar.forEach((x) => (x.secili = false)); d.secili = !d.secili; listeyiCiz() }
+    l.appendChild(o)
+  }
+}
+function ekle(yeniler) {
+  const var_ = new Set(dosyalar.map((d) => d.yol + "|" + d.boyut))
+  let n = 0
+  for (const y of yeniler) {
+    if (!/\.pdf$/i.test(y.ad)) continue
+    const k = y.yol + "|" + y.boyut
+    if (var_.has(k)) continue
+    var_.add(k); dosyalar.push({ kimlik: ++sayac, ...y, secili: false }); n++
+  }
+  listeyiCiz(); logYaz(`${n} PDF eklendi (toplam ${dosyalar.length}).`)
+}
+$("bDosya").onclick = () => $("dosyaGirdi").click()
+$("dosyaGirdi").onchange = (e) => { ekle([...e.target.files].map((f) => ({ ad: f.name, yol: f.name, boyut: f.size, dosya: f, klasor: null }))); e.target.value = "" }
+$("bKlasor").onclick = async () => {
+  if (window.showDirectoryPicker) {
+    let k
+    try { k = await window.showDirectoryPicker({ mode: "readwrite" }) } catch (e) { if (e.name !== "AbortError") logYaz("Klasör açılamadı: " + e.message, "hata"); return }
+    const bulunan = [], alt = $("altKlasor").checked
+    async function gez(h, yol) {
+      for await (const [ad, g] of h.entries()) {
+        if (g.kind === "file" && /\.pdf$/i.test(ad)) { const f = await g.getFile(); bulunan.push({ ad, yol: yol + ad, boyut: f.size, dosya: f, klasor: h }) }
+        else if (g.kind === "directory" && alt) await gez(g, yol + ad + "/")
+      }
+    }
+    await gez(k, k.name + "/")
+    bulunan.sort((a, b) => a.yol.localeCompare(b.yol, "tr")); ekle(bulunan)
+  } else $("klasorGirdi").click()
+}
+$("klasorGirdi").onchange = (e) => {
+  const alt = $("altKlasor").checked
+  const f = [...e.target.files].filter((x) => alt || x.webkitRelativePath.split("/").length <= 2)
+  ekle(f.map((x) => ({ ad: x.name, yol: x.webkitRelativePath || x.name, boyut: x.size, dosya: x, klasor: null })).sort((a, b) => a.yol.localeCompare(b.yol, "tr")))
+  e.target.value = ""
+}
+$("bCikar").onclick = () => { dosyalar = dosyalar.filter((d) => !d.secili); listeyiCiz() }
+$("bTemizle").onclick = () => { dosyalar = []; listeyiCiz() }
+const liste = $("liste")
+liste.addEventListener("dragover", (e) => { e.preventDefault(); liste.classList.add("surukle") })
+liste.addEventListener("dragleave", () => liste.classList.remove("surukle"))
+liste.addEventListener("drop", (e) => {
+  e.preventDefault(); liste.classList.remove("surukle")
+  ekle([...e.dataTransfer.files].map((f) => ({ ad: f.name, yol: f.name, boyut: f.size, dosya: f, klasor: null })))
+})
+
+// ------------------------------------------------------------------ çıktı hedefi
+let hedefKlasor = null
+if (!window.showDirectoryPicker) {
+  for (const v of ["klasor", "yanina"]) document.querySelector(`input[name=hedef][value=${v}]`).disabled = true
+  $("bHedef").disabled = true
+  $("hedefNot").textContent = "Bu tarayıcı klasöre doğrudan yazmayı desteklemiyor (Chrome/Edge destekler); TXT'ler indirilir."
+}
+$("bHedef").onclick = async () => {
+  try { hedefKlasor = await window.showDirectoryPicker({ mode: "readwrite" }); $("hedefAd").textContent = hedefKlasor.name; document.querySelector("input[name=hedef][value=klasor]").checked = true }
+  catch (e) { if (e.name !== "AbortError") logYaz("Klasör seçilemedi: " + e.message, "hata") }
+}
+async function izinIste(h) {
+  try { if ((await h.queryPermission({ mode: "readwrite" })) === "granted") return true; return (await h.requestPermission({ mode: "readwrite" })) === "granted" }
+  catch (e) { return false }
+}
+async function varMi(klasor, ad) { try { await klasor.getFileHandle(ad); return true } catch (e) { return false } }
+function soruSor(dlg) { return new Promise((coz) => { dlg.returnValue = ""; dlg.onclose = () => coz(dlg.returnValue); dlg.showModal() }) }
+
+// ------------------------------------------------------------------ motor (Web Worker)
+let isci = null, calisiyor = false, isListesi = [], baslangic = 0, dosyaSira = 0
+let isciUrl = null, havuzIscileri = []
+function isciBaslat() {
+  const kod = $("isci-kodu").textContent
+  // klasik worker: file:// ile açılan sayfada Chrome blob'dan modül worker başlatmıyor (ölçüldü); kütüphaneler dinamik import ile yüklenir
+  isciUrl = URL.createObjectURL(new Blob([kod], { type: "text/javascript" }))
+  isci = new Worker(isciUrl)
+  isci.onerror = (e) => { logYaz("Motor başlatılamadı: " + (e.message || e), "hata"); $("kutuphane").className = "hata"; $("kutuphane").textContent = "Motor başlatılamadı: " + (e.message || "bilinmeyen hata") }
+  isci.onmessage = (ev) => olay(ev.data)
+  isci.postMessage({ tur: "baslat_kutuphane", test: TEST, gpuHata: TEST && PARAM.get("gpu_hata") === "1", gpuZaman: TEST && PARAM.get("gpu_zaman") ? Number(PARAM.get("gpu_zaman")) : null })
+}
+function sureMetni(sn) {
+  if (sn == null || !isFinite(sn)) return "?"
+  sn = Math.round(sn); return sn >= 3600 ? `${Math.floor(sn / 3600)}:${String(Math.floor(sn % 3600 / 60)).padStart(2, "0")}:${String(sn % 60).padStart(2, "0")}` : `${Math.floor(sn / 60)}:${String(sn % 60).padStart(2, "0")}`
+}
+async function olay(o) {
+  switch (o.tur) {
+    case "kutuphane": {
+      const k = $("kutuphane")
+      const liste_ = Object.entries(o.durum).map(([ad, d]) => (d === true ? `✔ ${ad}` : `✘ ${ad}: ${d}`)).join(" · ")
+      if (o.tamam) {
+        k.className = ""; k.textContent = `OK: Tüm kütüphaneler yüklü (${Object.keys(o.durum).length} adet) — ${liste_} · WebGPU: ${o.webgpu ? "var" : "yok"} · ${o.surum}`
+        $("bBaslat").disabled = false
+        $("hizNot").textContent = o.webgpu ? "" : "(bu tarayıcıda WebGPU yok → işlemci kullanılacak)"
+      } else {
+        k.className = "hata"; k.textContent = `HATA: Eksik kütüphaneler — ${liste_}. İnternet bağlantısını kontrol edip sayfayı yenileyin.`
+      }
+      logYaz(k.textContent, o.tamam ? "tamam" : "hata")
+      if (TEST) window.__pdf2txtHazir = o
+      break
+    }
+    case "log": logYaz(o.metin, o.seviye === "uyari" ? "uyari" : o.seviye === "test" ? "test" : ""); break
+    case "mesaj": logYaz(o.metin); $("durum").textContent = o.metin; break
+    case "indirme": {
+      $("durum").textContent = `OCR modeli indiriliyor (${o.model}): ${(o.inen / 1e6).toFixed(1)} / ${(o.toplam / 1e6).toFixed(1)} MB`
+      $("ayrinti").textContent = `Hız ${(o.hiz / 1e6).toFixed(2)} MB/sn · kalan ~${sureMetni(o.kalan)}`
+      $("ilerleme").value = o.toplam ? (1000 * o.inen) / o.toplam : 0
+      break
+    }
+    case "veri_iste": {
+      const d = isListesi.find((x) => x.kimlik === o.kimlik)
+      try { const buf = await d.dosya.arrayBuffer(); isci.postMessage({ tur: "veri", kimlik: o.kimlik, veri: buf }, [buf]) }
+      catch (e) { isci.postMessage({ tur: "veri", kimlik: o.kimlik, hata: String(e) }) }
+      break
+    }
+    case "dosya": dosyaSira = o.sira - 1; logYaz(`[${o.sira}/${o.toplam}] ${o.dosya}`); $("durum").textContent = `[${o.sira}/${o.toplam}] ${o.dosya}`; break
+    case "sayfa": {
+      const b = o.bilgi, gecen = (performance.now() - baslangic) / 1000
+      const oran = (dosyaSira + o.sira / o.toplam) / Math.max(1, isListesi.length)
+      const kalan = oran > 0 ? gecen / oran * (1 - oran) : null
+      $("ilerleme").value = Math.min(1000, 1000 * oran)
+      const ek = []
+      if (b.ocr) ek.push("OCR"); if (b.yon) ek.push(`yön ${b.yon}°`); if (b.dpi) ek.push(`${b.dpi} dpi`)
+      if (b.eski_ocr) ek.push("eski OCR yenilendi"); if (b.okunamaz_ocr) ek.push(`okunamayan ${b.okunamaz_adet} karakter (%${(100 * b.okunamaz).toFixed(1)}) → OCR`); if (b.aci) ek.push(`eğim ${b.aci > 0 ? "+" : ""}${b.aci.toFixed(2)}°`)
+      $("ayrinti").textContent = `Sayfa ${o.sira}/${o.toplam} · ${b.yontem} · ${b.sure.toFixed(1)} sn · kalan ~${sureMetni(kalan)}`
+      logYaz(`   s.${b.sayfa}: ${b.yontem}${ek.length ? " (" + ek.join(", ") + ")" : ""}, ${b.sure.toFixed(1)} sn`)
+      break
+    }
+    case "havuz_iste": {  // motorun paralel OCR alt işçileri (işçi içinden işçi açılamadığı için burada açılır)
+      const portlar = []
+      try {
+        for (let i = 0; i < o.adet; i++) {
+          const w = new Worker(isciUrl), kanal = new MessageChannel()
+          w.postMessage({ tur: "alt_port", port: kanal.port2 }, [kanal.port2])
+          havuzIscileri.push(w); portlar.push(kanal.port1)
+        }
+      } catch (e) { logYaz("Paralel OCR işçileri açılamadı: " + e.message, "uyari") }
+      isci.postMessage({ tur: "havuz_portlari", portlar }, portlar)
+      break
+    }
+    case "havuz_kapat": havuzIscileri.forEach((w) => w.terminate()); havuzIscileri = []; break
+    case "dosya_bitti": await kaydet(o); break
+    case "hata": logYaz(`   ❌ ${o.dosya} ${o.metin}`, "hata"); break
+    case "parola": {
+      $("parolaMetin").textContent = `Bu PDF parola korumalı: ${o.dosya}. Parolayı girin (boş = atla):`
+      $("parolaGirdi").value = ""
+      const c = await soruSor($("dlgParola"))
+      isci.postMessage({ tur: "parola_cevap", parola: c === "tamam" ? $("parolaGirdi").value : null })
+      break
+    }
+    case "bitti": bitir(o); break
+  }
+}
+let kayitPlan = new Map(), kayitSayac = { tamam: 0, uyarili: 0 }
+async function kaydet(o) {
+  const d = isListesi.find((x) => x.kimlik === o.kimlik), plan = kayitPlan.get(o.kimlik)
+  const blob = new Blob([o.metin], { type: "text/plain;charset=utf-8" })
+  let nereye = ""
+  try {
+    if (plan.klasor) {
+      const fh = await plan.klasor.getFileHandle(plan.ad, { create: true })
+      const w = await fh.createWritable(); await w.write(blob); await w.close()
+      nereye = `${plan.klasor.name}/${plan.ad}`
+    } else {
+      const url = URL.createObjectURL(blob), a = document.createElement("a")
+      a.href = url; a.download = plan.ad; a.textContent = plan.ad; document.body.appendChild(a); a.click(); a.remove()
+      const l = document.createElement("a"); l.href = url; l.download = plan.ad; l.textContent = plan.ad; $("sonuclar").appendChild(l)
+      nereye = `İndirilenler/${plan.ad}`
+    }
+  } catch (e) { logYaz(`   ❌ ${d.yol}: TXT yazılamadı (${e.message})`, "hata"); return }
+  const z = o.ozet
+  kayitSayac.tamam++; if (z.uyarilar.length) kayitSayac.uyarili++
+  logYaz(`   ✔ ${nereye}  (${z.sayfa} sayfa, ${z.ocr_sayfa} OCR, ${z.karakter} karakter, ${z.sure.toFixed(1)} sn)`, "tamam")
+  if (z.okunamaz_ocr_sayfa) logYaz(`   ${z.okunamaz_ocr_sayfa} sayfada yazı tipi okunamadığı için metin OCR ile okundu`)
+  if (z.tr_duzeltme) logYaz(`   Eski Türkçe yazı tipi düzeltmesi: ${z.tr_duzeltme} harf`)
+  for (const b of z.bilgiler) if (b.tablolar && b.tablolar.length) logYaz(`   s.${b.sayfa}: ${b.tablolar.filter((t) => t.hucre).length}/${b.tablolar.length} tablo başlıklı, ${b.tablolar.reduce((s, t) => s + t.hucre, 0)} hücre${b.kapsama != null ? `, kapsama %${(100 * b.kapsama).toFixed(1)}` : ""}`)
+  for (const u of z.uyarilar) logYaz(`   ⚠️ ${u}`, "uyari")
+  if (TEST) (window.__pdf2txtSonuc = window.__pdf2txtSonuc || []).push({ ad: plan.ad, metin: o.metin, ozet: z })
+}
+function bitir(o) {
+  calisiyor = false
+  const hata = o.sonuclar.filter((x) => x.durum === "hata").length
+  const ozet = (o.genelHata ? `HATA (${o.genelHata})` : o.iptal ? "Durduruldu" : "Bitti") +
+    `: ${kayitSayac.tamam} başarılı, ${hata} hatalı, ${kayitSayac.uyarili} uyarılı` + (o.islenmeyen > 0 ? `, ${o.islenmeyen} işlenmedi` : "") + ` · ${sureMetni(o.sure)}`
+  logYaz("— " + ozet); if (o.testOzeti) logYaz(o.testOzeti, "test")
+  $("durum").textContent = ozet; $("ayrinti").textContent = ""
+  if (!o.iptal && !hata && !o.genelHata) $("ilerleme").value = 1000
+  $("bBaslat").disabled = false; $("bDurdur").disabled = true
+  if (TEST) window.__pdf2txtBitti = { ozet, testOzeti: o.testOzeti }
+}
+function bosAd(ad, kullanilan) {
+  let n = 1; const nokta = ad.lastIndexOf("."), kok = ad.slice(0, nokta), uz = ad.slice(nokta)
+  while (kullanilan.has(`${kok}_${n}${uz}`.toLocaleLowerCase("tr"))) n++
+  return `${kok}_${n}${uz}`
+}
+$("bBaslat").onclick = async () => {
+  if (calisiyor) return
+  if (!dosyalar.length) { alert("Önce en az bir PDF ekleyin."); return }
+  let ayar
+  try { ayar = formdanOku() } catch (e) { alert(e.message); return }
+  // çıktı planı: hangi klasöre, hangi adla
+  const plan = new Map(), klasorler = new Set(), cakisma = []
+  for (const d of dosyalar) {
+    const ad = d.ad.replace(/\.pdf$/i, "") + ".txt"
+    let klasor = null
+    if (ayar.hedef === "klasor") { if (!hedefKlasor) { alert("Önce kayıt klasörünü seçin."); return } klasor = hedefKlasor }
+    else if (ayar.hedef === "yanina") {
+      if (d.klasor) klasor = d.klasor
+      else logYaz(`${d.yol}: dosya olarak eklendiği için yanına yazılamaz → indirilecek`, "uyari")
+    }
+    plan.set(d.kimlik, { klasor, ad }); if (klasor) klasorler.add(klasor)
+  }
+  for (const k of klasorler) if (!(await izinIste(k))) { alert(`'${k.name}' klasörüne yazma izni verilmedi.`); return }
+  const kullanilan = new Map()
+  for (const d of dosyalar) {
+    const p = plan.get(d.kimlik)
+    if (!p.klasor) continue
+    const anahtar = kullanilan.get(p.klasor) || new Set(); kullanilan.set(p.klasor, anahtar)
+    if (anahtar.has(p.ad.toLocaleLowerCase("tr")) || (await varMi(p.klasor, p.ad))) cakisma.push(d.kimlik)
+    anahtar.add(p.ad.toLocaleLowerCase("tr"))
+  }
+  if (cakisma.length) {
+    $("varMetin").textContent = `${cakisma.length} TXT dosyası zaten var ya da aynı adı paylaşıyor. Ne yapılsın?`
+    const c = await soruSor($("dlgVar"))
+    if (c !== "uzerine" && c !== "yeni") return
+    if (c === "yeni") {
+      const sec = new Map()
+      for (const d of dosyalar) {
+        const p = plan.get(d.kimlik); if (!p.klasor) continue
+        const s = sec.get(p.klasor) || new Set(); sec.set(p.klasor, s)
+        const nokta = p.ad.lastIndexOf("."), kok = p.ad.slice(0, nokta), uz = p.ad.slice(nokta)
+        let ad = p.ad, n = 0
+        while (s.has(ad.toLocaleLowerCase("tr")) || (await varMi(p.klasor, ad))) { n++; ad = `${kok}_${n}${uz}` }
+        s.add(ad.toLocaleLowerCase("tr")); p.ad = ad
+      }
+    } else {
+      const s = new Map()  // aynı klasörde aynı adı paylaşan girdiler yine de ayrışmalı
+      for (const d of dosyalar) {
+        const p = plan.get(d.kimlik); if (!p.klasor) continue
+        const k = s.get(p.klasor) || new Set(); s.set(p.klasor, k)
+        if (k.has(p.ad.toLocaleLowerCase("tr"))) p.ad = bosAd(p.ad, k)
+        k.add(p.ad.toLocaleLowerCase("tr"))
+      }
+    }
+  }
+  ayarKaydet(ayar)
+  kayitPlan = plan; kayitSayac = { tamam: 0, uyarili: 0 }; $("sonuclar").innerHTML = ""
+  isListesi = dosyalar.slice()
+  calisiyor = true; $("bBaslat").disabled = true; $("bDurdur").disabled = false; $("ilerleme").value = 0
+  baslangic = performance.now(); dosyaSira = 0
+  logYaz(`— Başladı: ${isListesi.length} dosya | kip: ${KIP[ayar.kip]}`)
+  isci.postMessage({ tur: "donustur", ayar, isler: isListesi.map((d) => ({ kimlik: d.kimlik, ad: d.ad })) })
+}
+$("bDurdur").onclick = () => { isci.postMessage({ tur: "iptal" }); $("bDurdur").disabled = true; $("durum").textContent = "Durduruluyor… (geçerli adım bitince durur)" }
+$("bVarsayilan").onclick = () => formaYaz({ ...VARSAYILAN })
+window.addEventListener("beforeunload", (e) => { if (calisiyor) { e.preventDefault(); e.returnValue = "" } })
+
+formaYaz(ayarYukle())
+isciBaslat()
+if (TEST) window.__pdf2txt = { ekle, dosyalar: () => dosyalar, formaYaz, formdanOku, olay, varsayilan: VARSAYILAN }
+</script>
+</body>
+</html>

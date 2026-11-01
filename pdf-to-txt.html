@@ -137,6 +137,7 @@ dialog::backdrop { background: rgba(0,0,0,.35); }
     <label class="kutu"><input type="checkbox" id="ayirici"> Sayfa ayırıcı ekle &nbsp;(===== Sayfa N =====)</label>
     <label class="kutu"><input type="checkbox" id="tire" checked> Satır sonu tirelerini birleştir &nbsp;(dijital-↵leştirme → dijitalleştirme; e-posta korunur)</label>
     <label class="kutu"><input type="checkbox" id="paragraf"> Paragraf içindeki satırları birleştir &nbsp;(tablo ve liste maddelerine dokunmaz)</label>
+    <label class="kutu"><input type="checkbox" id="ocrSozluk" checked> OCR metnindeki Türkçe harf hatalarını sözlükle düzelt &nbsp;(altin→altın, SAGLIK→SAĞLIK; ilk kullanımda ≈10 MB sözlük indirilir)</label>
     <label class="kutu"><input type="checkbox" id="eskiTr" checked> Eski Türkçe yazı tiplerini düzelt &nbsp;(ý→ı, þ→ş, ð→ğ, Ý→İ, Þ→Ş, Ð→Ğ; yalnız Türkçe belgelerde)</label>
     <div class="satir"><label class="etiket" for="tablo">Tablolar:</label>
       <select id="tablo">
@@ -199,6 +200,9 @@ const MODELLER = {
   cls: { url: MODEL_KOK + "PP-OCRv4/cls/ch_ppocr_mobile_v2.0_cls_mobile.onnx", sha: "e47acedf663230f8863ff1ab0e64dd2d82b838fceb5957146dab185a89d6215c", mb: 0.6 },
   small: { url: MODEL_KOK + "PP-OCRv6/rec/PP-OCRv6_rec_small.onnx", sha: "6f327246b50388f3c176ae304bd95767ea6dc0c9ae92153ef8cbe210b3c14884", mb: 21.2 },
   medium: { url: MODEL_KOK + "PP-OCRv6/rec/PP-OCRv6_rec_medium.onnx", sha: "eef444829dbbe18d7fea59a3f6eb75647518d2b3a9568d27c92e42940204894b", mb: 76.6 },
+  // Türkçe sözlük (OCR harf düzeltmesi): Hunspell tr (MIT, Harun Reşit Zafer) + OpenSubtitles 2018 sıklık listesi (CC-BY-SA-4.0, Hermit Dave)
+  sozluk_dic: { url: "https://cdn.jsdelivr.net/npm/dictionary-tr@2.0.0/index.dic", sha: "dc1d8f7724f4aefd117274678de431e4ea1765f2e02e6983b6ca48cbf5a7fc7c", mb: 9.1 },
+  sozluk_frek: { url: "https://cdn.jsdelivr.net/gh/hermitdave/FrequencyWords@525f9b560de45753a5ea01069454e72e9aa541c6/content/2018/tr/tr_50k.txt", sha: "480192844e7fdfe9591bbf0b9cfbb96ed5751cfbba7024fd45d8cb7508e07d5c", mb: 0.7 },
 }
 
 let mupdf = null, ort = null, cv = null
@@ -885,6 +889,9 @@ function paragrafBirlestir(metin) {
 // ------------------------------------------------------------------ okunamayan metin (U+FFFD) ve eski Türkçe yazı tipleri
 // Yazı tipinde "şekil → harf" tablosu (ToUnicode) yoksa MuPDF harfi U+FFFD (�) olarak verir; bu metin ancak OCR ile okunur.
 const FFFD = "\ufffd"
+const MADDE_FFFD_RE = /^\s*\ufffd(\s|$)/
+// Türkçe OCR'ın zaman zaman verdiği, Türkçede bulunmayan benzer harfler (gerçek PDF'te ölçüldü: SAČLIK → SAĞLIK)
+const OCR_TR_EK = { "Č": "Ğ", "č": "ğ", "Ǧ": "Ğ", "ǧ": "ğ", "Ú": "Ü", "ú": "ü", "õ": "ö", "Õ": "Ö", "ů": "ü", "Ů": "Ü", "ű": "ü", "Ű": "Ü", "ő": "ö", "Ő": "Ö" }
 const OKUNAMAZ_ESIK = 0.10  // pymupdf4llm'in BAD_CHAR_THRESHOLD değeriyle aynı
 const OKUNAMAZ_ADET = 20    // oran düşük olsa da bu kadar okunamayan karakter bir metin bölümünün kaybı demektir
 function okunamazOrani(metin) {
@@ -908,6 +915,70 @@ function eskiTrDuzelt(metin) {
   const yeni = metin.replace(ESKI_TR_RE, (c) => { adet++; return ESKI_TR[c] })
   return [yeni, adet]
 }
+
+// ------------------------------------------------------------------ OCR metni için Türkçe sözlük düzeltmesi
+// OCR, ı/i'yi karıştırır ve büyük harflerde/küçük puntoda ş ğ ö ü ç noktalarını düşürür (gerçek PDF'te ölçüldü:
+// "altin", "Kiymetli", "SAGLIK", "YONELIK"). Sözlükte olmayan kelimenin ı↔i ve s→ş, g→ğ, o→ö, u→ü, c→ç
+// değişkenlerinden sözlükte bulunanı (en az değişiklikle) seçilir. Harf kaldırma (ç→c gibi) yapılmaz.
+let SOZLUK = null
+async function sozlukYukle() {
+  if (SOZLUK) return SOZLUK
+  log("Türkçe sözlük hazırlanıyor (ilk kullanımda ≈10 MB indirilir, sonra saklanır)…")
+  const td = new TextDecoder("utf-8")
+  const dic = td.decode(await modelGetir("sozluk_dic")), frek = td.decode(await modelGetir("sozluk_frek"))
+  const L = new Set(), F = new Map()
+  const satirlar = dic.split("\n")
+  for (let i = 1; i < satirlar.length; i++) { const k = satirlar[i].split("/")[0].trim(); if (k) L.add(k.toLocaleLowerCase("tr")) }
+  for (const sat of frek.split("\n")) { const j = sat.lastIndexOf(" "); if (j > 0) F.set(sat.slice(0, j), +sat.slice(j + 1)) }
+  SOZLUK = { L, F }
+  return SOZLUK
+}
+const SZ_CIFT = { i: "ı", ı: "i" }, SZ_ASC = { g: "ğ", s: "ş", o: "ö", u: "ü", c: "ç" }
+function sozlukDuzeltKelime(w, sz, sayac) {
+  const { L, F } = sz
+  const harf = [...w]
+  if (harf.length < 3) return w
+  const hepsiBuyuk = w === w.toLocaleUpperCase("tr") && w !== w.toLocaleLowerCase("tr")
+  if (hepsiBuyuk && harf.length <= 4) return w  // kısaltmalar (NICE, AME …)
+  const k = w.toLocaleLowerCase("tr"), kh = [...k]
+  if (kh.length !== harf.length) return w
+  const gecerli = (x, enF = 0) => {
+    if (L.has(x)) return true
+    const f = F.get(x) || 0
+    if (f > 0 && f >= 0.2 * enF) return true
+    const xh = [...x]
+    for (let n = xh.length - 1; n >= 3 && n >= 0.7 * xh.length; n--) if (L.has(xh.slice(0, n).join(""))) return true
+    return false
+  }
+  const poz = []
+  kh.forEach((c, i) => { if (SZ_CIFT[c] || SZ_ASC[c]) poz.push(i) })
+  if (!poz.length || poz.length > 7) return w
+  // büyük harfli kelimede I/İ ayrımı belirsizdir: o konumların değişimi "bedava"
+  const bedava = new Set(hepsiBuyuk ? harf.map((c, i) => (c === "I" ? i : -1)).filter((i) => i >= 0) : [])
+  const vs = []
+  for (let m = 1; m < 1 << poz.length; m++) {
+    const x = kh.slice(); let n = 0
+    poz.forEach((i, j) => { if (m & (1 << j)) { x[i] = SZ_CIFT[kh[i]] || SZ_ASC[kh[i]]; if (!bedava.has(i)) n++ } })
+    vs.push([n, x.join("")])
+  }
+  const enF = Math.max(0, ...vs.map(([, v]) => F.get(v) || 0))
+  if (gecerli(k, enF)) return w
+  let en = null
+  for (const [n, v] of vs) {
+    if (!(L.has(v) || (F.get(v) || 0) >= 50) || !gecerli(v)) continue
+    const anahtar = [n, L.has(v) ? 0 : 1, -(F.get(v) || 0)]
+    if (!en || anahtar[0] < en[0][0] || (anahtar[0] === en[0][0] && (anahtar[1] < en[0][1] || (anahtar[1] === en[0][1] && anahtar[2] < en[0][2])))) en = [anahtar, v]
+  }
+  if (!en) return w
+  const v = en[1]
+  let y
+  if (hepsiBuyuk) y = v.toLocaleUpperCase("tr")
+  else if (harf[0] === harf[0].toLocaleUpperCase("tr") && harf[0] !== harf[0].toLocaleLowerCase("tr")) y = [...v][0].toLocaleUpperCase("tr") + [...v].slice(1).join("")
+  else y = v
+  if (y !== w) { sayac.n++; if (sayac.ornek.length < 12) sayac.ornek.push(`${w}→${y}`) }
+  return y
+}
+function sozlukDuzelt(metin, sz, sayac) { return metin.replace(/\p{L}+/gu, (w) => sozlukDuzeltKelime(w, sz, sayac)) }
 
 function kelimeler(metin) {
   const c = new Map()
@@ -1099,7 +1170,9 @@ function stextBloklari(sayfa) {
   const j = JSON.parse(sayfa.toStructuredText("segment,table-hunt").asJSON())
   const bloklar = [], tablolar = []
   const satirlariAl = (b) => (b.lines || []).map((l) => ({
-    x0: l.bbox.x, y0: l.bbox.y, x1: l.bbox.x + l.bbox.w, y1: l.bbox.y + l.bbox.h, metin: l.text || "",
+    x0: l.bbox.x, y0: l.bbox.y, x1: l.bbox.x + l.bbox.w, y1: l.bbox.y + l.bbox.h,
+    // satır başındaki tek başına "�" bir madde imidir (yazı tipinde madde imi glifinin harf karşılığı yok; gerçek PDF'te ölçüldü)
+    metin: (l.text || "").replace(MADDE_FFFD_RE, "•$1"),
     boyut: l.font ? l.font.size : 0, kalin: !!(l.font && (l.font.weight === "bold" || /bold|black|heavy/i.test(l.font.name || ""))),
   })).filter((l) => l.metin.trim())
   const metinTopla = (dugum, hedef) => {
@@ -1131,6 +1204,24 @@ function stextBloklari(sayfa) {
     }
   }
   yuru(j.blocks || [])
+  // Yalnız madde iminden oluşan satırı aynı hizadaki sağ komşu satırın başına taşı (MuPDF bazen imi ayrı bloğa koyuyor)
+  const tum = bloklar.flatMap((bb) => bb.satirlar.map((x) => ({ x, bb })))
+  const silinecek = new Set()
+  for (const { x } of tum) {
+    if (!/^\s*[•●▪◦]\s*$/.test(x.metin)) continue
+    const h = x.y1 - x.y0
+    const komsu = tum.filter(({ x: y }) => y !== x && !silinecek.has(y) && Math.abs((y.y0 + y.y1) / 2 - (x.y0 + x.y1) / 2) < 0.4 * h && y.x0 >= x.x1 - 1 && y.x0 - x.x1 < 25)
+      .sort((p, q) => p.x.x0 - q.x.x0)[0]
+    if (komsu) { komsu.x.metin = "• " + komsu.x.metin.replace(/^\s+/, ""); komsu.x.x0 = Math.min(komsu.x.x0, x.x0); silinecek.add(x) }
+  }
+  if (silinecek.size) {
+    for (let i = bloklar.length - 1; i >= 0; i--) {
+      const k = bloklar[i].satirlar.filter((x) => !silinecek.has(x))
+      if (!k.length) bloklar.splice(i, 1)
+      else if (k.length !== bloklar[i].satirlar.length) bloklar[i] = { ...bloklar[i], ...kutuBirlesim(k), satirlar: k }
+    }
+    for (const bb of bloklar) Object.assign(bb, kutuBirlesim(bb.satirlar))
+  }
   return { bloklar, tablolar }
 }
 function duzYaziMi(metinler) {
@@ -1304,11 +1395,13 @@ function sayfaListesi(aralik, n) {
 }
 function hamMetin(sayfa) { return sayfa.toStructuredText("preserve-whitespace").asText() }
 function kutuMetni(k) {
-  // pymupdf4llm get_plain_text birebir: satırlar boşlukla birleşir, "kelime- " (3+ harf) tiresi kaldırılır
+  // pymupdf4llm get_plain_text: satırlar boşlukla birleşir, "kelime- " (3+ harf) tiresi kaldırılır.
+  // Madde imiyle başlayan satır yeni satıra geçer (pymupdf4llm list-item kutularını ayrı satır yazar).
   let out = ""
   for (const s of k.satirlar) {
     const t = s.metin.trim()
     if (out.endsWith("- ")) { const p = out.split(/\s+/).filter((x) => x); if (p.length && p[p.length - 1].length > 2) out = out.slice(0, -2) }
+    if (out && /^[•●▪◦]\s/.test(t)) out = out.replace(/\s+$/, "") + "\n"
     out += t + " "
   }
   return out
@@ -1451,6 +1544,11 @@ class PdfDonusturucu {
       tablolar.push(...ht.tablolar)
       kutular = kutular.concat(satirlariBlokla(ht.kalan))
     } else {
+      // birkaç okunamayan karakterli satır (ör. "ATOP�K", "%2�lik"): yalnız o satırlar görüntüden okunup onarılır
+      if (ocrIzni && ok.adet) {
+        try { bilgi.onarilan = await izle("satirOnar", () => this.satirOnar(sayfa, stBlok.flatMap((bb) => bb.satirlar).concat(tablolar.flatMap((t) => t.satirlar)), tablolar)) }
+        catch (e) { if (e instanceof IptalEdildi) throw e; log(`   s.${pno + 1}: satır onarımı yapılamadı (${e.message || e})`, "uyari") }
+      }
       // çizgisiz tablolar: table-hunt hiç bulamadıysa hizalı ızgara ara
       const tekSatirli = kutular.filter((k) => k.satirlar.length >= 1)
       const tumSatir = tekSatirli.flatMap((k) => k.satirlar.map((s) => ({ ...s, _blok: k })))
@@ -1467,6 +1565,61 @@ class PdfDonusturucu {
     }
     baslikSiniflandir(kutular)
     return { sayfa: pno, gen, yuk, kutular: kutular.concat(tablolar), bilgi, hamKaynak, ocrMu: bilgi.ocr }
+  }
+  async satirOnar(sayfa, satirlar, tablolar) {
+    const jokerDoldur = (a, b) => {
+      // a'daki � (joker) karakterleri, a↔b hizalamasına göre b'deki karşılıklarıyla değiştirir
+      a = [...a]; b = [...b]
+      const n = a.length, m = b.length, D = Array.from({ length: n + 1 }, () => new Int32Array(m + 1))
+      for (let i = 0; i <= n; i++) D[i][0] = i
+      for (let j = 0; j <= m; j++) D[0][j] = j
+      for (let i = 1; i <= n; i++) for (let j = 1; j <= m; j++)
+        D[i][j] = Math.min(D[i - 1][j] + 1, D[i][j - 1] + 1, D[i - 1][j - 1] + (a[i - 1] === FFFD || a[i - 1] === b[j - 1] ? 0 : 1))
+      const out = []; let i = n, j = m
+      while (i > 0) {
+        if (j > 0 && D[i][j] === D[i - 1][j - 1] + (a[i - 1] === FFFD || a[i - 1] === b[j - 1] ? 0 : 1)) { out.push(a[i - 1] === FFFD ? b[j - 1] : a[i - 1]); i--; j-- }
+        else if (D[i][j] === D[i - 1][j] + 1) { if (a[i - 1] !== FFFD) out.push(a[i - 1]); i-- }
+        else j--
+      }
+      return out.reverse().join("")
+    }
+    // PyMuPDF geliştiricisinin önerdiği "yalnız � içeren parçaları OCR'la" yöntemi: satır kutusu kırpılıp yalnız tanıma (rec) çalışır.
+    const kotu = satirlar.filter((x) => x.metin.includes(FFFD))
+    if (!kotu.length) return 0
+    const dpi = 300, k = dpi / 72
+    const img = sayfaGoruntu(sayfa, dpi)
+    const kirp = []
+    try {
+      for (const x of kotu) {
+        const x0 = Math.max(0, Math.floor((x.x0 - 1.5) * k)), y0 = Math.max(0, Math.floor((x.y0 - 1.5) * k))
+        const x1 = Math.min(img.cols, Math.ceil((x.x1 + 1.5) * k)), y1 = Math.min(img.rows, Math.ceil((x.y1 + 1.5) * k))
+        const roi = img.roi(new cv.Rect(x0, y0, Math.max(1, x1 - x0), Math.max(1, y1 - y0))); kirp.push(roi.clone()); roi.delete()
+      }
+    } finally { img.delete() }
+    let r
+    try { r = await this.ocr.tani(kirp) } finally { kirp.forEach((m) => m.delete()) }
+    // � her karakterle eşleşen joker sayılarak düzenleme uzaklığı: OCR sonucu yerel metinle tutarlı değilse kullanılmaz
+    const uzak = (a, b) => {
+      a = [...a]; b = [...b]; let p = Array.from({ length: b.length + 1 }, (_, i) => i)
+      for (let i = 1; i <= a.length; i++) { const c = [i]; for (let j = 1; j <= b.length; j++) c.push(Math.min(p[j] + 1, c[j - 1] + 1, p[j - 1] + (a[i - 1] === FFFD || a[i - 1] === b[j - 1] ? 0 : 1))); p = c }
+      return p[b.length]
+    }
+    let onarilan = 0
+    const degisim = []
+    kotu.forEach((x, i) => {
+      const eski = x.metin.trim()
+      let aday = (r[i].metin || "").trim()
+      if (eski.startsWith("• ")) aday = "• " + aday.replace(/^[•·●▪◦*.\-–oe°]\s*/u, "")
+      if (!aday || r[i].skor < 0.8) return
+      const fark = uzak(eski, aday) / Math.max(1, [...eski].length)
+      if (fark > 0.15) { log(`   satır onarımı reddedildi (fark %${(100 * fark).toFixed(0)}): "${eski}" → "${aday}"`, "test"); return }
+      // yalnız � konumları OCR'dan doldurulur; yerel metnin geri kalanı aynen korunur (OCR'ın kendi hataları taşınmaz)
+      const yeni = jokerDoldur(eski, aday)
+      degisim.push([eski, yeni]); x.metin = yeni; aday = yeni; onarilan++
+      log(`   satır onarıldı: "${eski}" → "${aday}"`, "test")
+    })
+    for (const t of tablolar) t.extract = t.extract.map((sr) => sr.map((h) => { let y = h || ""; for (const [e, n] of degisim) if (y.includes(e)) y = y.split(e).join(n); return y }))
+    return onarilan
   }
   sayfaMetni(s) {
     const bicim = this.a.tablo_bicimi || "izgara"
@@ -1549,12 +1702,32 @@ class PdfDonusturucu {
         return metin
       })
       // eski Türkçe yazı tipi (ý þ ð → ı ş ğ): belgenin tamamına bakılarak karar verilir
-      let trDuzeltilen = 0
+      let trDuzeltilen = 0, ocrTrDuzeltilen = 0, trKarar = null
+      const turkceMi = () => {
+        if (trKarar === null) trKarar = belgeTurkceMi(sayfaMetinleri.join(" ").slice(0, 400000).replace(ESKI_TR_RE, (c) => ESKI_TR[c]))
+        return trKarar
+      }
       if (this.a.eski_tr_font !== false && /[ýþðÝÞÐ]/.test(sayfaMetinleri.join(""))) {
-        const ornek = sayfaMetinleri.join(" ").slice(0, 400000).replace(ESKI_TR_RE, (c) => ESKI_TR[c])
-        if (belgeTurkceMi(ornek)) {
+        if (turkceMi()) {
           for (let i = 0; i < sayfaMetinleri.length; i++) { const [y, n] = eskiTrDuzelt(sayfaMetinleri[i]); sayfaMetinleri[i] = y; trDuzeltilen += n; ham[i].bilgi.tr_duzeltme = n }
         } else log(`   ý/þ/ð harfleri var ama belge Türkçe görünmüyor → değiştirilmedi`, "uyari")
+      }
+      // OCR'ın Türkçede olmayan benzer harfleri (Č→Ğ, õ→ö, ů→ü …): yalnız OCR'lı sayfalarda ve Türkçe belgede
+      const ocrTrRe = new RegExp("[" + Object.keys(OCR_TR_EK).join("") + "]", "g"), ocrTrVar = new RegExp(ocrTrRe.source)  // test için g bayraksız (lastIndex tuzağı)
+      if (ham.some((h, i) => h.bilgi.ocr && ocrTrVar.test(sayfaMetinleri[i])) && turkceMi()) {
+        for (let i = 0; i < ham.length; i++) {
+          if (!ham[i].bilgi.ocr) continue
+          sayfaMetinleri[i] = sayfaMetinleri[i].replace(ocrTrRe, (c) => { ocrTrDuzeltilen++; return OCR_TR_EK[c] })
+        }
+      }
+      // OCR'lı sayfalarda Türkçe sözlük düzeltmesi (ı/i, ş, ğ, ö, ü, ç)
+      const sozlukSayac = { n: 0, ornek: [] }
+      if (this.a.ocr_sozluk !== false && ham.some((h) => h.bilgi.ocr) && turkceMi()) {
+        try {
+          const sz = await sozlukYukle()
+          for (let i = 0; i < ham.length; i++) if (ham[i].bilgi.ocr) sayfaMetinleri[i] = sozlukDuzelt(sayfaMetinleri[i], sz, sozlukSayac)
+          if (sozlukSayac.ornek.length) log(`   sözlük düzeltmesi örnekleri: ${sozlukSayac.ornek.join(", ")}`, "test")
+        } catch (e) { if (e instanceof IptalEdildi) throw e; log(`Türkçe sözlük kullanılamadı, düzeltme atlandı (${e.message || e})`, "uyari") }
       }
       for (let i = 0; i < ham.length; i++) {
         const h = ham[i]
@@ -1585,7 +1758,7 @@ class PdfDonusturucu {
       let metin = govde + "\n"
       if (this.a.satir_sonu === "crlf") metin = metin.replace(/\n/g, "\r\n")
       return { metin, ozet: { dosya: ad, sayfa: sayfalar.length, ocr_sayfa: bilgiler.filter((b) => b.ocr).length, karakter: govde.length, sure: (performance.now() - t0) / 1000, uyarilar, bilgiler,
-        okunamaz_ocr_sayfa: bilgiler.filter((b) => b.okunamaz_ocr).length, tr_duzeltme: trDuzeltilen, okunamaz_kalan: okunamazOrani(govde).adet } }
+        okunamaz_ocr_sayfa: bilgiler.filter((b) => b.okunamaz_ocr).length, tr_duzeltme: trDuzeltilen, ocr_tr_duzeltme: ocrTrDuzeltilen, sozluk_duzeltme: sozlukSayac.n, sozluk_ornek: sozlukSayac.ornek, okunamaz_kalan: okunamazOrani(govde).adet } }
     } finally { doc.destroy() }
   }
 }
@@ -1699,7 +1872,7 @@ for (const [k, v] of Object.entries(KIP)) { const o = document.createElement("op
 const VARSAYILAN = {
   kip: "otomatik_koru", ocr_model: "small", ocr_dpi: "otomatik", hizlandirma: "webgpu", egim_duzelt: true, gurultu_temizle: true,
   ust_bilgi: true, alt_bilgi: true, sayfa_ayirici: false, tire_birlestir: true, paragraf_birlestir: false, tablo_bicimi: "dogrusal",
-  okuma_sirasi: "xy", eski_tr_font: true, kayip_esigi: 0.98, kayipta_ham: true, satir_sonu: "crlf", sayfa_araligi: "", hedef: "indir", alt_klasorler: true,
+  okuma_sirasi: "xy", eski_tr_font: true, ocr_sozluk: true, kayip_esigi: 0.98, kayipta_ham: true, satir_sonu: "crlf", sayfa_araligi: "", hedef: "indir", alt_klasorler: true,
 }
 const AYAR_ANAHTAR = "pdf2txt_ayarlar_v1"
 function ayarYukle() {
@@ -1710,7 +1883,7 @@ function ayarKaydet(a) { try { localStorage.setItem(AYAR_ANAHTAR, JSON.stringify
 function formaYaz(a) {
   $("kip").value = a.kip; $("model").value = a.ocr_model; $("dpi").value = String(a.ocr_dpi); $("hiz").value = a.hizlandirma
   $("egim").checked = a.egim_duzelt; $("gurultu").checked = a.gurultu_temizle; $("ust").checked = a.ust_bilgi; $("alt").checked = a.alt_bilgi
-  $("ayirici").checked = a.sayfa_ayirici; $("tire").checked = a.tire_birlestir; $("paragraf").checked = a.paragraf_birlestir; $("tablo").value = a.tablo_bicimi; $("eskiTr").checked = a.eski_tr_font
+  $("ayirici").checked = a.sayfa_ayirici; $("tire").checked = a.tire_birlestir; $("paragraf").checked = a.paragraf_birlestir; $("tablo").value = a.tablo_bicimi; $("eskiTr").checked = a.eski_tr_font; $("ocrSozluk").checked = a.ocr_sozluk
   $("sira").value = a.okuma_sirasi; $("esik").value = Math.round(a.kayip_esigi * 100); $("kayiptaHam").checked = a.kayipta_ham
   $("satirSonu").value = a.satir_sonu; $("aralik").value = a.sayfa_araligi; $("altKlasor").checked = a.alt_klasorler
   document.querySelector(`input[name=hedef][value=${a.hedef}]`).checked = true
@@ -1723,7 +1896,7 @@ function formdanOku() {
     kip: $("kip").value, ocr_model: $("model").value, ocr_dpi: $("dpi").value === "otomatik" ? "otomatik" : Number($("dpi").value),
     hizlandirma: $("hiz").value, egim_duzelt: $("egim").checked, gurultu_temizle: $("gurultu").checked, ust_bilgi: $("ust").checked,
     alt_bilgi: $("alt").checked, sayfa_ayirici: $("ayirici").checked, tire_birlestir: $("tire").checked, paragraf_birlestir: $("paragraf").checked,
-    tablo_bicimi: $("tablo").value, eski_tr_font: $("eskiTr").checked, okuma_sirasi: $("sira").value, kayip_esigi: esik / 100, kayipta_ham: $("kayiptaHam").checked,
+    tablo_bicimi: $("tablo").value, eski_tr_font: $("eskiTr").checked, ocr_sozluk: $("ocrSozluk").checked, okuma_sirasi: $("sira").value, kayip_esigi: esik / 100, kayipta_ham: $("kayiptaHam").checked,
     satir_sonu: $("satirSonu").value, sayfa_araligi: $("aralik").value.trim(), hedef: document.querySelector("input[name=hedef]:checked").value,
     alt_klasorler: $("altKlasor").checked, parola: "",
     ...(TEST && PARAM.get("paralel") ? { paralel_zorla: Math.max(1, Math.min(8, Number(PARAM.get("paralel")) || 1)) } : {}),
@@ -1876,7 +2049,7 @@ async function olay(o) {
       $("ilerleme").value = Math.min(1000, 1000 * oran)
       const ek = []
       if (b.ocr) ek.push("OCR"); if (b.yon) ek.push(`yön ${b.yon}°`); if (b.dpi) ek.push(`${b.dpi} dpi`)
-      if (b.eski_ocr) ek.push("eski OCR yenilendi"); if (b.okunamaz_ocr) ek.push(`okunamayan ${b.okunamaz_adet} karakter (%${(100 * b.okunamaz).toFixed(1)}) → OCR`); if (b.aci) ek.push(`eğim ${b.aci > 0 ? "+" : ""}${b.aci.toFixed(2)}°`)
+      if (b.eski_ocr) ek.push("eski OCR yenilendi"); if (b.okunamaz_ocr) ek.push(`okunamayan ${b.okunamaz_adet} karakter (%${(100 * b.okunamaz).toFixed(1)}) → OCR`); if (b.onarilan) ek.push(`${b.onarilan} satır OCR ile onarıldı`); if (b.aci) ek.push(`eğim ${b.aci > 0 ? "+" : ""}${b.aci.toFixed(2)}°`)
       $("ayrinti").textContent = `Sayfa ${o.sira}/${o.toplam} · ${b.yontem} · ${b.sure.toFixed(1)} sn · kalan ~${sureMetni(kalan)}`
       logYaz(`   s.${b.sayfa}: ${b.yontem}${ek.length ? " (" + ek.join(", ") + ")" : ""}, ${b.sure.toFixed(1)} sn`)
       break
@@ -1928,6 +2101,8 @@ async function kaydet(o) {
   logYaz(`   ✔ ${nereye}  (${z.sayfa} sayfa, ${z.ocr_sayfa} OCR, ${z.karakter} karakter, ${z.sure.toFixed(1)} sn)`, "tamam")
   if (z.okunamaz_ocr_sayfa) logYaz(`   ${z.okunamaz_ocr_sayfa} sayfada yazı tipi okunamadığı için metin OCR ile okundu`)
   if (z.tr_duzeltme) logYaz(`   Eski Türkçe yazı tipi düzeltmesi: ${z.tr_duzeltme} harf`)
+  if (z.sozluk_duzeltme) logYaz(`   OCR metni Türkçe sözlükle düzeltildi: ${z.sozluk_duzeltme} kelime (örn. ${z.sozluk_ornek.slice(0, 4).join(", ")})`)
+  if (z.ocr_tr_duzeltme) logYaz(`   OCR'ın Türkçe dışı harfleri düzeltildi (Č→Ğ, õ→ö, ů→ü …): ${z.ocr_tr_duzeltme} harf`)
   for (const b of z.bilgiler) if (b.tablolar && b.tablolar.length) logYaz(`   s.${b.sayfa}: ${b.tablolar.filter((t) => t.hucre).length}/${b.tablolar.length} tablo başlıklı, ${b.tablolar.reduce((s, t) => s + t.hucre, 0)} hücre${b.kapsama != null ? `, kapsama %${(100 * b.kapsama).toFixed(1)}` : ""}`)
   for (const u of z.uyarilar) logYaz(`   ⚠️ ${u}`, "uyari")
   if (TEST) (window.__pdf2txtSonuc = window.__pdf2txtSonuc || []).push({ ad: plan.ad, metin: o.metin, ozet: z })
