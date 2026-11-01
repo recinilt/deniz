@@ -137,6 +137,7 @@ dialog::backdrop { background: rgba(0,0,0,.35); }
     <label class="kutu"><input type="checkbox" id="ayirici"> Sayfa ayırıcı ekle &nbsp;(===== Sayfa N =====)</label>
     <label class="kutu"><input type="checkbox" id="tire" checked> Satır sonu tirelerini birleştir &nbsp;(dijital-↵leştirme → dijitalleştirme; e-posta korunur)</label>
     <label class="kutu"><input type="checkbox" id="paragraf"> Paragraf içindeki satırları birleştir &nbsp;(tablo ve liste maddelerine dokunmaz)</label>
+    <label class="kutu"><input type="checkbox" id="eskiTr" checked> Eski Türkçe yazı tiplerini düzelt &nbsp;(ý→ı, þ→ş, ð→ğ, Ý→İ, Þ→Ş, Ð→Ğ; yalnız Türkçe belgelerde)</label>
     <div class="satir"><label class="etiket" for="tablo">Tablolar:</label>
       <select id="tablo">
         <option value="dogrusal">Başlıklı, satır satır &nbsp;(İzmir — Üretim - 2025: 1.250) — önerilen</option>
@@ -572,6 +573,7 @@ class OcrMotoru {
   }
   // --- CLS (180° satır düzeltme)
   async yonSiniflandir(kirpimlar) {
+    const donen = []  // 180° çevrilen satır indeksleri
     const oranlar = kirpimlar.map((m) => m.cols / m.rows)
     const sira = argsortStabil(oranlar)
     for (let bas = 0; bas < kirpimlar.length; bas += 6) {
@@ -590,9 +592,11 @@ class OcrMotoru {
         const etiket = p1 > p0 ? 1 : 0, skor = Math.max(p0, p1)
         if (etiket === 1 && skor > 0.9) {
           const i = sira[bas + k], d = new cv.Mat(); cv.rotate(kirpimlar[i], d, cv.ROTATE_180); kirpimlar[i].delete(); kirpimlar[i] = d
+          donen.push(i)
         }
       }
     }
+    return donen
   }
   // --- REC (CTC)
   async tani(kirpimlar) {
@@ -638,8 +642,19 @@ class OcrMotoru {
     if (!rec) return kutular.map((k) => ({ pts: k.pts, metin: "", skor: k.skor }))
     if (!kutular.length) return []
     const kirpimlar = kutular.map((k) => OcrMotoru.kirp(img, k.pts))
-    if (cls) await this.yonSiniflandir(kirpimlar)
+    const donen = cls ? await this.yonSiniflandir(kirpimlar) : []
     const r = await this.tani(kirpimlar)
+    if (donen.length) {
+      // Yön sınıflandırıcı çok geniş satırlarda kararsız (aynı satırda Python 0.81, burada 0.96 verdi; ölçüldü).
+      // Çevrilen satırın çevrilmemiş hâli de tanınır; tanıma güveni yüksek olan yön seçilir.
+      const geri = donen.map((i) => { const d = new cv.Mat(); cv.rotate(kirpimlar[i], d, cv.ROTATE_180); return d })
+      const r2 = await this.tani(geri); geri.forEach((m) => m.delete())
+      donen.forEach((i, j) => {
+        const sec = r2[j].skor > r[i].skor
+        if (TEST) log(`   cls: satır ${i} 180° önerildi → ${sec ? "geri alındı" : "kabul"} (çevrik ${r[i].skor}, düz ${r2[j].skor})`, "test")
+        if (sec) r[i] = r2[j]
+      })
+    }
     kirpimlar.forEach((m) => m.delete())
     const cikti = []
     kutular.forEach((k, i) => { if (r[i].metin.trim() && r[i].skor >= 0.5) cikti.push({ pts: k.pts, metin: r[i].metin, skor: r[i].skor }) })
@@ -867,6 +882,33 @@ function paragrafBirlestir(metin) {
   }
   return cikti.join("\n\n")
 }
+// ------------------------------------------------------------------ okunamayan metin (U+FFFD) ve eski Türkçe yazı tipleri
+// Yazı tipinde "şekil → harf" tablosu (ToUnicode) yoksa MuPDF harfi U+FFFD (�) olarak verir; bu metin ancak OCR ile okunur.
+const FFFD = "\ufffd"
+const OKUNAMAZ_ESIK = 0.10  // pymupdf4llm'in BAD_CHAR_THRESHOLD değeriyle aynı
+const OKUNAMAZ_ADET = 20    // oran düşük olsa da bu kadar okunamayan karakter bir metin bölümünün kaybı demektir
+function okunamazOrani(metin) {
+  let bad = 0, top = 0
+  for (const c of metin) { if (/\s/u.test(c)) continue; top++; if (c === FFFD) bad++ }
+  return { oran: top ? bad / top : 0, adet: bad, toplam: top }
+}
+// 1990-2000'lerin Türkçe yazı tipleri ı ş ğ İ Ş Ğ harflerini Windows-1252'deki ý þ ð Ý Þ Ð yerine koyar (Windows-1254 düzeni)
+const ESKI_TR = { "ý": "ı", "þ": "ş", "ð": "ğ", "Ý": "İ", "Þ": "Ş", "Ð": "Ğ" }
+const ESKI_TR_RE = /[ýþðÝÞÐ]/g
+const TR_SOZCUK_RE = /(^|[\s(«"'“])(ve|bir|ile|için|bu|da|de|olan|olarak|gibi|daha|veya|her|çok|en|ya|ki)(?=[\s,.;:)»"'”]|$)/giu
+function belgeTurkceMi(ornek) {
+  // ý/þ/ð Çek, Slovak, İzlanda dillerinde gerçek harflerdir: yalnız Türkçe olduğu açık belgelerde düzelt
+  const tr = (ornek.match(TR_SOZCUK_RE) || []).length
+  const yabanci = (ornek.match(/[řěůťďňĺľŕæøå]/gi) || []).length
+  const sozcuk = (ornek.match(/\S+/g) || []).length || 1
+  return tr >= 5 && tr / sozcuk >= 0.02 && yabanci === 0
+}
+function eskiTrDuzelt(metin) {
+  let adet = 0
+  const yeni = metin.replace(ESKI_TR_RE, (c) => { adet++; return ESKI_TR[c] })
+  return [yeni, adet]
+}
+
 function kelimeler(metin) {
   const c = new Map()
   for (const w of metin.normalize("NFC").match(KELIME_RE) || []) { const k = w.toLocaleLowerCase("tr"); c.set(k, (c.get(k) || 0) + 1) }
@@ -1347,6 +1389,11 @@ class PdfDonusturucu {
     const tablolar = []
     for (const t of st.tablolar) { if (tabloGecerli(t)) tablolar.push(t); else stBlok = stBlok.concat(satirlariBlokla(t.satirlar)) }
     for (const t of tablolar) stBlok = tabloGenislet(t, stBlok)
+    // okunamayan karakter oranı (yalnız görünür yerel metin)
+    const yerelSatir = stBlok.flatMap((bb) => bb.satirlar).concat(tablolar.flatMap((t) => t.satirlar))
+    const ok = okunamazOrani(yerelSatir.map((x) => x.metin).join(" "))
+    bilgi.okunamaz = ok.oran; bilgi.okunamaz_adet = ok.adet
+    const okunamaz = ok.oran >= OKUNAMAZ_ESIK || ok.adet >= OKUNAMAZ_ADET
     let kutular = stBlok
     const ocrIzni = this.ocr !== null
     const eskiOcr = analiz.gorunmez > 0 && analiz.gorunmez >= analiz.gorunur
@@ -1358,8 +1405,18 @@ class PdfDonusturucu {
       else if (eskiOcr) ocrYap = this.a.kip === KIP_OTOMATIK_YENILE
       else ocrYap = zayif
     }
+    // harf tablosu olmayan yazı tipi: metin var ama okunamıyor → sayfa yazılarıyla birlikte çizilip OCR'lanır
+    if (ocrIzni && okunamaz && !eskiOcr) { ocrYap = true; bilgi.okunamaz_ocr = true }
     if (eskiOcr && ocrYap) bilgi.eski_ocr = true
     let hamKaynak = hamMetin(sayfa)
+    if (ocrYap && ok.adet) {
+      // okunamayan (�) satırlar yerel metinden çıkarılır; o bölgelerin metnini OCR verir
+      const iyiMi = (x) => !x.metin.includes(FFFD)
+      stBlok = stBlok.map((bb) => { const k = bb.satirlar.filter(iyiMi); return k.length === bb.satirlar.length ? bb : k.length ? { ...bb, ...kutuBirlesim(k), satirlar: k } : null }).filter((bb) => bb)
+      for (let i = tablolar.length - 1; i >= 0; i--) if (tablolar[i].satirlar.some((x) => !iyiMi(x))) tablolar.splice(i, 1)
+      kutular = stBlok
+      hamKaynak = hamKaynak.split("\n").filter((x) => !x.includes(FFFD)).join("\n")
+    }
     if (ocrYap) {
       iptalMi()
       let yon = 0
@@ -1466,8 +1523,8 @@ class PdfDonusturucu {
           const k = siradaki++, pno = sayfalar[k], ts = performance.now()
           let kayit
           if (this.a.kip === KIP_HAM) {
-            const sayfa = doc.loadPage(pno)
-            kayit = { pno, metin: metniTemizle(hamMetin(sayfa), this.a.tire_birlestir, false), bilgi: { sayfa: pno + 1, yontem: "ham", ocr: false, kapsama: null, aci: null, yon: 0 } }
+            const sayfa = doc.loadPage(pno), hm = hamMetin(sayfa), ok = okunamazOrani(hm)
+            kayit = { pno, metin: metniTemizle(hm, this.a.tire_birlestir, false), bilgi: { sayfa: pno + 1, yontem: "ham", ocr: false, kapsama: null, aci: null, yon: 0, okunamaz: ok.oran, okunamaz_adet: ok.adet } }
           } else {
             const s = await izle(`sayfaIsle(${pno + 1})`, () => this.sayfaIsle(doc, pno))
             kayit = { pno, s, bilgi: s.bilgi }
@@ -1486,15 +1543,31 @@ class PdfDonusturucu {
       ham.push(...sonucDizi)
       if (this.a.kip !== KIP_HAM) ustAltBilgiBul(ham.map((x) => x.s))
       const parcalar = []
-      for (const h of ham) {
+      const sayfaMetinleri = ham.map((h) => {
         let metin = h.metin
-        if (h.s) {
-          metin = this.sayfaMetni(h.s)
-          metin = metniTemizle(metin, this.a.tire_birlestir, h.bilgi.ocr)
-        }
+        if (h.s) { metin = this.sayfaMetni(h.s); metin = metniTemizle(metin, this.a.tire_birlestir, h.bilgi.ocr) }
+        return metin
+      })
+      // eski Türkçe yazı tipi (ý þ ð → ı ş ğ): belgenin tamamına bakılarak karar verilir
+      let trDuzeltilen = 0
+      if (this.a.eski_tr_font !== false && /[ýþðÝÞÐ]/.test(sayfaMetinleri.join(""))) {
+        const ornek = sayfaMetinleri.join(" ").slice(0, 400000).replace(ESKI_TR_RE, (c) => ESKI_TR[c])
+        if (belgeTurkceMi(ornek)) {
+          for (let i = 0; i < sayfaMetinleri.length; i++) { const [y, n] = eskiTrDuzelt(sayfaMetinleri[i]); sayfaMetinleri[i] = y; trDuzeltilen += n; ham[i].bilgi.tr_duzeltme = n }
+        } else log(`   ý/þ/ð harfleri var ama belge Türkçe görünmüyor → değiştirilmedi`, "uyari")
+      }
+      for (let i = 0; i < ham.length; i++) {
+        const h = ham[i]
+        let metin = sayfaMetinleri[i]
         if (this.a.paragraf_birlestir) metin = paragrafBirlestir(metin)
         h.bilgi.karakter = metin.length
         const b = h.bilgi
+        const kalan = okunamazOrani(metin)
+        b.okunamaz_kalan = kalan.adet
+        if ((b.okunamaz >= OKUNAMAZ_ESIK || b.okunamaz_adet >= OKUNAMAZ_ADET) && !b.okunamaz_ocr)
+          uyarilar.push(`Sayfa ${h.pno + 1}: ${b.okunamaz_adet} karakter (%${(100 * b.okunamaz).toFixed(1)}) okunamıyor (yazı tipinde harf tablosu yok) → ` +
+            (this.ocr === null ? "OCR'lı bir kip seçin" : "OCR yapılamadı"))
+        else if (kalan.adet) uyarilar.push(`Sayfa ${h.pno + 1}: çıktıda ${kalan.adet} okunamayan karakter (�) kaldı`)
         if (!metin.trim()) uyarilar.push(`Sayfa ${h.pno + 1}: metin bulunamadı` + (this.ocr === null ? " (OCR kapalı kipte görsel sayfa olabilir)" : ""))
         if (b.kapsama !== null && b.kapsama < this.a.kayip_esigi)
           uyarilar.push(`Sayfa ${h.pno + 1}: düzen çıktısı ham metnin %${(100 * b.kapsama).toFixed(1)}'ini kapsıyor` + (b.yontem.startsWith("ham") ? " → ham metin kullanıldı" : ""))
@@ -1511,7 +1584,8 @@ class PdfDonusturucu {
       }
       let metin = govde + "\n"
       if (this.a.satir_sonu === "crlf") metin = metin.replace(/\n/g, "\r\n")
-      return { metin, ozet: { dosya: ad, sayfa: sayfalar.length, ocr_sayfa: bilgiler.filter((b) => b.ocr).length, karakter: govde.length, sure: (performance.now() - t0) / 1000, uyarilar, bilgiler } }
+      return { metin, ozet: { dosya: ad, sayfa: sayfalar.length, ocr_sayfa: bilgiler.filter((b) => b.ocr).length, karakter: govde.length, sure: (performance.now() - t0) / 1000, uyarilar, bilgiler,
+        okunamaz_ocr_sayfa: bilgiler.filter((b) => b.okunamaz_ocr).length, tr_duzeltme: trDuzeltilen, okunamaz_kalan: okunamazOrani(govde).adet } }
     } finally { doc.destroy() }
   }
 }
@@ -1625,7 +1699,7 @@ for (const [k, v] of Object.entries(KIP)) { const o = document.createElement("op
 const VARSAYILAN = {
   kip: "otomatik_koru", ocr_model: "small", ocr_dpi: "otomatik", hizlandirma: "webgpu", egim_duzelt: true, gurultu_temizle: true,
   ust_bilgi: true, alt_bilgi: true, sayfa_ayirici: false, tire_birlestir: true, paragraf_birlestir: false, tablo_bicimi: "dogrusal",
-  okuma_sirasi: "xy", kayip_esigi: 0.98, kayipta_ham: true, satir_sonu: "crlf", sayfa_araligi: "", hedef: "indir", alt_klasorler: true,
+  okuma_sirasi: "xy", eski_tr_font: true, kayip_esigi: 0.98, kayipta_ham: true, satir_sonu: "crlf", sayfa_araligi: "", hedef: "indir", alt_klasorler: true,
 }
 const AYAR_ANAHTAR = "pdf2txt_ayarlar_v1"
 function ayarYukle() {
@@ -1636,7 +1710,7 @@ function ayarKaydet(a) { try { localStorage.setItem(AYAR_ANAHTAR, JSON.stringify
 function formaYaz(a) {
   $("kip").value = a.kip; $("model").value = a.ocr_model; $("dpi").value = String(a.ocr_dpi); $("hiz").value = a.hizlandirma
   $("egim").checked = a.egim_duzelt; $("gurultu").checked = a.gurultu_temizle; $("ust").checked = a.ust_bilgi; $("alt").checked = a.alt_bilgi
-  $("ayirici").checked = a.sayfa_ayirici; $("tire").checked = a.tire_birlestir; $("paragraf").checked = a.paragraf_birlestir; $("tablo").value = a.tablo_bicimi
+  $("ayirici").checked = a.sayfa_ayirici; $("tire").checked = a.tire_birlestir; $("paragraf").checked = a.paragraf_birlestir; $("tablo").value = a.tablo_bicimi; $("eskiTr").checked = a.eski_tr_font
   $("sira").value = a.okuma_sirasi; $("esik").value = Math.round(a.kayip_esigi * 100); $("kayiptaHam").checked = a.kayipta_ham
   $("satirSonu").value = a.satir_sonu; $("aralik").value = a.sayfa_araligi; $("altKlasor").checked = a.alt_klasorler
   document.querySelector(`input[name=hedef][value=${a.hedef}]`).checked = true
@@ -1649,7 +1723,7 @@ function formdanOku() {
     kip: $("kip").value, ocr_model: $("model").value, ocr_dpi: $("dpi").value === "otomatik" ? "otomatik" : Number($("dpi").value),
     hizlandirma: $("hiz").value, egim_duzelt: $("egim").checked, gurultu_temizle: $("gurultu").checked, ust_bilgi: $("ust").checked,
     alt_bilgi: $("alt").checked, sayfa_ayirici: $("ayirici").checked, tire_birlestir: $("tire").checked, paragraf_birlestir: $("paragraf").checked,
-    tablo_bicimi: $("tablo").value, okuma_sirasi: $("sira").value, kayip_esigi: esik / 100, kayipta_ham: $("kayiptaHam").checked,
+    tablo_bicimi: $("tablo").value, eski_tr_font: $("eskiTr").checked, okuma_sirasi: $("sira").value, kayip_esigi: esik / 100, kayipta_ham: $("kayiptaHam").checked,
     satir_sonu: $("satirSonu").value, sayfa_araligi: $("aralik").value.trim(), hedef: document.querySelector("input[name=hedef]:checked").value,
     alt_klasorler: $("altKlasor").checked, parola: "",
     ...(TEST && PARAM.get("paralel") ? { paralel_zorla: Math.max(1, Math.min(8, Number(PARAM.get("paralel")) || 1)) } : {}),
@@ -1802,7 +1876,7 @@ async function olay(o) {
       $("ilerleme").value = Math.min(1000, 1000 * oran)
       const ek = []
       if (b.ocr) ek.push("OCR"); if (b.yon) ek.push(`yön ${b.yon}°`); if (b.dpi) ek.push(`${b.dpi} dpi`)
-      if (b.eski_ocr) ek.push("eski OCR yenilendi"); if (b.aci) ek.push(`eğim ${b.aci > 0 ? "+" : ""}${b.aci.toFixed(2)}°`)
+      if (b.eski_ocr) ek.push("eski OCR yenilendi"); if (b.okunamaz_ocr) ek.push(`okunamayan ${b.okunamaz_adet} karakter (%${(100 * b.okunamaz).toFixed(1)}) → OCR`); if (b.aci) ek.push(`eğim ${b.aci > 0 ? "+" : ""}${b.aci.toFixed(2)}°`)
       $("ayrinti").textContent = `Sayfa ${o.sira}/${o.toplam} · ${b.yontem} · ${b.sure.toFixed(1)} sn · kalan ~${sureMetni(kalan)}`
       logYaz(`   s.${b.sayfa}: ${b.yontem}${ek.length ? " (" + ek.join(", ") + ")" : ""}, ${b.sure.toFixed(1)} sn`)
       break
@@ -1852,6 +1926,8 @@ async function kaydet(o) {
   const z = o.ozet
   kayitSayac.tamam++; if (z.uyarilar.length) kayitSayac.uyarili++
   logYaz(`   ✔ ${nereye}  (${z.sayfa} sayfa, ${z.ocr_sayfa} OCR, ${z.karakter} karakter, ${z.sure.toFixed(1)} sn)`, "tamam")
+  if (z.okunamaz_ocr_sayfa) logYaz(`   ${z.okunamaz_ocr_sayfa} sayfada yazı tipi okunamadığı için metin OCR ile okundu`)
+  if (z.tr_duzeltme) logYaz(`   Eski Türkçe yazı tipi düzeltmesi: ${z.tr_duzeltme} harf`)
   for (const b of z.bilgiler) if (b.tablolar && b.tablolar.length) logYaz(`   s.${b.sayfa}: ${b.tablolar.filter((t) => t.hucre).length}/${b.tablolar.length} tablo başlıklı, ${b.tablolar.reduce((s, t) => s + t.hucre, 0)} hücre${b.kapsama != null ? `, kapsama %${(100 * b.kapsama).toFixed(1)}` : ""}`)
   for (const u of z.uyarilar) logYaz(`   ⚠️ ${u}`, "uyari")
   if (TEST) (window.__pdf2txtSonuc = window.__pdf2txtSonuc || []).push({ ad: plan.ad, metin: o.metin, ozet: z })
