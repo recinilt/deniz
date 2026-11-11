@@ -107,6 +107,12 @@ audio{height:32px;max-width:100%}
       </div>
       <p class="note">Tasarlanan İngilizce ses klon motoruna referans olur ve Farsça okutulur. İlk kullanımda yaklaşık 3 GB model iner; işlemcide tasarım dakikalar sürer, karakter başına bir kez yapılır.</p>
     </div>
+    <div class="grid" style="margin-top:12px" data-fix>
+      <div><label for="vSeed">Ses tohumu (aynı tohum = aynı çekim)</label><input id="vSeed" type="number" value="0"></div>
+      <div><label for="vTemp">Sıcaklık: <span id="vTempV">0.80</span> (düşük = daha tutarlı)</label><input id="vTemp" type="range" min="0.4" max="0.8" step="0.05" value="0.8"></div>
+      <div><label for="vCand">Cümle başına aday (en benzeyen seçilir)</label><select id="vCand"><option value="1" selected>1 (en hızlı)</option><option value="2">2</option><option value="3">3</option><option value="4">4</option></select></div>
+    </div>
+    <p class="note" data-fix>Klon ve tarif seslerinde geçerlidir. Aday sayısı arttıkça tutarlılık artar, süre de o oranda uzar.</p>
     <div class="grid" style="margin-top:12px">
       <div style="grid-column:1/-1"><label for="vTest">Deneme metni (Farsça)</label><textarea id="vTest" class="fa">سلام، من شخصیت تازه این داستان هستم.</textarea></div>
     </div>
@@ -184,6 +190,10 @@ self.onmessage = async (ev) => {
     send(id, 'error', { message: String(e && e.message || e), stack: String(e && e.stack || '') });
   }
 };
+function seededRng(seed) {
+  let a = seed >>> 0;
+  return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+}
 // Pencereli sinc ile yeniden örnekleme (oran = kaynak adımı / çıktı örneği)
 function resampleSinc(x, ratio) {
   const n = Math.floor(x.length / ratio), y = new Float32Array(n);
@@ -268,6 +278,10 @@ async function nanoInit(bundleB64, threads) {
   const hits = src.split(imp).length - 1;
   if (hits !== 1) throw new Error(`Nano çalışma zamanı yaması ${hits} yere isabet etti (1 bekleniyordu)`);
   src = src.replace(imp, `import * as ort from "${ORT_URL}";`);
+  const rnd = 'Math.random()', rh = src.split(rnd).length - 1;
+  if (rh !== 2) throw new Error(`Nano rastgelelik yaması ${rh} yere isabet etti (2 bekleniyordu)`);
+  src = src.split(rnd).join('globalThis.__nanoRng()');
+  globalThis.__nanoRng = Math.random;
   const mod = await import(URL.createObjectURL(new Blob([src], { type: 'text/javascript' })));
   const reader = {
     readText: async ({ relativePath }) => new TextDecoder().decode(await nanoAsset(relativePath)),
@@ -310,8 +324,15 @@ handlers.nanoEncodeRef = async ({ bundle, threads, waveform, length }) => {
   const codes = await nanoRt.encodeReferenceAudioFromFile(new ArrayBuffer(8));
   return { data: { codes } };
 };
-handlers.nanoSynth = async ({ bundle, threads, text, codes, sampleMode = 'fixed' }, progress) => {
+handlers.nanoSynth = async ({ bundle, threads, text, codes, seed = 0, temperature = 0.8 }, progress) => {
   await nanoInit(bundle, threads);
+  await nanoRt.ensureManifestLoaded();
+  const gd = nanoRt.manifest.generation_defaults;
+  if (gd.__base === undefined) gd.__base = gd.audio_temperature;
+  const useFixed = Math.abs(temperature - gd.__base) < 1e-6;
+  gd.audio_temperature = useFixed ? gd.__base : temperature;
+  const sampleMode = useFixed ? 'fixed' : 'full';
+  globalThis.__nanoRng = seededRng(seed);
   const t0 = performance.now();
   nanoFrameHook = (n) => progress({ frames: n, elapsed: (performance.now() - t0) / 1000 });
   try {
@@ -322,7 +343,18 @@ handlers.nanoSynth = async ({ bundle, threads, text, codes, sampleMode = 'fixed'
     let off = 0;
     for (const c of chunks) { L.set(c.chunkData[0], off); R.set(c.chunkData[1] || c.chunkData[0], off); off += c.chunkData[0].length; }
     return { data: { L, R, sampleRate: 48000 }, transfer: [L.buffer, R.buffer] };
-  } finally { nanoFrameHook = null; }
+  } finally { nanoFrameHook = null; globalThis.__nanoRng = Math.random; }
+};
+// Konuşmacı gömmesi (ReDimNet-B2, 16 kHz ham ses girişi)
+let spkSess = null;
+handlers.spkEmbed = async ({ mono48, threads }) => {
+  await loadOrt(threads);
+  if (!spkSess) spkSess = await ort.InferenceSession.create(await opfsBytes('spk/redimnet_b2_vox2.onnx'), { executionProviders: ['wasm'] });
+  const x = resampleSinc(mono48, 3);
+  const o = await spkSess.run({ audio: new ort.Tensor('float32', x, [1, 1, x.length]) });
+  const e = Float32Array.from(o.embs.data); let n = 0; for (const v of e) n += v * v; n = Math.sqrt(n) || 1;
+  for (let i = 0; i < e.length; i++) e[i] /= n;
+  return { data: { emb: e }, transfer: [e.buffer] };
 };
 // pytorch_model.bin -> ONNX dış veri dosyaları (eşleme tablosuyla), SHA-256 doğrulamalı
 handlers.nanoAssemble = async ({ map }, progress) => {
@@ -784,6 +816,43 @@ function trimFade(L, R, sr) {
   for (let i = 0; i < f; i++) { const g = i / f; l[i] *= g; r[i] *= g; l[l.length - 1 - i] *= g; r[r.length - 1 - i] *= g; }
   return [l, r];
 }
+// ITU-R BS.1770-4 bütünleşik ses yüksekliği (LUFS): K-ağırlıklandırma, 400 ms blok, %75 bindirme, −70 / −10 kapıları
+function biquad(x, [b0, b1, b2, a1, a2]) { const y = new Float32Array(x.length); let x1 = 0, x2 = 0, y1 = 0, y2 = 0; for (let i = 0; i < x.length; i++) { const v = b0 * x[i] + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2; x2 = x1; x1 = x[i]; y2 = y1; y1 = v; y[i] = v; } return y; }
+function kCoef(fs) {
+  let k = Math.tan(Math.PI * 1681.974450955533 / fs), q = 0.7071752369554196, vh = 10 ** (3.999843853973347 / 20), vb = vh ** 0.4996667741545416, a0 = 1 + k / q + k * k;
+  const s1 = [(vh + vb * k / q + k * k) / a0, 2 * (k * k - vh) / a0, (vh - vb * k / q + k * k) / a0, 2 * (k * k - 1) / a0, (1 - k / q + k * k) / a0];
+  k = Math.tan(Math.PI * 38.13547087602444 / fs); q = 0.5003270373238773; a0 = 1 + k / q + k * k;
+  const s2 = [1 / a0 * a0, -2, 1, 2 * (k * k - 1) / a0, (1 - k / q + k * k) / a0];
+  return [s1, s2];
+}
+function lufs(chans, fs) {
+  const [s1, s2] = kCoef(fs), w = chans.map((c) => biquad(biquad(c, s1), s2));
+  const B = Math.round(0.4 * fs), st = Math.round(0.1 * fs), z = [];
+  for (let a = 0; a + B <= w[0].length; a += st) { let m = 0; for (const c of w) { let q = 0; for (let i = a; i < a + B; i++) q += c[i] * c[i]; m += q / B; } z.push(m); }
+  if (!z.length) return -Infinity;
+  const L = (m) => -0.691 + 10 * Math.log10(m);
+  const abs = z.filter((m) => L(m) > -70); if (!abs.length) return -Infinity;
+  const rel = L(abs.reduce((a, b) => a + b, 0) / abs.length) - 10;
+  const kept = abs.filter((m) => L(m) > rel);
+  return L(kept.reduce((a, b) => a + b, 0) / kept.length);
+}
+// Cümleyi hedef ses yüksekliğine getir; tepe 0,95'i aşarsa kazancı düşür
+function normLoud(l, r, fs, target = -20) {
+  const cur = lufs([l, r], fs); if (!isFinite(cur)) return { l, r, lu: cur, gain: 1 };
+  let g = 10 ** ((target - cur) / 20), pk = 0;
+  for (let i = 0; i < l.length; i++) pk = Math.max(pk, Math.abs(l[i]), Math.abs(r[i]));
+  g = Math.min(g, 0.95 / (pk + 1e-9));
+  const lo = l.map((v) => v * g), ro = r.map((v) => v * g);
+  return { l: lo, r: ro, lu: cur + 20 * Math.log10(g), gain: g };
+}
+const SPK_FILE = [{ url: `${HF}/OpenVoiceOS/redimnet-b2-vox2-onnx/resolve/5127cc45350579cafea037f82634c2be04ca712d/redimnet_b2_vox2.onnx`, path: 'spk/redimnet_b2_vox2.onnx' }];
+async function embed(l, r) {
+  await downloadAll('Konuşmacı ölçer (ReDimNet-B2, 22 MB)', SPK_FILE);
+  const m = new Float32Array(l.length); for (let i = 0; i < l.length; i++) m[i] = (l[i] + r[i]) / 2;
+  return (await runWorker('nano', 'spkEmbed', { mono48: m }, null, [m.buffer])).emb;
+}
+const cosine = (a, b) => { let s = 0; for (let i = 0; i < a.length; i++) s += a[i] * b[i]; return s; };
+const SIG_TEXT = 'سلام، من شخصیت تازه این داستان هستم و این صدای من است.';
 // En uzun iç sessizlik (sn)
 function longestSilence(x, sr) {
   const win = Math.round(sr * 0.05); let run = 0, best = 0;
@@ -823,51 +892,77 @@ async function speak(profile, text, task, base = 0, span = 1) {
   const L = [], R = [], sr = 48000, pause = new Float32Array(Math.round(sr * 0.28));
   const totalChars = sents.reduce((a, s) => a + s.length, 0);
   let doneChars = 0;
+  const stats = [];
   const report = (part, extra) => task.update(base + span * (doneChars + part) / totalChars, 1, extra, 'frac');
   if (profile.type === 'piper') {
     await downloadAll(`Piper sesi: ${profile.piper.voice}`, piperFiles(profile.piper.voice));
     const r = await runWorker('piper', 'piperSynth', { voice: profile.piper.voice, sentences: sents, ...profile.piper }, (p) => { doneChars = sents.slice(0, p.done).reduce((a, s) => a + s.length, 0); report(0, `cümle ${p.done}/${sents.length}`); });
     for (let i = 0; i < r.audio.length; i++) {
       const b = await toRate(monoToBuffer(r.audio[i], r.sampleRate), sr, 1);
-      const m = b.getChannelData(0); const [l, rr] = trimFade(m, m.slice(), sr);
-      L.push(l, pause); R.push(rr, pause);
+      const m = b.getChannelData(0); const [l0, r0] = trimFade(m, m.slice(), sr);
+      const nl = normLoud(l0, r0, sr); stats.push({ lu: nl.lu });
+      L.push(nl.l, pause); R.push(nl.r, pause);
     }
   } else {
     await ensureNano();
+    const seed = profile.seed ?? 0, temperature = profile.temperature ?? 0.8, maxCand = Math.max(1, profile.candidates ?? 1), gate = profile.gate ?? 0.55;
+    if (maxCand > 1 && !profile.sig) await ensureSignature(profile, task);
     for (let i = 0; i < sents.length; i++) {
       const s = sents[i], expFrames = Math.max(12, Math.round(s.length * 0.085 * 12.5));
-      let best = null;
-      for (let attempt = 1; attempt <= 3; attempt++) {
-        const r = await runWorker('nano', 'nanoSynth', { bundle: NANO_BUNDLE, text: s, codes: profile.codes }, (p) => report(Math.min(0.98, p.frames / expFrames) * s.length, `cümle ${i + 1}/${sents.length}, kare ${p.frames}${attempt > 1 ? `, deneme ${attempt}` : ''}`));
-        const [l, rr] = trimFade(r.L, r.R, sr);
-        const sil = longestSilence(l, sr), dur = l.length / sr, maxDur = s.length * 0.2 + 2.5;
+      let best = null, tries = 0;
+      for (let k = 0; k < maxCand + 2 && tries < maxCand + 2; k++) {
+        tries++;
+        const r = await runWorker('nano', 'nanoSynth', { bundle: NANO_BUNDLE, text: s, codes: profile.codes, seed: seed + k * 7919, temperature }, (p) => report(Math.min(0.98, p.frames / Math.max(expFrames, p.frames + 2)) * s.length, `cümle ${i + 1}/${sents.length}, aday ${k + 1}, kare ${p.frames}`));
+        const [l0, r0] = trimFade(r.L, r.R, sr);
+        const sil = longestSilence(l0, sr), dur = l0.length / sr, maxDur = s.length * 0.2 + 2.5;
         const ok = sil < 1.3 && dur < maxDur && dur > 0.3;
-        if (!best || ok) best = { l, rr, ok, sil, dur };
-        if (ok) break;
+        const sim = profile.sig && maxCand > 1 ? cosine(await embed(l0, r0), profile.sig) : NaN;
+        const cand = { l: l0, rr: r0, ok, sil, dur, sim, k };
+        const score = (c) => (c.ok ? 1 : 0) * 10 + (isFinite(c.sim) ? c.sim : 0);
+        if (!best || score(cand) > score(best)) best = cand;
+        const okCount = k + 1;
+        if (ok && (!isFinite(sim) || sim >= gate)) break;
+        if (okCount >= maxCand && best.ok) break;
       }
-      if (!best.ok) task.update(task.done, task.total, `uyarı: cümle ${i + 1} 3 denemede de kalite kontrolünü geçemedi (iç sessizlik ${best.sil.toFixed(1)} sn, süre ${best.dur.toFixed(1)} sn); en iyi deneme kullanıldı`);
-      L.push(best.l, pause); R.push(best.rr, pause);
-      doneChars += s.length; report(0, `cümle ${i + 1}/${sents.length} bitti`);
+      if (!best.ok) task.update(task.done, task.total, `uyarı: cümle ${i + 1} kalite kontrolünü geçemedi (iç sessizlik ${best.sil.toFixed(1)} sn, süre ${best.dur.toFixed(1)} sn); en iyi aday kullanıldı`);
+      const nl = normLoud(best.l, best.rr, sr);
+      stats.push({ sim: best.sim, lu: nl.lu, cand: tries });
+      L.push(nl.l, pause); R.push(nl.r, pause);
+      doneChars += s.length; report(0, `cümle ${i + 1}/${sents.length} bitti${isFinite(best.sim) ? `, benzerlik ${best.sim.toFixed(2)}` : ''}`);
     }
   }
   L.pop(); R.pop();
   const n = L.reduce((a, x) => a + x.length, 0), lo = new Float32Array(n), ro = new Float32Array(n);
   let o = 0; for (let i = 0; i < L.length; i++) { lo.set(L[i], o); ro.set(R[i], o); o += L[i].length; }
-  // Ses düzeyi: −20 dBFS RMS hedefi, tepe 0,95 ile sınırlı
-  let s2 = 0, pk = 0; for (let i = 0; i < n; i++) { s2 += lo[i] * lo[i]; pk = Math.max(pk, Math.abs(lo[i]), Math.abs(ro[i])); }
-  const g = Math.min(0.1 / Math.sqrt(s2 / n + 1e-12), 0.95 / (pk + 1e-9));
-  for (let i = 0; i < n; i++) { lo[i] *= g; ro[i] *= g; }
-  return stereoToBuffer(lo, ro, sr);
+  const buf = stereoToBuffer(lo, ro, sr); buf.stats = stats;
+  return buf;
+}
+async function ensureSignature(profile, task) {
+  task.update(task.done || 0, 1, 'karakter imzası çıkarılıyor', 'frac');
+  const r = await runWorker('nano', 'nanoSynth', { bundle: NANO_BUNDLE, text: SIG_TEXT, codes: profile.codes, seed: profile.seed ?? 0, temperature: profile.temperature ?? 0.8 });
+  const [l, rr] = trimFade(r.L, r.R, 48000);
+  profile.sig = Array.from(await embed(l, rr));
+  const list = loadProfiles(); const p = list.find((x) => x.id === profile.id); if (p) { p.sig = profile.sig; saveProfiles(list); }
+}
+function consistencyText(stats) {
+  const sims = stats.map((x) => x.sim).filter(isFinite), lus = stats.map((x) => x.lu).filter(isFinite);
+  let t = '';
+  if (sims.length) t += `benzerlik en düşük ${Math.min(...sims).toFixed(2)}, ortalama ${(sims.reduce((a, b) => a + b, 0) / sims.length).toFixed(2)}`;
+  const low = stats.map((x, i) => (isFinite(x.sim) && x.sim < 0.45 ? i + 1 : 0)).filter(Boolean);
+  if (low.length) t += ` · zayıf cümleler: ${low.join(', ')}`;
+  if (lus.length) t += `${t ? ' · ' : ''}ses yüksekliği ${Math.min(...lus).toFixed(1)}…${Math.max(...lus).toFixed(1)} LUFS`;
+  return t;
 }
 
 // ---------- Ses oluşturma ekranı ----------
 let mode = 'piper', busy = false;
 for (const [v, n] of PIPER_VOICES) $('#pVoice').append(el('option', { value: v }, n));
-for (const id of ['pSpeed', 'pPitch', 'pVar']) $('#' + id).addEventListener('input', () => { $('#' + id + 'V').textContent = (+$('#' + id).value).toFixed(2); });
+for (const id of ['pSpeed', 'pPitch', 'pVar', 'vTemp']) $('#' + id).addEventListener('input', () => { $('#' + id + 'V').textContent = (+$('#' + id).value).toFixed(2); });
 document.querySelectorAll('[data-mode]').forEach((b) => b.addEventListener('click', () => {
   mode = b.dataset.mode;
   document.querySelectorAll('[data-mode]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
   document.querySelectorAll('[data-pane]').forEach((p) => { p.hidden = p.dataset.pane !== mode; });
+  document.querySelectorAll('[data-fix]').forEach((p) => { p.hidden = mode === 'piper'; });
 }));
 function setBusy(v) { busy = v; for (const id of ['vCreate', 'sSynth', 'vMake']) $('#' + id).disabled = v; document.querySelectorAll('.needs-idle').forEach((b) => (b.disabled = v)); }
 async function refToCodes(buf, task) {
@@ -888,7 +983,7 @@ $('#vCreate').addEventListener('click', async () => {
   setBusy(true); $('#vResult').textContent = '';
   const task = new Task(`Ses oluşturuluyor: ${name} (${TYPE_LABEL[mode]})`);
   try {
-    const prof = { id: 'v' + Date.now(), name, type: mode, created: new Date().toISOString() };
+    const prof = { id: 'v' + Date.now(), name, type: mode, created: new Date().toISOString(), seed: +$('#vSeed').value || 0, temperature: +$('#vTemp').value, candidates: +$('#vCand').value };
     if (mode === 'piper') {
       prof.piper = { voice: $('#pVoice').value, speed: +$('#pSpeed').value, pitch: +$('#pPitch').value, variation: +$('#pVar').value };
     } else if (mode === 'clone') {
@@ -917,10 +1012,11 @@ $('#vCreate').addEventListener('click', async () => {
       prof.prompt = { instruct, text, seed: +$('#qSeed').value || 1 };
     }
     const test = $('#vTest').value.trim() || 'سلام.';
+    if (prof.type !== 'piper' && prof.candidates > 1) await ensureSignature(prof, task);
     const out = await speak(prof, test, task);
     const list = loadProfiles(); list.push(prof); saveProfiles(list); renderVoices();
     $('#vResult').replaceChildren(el('span', {}, 'Kaydedildi. Deneme: '), el('audio', { controls: true, src: URL.createObjectURL(wavBlob(out)) }));
-    task.finish(`kaydedildi (${out.duration.toFixed(1)} sn deneme sesi)`);
+    task.finish(`kaydedildi (${out.duration.toFixed(1)} sn deneme sesi) · ${consistencyText(out.stats)}`);
   } catch (e) { task.fail(e.message); $('#vResult').textContent = e.message; }
   finally { setBusy(false); }
 });
@@ -930,7 +1026,9 @@ async function renderVoices() {
   if (!list.length) { box.append(el('p', { className: 'note' }, 'Henüz kayıtlı ses yok. Yukarıdan bir karakter sesi oluştur.')); }
   for (const p of list) {
     const play = el('span');
-    const detail = p.type === 'piper' ? `${p.piper.voice}, hız ${p.piper.speed}, perde ${p.piper.pitch}` : p.type === 'clone' ? `kaynak: ${p.refName || 'kayıt'}` : `“${p.prompt.instruct.slice(0, 70)}”`;
+    const fix = p.type === 'piper' ? '' : ` · tohum ${p.seed ?? 0}, sıcaklık ${p.temperature ?? 0.8}, aday ${p.candidates ?? 1}`;
+    const detail0 = p.type === 'piper' ? `${p.piper.voice}, hız ${p.piper.speed}, perde ${p.piper.pitch}` : p.type === 'clone' ? `kaynak: ${p.refName || 'kayıt'}` : `“${p.prompt.instruct.slice(0, 70)}”`;
+    const detail = detail0 + fix;
     const tryBtn = el('button', { className: 'g needs-idle', on: { click: async () => {
       setBusy(true); const t = new Task('Deneme: ' + p.name);
       try { const b = await speak(p, $('#vTest').value.trim() || 'سلام.', t); play.replaceChildren(el('audio', { controls: true, autoplay: true, src: URL.createObjectURL(wavBlob(b)) })); t.finish(); } catch (e) { t.fail(e.message); } finally { setBusy(false); }
@@ -958,7 +1056,7 @@ function renderScenes() {
     const sel = el('select', { on: { change: (e) => { s.voiceId = e.target.value; } } }, ...profs.map((p) => el('option', { value: p.id, selected: p.id === s.voiceId }, p.name)));
     if (!profs.length) sel.append(el('option', { value: '' }, 'Önce bir karakter sesi oluştur'));
     const ta = el('textarea', { className: 'fa', value: s.text, placeholder: 'متن فارسی این صحنه…', on: { input: (e) => { s.text = e.target.value; } } });
-    const au = el('span', { className: 'note' }, s.audio ? `ses hazır: ${s.audio.duration.toFixed(1)} sn` : 'ses yok');
+    const au = el('span', { className: 'note' }, s.audio ? `ses hazır: ${s.audio.duration.toFixed(1)} sn${s.audio.stats ? ' · ' + consistencyText(s.audio.stats) : ''}` : 'ses yok');
     if (s.audio) au.append(' ', el('audio', { controls: true, src: URL.createObjectURL(wavBlob(s.audio)) }));
     const mv = (d) => { const j = i + d; if (j < 0 || j >= scenes.length) return; [scenes[i], scenes[j]] = [scenes[j], scenes[i]]; renderScenes(); };
     box.append(el('div', { className: 'scene' }, el('div', {}, el('img', { src: s.url, alt: s.name }), el('div', { className: 'row', style: 'margin-top:6px' },
@@ -1063,6 +1161,7 @@ $('#mRefresh').addEventListener('click', renderModels);
   ];
   if (location.protocol === 'file:') parts.unshift('<span class="warn">Sayfa file:// ile açılmış; Live Server (localhost) üzerinden aç.</span>');
   $('#status').innerHTML = parts.join(' · ');
+  document.querySelectorAll('[data-fix]').forEach((p) => { p.hidden = mode === 'piper'; });
   renderVoices(); renderScenes();
 })();
 
