@@ -130,6 +130,13 @@ audio{height:32px;max-width:100%}
     <div id="sceneList" style="margin-top:12px"></div>
   </div>
   <div class="card">
+    <h2>Senaryo yapıştır</h2>
+    <p class="note">Biçim: <code>[KARAKTER]</code> satırı, altında <code>"Farsça metin" → söyleyiş notu</code> satırları. Karakter adı kayıtlı bir sesin adıyla aynı olmalı (büyük/küçük harf fark etmez). Replikler aşağıda seçtiğin sahneye eklenir; önce tablodan kontrol et.</p>
+    <textarea id="scIn" style="min-height:140px"></textarea>
+    <div class="row" style="margin-top:8px"><button class="g" id="scParse">Ayrıştır</button><label style="margin:0">Hedef sahne</label><select id="scTarget" style="width:auto"></select><button class="b" id="scApply" disabled>Seçili sahneye ekle</button></div>
+    <div id="scPreview" style="overflow-x:auto;margin-top:8px"></div>
+  </div>
+  <div class="card">
     <h2>Seslendirme</h2>
     <div class="row"><button class="b" id="sSynth">Tüm sahneleri seslendir</button><span class="note">Sesi zaten üretilmiş ve metni değişmemiş sahneler atlanır.</span></div>
   </div>
@@ -255,7 +262,7 @@ handlers.piperSynth = async ({ voice, sentences, speed = 1, pitch = 1, variation
 };</script>
 <script id="w-nano" type="text/plain">const NANO_RT_URL = 'https://cdn.jsdelivr.net/gh/OpenMOSS/MOSS-TTS-Nano-Reader@c3b2333b88e0f062ca49d403540a169609354d93/extension/browser_onnx_runtime.js';
 const SP_URL = 'https://cdn.jsdelivr.net/npm/@sctg/sentencepiece-js@1.3.3/+esm';
-let nanoRt = null, nanoBundle = null, nanoSp = null, nanoPending = null, nanoFrameHook = null;
+let nanoMod = null, nanoRt = null, nanoBundle = null, nanoSp = null, nanoPending = null, nanoFrameHook = null;
 async function unpackBundle(b64) {
   const bin = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
   const raw = new Uint8Array(await new Response(new Blob([bin]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer());
@@ -282,7 +289,9 @@ async function nanoInit(bundleB64, threads) {
   if (rh !== 2) throw new Error(`Nano rastgelelik yaması ${rh} yere isabet etti (2 bekleniyordu)`);
   src = src.split(rnd).join('globalThis.__nanoRng()');
   globalThis.__nanoRng = Math.random;
+  src += '\nexport { buildTextRows as __buildTextRows, buildAudioPrefixRows as __buildAudioPrefixRows };';
   const mod = await import(URL.createObjectURL(new Blob([src], { type: 'text/javascript' })));
+  nanoMod = mod;
   const reader = {
     readText: async ({ relativePath }) => new TextDecoder().decode(await nanoAsset(relativePath)),
     readJson: async ({ relativePath }) => JSON.parse(new TextDecoder().decode(await nanoAsset(relativePath))),
@@ -343,6 +352,32 @@ handlers.nanoSynth = async ({ bundle, threads, text, codes, seed = 0, temperatur
     let off = 0;
     for (const c of chunks) { L.set(c.chunkData[0], off); R.set(c.chunkData[1] || c.chunkData[0], off); off += c.chunkData[0].length; }
     return { data: { L, R, sampleRate: 48000 }, transfer: [L.buffer, R.buffer] };
+  } finally { nanoFrameHook = null; globalThis.__nanoRng = Math.random; }
+};
+// Devam kipi: çapa metni + yeni metin, çapa ses kodları asistan tarafında (modelin kendi koduyla aynı istem yapısı)
+handlers.nanoContinue = async ({ bundle, threads, promptText, promptCodes, text, seed = 0, temperature = 0.8 }, progress) => {
+  await nanoInit(bundle, threads);
+  await nanoRt.ensureManifestLoaded(); await nanoRt.ensureTokenizerLoaded(); await nanoRt.ensureSynthesisLoaded();
+  const m = nanoRt.manifest, gd = m.generation_defaults;
+  if (gd.__base === undefined) gd.__base = gd.audio_temperature;
+  const useFixed = Math.abs(temperature - gd.__base) < 1e-6;
+  gd.audio_temperature = useFixed ? gd.__base : temperature;
+  globalThis.__nanoRng = seededRng(seed);
+  const t0 = performance.now();
+  nanoFrameHook = (n) => progress({ frames: n, elapsed: (performance.now() - t0) / 1000 });
+  try {
+    const ids = [...m.prompt_templates.user_prompt_prefix_token_ids, ...(await nanoRt.encodeText('None')), ...m.prompt_templates.user_prompt_after_reference_token_ids,
+      ...(await nanoRt.encodeText(promptText + text)), ...m.prompt_templates.assistant_prompt_prefix_token_ids, m.tts_config.audio_start_token_id];
+    const rows = [...nanoMod.__buildTextRows(ids, m), ...nanoMod.__buildAudioPrefixRows(promptCodes, m, m.tts_config.audio_assistant_slot_token_id)];
+    const frames = await nanoRt.generateAudioFrames({ requestRows: { inputIds: rows, attentionMask: [new Array(rows.length).fill(1)] }, sampleMode: useFixed ? 'fixed' : 'full', isCancelled: () => false });
+    if (!frames.length) throw new Error('Devam kipi hiç kare üretmedi');
+    const all = [...promptCodes, ...frames];
+    const d = await nanoRt.decodeFullAudio(all);
+    const len = d.audio_lengths.data[0], ch = d.audio.dims[1], total = d.audio.dims[2];
+    const per = Math.round(len / all.length), cut = per * promptCodes.length, n = Math.max(0, len - cut);
+    const L = new Float32Array(n), R = new Float32Array(n);
+    L.set(d.audio.data.subarray(cut, len)); R.set(d.audio.data.subarray((ch > 1 ? total : 0) + cut, (ch > 1 ? total : 0) + len));
+    return { data: { L, R, sampleRate: 48000, frames: frames.length, perFrame: per }, transfer: [L.buffer, R.buffer] };
   } finally { nanoFrameHook = null; globalThis.__nanoRng = Math.random; }
 };
 // Konuşmacı gömmesi (ReDimNet-B2, 16 kHz ham ses girişi)
@@ -1039,54 +1074,179 @@ async function renderVoices() {
   }
 }
 
-// ---------- Sahneler (bellekte) ----------
+// ---------- Söyleyiş: etiket sözlüğü ve ses işleme ----------
+const STYLE_RULES = [
+  [/sakin/, { tempo: -0.05 }], [/yavaş/, { tempo: -0.12 }], [/hızlı|aceleci/, { tempo: 0.08 }],
+  [/düz|donuk/, { tempo: -0.15, pitch: -0.5, gain: -1 }], [/umutlu|sıcak/, { pitch: 0.5 }],
+  [/kesin|kısa|net|tereddütsüz/, { tempo: 0.05 }], [/şaşkın/, { pitch: -0.7 }],
+  [/gülümse|samimi|neşeli/, { pitch: 0.7, tempo: 0.03 }], [/ironik|kuru/, { tempo: -0.03, pitch: -0.3 }],
+  [/rahat/, { tempo: -0.03 }], [/ikna|üstten/, { pitch: 0.3 }],
+  [/kendinden emin/, { gain: 0.5 }], [/kibar|nezaket/, { pitch: 0.3 }],
+  [/soru/, { question: true }], [/sessizlik|duraklama|duraksama/, { pauseAfter: 0.5 }],
+];
+const STYLE_WORDS = /sakin|yavaş|hızlı|aceleci|düz|donuk|umutlu|sıcak|kesin|kısa|net|tereddütsüz|şaşkın|gülümse\w*|samimi|neşeli|ironik|kuru|rahat|ikna\w*|üstten|hafif|kendinden emin|kibar|nezaket\w*|soru\w*|sessizlik|duraklama|duraksama/g;
+function parseStyle(note, text) {
+  const n = String(note || '').toLocaleLowerCase('tr'), st = { tempo: 0, pitch: 0, gain: 0, question: false, pauseAfter: 0 };
+  for (const [re, v] of STYLE_RULES) if (re.test(n)) for (const [k, x] of Object.entries(v)) st[k] = typeof x === 'boolean' ? x : st[k] + x;
+  if (/hafif/.test(n)) { st.tempo /= 2; st.pitch /= 2; }
+  if (/[?؟]\s*$/.test(text || '')) st.question = true;
+  const leftover = n.replace(STYLE_WORDS, ' ').replace(/[^a-zçğıöşü\s]/g, ' ').split(/\s+/).filter((w) => w.length > 3 && !/^(ve|ile|ama|gibi|daha|doğru|biraz|bir|ton|tonu|sesi|ses|kelime\w*|cümle\w*|ikinci|ilk|hitap|dönük|belirgin|neredeyse|hiç|olarak|için|doğrudan|ardından)$/.test(w));
+  return { st, leftover: [...new Set(leftover)] };
+}
+// WSOLA ile perdeyi koruyarak süre değiştirme (oran > 1 = daha uzun)
+function wsola(x, ratio, sr) {
+  if (Math.abs(ratio - 1) < 1e-3) return x.slice();
+  const N = Math.round(sr * 0.03), Hs = Math.round(N / 2), tol = Math.round(sr * 0.01), Ha = Hs;
+  const out = new Float32Array(Math.ceil(x.length * ratio) + N), wsum = new Float32Array(out.length), win = new Float32Array(N);
+  for (let i = 0; i < N; i++) win[i] = 0.5 - 0.5 * Math.cos(2 * Math.PI * i / N);
+  let prev = 0;
+  for (let k = 0, o = 0; o + N < out.length; k++, o += Hs) {
+    const center = Math.round(o / ratio);
+    let best = center, bc = -Infinity;
+    if (k > 0) {
+      const tgt = prev + Ha;
+      for (let d = -tol; d <= tol; d += 2) { const p = center + d; if (p < 0 || p + N >= x.length) continue; let c = 0; for (let i = 0; i < N; i += 4) c += x[p + i] * x[tgt + i] || 0; if (c > bc) { bc = c; best = p; } }
+    }
+    if (best + N >= x.length) break;
+    for (let i = 0; i < N; i++) { out[o + i] += x[best + i] * win[i]; wsum[o + i] += win[i]; }
+    prev = best;
+  }
+  const n = Math.min(out.length, Math.round(x.length * ratio));
+  const y = new Float32Array(n); for (let i = 0; i < n; i++) y[i] = wsum[i] > 1e-3 ? out[i] / wsum[i] : 0;
+  return y;
+}
+function resampleLin(x, step) { const n = Math.floor((x.length - 1) / step), y = new Float32Array(n); for (let i = 0; i < n; i++) { const t = i * step, k = Math.floor(t), f = t - k; y[i] = x[k] * (1 - f) + x[k + 1] * f; } return y; }
+// Perdeyi yarım ton kadar kaydır, süreyi koru
+function pitchShift(x, semis, sr) { if (Math.abs(semis) < 0.05) return x; const r = 2 ** (semis / 12); return resampleLin(wsola(x, r, sr), r); }
+function applyStyle(buf, st) {
+  const sr = buf.sampleRate, out = [];
+  for (let c = 0; c < 2; c++) {
+    let x = buf.getChannelData(Math.min(c, buf.numberOfChannels - 1));
+    x = pitchShift(x, st.pitch, sr);
+    if (st.question) { const m = Math.max(0, x.length - Math.round(sr * 0.4)), head = x.subarray(0, m), tail = pitchShift(x.slice(m), 2, sr), y = new Float32Array(head.length + tail.length); y.set(head); y.set(tail, head.length); const f = Math.min(Math.round(sr * 0.02), tail.length); for (let i = 0; i < f; i++) { const g = i / f; y[m + i] = x[m + i] * (1 - g) + tail[i] * g; } x = y; }
+    x = wsola(x, 1 / (1 + st.tempo), sr);
+    const g = 10 ** (st.gain / 20); if (g !== 1) x = x.map((v) => v * g);
+    out.push(x);
+  }
+  return stereoToBuffer(out[0], out[1].subarray(0, out[0].length), sr);
+}
+
+// ---------- Sahneler ve replikler (bellekte) ----------
 const scenes = [];
+const newLine = (voiceId = loadProfiles()[0]?.id || '', text = '', note = '') => ({ id: 'l' + Math.random().toString(36).slice(2, 9), voiceId, text, note, pause: 0.35, audio: null, key: '' });
 $('#imgAdd').addEventListener('change', async (e) => {
   for (const f of e.target.files) {
     const bmp = await createImageBitmap(f);
-    scenes.push({ id: 's' + Date.now() + Math.random().toString(36).slice(2, 6), name: f.name, url: URL.createObjectURL(f), bmp, text: '', voiceId: loadProfiles()[0]?.id || '', audio: null, key: '' });
+    scenes.push({ id: 's' + Date.now() + Math.random().toString(36).slice(2, 6), name: f.name, url: URL.createObjectURL(f), bmp, lines: [newLine()], audio: null });
   }
   e.target.value = ''; renderScenes();
 });
+function sceneAudioInfo(s) { const ls = s.lines.filter((l) => l.audio); return ls.length ? ls.reduce((a, l) => a + l.audio.duration + l.pause, 0) : 0; }
 function renderScenes() {
   const box = $('#sceneList'), profs = loadProfiles();
   box.replaceChildren();
+  $('#scTarget').replaceChildren(...scenes.map((s, i) => el('option', { value: s.id }, `Sahne ${i + 1} · ${s.name}`)));
   if (!scenes.length) { box.append(el('p', { className: 'note' }, 'Henüz sahne yok. Resim seçerek başla.')); return; }
   scenes.forEach((s, i) => {
-    const sel = el('select', { on: { change: (e) => { s.voiceId = e.target.value; } } }, ...profs.map((p) => el('option', { value: p.id, selected: p.id === s.voiceId }, p.name)));
-    if (!profs.length) sel.append(el('option', { value: '' }, 'Önce bir karakter sesi oluştur'));
-    const ta = el('textarea', { className: 'fa', value: s.text, placeholder: 'متن فارسی این صحنه…', on: { input: (e) => { s.text = e.target.value; } } });
-    const au = el('span', { className: 'note' }, s.audio ? `ses hazır: ${s.audio.duration.toFixed(1)} sn${s.audio.stats ? ' · ' + consistencyText(s.audio.stats) : ''}` : 'ses yok');
-    if (s.audio) au.append(' ', el('audio', { controls: true, src: URL.createObjectURL(wavBlob(s.audio)) }));
     const mv = (d) => { const j = i + d; if (j < 0 || j >= scenes.length) return; [scenes[i], scenes[j]] = [scenes[j], scenes[i]]; renderScenes(); };
+    const lineBox = el('div');
+    s.lines.forEach((l, j) => {
+      const sel = el('select', { on: { change: (e) => { l.voiceId = e.target.value; } } }, ...profs.map((p) => el('option', { value: p.id, selected: p.id === l.voiceId }, p.name)));
+      if (!profs.find((p) => p.id === l.voiceId)) sel.prepend(el('option', { value: '', selected: true }, '— karakter seç —'));
+      const { st, leftover } = parseStyle(l.note, l.text);
+      const sum = [st.tempo && `hız ${st.tempo > 0 ? '+' : ''}${Math.round(st.tempo * 100)}%`, st.pitch && `perde ${st.pitch > 0 ? '+' : ''}${st.pitch.toFixed(1)} yt`, st.gain && `düzey ${st.gain > 0 ? '+' : ''}${st.gain} dB`, st.question && 'soru tonu', st.pauseAfter && `+${st.pauseAfter} sn sessizlik`].filter(Boolean).join(', ');
+      lineBox.append(el('div', { style: 'border-top:1px dashed var(--line);padding:8px 0' },
+        el('div', { className: 'row' }, el('b', {}, `${j + 1}.`), sel,
+          el('label', { style: 'margin:0' }, 'sonra sessizlik (sn)'), el('input', { type: 'number', min: 0, max: 5, step: 0.05, value: l.pause, style: 'width:80px', on: { change: (e) => { l.pause = Math.max(0, +e.target.value || 0); } } }),
+          el('button', { className: 'g', on: { click: () => { if (j > 0) { [s.lines[j - 1], s.lines[j]] = [s.lines[j], s.lines[j - 1]]; renderScenes(); } } } }, '↑'),
+          el('button', { className: 'g', on: { click: () => { s.lines.splice(j, 1); renderScenes(); } } }, 'Sil')),
+        el('textarea', { className: 'fa', value: l.text, placeholder: 'متن فارسی…', style: 'margin-top:6px;min-height:52px', on: { input: (e) => { l.text = e.target.value; } } }),
+        el('input', { type: 'text', value: l.note, placeholder: 'Söyleyiş notu (ör. sakin, hafif umutlu, soru tonu)', style: 'margin-top:6px', on: { change: (e) => { l.note = e.target.value; renderScenes(); } } }),
+        el('div', { className: 'note' }, (sum ? 'Uygulanacak: ' + sum : 'Ayar yok (nötr)') + (leftover.length ? ` · uygulanamayan not kelimeleri: ${leftover.join(', ')}` : ''),
+          l.audio ? el('span', {}, ` · ses ${l.audio.duration.toFixed(1)} sn${l.audio.stats ? ' · ' + consistencyText(l.audio.stats) : ''} `, el('audio', { controls: true, src: URL.createObjectURL(wavBlob(l.audio)) })) : ' · ses yok')));
+    });
     box.append(el('div', { className: 'scene' }, el('div', {}, el('img', { src: s.url, alt: s.name }), el('div', { className: 'row', style: 'margin-top:6px' },
       el('button', { className: 'g', on: { click: () => mv(-1) }, 'aria-label': 'Yukarı taşı' }, '↑'), el('button', { className: 'g', on: { click: () => mv(1) }, 'aria-label': 'Aşağı taşı' }, '↓'),
-      el('button', { className: 'g', on: { click: () => { scenes.splice(i, 1); renderScenes(); } } }, 'Kaldır'))),
-      el('div', {}, el('label', {}, `Sahne ${i + 1} · ${s.name}`), ta, el('div', { className: 'row', style: 'margin-top:8px' }, el('label', { style: 'margin:0' }, 'Karakter sesi'), sel), el('div', { style: 'margin-top:6px' }, au))));
+      el('button', { className: 'g', on: { click: () => { scenes.splice(i, 1); renderScenes(); } } }, 'Kaldır')), el('div', { className: 'note' }, `toplam ses ${sceneAudioInfo(s).toFixed(1)} sn`)),
+      el('div', {}, el('label', {}, `Sahne ${i + 1} · ${s.name}`), lineBox, el('button', { className: 'g', style: 'margin-top:6px', on: { click: () => { s.lines.push(newLine(s.lines.at(-1)?.voiceId)); renderScenes(); } } }, '+ Replik ekle'))));
   });
+}
+// Senaryo ayrıştırıcı: [KARAKTER] başlıkları, "metin" → not satırları
+let parsed = [];
+function parseScript(txt) {
+  const out = [], profs = loadProfiles(); let who = null;
+  for (const raw of String(txt).split(/\r?\n/)) {
+    const line = raw.trim(); if (!line) continue;
+    const h = line.match(/^\[([^\]]+)\]$/); if (h) { who = h[1].trim(); continue; }
+    const quotes = [...line.matchAll(/["“”«]([^"“”»]+)["“”»]/g)].map((m) => m[1].trim());
+    if (!quotes.length) continue;
+    const arrow = line.split(/→|->/); const note = arrow.length > 1 ? arrow.slice(1).join(' ').trim() : '';
+    const prof = profs.find((p) => p.name.toLocaleLowerCase('tr') === String(who || '').toLocaleLowerCase('tr'));
+    for (const q of quotes) out.push({ who, voiceId: prof?.id || '', text: q, note });
+  }
+  return out;
+}
+$('#scParse').addEventListener('click', () => {
+  parsed = parseScript($('#scIn').value);
+  const box = $('#scPreview');
+  if (!parsed.length) { box.textContent = 'Hiç replik bulunamadı. Metinlerin tırnak içinde olduğundan emin ol.'; $('#scApply').disabled = true; return; }
+  const miss = [...new Set(parsed.filter((p) => !p.voiceId).map((p) => p.who))];
+  box.replaceChildren(el('table', { style: 'border-collapse:collapse;width:100%;font-size:14px' }, el('tr', {}, ...['#', 'Karakter', 'Metin', 'Not', 'Uygulanacak'].map((x) => el('th', { style: 'text-align:start;border-bottom:1px solid var(--line);padding:4px' }, x))),
+    ...parsed.map((p, i) => { const { st, leftover } = parseStyle(p.note, p.text); return el('tr', {}, el('td', {}, String(i + 1)), el('td', { className: p.voiceId ? '' : 'warn' }, p.who || '?'), el('td', { dir: 'rtl' }, p.text), el('td', {}, p.note), el('td', { className: 'note' }, JSON.stringify(st).replace(/[{}"]/g, '') + (leftover.length ? ' · uygulanamayan: ' + leftover.join(', ') : ''))); })),
+    miss.length ? el('p', { className: 'warn' }, `Kayıtlı sesi bulunmayan karakter: ${miss.join(', ')}. Bu repliklerde sesi sahnede elle seçmen gerekecek.`) : '');
+  $('#scApply').disabled = !scenes.length;
+});
+$('#scApply').addEventListener('click', () => {
+  const s = scenes.find((x) => x.id === $('#scTarget').value); if (!s) return;
+  if (s.lines.length === 1 && !s.lines[0].text.trim()) s.lines = [];
+  for (const p of parsed) s.lines.push(newLine(p.voiceId, p.text, p.note));
+  renderScenes(); $('#scApply').disabled = true;
+});
+// Bir repliği seslendir: "…" noktalarında böl, araya duraklama koy, söyleyiş ayarlarını uygula
+async function speakLine(profile, l, task, base, span) {
+  const parts = l.text.split(/(?:…|\.\.\.)+/).map((x) => x.trim()).filter((x) => /[\p{L}\p{N}]/u.test(x));
+  const { st } = parseStyle(l.note, l.text), bufs = [];
+  for (let k = 0; k < parts.length; k++) {
+    let b = await speak(profile, parts[k], task, base + span * k / parts.length, span / parts.length);
+    const stK = { ...st, question: st.question && k === parts.length - 1 };
+    if (stK.tempo || stK.pitch || stK.gain || stK.question) { const stats = b.stats; b = applyStyle(b, stK); b.stats = stats; }
+    bufs.push(b);
+  }
+  const gap = Math.round(48000 * 0.6), n = bufs.reduce((a, b) => a + b.length, 0) + gap * (bufs.length - 1);
+  const L = new Float32Array(n), R = new Float32Array(n); let o = 0;
+  for (const b of bufs) { L.set(b.getChannelData(0), o); R.set(b.getChannelData(1), o); o += b.length + gap; }
+  const out = stereoToBuffer(L, R, 48000); out.stats = bufs.flatMap((b) => b.stats || []);
+  l.extraPause = st.pauseAfter;
+  return out;
 }
 $('#sSynth').addEventListener('click', async () => {
   const profs = Object.fromEntries(loadProfiles().map((p) => [p.id, p]));
-  const todo = scenes.filter((s) => { const k = s.voiceId + '|' + JSON.stringify(profs[s.voiceId] || {}) + '|' + s.text.trim(); return s.text.trim() && profs[s.voiceId] && (!s.audio || s.key !== k); });
-  const missing = scenes.filter((s) => !s.text.trim() || !profs[s.voiceId]);
-  if (missing.length) { alert(`Metni ya da sesi eksik ${missing.length} sahne var (${missing.map((s) => scenes.indexOf(s) + 1).join(', ')}). Bunlar seslendirilmeyecek.`); }
+  const all = scenes.flatMap((s) => s.lines.map((l) => ({ s, l })));
+  const keyOf = (l) => l.voiceId + '|' + JSON.stringify(profs[l.voiceId] || {}) + '|' + l.text.trim() + '|' + l.note;
+  const bad = all.filter(({ l }) => !l.text.trim() || !profs[l.voiceId]);
+  if (bad.length) alert(`Metni ya da karakteri eksik ${bad.length} replik var; bunlar seslendirilmeyecek.`);
+  const todo = all.filter(({ l }) => l.text.trim() && profs[l.voiceId] && (!l.audio || l.key !== keyOf(l)));
   if (!todo.length) return;
   setBusy(true);
-  const task = new Task(`Seslendirme: ${todo.length} sahne`);
+  const task = new Task(`Seslendirme: ${todo.length} replik`);
   try {
-    const totalChars = todo.reduce((a, s) => a + s.text.length, 0); let base = 0;
-    for (const s of todo) {
-      const share = s.text.length / totalChars;
-      s.audio = await speak(profs[s.voiceId], s.text, task, base, share);
-      s.key = s.voiceId + '|' + JSON.stringify(profs[s.voiceId]) + '|' + s.text.trim();
-      base += share; renderScenes();
-    }
-    task.finish(`${todo.length} sahne seslendirildi`);
+    const tot = todo.reduce((a, x) => a + x.l.text.length, 0); let base = 0;
+    for (const { l } of todo) { const sh = l.text.length / tot; l.audio = await speakLine(profs[l.voiceId], l, task, base, sh); l.key = keyOf(l); base += sh; renderScenes(); }
+    task.finish(`${todo.length} replik seslendirildi`);
   } catch (e) { task.fail(e.message); } finally { setBusy(false); }
 });
+// Sahnenin tüm repliklerini sırayla birleştir
+function buildSceneAudio(s) {
+  const ls = s.lines.filter((l) => l.audio); if (!ls.length) return null;
+  const sr = 48000, segs = ls.map((l) => [l.audio, Math.round(sr * (l.pause + (l.extraPause || 0)))]);
+  const n = segs.reduce((a, [b, p]) => a + b.length + p, 0), L = new Float32Array(n), R = new Float32Array(n); let o = 0;
+  for (const [b, p] of segs) { L.set(b.getChannelData(0), o); R.set(b.getChannelData(1), o); o += b.length + p; }
+  return stereoToBuffer(L, R, sr);
+}
 
 // ---------- MP4 ----------
 $('#vMake').addEventListener('click', async () => {
+  for (const s of scenes) s.audio = buildSceneAudio(s);
   const ready = scenes.filter((s) => s.audio);
   if (!ready.length) { $('#vOut').textContent = 'Önce sahneleri seslendir.'; return; }
   if (ready.length < scenes.length) $('#vOut').textContent = `Uyarı: sesi olmayan ${scenes.length - ready.length} sahne videoya alınmadı.`;
