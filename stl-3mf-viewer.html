@@ -1,0 +1,1728 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>STL / 3MF Görüntüleyici</title>
+<style>
+  :root {
+    --bg: #14161b; --panel: #1d2027; --panel2: #262a33; --line: #343945;
+    --text: #e6e8ec; --muted: #9aa1ad; --accent: #3d8bfd; --accent-text: #ffffff;
+    --ok: #3ecf8e; --warn: #f5a524; --err: #ff5d5d; --scene: #1a1d23;
+  }
+  :root[data-theme="light"] {
+    --bg: #eef0f3; --panel: #ffffff; --panel2: #f3f4f7; --line: #d9dce2;
+    --text: #1b1d22; --muted: #5f6673; --accent: #2563eb; --accent-text: #ffffff;
+    --ok: #16a34a; --warn: #b45309; --err: #dc2626; --scene: #e9ecf1;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --bg: #eef0f3; --panel: #ffffff; --panel2: #f3f4f7; --line: #d9dce2;
+      --text: #1b1d22; --muted: #5f6673; --accent: #2563eb; --accent-text: #ffffff;
+      --ok: #16a34a; --warn: #b45309; --err: #dc2626; --scene: #e9ecf1;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
+    font: 13px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  #app { display: grid; grid-template-columns: 320px 1fr; height: 100vh; height: 100dvh; }
+  #sidebar { background: var(--panel); border-right: 1px solid var(--line); overflow: auto; padding: 10px 12px 24px; }
+  #viewport { position: relative; overflow: hidden; min-height: 0; background: var(--scene); }
+  #canvas { width: 100%; height: 100%; display: block; touch-action: none; outline: none; }
+  h1 { font-size: 15px; margin: 2px 0 10px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  details { border: 1px solid var(--line); border-radius: 8px; margin: 0 0 10px; background: var(--panel2); }
+  summary { cursor: pointer; padding: 8px 10px; font-weight: 600; user-select: none; }
+  .sec { padding: 4px 10px 10px; }
+  .row { display: flex; align-items: center; gap: 6px; margin: 6px 0; flex-wrap: wrap; }
+  .row > label { color: var(--muted); min-width: 92px; }
+  button, select, input[type=number] {
+    font: inherit; color: var(--text); background: var(--panel); border: 1px solid var(--line);
+    border-radius: 6px; padding: 5px 9px; }
+  button { cursor: pointer; }
+  button:hover { border-color: var(--accent); }
+  button.primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+  button.on { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  input[type=number] { width: 80px; }
+  input[type=range] { flex: 1; min-width: 120px; accent-color: var(--accent); }
+  input[type=color] { width: 32px; height: 24px; padding: 0; border: 1px solid var(--line); border-radius: 4px; background: none; cursor: pointer; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; flex-wrap: wrap; }
+  .seg button { border: 0; border-radius: 0; border-right: 1px solid var(--line); }
+  .seg button:last-child { border-right: 0; }
+  table.kv { width: 100%; border-collapse: collapse; }
+  table.kv td { padding: 3px 0; border-bottom: 1px dashed var(--line); }
+  table.kv td:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+  .muted { color: var(--muted); }
+  .small { font-size: 12px; }
+  #tree { list-style: none; margin: 0; padding: 0; }
+  #tree li { margin: 0; }
+  .tnode { display: flex; align-items: center; gap: 6px; padding: 3px 2px; border-radius: 5px; }
+  .tnode:hover { background: var(--panel); }
+  .tnode .name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+  .tnode .cnt { color: var(--muted); font-size: 11px; }
+  .tnode button { padding: 1px 6px; font-size: 11px; }
+  .tchildren { list-style: none; margin: 0 0 0 18px; padding: 0; }
+  .swatch { width: 12px; height: 12px; border-radius: 3px; border: 1px solid var(--line); display: inline-block; flex: none; }
+  .plates { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 6px; }
+  .plate { border: 1px solid var(--line); border-radius: 6px; padding: 4px; text-align: center; cursor: pointer; background: var(--panel); }
+  .plate.on { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .plate img { width: 100%; aspect-ratio: 1; object-fit: contain; display: block; }
+  .filaments { display: flex; flex-wrap: wrap; gap: 6px; }
+  .filaments span { display: inline-flex; align-items: center; gap: 4px; }
+  #toolbar { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; flex-wrap: wrap; justify-content: center;
+    background: color-mix(in srgb, var(--panel) 88%, transparent); border: 1px solid var(--line); border-radius: 10px; padding: 6px; max-width: calc(100% - 20px); }
+  #toolbar button { padding: 4px 8px; }
+  #status { position: absolute; left: 10px; bottom: 10px; max-width: calc(100% - 20px); padding: 6px 10px; border-radius: 8px;
+    background: color-mix(in srgb, var(--panel) 92%, transparent); border: 1px solid var(--line); white-space: pre-line; }
+  #status.ok { border-color: var(--ok); } #status.warn { border-color: var(--warn); } #status.err { border-color: var(--err); color: var(--err); }
+  #status:empty { display: none; }
+  #progress { position: absolute; left: 0; right: 0; top: 0; height: 3px; background: transparent; }
+  #progress > div { height: 100%; width: 0; background: var(--accent); transition: width .15s; }
+  #dropzone { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; font-size: 20px; font-weight: 600;
+    background: color-mix(in srgb, var(--accent) 22%, transparent); border: 3px dashed var(--accent); pointer-events: none; }
+  #dropzone.on { display: flex; }
+  #empty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; text-align: center; color: var(--muted); padding: 16px; }
+  #empty.hide { display: none; }
+  #empty b { color: var(--text); font-size: 16px; }
+  #labels { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+  .mlabel { position: absolute; transform: translate(-50%, -120%); background: var(--panel); color: var(--text); border: 1px solid var(--accent);
+    border-radius: 5px; padding: 2px 6px; font-size: 12px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  #measureList { margin: 4px 0 0; padding-left: 18px; }
+  kbd { border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 4px; font-size: 11px; background: var(--panel); }
+  @media (max-width: 800px) {
+    #app { grid-template-columns: 1fr; grid-template-rows: 58vh 1fr; grid-template-rows: 58dvh 1fr; }
+    #sidebar { order: 2; border-right: 0; border-top: 1px solid var(--line); }
+    #viewport { order: 1; }
+  }
+</style>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.187.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.187.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <h1>
+      <span>🧊 STL / 3MF Görüntüleyici</span>
+      <select id="themeSel" title="Tema">
+        <option value="auto">Tema: Otomatik</option>
+        <option value="dark">Koyu</option>
+        <option value="light">Açık</option>
+      </select>
+    </h1>
+
+    <details open id="sec-file">
+      <summary>📂 Dosya</summary>
+      <div class="sec">
+        <div class="row">
+          <button class="primary" id="btnOpen">Dosya aç…</button>
+          <button id="btnClear" disabled>Tümünü kaldır</button>
+          <input type="file" id="fileInput" accept=".stl,.3mf" multiple hidden>
+        </div>
+        <div class="row small muted">Dosyaları sürükleyip görüntü alanına da bırakabilirsiniz. Birden çok dosya aynı anda açılabilir.</div>
+        <div class="row">
+          <label for="stlUnit">STL birimi</label>
+          <select id="stlUnit">
+            <option value="1">milimetre</option>
+            <option value="25.4">inç</option>
+            <option value="10">santimetre</option>
+            <option value="1000">metre</option>
+          </select>
+        </div>
+        <div class="row">
+          <label for="dispUnit">Gösterim birimi</label>
+          <select id="dispUnit">
+            <option value="mm">mm</option>
+            <option value="in">inç</option>
+          </select>
+        </div>
+        <div class="row">
+          <label><input type="checkbox" id="chkBed" checked> Tablaya oturt</label>
+        </div>
+      </div>
+    </details>
+
+    <details open id="sec-tree">
+      <summary>🌳 Nesneler</summary>
+      <div class="sec">
+        <div id="plateBox" hidden>
+          <div class="row"><b>Plakalar</b></div>
+          <div class="plates" id="plates"></div>
+        </div>
+        <div id="filamentBox" hidden>
+          <div class="row"><b>Filamentler</b></div>
+          <div class="filaments" id="filaments"></div>
+        </div>
+        <ul id="tree"><li class="muted small">Henüz dosya yok.</li></ul>
+      </div>
+    </details>
+
+    <details open id="sec-info">
+      <summary>📏 Bilgi <span class="muted small" id="infoScope">(görünenler)</span></summary>
+      <div class="sec">
+        <table class="kv" id="infoTable">
+          <tr><td>Üçgen</td><td id="iTri">–</td></tr>
+          <tr><td>Boyut X</td><td id="iX">–</td></tr>
+          <tr><td>Boyut Y</td><td id="iY">–</td></tr>
+          <tr><td>Boyut Z</td><td id="iZ">–</td></tr>
+          <tr><td>Hacim</td><td id="iVol">–</td></tr>
+          <tr><td>Yüzey alanı</td><td id="iArea">–</td></tr>
+          <tr><td>Tahmini ağırlık</td><td id="iMass">–</td></tr>
+        </table>
+        <div class="row">
+          <label for="matSel">Malzeme</label>
+          <select id="matSel">
+            <option value="1.24">PLA (1,24)</option>
+            <option value="1.27">PETG (1,27)</option>
+            <option value="1.04">ABS (1,04)</option>
+            <option value="1.07">ASA (1,07)</option>
+            <option value="1.21">TPU (1,21)</option>
+            <option value="1.14">Naylon (1,14)</option>
+            <option value="1.12">Reçine (1,12)</option>
+            <option value="custom">Özel…</option>
+          </select>
+          <input type="number" id="densIn" value="1.24" step="0.01" min="0.01" title="Yoğunluk g/cm³">
+        </div>
+        <div class="row small muted">Ağırlık, tamamen dolu (%100 doluluk) parça içindir.</div>
+        <div class="row">
+          <button id="btnCheck" disabled>Mesh kontrolü</button>
+        </div>
+        <div id="checkOut" class="small"></div>
+      </div>
+    </details>
+
+    <details open id="sec-view">
+      <summary>🎨 Görünüm</summary>
+      <div class="sec">
+        <div class="row">
+          <label>Mod</label>
+          <span class="seg" id="modeSeg">
+            <button data-mode="solid" class="on">Katı</button>
+            <button data-mode="wire">Tel</button>
+            <button data-mode="edges">Kenar</button>
+            <button data-mode="xray">X-ışını</button>
+            <button data-mode="normals">Normal</button>
+          </span>
+        </div>
+        <div class="row">
+          <label>Renk</label>
+          <label class="small" style="min-width:0;color:var(--text)"><input type="checkbox" id="chkOrigColor" checked> Dosyadaki renkler</label>
+          <input type="color" id="colorIn" value="#8fa8c8" title="Tek renk">
+        </div>
+        <div class="row">
+          <label>Yardımcılar</label>
+          <label class="small" style="min-width:0;color:var(--text)"><input type="checkbox" id="chkGrid" checked> Izgara</label>
+          <label class="small" style="min-width:0;color:var(--text)"><input type="checkbox" id="chkAxes" checked> Eksenler</label>
+          <label class="small" style="min-width:0;color:var(--text)"><input type="checkbox" id="chkBBox"> Sınır kutusu</label>
+        </div>
+        <div class="row">
+          <label for="bgIn">Arka plan</label>
+          <input type="color" id="bgIn" value="#1a1d23">
+          <button id="btnBgReset" class="small">Temaya göre</button>
+        </div>
+        <div class="row">
+          <label>Kamera</label>
+          <span class="seg">
+            <button id="btnPersp" class="on">Perspektif</button>
+            <button id="btnOrtho">Ortografik</button>
+          </span>
+        </div>
+      </div>
+    </details>
+
+    <details open id="sec-tools">
+      <summary>🛠️ Araçlar</summary>
+      <div class="sec">
+        <div class="row">
+          <label>Kesit</label>
+          <span class="seg" id="clipSeg">
+            <button data-axis="off" class="on">Kapalı</button>
+            <button data-axis="x">X</button>
+            <button data-axis="y">Y</button>
+            <button data-axis="z">Z</button>
+          </span>
+          <label class="small" style="min-width:0;color:var(--text)"><input type="checkbox" id="chkClipFlip"> Ters</label>
+        </div>
+        <div class="row">
+          <input type="range" id="clipRange" min="0" max="1000" value="500" disabled>
+          <span id="clipVal" class="small muted" style="min-width:70px;text-align:right">–</span>
+        </div>
+        <div class="row">
+          <label>Ölçüm</label>
+          <button id="btnMeasure">📐 Ölçmeye başla</button>
+          <button id="btnMeasureClear">Temizle</button>
+        </div>
+        <div class="small muted" id="measureHint">Ölçüm açıkken modelde iki noktaya tıklayın.</div>
+        <ol id="measureList" class="small"></ol>
+        <div class="row">
+          <label for="explodeRange">Parçaları ayır</label>
+          <input type="range" id="explodeRange" min="0" max="100" value="0">
+        </div>
+      </div>
+    </details>
+
+    <details open id="sec-export">
+      <summary>💾 Dışa aktar</summary>
+      <div class="sec">
+        <div class="row">
+          <button id="btnShot">🖼️ PNG ekran görüntüsü</button>
+          <button id="btnExport" disabled>⬇️ STL indir (görünenler)</button>
+        </div>
+      </div>
+    </details>
+
+    <details id="sec-keys">
+      <summary>⌨️ Kısayollar</summary>
+      <div class="sec small">
+        <div><kbd>F</kbd> sığdır · <kbd>1</kbd> ön · <kbd>2</kbd> üst · <kbd>3</kbd> sağ · <kbd>4</kbd> izometrik</div>
+        <div><kbd>W</kbd> tel kafes · <kbd>E</kbd> kenar · <kbd>X</kbd> x-ışını · <kbd>S</kbd> katı</div>
+        <div><kbd>M</kbd> ölçüm · <kbd>Esc</kbd> ölçümü bırak · <kbd>O</kbd> perspektif/ortografik</div>
+        <div class="muted">Fare: sol tuş döndür, sağ tuş kaydır, tekerlek yakınlaştır.</div>
+      </div>
+    </details>
+  </aside>
+
+  <main id="viewport">
+    <canvas id="canvas" tabindex="0"></canvas>
+    <div id="labels"></div>
+    <div id="empty"><div><b>STL veya 3MF dosyası açın</b><br>“Dosya aç…” düğmesine basın ya da dosyayı buraya sürükleyin.</div></div>
+    <div id="toolbar">
+      <button data-view="front" title="Ön (1)">Ön</button>
+      <button data-view="top" title="Üst (2)">Üst</button>
+      <button data-view="right" title="Sağ (3)">Sağ</button>
+      <button data-view="iso" title="İzometrik (4)">İzo</button>
+      <button id="btnFit" title="Sığdır (F)">⤢ Sığdır</button>
+    </div>
+    <div id="progress"><div></div></div>
+    <div id="status"></div>
+    <div id="dropzone">Dosyayı buraya bırakın</div>
+  </main>
+</div>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { STLLoader } from 'three/addons/loaders/STLLoader.js';
+import { ThreeMFLoader } from 'three/addons/loaders/3MFLoader.js';
+import { STLExporter } from 'three/addons/exporters/STLExporter.js';
+import { unzipSync, strFromU8 } from 'three/addons/libs/fflate.module.js';
+
+const $ = (id) => document.getElementById(id);
+
+// ===================== 1. DURUM =====================
+const STATE = {
+  models: [],            // { id, name, kind, group, parts:[part], plates, filaments, method, warnings }
+  nextId: 1,
+  mode: 'solid',
+  origColor: true,
+  singleColor: new THREE.Color('#8fa8c8'),
+  density: 1.24,
+  dispUnit: 'mm',
+  clipAxis: 'off',
+  measuring: false,
+  measurePending: null,  // ilk nokta
+  measures: [],          // { a, b, line, ma, mb, label }
+  explode: 0,
+  ortho: false,
+  bgCustom: null,
+  activePlate: {},       // modelId -> plate index or null
+};
+const DEFAULT_PALETTE = ['#8fa8c8', '#e07a5f', '#81b29a', '#f2cc8f', '#9b8ec4', '#5fa8d3', '#d4a373', '#c97b9a', '#7fb069', '#e9c46a'];
+const CAP_COLOR = 0xff6b4a;
+
+// ===================== 2. SAHNE =====================
+let renderer, scene, perspCam, orthoCam, camera, controls, grid, axes, contentRoot, headLight, bboxHelper;
+let needsRender = true;
+let gridSize = 256;
+const clipPlane = new THREE.Plane(new THREE.Vector3(1, 0, 0), 0);
+const clipPlanesActive = [clipPlane];
+const clipPlanesNone = [];
+
+function requestRender() { needsRender = true; }
+
+function initScene() {
+  const canvas = $('canvas');
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: false });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.localClippingEnabled = true;
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+  scene = new THREE.Scene();
+  // 3D baskı dosyaları Z-yukarıdır: dünyayı da Z-yukarı kuruyoruz (dönüşüm gerekmez, dışa aktarma birebir kalır).
+  THREE.Object3D.DEFAULT_UP.set(0, 0, 1);
+  perspCam = new THREE.PerspectiveCamera(45, 1, 0.1, 100000);
+  perspCam.up.set(0, 0, 1);
+  perspCam.position.set(200, -250, 200);
+  orthoCam = new THREE.OrthographicCamera(-100, 100, 100, -100, -100000, 100000);
+  orthoCam.up.set(0, 0, 1);
+  camera = perspCam;
+
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x3a3f4a, 1.1));
+  const keyLight = new THREE.DirectionalLight(0xffffff, 1.3); // sabit dünya ışığı: yüzler birbirinden ayrışsın
+  keyLight.position.set(0.6, -1, 1.6);
+  scene.add(keyLight);
+  headLight = new THREE.DirectionalLight(0xffffff, 1.0);
+  headLight.position.set(0.3, 0.2, 1);
+  perspCam.add(headLight);
+  scene.add(perspCam);
+  const headLight2 = headLight.clone();
+  orthoCam.add(headLight2);
+  scene.add(orthoCam);
+
+  contentRoot = new THREE.Group();
+  contentRoot.name = 'content';
+  scene.add(contentRoot);
+
+  axes = new THREE.AxesHelper(30);
+  axes.renderOrder = 2;
+  scene.add(axes);
+  rebuildGrid(256);
+
+  controls = new OrbitControls(camera, canvas);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.12;
+  controls.screenSpacePanning = true;
+  controls.target.set(0, 0, 0);
+  controls.addEventListener('change', requestRender);
+
+  applyThemeBackground();
+  onResize();
+  window.addEventListener('resize', onResize);
+  new ResizeObserver(onResize).observe($('viewport'));
+}
+
+function rebuildGrid(size) {
+  gridSize = size;
+  if (grid) { scene.remove(grid); grid.geometry.dispose(); grid.material.dispose(); }
+  const s = Math.max(10, Math.ceil(size / 10) * 10);
+  const div = Math.min(200, Math.round(s / 10));
+  const dark = isDarkTheme();
+  grid = new THREE.GridHelper(s, div, dark ? 0x5a6170 : 0x9aa3b2, dark ? 0x323743 : 0xc9ced8);
+  grid.rotation.x = Math.PI / 2; // XY düzlemi (tabla)
+  grid.material.transparent = true;
+  grid.material.opacity = 0.8;
+  grid.visible = $('chkGrid') ? $('chkGrid').checked : true;
+  scene.add(grid);
+  axes.scale.setScalar(Math.max(0.2, s / 256));
+  requestRender();
+}
+
+function animate() {
+  renderer.setAnimationLoop(() => {
+    const moved = controls.update();
+    if (moved || needsRender) {
+      renderer.render(scene, camera);
+      updateLabels();
+      needsRender = false;
+    }
+  });
+}
+
+function onResize() {
+  const vp = $('viewport');
+  const w = Math.max(1, vp.clientWidth), h = Math.max(1, vp.clientHeight);
+  renderer.setSize(w, h, false);
+  perspCam.aspect = w / h;
+  perspCam.updateProjectionMatrix();
+  updateOrthoFrustum();
+  requestRender();
+}
+
+function updateOrthoFrustum(height) {
+  const vp = $('viewport');
+  const aspect = Math.max(1, vp.clientWidth) / Math.max(1, vp.clientHeight);
+  const hh = (height ?? (orthoCam.top - orthoCam.bottom)) / 2;
+  orthoCam.left = -hh * aspect; orthoCam.right = hh * aspect;
+  orthoCam.top = hh; orthoCam.bottom = -hh;
+  orthoCam.updateProjectionMatrix();
+}
+
+function setOrtho(on) {
+  if (on === STATE.ortho) return;
+  STATE.ortho = on;
+  const target = controls.target.clone();
+  if (on) {
+    const dist = perspCam.position.distanceTo(target);
+    const height = 2 * dist * Math.tan(THREE.MathUtils.degToRad(perspCam.fov / 2));
+    orthoCam.position.copy(perspCam.position);
+    orthoCam.quaternion.copy(perspCam.quaternion);
+    orthoCam.zoom = 1;
+    updateOrthoFrustum(height);
+    camera = orthoCam;
+  } else {
+    const height = (orthoCam.top - orthoCam.bottom) / orthoCam.zoom;
+    const dist = height / 2 / Math.tan(THREE.MathUtils.degToRad(perspCam.fov / 2));
+    const dir = new THREE.Vector3().subVectors(orthoCam.position, target).normalize();
+    perspCam.position.copy(target).addScaledVector(dir, dist);
+    perspCam.quaternion.copy(orthoCam.quaternion);
+    camera = perspCam;
+  }
+  controls.object = camera;
+  controls.update();
+  $('btnPersp').classList.toggle('on', !on);
+  $('btnOrtho').classList.toggle('on', on);
+  requestRender();
+}
+
+// ===================== 3. DOSYA GİRİŞİ =====================
+function initFileInput() {
+  const input = $('fileInput');
+  $('btnOpen').onclick = () => input.click();
+  input.onchange = async () => { await openFiles([...input.files]); input.value = ''; };
+
+  const vp = $('viewport');
+  let depth = 0;
+  const hasFiles = (e) => [...(e.dataTransfer?.types || [])].includes('Files');
+  window.addEventListener('dragenter', (e) => { if (!hasFiles(e)) return; e.preventDefault(); depth++; $('dropzone').classList.add('on'); });
+  window.addEventListener('dragover', (e) => { if (!hasFiles(e)) return; e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; });
+  window.addEventListener('dragleave', (e) => { if (!hasFiles(e)) return; depth = Math.max(0, depth - 1); if (!depth) $('dropzone').classList.remove('on'); });
+  window.addEventListener('drop', async (e) => {
+    if (!hasFiles(e)) return;
+    e.preventDefault(); depth = 0; $('dropzone').classList.remove('on');
+    await openFiles([...e.dataTransfer.files]);
+  });
+  vp.addEventListener('dragover', (e) => e.preventDefault());
+}
+
+async function openFiles(files) {
+  if (!files.length) return;
+  const results = [];
+  for (let i = 0; i < files.length; i++) {
+    const f = files[i];
+    const prefix = files.length > 1 ? `(${i + 1}/${files.length}) ` : '';
+    try {
+      const model = await readFile(f, prefix);
+      results.push({ ok: true, name: f.name, model });
+    } catch (err) {
+      console.error(err);
+      results.push({ ok: false, name: f.name, err });
+    }
+  }
+  setProgress(0);
+  const okCount = results.filter(r => r.ok).length;
+  const lines = results.map(r => r.ok
+    ? `✅ ${r.name}: ${fmtInt(r.model.triangles)} üçgen, ${r.model.parts.length} parça${r.model.method ? ' · ' + r.model.method : ''}`
+      + (r.model.warnings.length ? '\n   ⚠️ ' + r.model.warnings.join('\n   ⚠️ ') : '')
+    : `❌ ${r.name}: ${r.err?.message || r.err}`);
+  const anyWarn = results.some(r => r.ok && r.model.warnings.length);
+  setStatus(lines.join('\n'), okCount === results.length ? (anyWarn ? 'warn' : 'ok') : 'err');
+  if (okCount) { refreshAll(); fitToObject(); }
+}
+
+function readAsArrayBuffer(file, onProgress) {
+  return new Promise((resolve, reject) => {
+    const fr = new FileReader();
+    fr.onprogress = (e) => { if (e.lengthComputable) onProgress(e.loaded / e.total); };
+    fr.onerror = () => reject(new Error('Dosya okunamadı: ' + (fr.error?.message || 'bilinmeyen hata')));
+    fr.onload = () => resolve(fr.result);
+    fr.readAsArrayBuffer(file);
+  });
+}
+
+const tick = () => new Promise(r => setTimeout(r, 0));
+
+async function readFile(file, prefix = '') {
+  const ext = file.name.split('.').pop().toLowerCase();
+  if (ext !== 'stl' && ext !== '3mf') throw new Error('Desteklenmeyen uzantı (yalnız .stl ve .3mf).');
+  setStatus(`${prefix}${file.name} okunuyor… (${fmtBytes(file.size)})`);
+  const buf = await readAsArrayBuffer(file, (p) => setProgress(p * 0.5));
+  setStatus(`${prefix}${file.name} ayrıştırılıyor…`);
+  setProgress(0.6);
+  await tick();
+  let model;
+  if (ext === 'stl') model = loadSTL(buf, file.name);
+  else model = await load3MF(buf, file.name);
+  setProgress(0.9);
+  await tick();
+  addModel(model);
+  setProgress(1);
+  return model;
+}
+
+// ===================== 4. STL =====================
+function loadSTL(arrayBuffer, name) {
+  const scale = parseFloat($('stlUnit').value) || 1;
+  const geometry = new STLLoader().parse(arrayBuffer);
+  if (!geometry.attributes.position || geometry.attributes.position.count === 0) throw new Error('STL dosyasında üçgen bulunamadı.');
+  if (scale !== 1) geometry.scale(scale, scale, scale);
+  geometry.deleteAttribute('normal');
+  geometry.computeVertexNormals(); // indekssiz geometri → yüz normalleri (bozuk STL normallerine güvenmiyoruz)
+  const warnings = [];
+  let colorMode = 'single';
+  if (geometry.hasColors && geometry.attributes.color) colorMode = 'vertex';
+  else if (geometry.attributes.color) geometry.deleteAttribute('color');
+  const groups = geometry.groups?.length > 1 ? geometry.groups : null;
+  const parts = [];
+  if (groups) {
+    // ASCII STL'de birden çok "solid" → ayrı parçalar
+    groups.forEach((g, gi) => {
+      const sub = sliceGeometry(geometry, g.start, g.count);
+      parts.push(makePart(sub, `${name} · solid ${gi + 1}`, DEFAULT_PALETTE[gi % DEFAULT_PALETTE.length], 'single'));
+    });
+    geometry.dispose();
+  } else {
+    parts.push(makePart(geometry, name, DEFAULT_PALETTE[0], colorMode));
+  }
+  if (colorMode === 'vertex') warnings.push('Renkli ikili STL algılandı (yüz renkleri gösteriliyor).');
+  return { name, kind: 'STL', parts, plates: null, filaments: null, method: 'STLLoader', warnings, triangles: sumTris(parts) };
+}
+
+function sliceGeometry(geo, start, count) {
+  const g = new THREE.BufferGeometry();
+  for (const key of Object.keys(geo.attributes)) {
+    const a = geo.attributes[key];
+    g.setAttribute(key, new THREE.BufferAttribute(a.array.slice(start * a.itemSize, (start + count) * a.itemSize), a.itemSize));
+  }
+  return g;
+}
+
+// ===================== 5. 3MF =====================
+const NS_PROD = 'http://schemas.microsoft.com/3dmanufacturing/production/2015/06';
+const UNIT_MM = { micron: 0.001, millimeter: 1, centimeter: 10, inch: 25.4, foot: 304.8, meter: 1000 };
+
+async function load3MF(arrayBuffer, name) {
+  const zip = unzip3MF(arrayBuffer);
+  const warnings = [];
+  const rootPath = findRootModel(zip, warnings);
+  const ctx = { zip, models: new Map(), warnings };
+  const root = getModel(ctx, rootPath);
+  const meta = readBambuMeta(zip, warnings);
+
+  // Dokulu (texture2d) ve Production Extension kullanmayan dosyalar: three.js yükleyicisi dokuları destekliyor.
+  const usesProduction = [...ctx.models.values()].some(m => m.hasPath) || Object.keys(zip).some(k => /^3d\/objects\//i.test(k));
+  const anyTexture = Object.keys(zip).some(k => /\.model$/i.test(k) && /texture2dgroup/i.test(strFromU8(zip[k].subarray(0, 2_000_000), true)));
+  if (anyTexture && !usesProduction) {
+    try {
+      return loadWithThreeMFLoader(arrayBuffer, name, warnings, meta);
+    } catch (e) {
+      warnings.push('three.js 3MF yükleyicisi başarısız oldu (' + e.message + '); kendi ayrıştırıcıyla dokusuz açıldı.');
+    }
+  } else if (anyTexture) {
+    warnings.push('Doku (texture) içeren Production 3MF: dokular gösterilmiyor, renkler yaklaşık.');
+  }
+
+  await tick();
+  const parts = build3MFScene(ctx, root, rootPath, meta, warnings);
+  if (!parts.length) throw new Error('3MF içinde gösterilecek mesh bulunamadı (build bölümü boş olabilir).');
+  if (meta.paintFound) warnings.push('Boyalı yüzler (paint_color / mmu_segmentation) üçgen başına baskın renkle gösteriliyor; üçgen içi küçük boyalı alanlar görünmez.');
+  return {
+    name, kind: '3MF', parts, plates: meta.plates, filaments: meta.filaments, plateThumbs: meta.thumbs,
+    method: usesProduction ? 'kendi ayrıştırıcı (Production Extension çözüldü)' : 'kendi ayrıştırıcı',
+    generator: root.metadata.Application ? 'Kaynak: ' + root.metadata.Application : '', warnings, triangles: sumTris(parts),
+  };
+}
+
+function unzip3MF(arrayBuffer) {
+  let zip;
+  try { zip = unzipSync(new Uint8Array(arrayBuffer)); }
+  catch (e) { throw new Error('3MF açılamadı: geçerli bir ZIP arşivi değil (' + e.message + ').'); }
+  // Anahtarları normalleştir: baştaki '/' yok, büyük/küçük harf duyarsız erişim için eşlem
+  const norm = {};
+  for (const k of Object.keys(zip)) norm[k.replace(/^\/+/, '')] = zip[k];
+  Object.defineProperty(norm, '__lower', { value: new Map(Object.keys(norm).map(k => [k.toLowerCase(), k])), enumerable: false });
+  return norm;
+}
+
+function zipGet(zip, path) {
+  const p = decodeURIComponent(String(path || '')).replace(/^\/+/, '');
+  if (zip[p]) return zip[p];
+  const k = zip.__lower.get(p.toLowerCase());
+  return k ? zip[k] : undefined;
+}
+function zipKey(zip, path) {
+  const p = decodeURIComponent(String(path || '')).replace(/^\/+/, '');
+  if (zip[p]) return p;
+  return zip.__lower.get(p.toLowerCase());
+}
+
+function parseXML(text, what) {
+  const doc = new DOMParser().parseFromString(text, 'application/xml');
+  const err = doc.getElementsByTagName('parsererror')[0];
+  if (err) throw new Error(`${what} XML hatalı: ${err.textContent.slice(0, 160)}`);
+  return doc;
+}
+
+function findRootModel(zip, warnings) {
+  const rels = zipGet(zip, '_rels/.rels');
+  if (rels) {
+    const doc = parseXML(strFromU8(rels), '_rels/.rels');
+    for (const r of doc.getElementsByTagNameNS('*', 'Relationship')) {
+      const type = r.getAttribute('Type') || '';
+      if (/3dmodel$/i.test(type)) {
+        const key = zipKey(zip, r.getAttribute('Target'));
+        if (key) return key;
+      }
+    }
+  }
+  const fallback = Object.keys(zip).find(k => /^3d\/[^/]+\.model$/i.test(k)) || Object.keys(zip).find(k => /\.model$/i.test(k));
+  if (!fallback) throw new Error('3MF içinde .model dosyası yok.');
+  warnings.push('_rels/.rels kök modeli göstermiyor; ' + fallback + ' kullanıldı.');
+  return fallback;
+}
+
+function getModel(ctx, path) {
+  const key = zipKey(ctx.zip, path);
+  if (!key) throw new Error('Başvurulan model dosyası arşivde yok: ' + path);
+  if (ctx.models.has(key)) return ctx.models.get(key);
+  const model = parseModelXML(key, strFromU8(zipGet(ctx.zip, key)));
+  ctx.models.set(key, model);
+  return model;
+}
+
+function childrenByLocal(el, local) {
+  const out = [];
+  for (let c = el.firstElementChild; c; c = c.nextElementSibling) if (c.localName === local) out.push(c);
+  return out;
+}
+function firstChild(el, local) {
+  for (let c = el?.firstElementChild; c; c = c.nextElementSibling) if (c.localName === local) return c;
+  return null;
+}
+function parseColor(s) {
+  // #RRGGBB veya #RRGGBBAA
+  if (!s) return null;
+  const m = /^#?([0-9a-f]{6})([0-9a-f]{2})?$/i.exec(s.trim());
+  if (!m) return null;
+  const c = new THREE.Color().setStyle('#' + m[1], THREE.SRGBColorSpace);
+  return c;
+}
+
+function parseModelXML(path, xmlText) {
+  const doc = parseXML(xmlText, path);
+  const modelEl = doc.documentElement;
+  if (modelEl.localName !== 'model') throw new Error(path + ': kök öğe <model> değil.');
+  const unit = (modelEl.getAttribute('unit') || 'millimeter').toLowerCase();
+  const model = {
+    path, unitScale: UNIT_MM[unit] ?? 1, unit,
+    objects: new Map(), props: new Map(), build: [], hasPath: false, metadata: {},
+  };
+  for (const md of childrenByLocal(modelEl, 'metadata')) model.metadata[md.getAttribute('name')] = md.textContent;
+  const resources = firstChild(modelEl, 'resources');
+  if (resources) {
+    for (const el of resources.children) {
+      const tag = el.localName;
+      if (tag === 'basematerials') {
+        model.props.set(el.getAttribute('id'), childrenByLocal(el, 'base').map(b => parseColor(b.getAttribute('displaycolor'))));
+      } else if (tag === 'colorgroup') {
+        model.props.set(el.getAttribute('id'), childrenByLocal(el, 'color').map(b => parseColor(b.getAttribute('color'))));
+      } else if (tag === 'object') {
+        const obj = {
+          id: el.getAttribute('id'), name: el.getAttribute('name') || '', type: el.getAttribute('type') || 'model',
+          pid: el.getAttribute('pid'), pindex: el.getAttribute('pindex'), mesh: null, components: null,
+        };
+        const meshEl = firstChild(el, 'mesh');
+        const compsEl = firstChild(el, 'components');
+        if (meshEl) obj.mesh = parseMesh(meshEl);
+        else if (compsEl) {
+          obj.components = childrenByLocal(compsEl, 'component').map(c => {
+            const p = c.getAttributeNS(NS_PROD, 'path') || c.getAttribute('p:path');
+            if (p) model.hasPath = true;
+            return { objectid: c.getAttribute('objectid'), transform: parseTransform(c.getAttribute('transform')), path: p };
+          });
+        }
+        model.objects.set(obj.id, obj);
+      }
+    }
+  }
+  const buildEl = firstChild(modelEl, 'build');
+  if (buildEl) {
+    for (const it of childrenByLocal(buildEl, 'item')) {
+      const p = it.getAttributeNS(NS_PROD, 'path') || it.getAttribute('p:path');
+      model.build.push({
+        objectid: it.getAttribute('objectid'), transform: parseTransform(it.getAttribute('transform')),
+        path: p, printable: it.getAttribute('printable'),
+      });
+    }
+  }
+  return model;
+}
+
+function parseMesh(meshEl) {
+  const vEl = firstChild(meshEl, 'vertices');
+  const tEl = firstChild(meshEl, 'triangles');
+  const vs = vEl ? childrenByLocal(vEl, 'vertex') : [];
+  const ts = tEl ? childrenByLocal(tEl, 'triangle') : [];
+  const verts = new Float32Array(vs.length * 3);
+  for (let i = 0; i < vs.length; i++) {
+    const v = vs[i];
+    verts[i * 3] = +v.getAttribute('x'); verts[i * 3 + 1] = +v.getAttribute('y'); verts[i * 3 + 2] = +v.getAttribute('z');
+  }
+  const idx = new Uint32Array(ts.length * 3);
+  let triProps = null, paint = null;
+  for (let i = 0; i < ts.length; i++) {
+    const t = ts[i];
+    idx[i * 3] = +t.getAttribute('v1'); idx[i * 3 + 1] = +t.getAttribute('v2'); idx[i * 3 + 2] = +t.getAttribute('v3');
+    const pid = t.getAttribute('pid'), p1 = t.getAttribute('p1');
+    if (pid !== null || p1 !== null) { (triProps ||= new Array(ts.length))[i] = [pid, p1]; }
+    const pc = t.getAttribute('paint_color') || t.getAttribute('slic3rpe:mmu_segmentation');
+    if (pc) { (paint ||= new Array(ts.length))[i] = pc; }
+  }
+  return { verts, idx, triProps, paint, vcount: vs.length, tcount: ts.length };
+}
+
+function parseTransform(s) {
+  const m = new THREE.Matrix4();
+  if (!s) return m;
+  const n = s.trim().split(/\s+/).map(Number);
+  if (n.length !== 12 || n.some(Number.isNaN)) return m;
+  // 3MF: satır vektörü × 4x3 matris → three.js sütun düzenine
+  m.set(n[0], n[3], n[6], n[9],
+        n[1], n[4], n[7], n[10],
+        n[2], n[5], n[8], n[11],
+        0, 0, 0, 1);
+  return m;
+}
+
+// Bambu/Orca/PrusaSlicer "TriangleSelector" serileştirmesi: onaltılık basamaklar SONDAN okunur.
+// Her yarım bayt: alt 2 bit = bölünen kenar sayısı (0 = yaprak). Yaprakta üst 2 bit durum; 3 ise bir sonraki
+// yarım bayt + 3 = durum. Bölünmüşse (n+1) çocuk ardışık gelir. Durum 0 = devral, 1.. = filament no.
+function decodePaintColor(hex) {
+  const weights = new Map();
+  let pos = hex.length - 1;
+  const next = () => {
+    if (pos < 0) throw new Error('eksik');
+    const v = parseInt(hex[pos--], 16);
+    if (Number.isNaN(v)) throw new Error('geçersiz');
+    return v;
+  };
+  const walk = (w) => {
+    const code = next();
+    const split = code & 3;
+    if (split === 0) {
+      let state = code >> 2;
+      if (state === 3) state = next() + 3;
+      weights.set(state, (weights.get(state) || 0) + w);
+    } else {
+      const n = split + 1;
+      for (let i = 0; i < n; i++) walk(w / n);
+    }
+  };
+  try { walk(1); } catch { return 0; }
+  let best = 0, bw = -1;
+  for (const [s, w] of weights) if (w > bw) { bw = w; best = s; }
+  return best;
+}
+
+function readBambuMeta(zip, warnings) {
+  const meta = { filaments: null, plates: null, thumbs: null, objExtruder: new Map(), partExtruder: new Map(),
+                 volumeExtruder: new Map(), objName: new Map(), partName: new Map(), paintFound: false, generator: '' };
+  // Filament renkleri: Bambu/Orca project_settings.config (JSON)
+  const ps = zipGet(zip, 'Metadata/project_settings.config');
+  if (ps) {
+    try {
+      const j = JSON.parse(strFromU8(ps));
+      const cols = j.filament_colour || j.filament_color;
+      if (Array.isArray(cols) && cols.length) meta.filaments = cols.map((c, i) => ({ color: c, type: (j.filament_type || [])[i] || '' }));
+    } catch (e) { warnings.push('project_settings.config okunamadı: ' + e.message); }
+  }
+  // PrusaSlicer: Metadata/Slic3r_PE.config (metin, "; extruder_colour = #..;#..")
+  const pe = zipGet(zip, 'Metadata/Slic3r_PE.config');
+  if (pe && !meta.filaments) {
+    const t = strFromU8(pe);
+    const ex = /^;\s*extruder_colour\s*=\s*(.*)$/m.exec(t);
+    const fi = /^;\s*filament_colour\s*=\s*(.*)$/m.exec(t);
+    const ty = /^;\s*filament_type\s*=\s*(.*)$/m.exec(t);
+    let cols = ex ? ex[1].split(';').map(s => s.trim().replace(/"/g, '')) : [];
+    const fcols = fi ? fi[1].split(';').map(s => s.trim().replace(/"/g, '')) : [];
+    cols = cols.map((c, i) => (parseColor(c) ? c : fcols[i] || ''));
+    if (!cols.length) cols = fcols;
+    const types = ty ? ty[1].split(';').map(s => s.trim()) : [];
+    if (cols.length && cols.some(c => parseColor(c))) meta.filaments = cols.map((c, i) => ({ color: c, type: types[i] || '' }));
+  }
+  // Bambu/Orca model_settings.config: nesne/parça extruder ve plakalar
+  const ms = zipGet(zip, 'Metadata/model_settings.config');
+  if (ms) {
+    try {
+      const doc = parseXML(strFromU8(ms), 'model_settings.config');
+      for (const o of doc.getElementsByTagName('object')) {
+        const oid = o.getAttribute('id');
+        const ex = [...o.children].find(c => c.tagName === 'metadata' && c.getAttribute('key') === 'extruder');
+        if (ex) meta.objExtruder.set(oid, +ex.getAttribute('value'));
+        const on = [...o.children].find(c => c.tagName === 'metadata' && c.getAttribute('key') === 'name');
+        if (on) meta.objName.set(oid, on.getAttribute('value'));
+        for (const p of o.getElementsByTagName('part')) {
+          const pex = [...p.children].find(c => c.tagName === 'metadata' && c.getAttribute('key') === 'extruder');
+          if (pex) meta.partExtruder.set(oid + '/' + p.getAttribute('id'), +pex.getAttribute('value'));
+          const pn = [...p.children].find(c => c.tagName === 'metadata' && c.getAttribute('key') === 'name');
+          if (pn) meta.partName.set(oid + '/' + p.getAttribute('id'), pn.getAttribute('value'));
+        }
+      }
+      const plates = [];
+      for (const pl of doc.getElementsByTagName('plate')) {
+        const md = {};
+        for (const c of pl.children) if (c.tagName === 'metadata') md[c.getAttribute('key')] = c.getAttribute('value');
+        const objs = new Set();
+        for (const mi of pl.getElementsByTagName('model_instance')) {
+          for (const c of mi.children) if (c.tagName === 'metadata' && c.getAttribute('key') === 'object_id') objs.add(c.getAttribute('value'));
+        }
+        const pid = +(md.plater_id || plates.length + 1);
+        const thumbPath = md.thumbnail_file || `Metadata/plate_${pid}.png`;
+        plates.push({ id: pid, name: md.plater_name || '', objects: objs, thumb: zipGet(zip, thumbPath) ? blobUrl(zipGet(zip, thumbPath), 'image/png') : null });
+      }
+      if (plates.length) meta.plates = plates;
+    } catch (e) { warnings.push('model_settings.config okunamadı: ' + e.message); }
+  }
+  // PrusaSlicer Slic3r_PE_model.config: hacim (volume) üçgen aralıklarına extruder
+  const pm = zipGet(zip, 'Metadata/Slic3r_PE_model.config');
+  if (pm) {
+    try {
+      const doc = parseXML(strFromU8(pm), 'Slic3r_PE_model.config');
+      for (const o of doc.getElementsByTagName('object')) {
+        const oid = o.getAttribute('id');
+        const oex = [...o.children].find(c => c.tagName === 'metadata' && c.getAttribute('type') === 'object' && c.getAttribute('key') === 'extruder');
+        if (oex) meta.objExtruder.set(oid, +oex.getAttribute('value'));
+        const vols = [];
+        for (const v of o.getElementsByTagName('volume')) {
+          const vex = [...v.children].find(c => c.tagName === 'metadata' && c.getAttribute('key') === 'extruder');
+          vols.push({ first: +v.getAttribute('firstid'), last: +v.getAttribute('lastid'), extruder: vex ? +vex.getAttribute('value') : 0 });
+        }
+        if (vols.length) meta.volumeExtruder.set(oid, vols);
+      }
+    } catch (e) { warnings.push('Slic3r_PE_model.config okunamadı: ' + e.message); }
+  }
+  // Plaka yoksa genel küçük resim
+  if (!meta.plates) {
+    const th = zipGet(zip, 'Metadata/thumbnail.png') || zipGet(zip, 'Metadata/plate_1.png');
+    if (th) meta.thumbs = blobUrl(th, 'image/png');
+  }
+  return meta;
+}
+
+function blobUrl(u8, type) { return URL.createObjectURL(new Blob([u8], { type })); }
+
+function build3MFScene(ctx, root, rootPath, meta, warnings) {
+  const parts = [];
+  const fil = meta.filaments ? meta.filaments.map(f => parseColor(f.color) || new THREE.Color(DEFAULT_PALETTE[0])) : null;
+  const filColor = (n) => {
+    if (!n || n < 1) return null;
+    if (fil) return fil[(n - 1) % fil.length];
+    return new THREE.Color(DEFAULT_PALETTE[(n - 1) % DEFAULT_PALETTE.length]);
+  };
+  let itemNo = 0;
+  const depthLimit = 32;
+
+  // Bir nesneyi özyinelemeli çöz: anahtar = (model dosya yolu, nesne id). Production Extension p:path'i izler.
+  // Dönüşümler ham birimde zincirlenir, en dışta kök modelin birimiyle mm'ye ölçeklenir.
+  const resolveObject = (modelPath, id, matrix, info, depth, out) => {
+    if (depth > depthLimit) { warnings.push('Bileşen derinliği çok fazla (döngüsel başvuru?).'); return; }
+    const model = getModel(ctx, modelPath);
+    const obj = model.objects.get(String(id));
+    if (!obj) { warnings.push(`Nesne bulunamadı: ${modelPath}#${id}`); return; }
+    if (obj.mesh) {
+      out.push({ model, obj, matrix: matrix.clone(), info: { ...info, partId: info.partId ?? obj.id } });
+    } else if (obj.components) {
+      for (const c of obj.components) {
+        const nextPath = c.path ? (zipKey(ctx.zip, c.path) || c.path) : modelPath;
+        resolveObject(nextPath, c.objectid, matrix.clone().multiply(c.transform),
+          { ...info, partId: depth === 0 ? c.objectid : info.partId }, depth + 1, out);
+      }
+    }
+  };
+
+  for (const item of root.build) {
+    itemNo++;
+    const out = [];
+    const itemPath = item.path ? (zipKey(ctx.zip, item.path) || item.path) : rootPath;
+    const topObj = getModel(ctx, itemPath).objects.get(String(item.objectid));
+    const u = root.unitScale;
+    const itemMatrix = new THREE.Matrix4().makeScale(u, u, u).multiply(item.transform);
+    resolveObject(itemPath, item.objectid, itemMatrix, { rootId: String(item.objectid) }, 0, out);
+    const baseName = meta.objName.get(String(item.objectid)) || topObj?.name || `Nesne ${item.objectid}`;
+    let plate = null;
+    if (meta.plates) { const p = meta.plates.find(pl => pl.objects.has(String(item.objectid))); if (p) plate = p.id; }
+    out.forEach((r, pi) => {
+      const { geometry, colorMode, color } = buildMesh(r, meta, filColor, itemNo, pi);
+      geometry.applyMatrix4(r.matrix);
+      if (r.matrix.determinant() < 0) flipWinding(geometry);
+      geometry.computeVertexNormals();
+      const partName = out.length > 1 ? (meta.partName.get(r.info.rootId + '/' + r.info.partId) || r.obj.name || `Parça ${pi + 1}`) : '';
+      const part = makePart(geometry, baseName + (partName ? ' · ' + partName : ''), color, colorMode);
+      part.group = baseName + ' #' + itemNo;
+      part.groupKey = 'item' + itemNo;
+      part.plate = plate;
+      part.objType = r.obj.type;
+      parts.push(part);
+    });
+  }
+  return parts;
+}
+
+function flipWinding(geo) {
+  const pos = geo.attributes.position.array;
+  for (let i = 0; i < pos.length; i += 9) {
+    for (let k = 0; k < 3; k++) { const t = pos[i + 3 + k]; pos[i + 3 + k] = pos[i + 6 + k]; pos[i + 6 + k] = t; }
+  }
+  if (geo.attributes.color) {
+    const c = geo.attributes.color.array;
+    for (let i = 0; i < c.length; i += 9) for (let k = 0; k < 3; k++) { const t = c[i + 3 + k]; c[i + 3 + k] = c[i + 6 + k]; c[i + 6 + k] = t; }
+  }
+}
+
+function buildMesh(r, meta, filColor, itemNo, partIndex) {
+  const m = r.obj.mesh;
+  const { verts, idx, triProps, paint, tcount } = m;
+  const pos = new Float32Array(tcount * 9);
+  for (let t = 0; t < tcount; t++) {
+    for (let k = 0; k < 3; k++) {
+      const vi = idx[t * 3 + k];
+      pos[t * 9 + k * 3] = verts[vi * 3]; pos[t * 9 + k * 3 + 1] = verts[vi * 3 + 1]; pos[t * 9 + k * 3 + 2] = verts[vi * 3 + 2];
+    }
+  }
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+
+  // Renk önceliği: boya > üçgen özelliği > parça extruder > nesne özelliği > nesne extruder > varsayılan
+  const rootId = r.info.rootId, partId = r.info.partId;
+  const objPropColor = r.obj.pid != null ? (r.model.props.get(r.obj.pid) || [])[+(r.obj.pindex || 0)] || null : null;
+  const partEx = meta.partExtruder.get(rootId + '/' + partId) || 0;
+  const objEx = meta.objExtruder.get(rootId) || 0;
+  const vols = meta.volumeExtruder.get(rootId);
+  const fallback = filColor(partEx) || objPropColor || filColor(objEx) || (meta.filaments ? filColor(1) : new THREE.Color(DEFAULT_PALETTE[(itemNo - 1 + partIndex) % DEFAULT_PALETTE.length]));
+
+  if (!paint && !triProps && !vols) return { geometry, colorMode: 'single', color: '#' + fallback.getHexString(THREE.SRGBColorSpace) };
+
+  const colors = new Float32Array(tcount * 9);
+  let first = null, uniform = true;
+  for (let t = 0; t < tcount; t++) {
+    let c = null;
+    if (paint && paint[t]) {
+      meta.paintFound = true;
+      const s = decodePaintColor(paint[t]);
+      if (s > 0) c = filColor(s);
+    }
+    if (!c && triProps && triProps[t]) {
+      const [pid, p1] = triProps[t];
+      const group = r.model.props.get(pid ?? r.obj.pid);
+      if (group) c = group[+(p1 ?? r.obj.pindex ?? 0)] || null;
+    }
+    if (!c && vols) {
+      const v = vols.find(v => t >= v.first && t <= v.last);
+      if (v && v.extruder) c = filColor(v.extruder);
+    }
+    if (!c) c = fallback;
+    if (first === null) first = c; else if (uniform && !c.equals(first)) uniform = false;
+    for (let k = 0; k < 3; k++) { colors[t * 9 + k * 3] = c.r; colors[t * 9 + k * 3 + 1] = c.g; colors[t * 9 + k * 3 + 2] = c.b; }
+  }
+  if (uniform) return { geometry, colorMode: 'single', color: '#' + (first || fallback).getHexString(THREE.SRGBColorSpace) };
+  geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  return { geometry, colorMode: 'vertex', color: '#' + fallback.getHexString(THREE.SRGBColorSpace) };
+}
+
+function loadWithThreeMFLoader(arrayBuffer, name, warnings, meta) {
+  const group = new ThreeMFLoader().parse(arrayBuffer);
+  group.updateMatrixWorld(true);
+  const parts = [];
+  let i = 0;
+  group.traverse((o) => {
+    if (!o.isMesh) return;
+    const g = o.geometry.index ? o.geometry.toNonIndexed() : o.geometry.clone();
+    g.applyMatrix4(o.matrixWorld);
+    if (o.matrixWorld.determinant() < 0) flipWinding(g);
+    g.deleteAttribute('normal'); g.computeVertexNormals();
+    const mat = Array.isArray(o.material) ? o.material[0] : o.material;
+    const p = makePart(g, o.name || `Nesne ${++i}`, '#' + (mat?.color?.getHexString(THREE.SRGBColorSpace) || '8fa8c8'),
+      g.attributes.color ? 'vertex' : (mat?.map ? 'texture' : 'single'));
+    if (mat?.map) { p.texture = mat.map; g.attributes.uv || (p.texture = null); }
+    parts.push(p);
+  });
+  if (!parts.length) throw new Error('mesh yok');
+  return { name, kind: '3MF', parts, plates: meta.plates, filaments: meta.filaments, plateThumbs: meta.thumbs,
+           method: 'three.js ThreeMFLoader (dokulu dosya)', warnings, triangles: sumTris(parts) };
+}
+
+// ===================== 6. PARÇA / MALZEME =====================
+function makePart(geometry, name, color, colorMode) {
+  geometry.computeBoundingBox();
+  return { geometry, name, color: color || DEFAULT_PALETTE[0], colorMode, visible: true, mesh: null, cap: null, edges: null,
+           stats: computeStats(geometry), triangles: geometry.attributes.position.count / 3 };
+}
+function sumTris(parts) { return parts.reduce((s, p) => s + p.triangles, 0); }
+
+function computeStats(geometry) {
+  const p = geometry.attributes.position.array;
+  let vol = 0, area = 0;
+  for (let i = 0; i < p.length; i += 9) {
+    const ax = p[i], ay = p[i + 1], az = p[i + 2];
+    const bx = p[i + 3], by = p[i + 4], bz = p[i + 5];
+    const cx = p[i + 6], cy = p[i + 7], cz = p[i + 8];
+    vol += (ax * (by * cz - bz * cy) - ay * (bx * cz - bz * cx) + az * (bx * cy - by * cx)) / 6;
+    const ux = bx - ax, uy = by - ay, uz = bz - az, vx = cx - ax, vy = cy - ay, vz = cz - az;
+    const nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
+    area += Math.sqrt(nx * nx + ny * ny + nz * nz) / 2;
+  }
+  return { volume: vol, area }; // mm³, mm²
+}
+
+function makeMaterial(part) {
+  const common = { side: THREE.DoubleSide, clippingPlanes: currentClipPlanes(), polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 };
+  const useVertex = STATE.origColor && part.colorMode === 'vertex';
+  const color = STATE.origColor ? new THREE.Color(part.color) : STATE.singleColor.clone();
+  switch (STATE.mode) {
+    case 'normals': return new THREE.MeshNormalMaterial({ ...common });
+    case 'xray': return new THREE.MeshStandardMaterial({ ...common, color: useVertex ? 0xffffff : color, vertexColors: useVertex,
+      transparent: true, opacity: 0.28, depthWrite: false, roughness: 0.5, metalness: 0 });
+    case 'wire': return new THREE.MeshBasicMaterial({ ...common, color: useVertex ? 0xffffff : color, vertexColors: useVertex, wireframe: true });
+    default: {
+      const mat = new THREE.MeshStandardMaterial({ ...common, side: STATE.clipAxis === 'off' ? THREE.DoubleSide : THREE.FrontSide, color: useVertex ? 0xffffff : color,
+        vertexColors: useVertex, roughness: 0.62, metalness: 0.05 });
+      if (STATE.origColor && part.texture) { mat.map = part.texture; mat.color.set(0xffffff); }
+      return mat;
+    }
+  }
+}
+function currentClipPlanes() { return STATE.clipAxis === 'off' ? clipPlanesNone : clipPlanesActive; }
+
+function addModel(model) {
+  model.id = STATE.nextId++;
+  model.group = new THREE.Group();
+  model.group.name = model.name;
+  for (const part of model.parts) {
+    part.model = model;
+    part.mesh = new THREE.Mesh(part.geometry, makeMaterial(part));
+    part.mesh.name = part.name;
+    part.mesh.userData.part = part;
+    // Kesit kapağı: arka yüzler kesit rengiyle → kesilmiş katı görünümü
+    part.cap = new THREE.Mesh(part.geometry, new THREE.MeshBasicMaterial({ color: CAP_COLOR, side: THREE.BackSide, clippingPlanes: clipPlanesActive }));
+    part.cap.visible = STATE.clipAxis !== 'off' && STATE.mode === 'solid';
+    part.cap.userData.isCap = true;
+    part.mesh.add(part.cap);
+    model.group.add(part.mesh);
+  }
+  // Konumlandırma: tablaya oturt (XY ortala, Z min = 0); önceki modellerin yanına diz
+  const box = new THREE.Box3();
+  for (const p of model.parts) box.union(p.geometry.boundingBox);
+  model.box = box;
+  if ($('chkBed').checked) {
+    const c = box.getCenter(new THREE.Vector3());
+    let offsetX = 0;
+    if (STATE.models.length) {
+      const all = new THREE.Box3();
+      for (const m of STATE.models) all.union(new THREE.Box3().copy(m.box).translate(m.group.position));
+      const size = box.getSize(new THREE.Vector3());
+      offsetX = all.max.x + 10 + size.x / 2;
+    }
+    model.group.position.set(offsetX - c.x, -c.y, -box.min.z);
+  }
+  contentRoot.add(model.group);
+  STATE.models.push(model);
+  STATE.activePlate[model.id] = null;
+  $('empty').classList.add('hide');
+}
+
+function removeModel(model) {
+  contentRoot.remove(model.group);
+  for (const p of model.parts) {
+    p.geometry.dispose(); p.mesh.material.dispose(); p.cap.material.dispose();
+    if (p.edges) { p.edges.geometry.dispose(); p.edges.material.dispose(); }
+  }
+  for (const pl of model.plates || []) if (pl.thumb) URL.revokeObjectURL(pl.thumb);
+  if (model.plateThumbs) URL.revokeObjectURL(model.plateThumbs);
+  STATE.models = STATE.models.filter(m => m !== model);
+  if (!STATE.models.length) $('empty').classList.remove('hide');
+  refreshAll();
+}
+
+function allParts() { return STATE.models.flatMap(m => m.parts); }
+function visibleParts() { return allParts().filter(p => p.mesh.visible); }
+
+function refreshMaterials() {
+  for (const p of allParts()) {
+    p.mesh.material.dispose();
+    p.mesh.material = makeMaterial(p);
+    p.cap.visible = STATE.clipAxis !== 'off' && (STATE.mode === 'solid' || STATE.mode === 'edges');
+    p.cap.material.clippingPlanes = clipPlanesActive;
+    if (STATE.mode === 'edges') {
+      if (!p.edges) {
+        p.edges = new THREE.LineSegments(new THREE.EdgesGeometry(p.geometry, 25), new THREE.LineBasicMaterial({ color: 0x111111 }));
+        p.edges.userData.isEdges = true;
+        p.mesh.add(p.edges);
+      }
+      p.edges.material.color.set(isDarkTheme() ? 0x0b0d10 : 0x1b1d22);
+      p.edges.material.clippingPlanes = currentClipPlanes();
+      p.edges.material.needsUpdate = true;
+      p.edges.visible = true;
+    } else if (p.edges) p.edges.visible = false;
+  }
+  requestRender();
+}
+
+function setRenderMode(mode) {
+  if (mode === 'edges') {
+    const big = visibleParts().reduce((s, p) => s + (p.edges ? 0 : p.triangles), 0);
+    if (big > 3_000_000) setStatus('Kenar modu hesaplanıyor (çok büyük model, birkaç saniye sürebilir)…', 'warn');
+  }
+  STATE.mode = mode;
+  document.querySelectorAll('#modeSeg button').forEach(b => b.classList.toggle('on', b.dataset.mode === mode));
+  refreshMaterials();
+}
+
+// ===================== 7. GÖRÜNÜM ARAÇLARI =====================
+function sceneBox(onlyVisible = true) {
+  const box = new THREE.Box3();
+  contentRoot.updateMatrixWorld(true);
+  for (const p of onlyVisible ? visibleParts() : allParts()) {
+    box.union(new THREE.Box3().copy(p.geometry.boundingBox).applyMatrix4(p.mesh.matrixWorld));
+  }
+  return box;
+}
+
+function fitToObject(box = sceneBox()) {
+  if (box.isEmpty()) return;
+  const center = box.getCenter(new THREE.Vector3());
+  const radius = Math.max(box.getSize(new THREE.Vector3()).length() / 2, 0.5);
+  const dir = new THREE.Vector3().subVectors(camera.position, controls.target);
+  if (dir.lengthSq() < 1e-9) dir.set(1, -1.2, 0.9);
+  dir.normalize();
+  applyView(center, dir, radius);
+}
+
+function applyView(center, dir, radius) {
+  const fov = THREE.MathUtils.degToRad(perspCam.fov);
+  const vp = $('viewport');
+  const aspect = vp.clientWidth / Math.max(1, vp.clientHeight);
+  const fitH = radius / Math.sin(fov / 2);
+  const fitW = radius / Math.sin(Math.atan(Math.tan(fov / 2) * aspect));
+  const dist = Math.max(fitH, fitW) * 1.3;
+  controls.target.copy(center);
+  perspCam.position.copy(center).addScaledVector(dir, dist);
+  perspCam.near = Math.max(dist / 1000, 0.01); perspCam.far = dist * 100 + radius * 10;
+  perspCam.updateProjectionMatrix();
+  orthoCam.position.copy(center).addScaledVector(dir, dist);
+  orthoCam.zoom = 1;
+  orthoCam.near = -dist * 50; orthoCam.far = dist * 50;
+  updateOrthoFrustum(radius * 2.6 / Math.min(1, aspect));
+  perspCam.lookAt(center); orthoCam.lookAt(center);
+  controls.update();
+  // Izgarayı içeriğe göre büyüt
+  const all = sceneBox(false);
+  if (!all.isEmpty()) {
+    const s = all.getSize(new THREE.Vector3());
+    const ext = Math.max(Math.abs(all.min.x), Math.abs(all.max.x), Math.abs(all.min.y), Math.abs(all.max.y)) * 2;
+    const want = Math.max(256, ext * 1.3, s.x * 1.3, s.y * 1.3);
+    if (Math.abs(want - gridSize) / want > 0.25) rebuildGrid(want);
+  }
+  requestRender();
+}
+
+function setCameraView(name) {
+  const box = sceneBox();
+  const center = box.isEmpty() ? new THREE.Vector3() : box.getCenter(new THREE.Vector3());
+  const radius = box.isEmpty() ? 100 : Math.max(box.getSize(new THREE.Vector3()).length() / 2, 0.5);
+  const dirs = {
+    front: new THREE.Vector3(0, -1, 0),
+    top: new THREE.Vector3(0, -0.0001, 1),
+    right: new THREE.Vector3(1, 0, 0),
+    iso: new THREE.Vector3(1, -1, 0.85),
+  };
+  applyView(center, dirs[name].normalize(), radius);
+}
+
+function setClipAxis(axis) {
+  STATE.clipAxis = axis;
+  document.querySelectorAll('#clipSeg button').forEach(b => b.classList.toggle('on', b.dataset.axis === axis));
+  $('clipRange').disabled = axis === 'off';
+  updateClip();
+  refreshMaterials();
+}
+
+function updateClip() {
+  if (STATE.clipAxis === 'off') { $('clipVal').textContent = '–'; requestRender(); return; }
+  const box = sceneBox();
+  if (box.isEmpty()) return;
+  const i = { x: 0, y: 1, z: 2 }[STATE.clipAxis];
+  const lo = box.min.getComponent(i), hi = box.max.getComponent(i);
+  const t = +$('clipRange').value / 1000;
+  const v = lo + (hi - lo) * t;
+  const flip = $('chkClipFlip').checked;
+  const n = new THREE.Vector3(); n.setComponent(i, flip ? 1 : -1);
+  clipPlane.set(n, flip ? -v : v);
+  $('clipVal').textContent = fmtLen(v - lo) + ' / ' + fmtLen(hi - lo);
+  requestRender();
+}
+
+// --- Ölçüm ---
+const raycaster = new THREE.Raycaster();
+const pointer = new THREE.Vector2();
+let downPos = null;
+
+function initMeasure() {
+  const canvas = $('canvas');
+  canvas.addEventListener('pointerdown', (e) => { downPos = { x: e.clientX, y: e.clientY }; });
+  canvas.addEventListener('pointerup', (e) => {
+    if (!STATE.measuring || !downPos || e.button !== 0) return;
+    if (Math.hypot(e.clientX - downPos.x, e.clientY - downPos.y) > 4) return; // sürükleme = döndürme
+    const hit = pick(e);
+    if (!hit) { setStatus('Ölçüm: modelin üzerine tıklayın.', 'warn'); return; }
+    addMeasurePoint(hit.point);
+  });
+  $('btnMeasure').onclick = () => startMeasure(!STATE.measuring);
+  $('btnMeasureClear').onclick = clearMeasures;
+}
+
+function pick(e) {
+  const rect = $('canvas').getBoundingClientRect();
+  pointer.set(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1);
+  raycaster.setFromCamera(pointer, camera);
+  const targets = visibleParts().map(p => p.mesh);
+  const hits = raycaster.intersectObjects(targets, false);
+  if (STATE.clipAxis !== 'off') return hits.find(h => clipPlane.distanceToPoint(h.point) >= -1e-6) || null;
+  return hits[0] || null;
+}
+
+function startMeasure(on) {
+  STATE.measuring = on;
+  $('btnMeasure').classList.toggle('on', on);
+  $('btnMeasure').textContent = on ? '📐 Ölçüm açık (bitir)' : '📐 Ölçmeye başla';
+  $('canvas').style.cursor = on ? 'crosshair' : '';
+  if (!on && STATE.measurePending) { scene.remove(STATE.measurePending.marker); STATE.measurePending = null; requestRender(); }
+}
+
+function markerSize() {
+  const box = sceneBox();
+  return box.isEmpty() ? 1 : Math.max(box.getSize(new THREE.Vector3()).length() / 250, 0.05);
+}
+function makeMarker(p) {
+  const m = new THREE.Mesh(new THREE.SphereGeometry(markerSize(), 16, 12), new THREE.MeshBasicMaterial({ color: 0xffd400, depthTest: false }));
+  m.renderOrder = 10;
+  m.position.copy(p);
+  scene.add(m);
+  return m;
+}
+
+function addMeasurePoint(p) {
+  if (!STATE.measurePending) {
+    STATE.measurePending = { a: p.clone(), marker: makeMarker(p) };
+    requestRender();
+    return;
+  }
+  const a = STATE.measurePending.a, b = p.clone();
+  const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints([a, b]), new THREE.LineBasicMaterial({ color: 0xffd400, depthTest: false }));
+  line.renderOrder = 10;
+  scene.add(line);
+  const label = document.createElement('div');
+  label.className = 'mlabel';
+  $('labels').appendChild(label);
+  const m = { a, b, line, ma: STATE.measurePending.marker, mb: makeMarker(b), label };
+  STATE.measures.push(m);
+  STATE.measurePending = null;
+  renderMeasureList();
+  requestRender();
+}
+
+function clearMeasures() {
+  for (const m of STATE.measures) {
+    scene.remove(m.line, m.ma, m.mb); m.line.geometry.dispose(); m.ma.geometry.dispose(); m.mb.geometry.dispose(); m.label.remove();
+  }
+  STATE.measures = [];
+  if (STATE.measurePending) { scene.remove(STATE.measurePending.marker); STATE.measurePending = null; }
+  renderMeasureList();
+  requestRender();
+}
+
+function renderMeasureList() {
+  const ol = $('measureList');
+  ol.innerHTML = '';
+  for (const m of STATE.measures) {
+    const d = m.b.clone().sub(m.a);
+    m.label.textContent = fmtLen(d.length());
+    const li = document.createElement('li');
+    li.textContent = `${fmtLen(d.length())}  (ΔX ${fmtLen(Math.abs(d.x))}, ΔY ${fmtLen(Math.abs(d.y))}, ΔZ ${fmtLen(Math.abs(d.z))})`;
+    ol.appendChild(li);
+  }
+}
+
+function updateLabels() {
+  if (!STATE.measures.length) return;
+  const vp = $('viewport');
+  const w = vp.clientWidth, h = vp.clientHeight;
+  for (const m of STATE.measures) {
+    const mid = m.a.clone().add(m.b).multiplyScalar(0.5).project(camera);
+    const vis = mid.z > -1 && mid.z < 1;
+    m.label.style.display = vis ? '' : 'none';
+    m.label.style.left = ((mid.x + 1) / 2 * w) + 'px';
+    m.label.style.top = ((1 - mid.y) / 2 * h) + 'px';
+  }
+}
+
+function explode(factor) {
+  STATE.explode = factor;
+  for (const model of STATE.models) {
+    // Montaj (aynı build item) içindeki parçalar kendi merkezlerinden ayrılır; STL'de tüm solid'ler tek grup sayılır.
+    const groups = new Map();
+    for (const p of model.parts) {
+      const k = p.groupKey || '_all';
+      if (!groups.has(k)) groups.set(k, []);
+      groups.get(k).push(p);
+    }
+    for (const parts of groups.values()) {
+      if (parts.length < 2) { parts.forEach(p => p.mesh.position.set(0, 0, 0)); continue; }
+      const gbox = new THREE.Box3();
+      parts.forEach(p => gbox.union(p.geometry.boundingBox));
+      const c = gbox.getCenter(new THREE.Vector3());
+      const size = gbox.getSize(new THREE.Vector3()).length();
+      for (const p of parts) {
+        const d = p.geometry.boundingBox.getCenter(new THREE.Vector3()).sub(c);
+        if (d.lengthSq() < 1e-12) d.set(0, 0, 1e-3);
+        p.mesh.position.copy(d).multiplyScalar(factor * 1.5).addScaledVector(d.clone().normalize(), factor * size * 0.15);
+      }
+    }
+  }
+  if (STATE.clipAxis !== 'off') updateClip();
+  updateBBox();
+  requestRender();
+}
+
+function updateBBox() {
+  if (bboxHelper) { scene.remove(bboxHelper); bboxHelper.geometry.dispose(); bboxHelper = null; }
+  if (!$('chkBBox').checked) { requestRender(); return; }
+  const box = sceneBox();
+  if (box.isEmpty()) return;
+  bboxHelper = new THREE.Box3Helper(box, 0xffaa00);
+  scene.add(bboxHelper);
+  requestRender();
+}
+
+// --- Mesh kontrolü (açık kenar / manifold olmayan kenar) ---
+async function checkManifold() {
+  const parts = visibleParts();
+  if (!parts.length) return;
+  $('btnCheck').disabled = true;
+  $('checkOut').textContent = 'Kontrol ediliyor…';
+  await tick();
+  const lines = [];
+  for (const p of parts) {
+    const pos = p.geometry.attributes.position.array;
+    const vmap = new Map();
+    const q = (v) => Math.round(v * 1e4);
+    const vid = new Uint32Array(pos.length / 3);
+    for (let i = 0, n = pos.length / 3; i < n; i++) {
+      const key = q(pos[i * 3]) + ',' + q(pos[i * 3 + 1]) + ',' + q(pos[i * 3 + 2]);
+      let id = vmap.get(key);
+      if (id === undefined) { id = vmap.size; vmap.set(key, id); }
+      vid[i] = id;
+    }
+    const V = vmap.size;
+    const edges = new Map();
+    let degenerate = 0;
+    for (let t = 0; t < vid.length; t += 3) {
+      const a = vid[t], b = vid[t + 1], c = vid[t + 2];
+      if (a === b || b === c || a === c) { degenerate++; continue; }
+      for (const [u, v] of [[a, b], [b, c], [c, a]]) {
+        const k = u < v ? u * V + v : v * V + u;
+        edges.set(k, (edges.get(k) || 0) + 1);
+      }
+    }
+    let open = 0, nonMan = 0;
+    for (const n of edges.values()) { if (n === 1) open++; else if (n > 2) nonMan++; }
+    const ok = !open && !nonMan;
+    const neg = p.stats.volume < 0;
+    lines.push(`${ok ? '✅' : '⚠️'} ${p.name}: açık kenar ${fmtInt(open)}, manifold olmayan kenar ${fmtInt(nonMan)}, bozuk üçgen ${fmtInt(degenerate)}`
+      + (neg ? ', normaller ters (hacim negatif)' : '') + (ok && !neg ? ' (su geçirmez)' : ''));
+    await tick();
+  }
+  $('checkOut').textContent = lines.join('\n');
+  $('checkOut').style.whiteSpace = 'pre-line';
+  $('btnCheck').disabled = false;
+}
+
+// ===================== 8. DIŞA AKTARMA =====================
+function screenshotPNG() {
+  renderer.render(scene, camera);
+  const url = $('canvas').toDataURL('image/png');
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = (STATE.models[0]?.name.replace(/\.[^.]+$/, '') || 'goruntu') + '.png';
+  a.click();
+}
+
+function exportSTL() {
+  const parts = visibleParts();
+  if (!parts.length) { setStatus('Dışa aktarılacak görünen nesne yok.', 'warn'); return; }
+  const tmp = new THREE.Group();
+  for (const p of parts) {
+    const m = new THREE.Mesh(p.geometry);
+    // Ayırma (explode) ofsetini dahil etme: yalnız model konumu
+    m.position.copy(p.model.group.position);
+    tmp.add(m);
+  }
+  tmp.updateMatrixWorld(true);
+  const data = new STLExporter().parse(tmp, { binary: true });
+  const blob = new Blob([data], { type: 'model/stl' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = (STATE.models.length === 1 ? STATE.models[0].name.replace(/\.[^.]+$/, '') : 'birlesik') + '_export.stl';
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  setStatus(`STL indirildi: ${fmtInt(sumTris(parts))} üçgen, ${parts.length} parça.`, 'ok');
+}
+
+// ===================== 9. ARAYÜZ =====================
+function refreshAll() {
+  buildTree();
+  updateInfoPanel();
+  refreshMaterials();
+  explode(STATE.explode);
+  updateClip();
+  updateBBox();
+  const has = STATE.models.length > 0;
+  $('btnClear').disabled = !has;
+  $('btnExport').disabled = !has;
+  $('btnCheck').disabled = !has;
+  $('checkOut').textContent = '';
+}
+
+function buildTree() {
+  const tree = $('tree');
+  tree.innerHTML = '';
+  if (!STATE.models.length) { tree.innerHTML = '<li class="muted small">Henüz dosya yok.</li>'; }
+  // Plakalar ve filamentler (son açılan, plaka bilgisi olan 3MF için)
+  const pm = [...STATE.models].reverse().find(m => m.plates && m.plates.length);
+  $('plateBox').hidden = !pm;
+  if (pm) {
+    const box = $('plates'); box.innerHTML = '';
+    const mk = (label, thumb, plateId) => {
+      const d = document.createElement('div');
+      d.className = 'plate' + (STATE.activePlate[pm.id] === plateId ? ' on' : '');
+      d.innerHTML = (thumb ? `<img alt="" src="${thumb}">` : '<div style="aspect-ratio:1;display:flex;align-items:center;justify-content:center">🗂️</div>')
+        + `<div class="small">${escapeHtml(label)}</div>`;
+      d.onclick = () => showPlate(pm, plateId);
+      return d;
+    };
+    box.appendChild(mk('Tümü', null, null));
+    for (const p of pm.plates) box.appendChild(mk(p.name ? `${p.id}: ${p.name}` : `Plaka ${p.id}`, p.thumb, p.id));
+  }
+  const fm = [...STATE.models].reverse().find(m => m.filaments && m.filaments.length);
+  $('filamentBox').hidden = !fm;
+  if (fm) {
+    $('filaments').innerHTML = fm.filaments.map((f, i) =>
+      `<span class="small"><i class="swatch" style="background:${escapeHtml(f.color)}"></i>${i + 1}${f.type ? ' ' + escapeHtml(f.type) : ''}</span>`).join('');
+  }
+
+  for (const model of STATE.models) {
+    const li = document.createElement('li');
+    const head = document.createElement('div');
+    head.className = 'tnode';
+    const allVis = model.parts.every(p => p.mesh.visible);
+    head.innerHTML = `<input type="checkbox" ${allVis ? 'checked' : ''} title="Göster/gizle">
+      <span class="name" title="${escapeHtml(model.name)}">📦 <b>${escapeHtml(model.name)}</b></span>
+      <span class="cnt">${model.kind}</span>
+      <button title="Kaldır">✕</button>`;
+    head.querySelector('input').onchange = (e) => { model.parts.forEach(p => p.mesh.visible = e.target.checked); buildTree(); updateAfterVisibility(); };
+    head.querySelector('.name').onclick = () => fitToObject(boxOfParts(model.parts));
+    head.querySelector('button').onclick = () => removeModel(model);
+    li.appendChild(head);
+    if (model.generator) {
+      const g = document.createElement('div'); g.className = 'small muted'; g.style.marginLeft = '24px';
+      g.textContent = model.generator; li.appendChild(g);
+    }
+    const ul = document.createElement('ul');
+    ul.className = 'tchildren';
+    // Gruplar (3MF build item) → parçalar
+    const groups = new Map();
+    for (const p of model.parts) {
+      const k = p.groupKey || p.name;
+      if (!groups.has(k)) groups.set(k, { title: p.group || p.name, parts: [] });
+      groups.get(k).parts.push(p);
+    }
+    for (const g of groups.values()) {
+      if (g.parts.length === 1) { ul.appendChild(partNode(g.parts[0], g.parts[0].group ? g.title : g.parts[0].name)); continue; }
+      const gli = document.createElement('li');
+      const gh = document.createElement('div'); gh.className = 'tnode';
+      const gv = g.parts.every(p => p.mesh.visible);
+      gh.innerHTML = `<input type="checkbox" ${gv ? 'checked' : ''}><span class="name">🧩 ${escapeHtml(g.title)}</span><span class="cnt">${g.parts.length} parça</span>`;
+      gh.querySelector('input').onchange = (e) => { g.parts.forEach(p => p.mesh.visible = e.target.checked); buildTree(); updateAfterVisibility(); };
+      gh.querySelector('.name').onclick = () => fitToObject(boxOfParts(g.parts));
+      gli.appendChild(gh);
+      const gul = document.createElement('ul'); gul.className = 'tchildren';
+      g.parts.forEach(p => gul.appendChild(partNode(p, p.name.split(' · ').slice(1).join(' · ') || p.name)));
+      gli.appendChild(gul);
+      ul.appendChild(gli);
+    }
+    li.appendChild(ul);
+    tree.appendChild(li);
+  }
+}
+
+function partNode(p, label) {
+  const li = document.createElement('li');
+  const d = document.createElement('div'); d.className = 'tnode';
+  const sw = p.colorMode === 'vertex' ? 'background:conic-gradient(#e07a5f,#f2cc8f,#81b29a,#5fa8d3,#9b8ec4,#e07a5f)' : `background:${p.color}`;
+  d.innerHTML = `<input type="checkbox" ${p.mesh.visible ? 'checked' : ''}>
+    <i class="swatch" style="${sw}" title="${p.colorMode === 'vertex' ? 'Çok renkli' : p.color}"></i>
+    <span class="name" title="${escapeHtml(p.name)}">${escapeHtml(label)}</span>
+    <span class="cnt">${fmtInt(p.triangles)} ▲</span>`;
+  d.querySelector('input').onchange = (e) => { p.mesh.visible = e.target.checked; buildTree(); updateAfterVisibility(); };
+  d.querySelector('.name').onclick = () => fitToObject(boxOfParts([p]));
+  li.appendChild(d);
+  return li;
+}
+
+function boxOfParts(parts) {
+  const box = new THREE.Box3();
+  contentRoot.updateMatrixWorld(true);
+  for (const p of parts) box.union(new THREE.Box3().copy(p.geometry.boundingBox).applyMatrix4(p.mesh.matrixWorld));
+  return box;
+}
+
+function showPlate(model, plateId) {
+  STATE.activePlate[model.id] = plateId;
+  for (const p of model.parts) p.mesh.visible = plateId === null || p.plate === plateId;
+  if (plateId !== null && !model.parts.some(p => p.mesh.visible)) setStatus(`Plaka ${plateId} üzerinde nesne bulunamadı.`, 'warn');
+  buildTree();
+  updateAfterVisibility();
+  fitToObject(boxOfParts(model.parts.filter(p => p.mesh.visible)));
+}
+
+function updateAfterVisibility() {
+  updateInfoPanel();
+  if (STATE.clipAxis !== 'off') updateClip();
+  updateBBox();
+  requestRender();
+}
+
+function updateInfoPanel() {
+  const parts = visibleParts();
+  if (!parts.length) {
+    ['iTri', 'iX', 'iY', 'iZ', 'iVol', 'iArea', 'iMass'].forEach(id => $(id).textContent = '–');
+    return;
+  }
+  const tris = sumTris(parts);
+  const box = new THREE.Box3();
+  for (const p of parts) box.union(new THREE.Box3().copy(p.geometry.boundingBox).translate(p.model.group.position));
+  const s = box.getSize(new THREE.Vector3());
+  let vol = 0, area = 0;
+  for (const p of parts) { vol += p.stats.volume; area += p.stats.area; }
+  const volCm3 = Math.abs(vol) / 1000;
+  $('iTri').textContent = fmtInt(tris);
+  $('iX').textContent = fmtLen(s.x);
+  $('iY').textContent = fmtLen(s.y);
+  $('iZ').textContent = fmtLen(s.z);
+  $('iVol').textContent = STATE.dispUnit === 'in' ? fmtNum(Math.abs(vol) / 16387.064, 3) + ' in³' : fmtNum(volCm3, 2) + ' cm³';
+  $('iArea').textContent = STATE.dispUnit === 'in' ? fmtNum(area / 645.16, 2) + ' in²' : fmtNum(area / 100, 2) + ' cm²';
+  const g = volCm3 * STATE.density;
+  $('iMass').textContent = g >= 1000 ? fmtNum(g / 1000, 3) + ' kg' : fmtNum(g, 1) + ' g';
+  $('infoScope').textContent = `(görünen ${parts.length} parça)`;
+}
+
+let statusTimer = null;
+function setStatus(msg, type = '') {
+  const el = $('status');
+  el.textContent = msg;
+  el.className = type;
+  clearTimeout(statusTimer);
+  if (type === 'ok') statusTimer = setTimeout(() => { if (el.textContent === msg) el.textContent = ''; }, 9000);
+}
+function setProgress(p) {
+  const bar = $('progress').firstElementChild;
+  bar.style.width = (p > 0 && p < 1 ? p * 100 : 0) + '%';
+}
+
+// --- biçimlendirme ---
+const nf = (d) => new Intl.NumberFormat('tr-TR', { minimumFractionDigits: d, maximumFractionDigits: d });
+function fmtNum(v, d = 2) { return nf(d).format(v); }
+function fmtInt(v) { return nf(0).format(v); }
+function fmtLen(mm) { return STATE.dispUnit === 'in' ? fmtNum(mm / 25.4, 3) + ' in' : fmtNum(mm, 2) + ' mm'; }
+function fmtBytes(b) { return b > 1048576 ? fmtNum(b / 1048576, 1) + ' MB' : fmtNum(b / 1024, 0) + ' KB'; }
+function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
+// --- tema ---
+function isDarkTheme() {
+  const t = document.documentElement.dataset.theme;
+  if (t === 'dark') return true;
+  if (t === 'light') return false;
+  return !window.matchMedia('(prefers-color-scheme: light)').matches;
+}
+function applyThemeBackground() {
+  const css = getComputedStyle(document.documentElement).getPropertyValue('--scene').trim() || '#1a1d23';
+  const col = STATE.bgCustom || css;
+  scene.background = new THREE.Color(col);
+  $('bgIn').value = '#' + new THREE.Color(col).getHexString();
+  if (grid) rebuildGrid(gridSize);
+  if (STATE.mode === 'edges') refreshMaterials();
+  requestRender();
+}
+
+function initUI() {
+  // tema
+  const savedTheme = safeGet('stl3mf.theme') || 'auto';
+  $('themeSel').value = savedTheme;
+  if (savedTheme !== 'auto') document.documentElement.dataset.theme = savedTheme;
+  $('themeSel').onchange = (e) => {
+    const v = e.target.value;
+    if (v === 'auto') delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = v;
+    safeSet('stl3mf.theme', v);
+    applyThemeBackground();
+  };
+  window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', applyThemeBackground);
+
+  $('btnClear').onclick = () => { [...STATE.models].forEach(removeModel); clearMeasures(); setStatus(''); };
+  $('dispUnit').onchange = (e) => { STATE.dispUnit = e.target.value; updateInfoPanel(); renderMeasureList(); updateClip(); };
+  $('matSel').onchange = (e) => {
+    if (e.target.value !== 'custom') $('densIn').value = e.target.value;
+    STATE.density = parseFloat($('densIn').value) || 1.24; updateInfoPanel();
+  };
+  $('densIn').oninput = () => { STATE.density = parseFloat($('densIn').value) || 0; $('matSel').value = [...$('matSel').options].some(o => o.value === $('densIn').value) ? $('densIn').value : 'custom'; updateInfoPanel(); };
+  $('btnCheck').onclick = checkManifold;
+
+  document.querySelectorAll('#modeSeg button').forEach(b => b.onclick = () => setRenderMode(b.dataset.mode));
+  $('chkOrigColor').onchange = (e) => { STATE.origColor = e.target.checked; refreshMaterials(); };
+  $('colorIn').oninput = (e) => { STATE.singleColor.set(e.target.value); STATE.origColor = false; $('chkOrigColor').checked = false; refreshMaterials(); };
+  $('chkGrid').onchange = (e) => { grid.visible = e.target.checked; requestRender(); };
+  $('chkAxes').onchange = (e) => { axes.visible = e.target.checked; requestRender(); };
+  $('chkBBox').onchange = updateBBox;
+  $('bgIn').oninput = (e) => { STATE.bgCustom = e.target.value; scene.background = new THREE.Color(e.target.value); requestRender(); };
+  $('btnBgReset').onclick = () => { STATE.bgCustom = null; applyThemeBackground(); };
+  $('btnPersp').onclick = () => setOrtho(false);
+  $('btnOrtho').onclick = () => setOrtho(true);
+
+  document.querySelectorAll('#clipSeg button').forEach(b => b.onclick = () => setClipAxis(b.dataset.axis));
+  $('clipRange').oninput = updateClip;
+  $('chkClipFlip').onchange = updateClip;
+  $('explodeRange').oninput = (e) => explode(+e.target.value / 100);
+
+  document.querySelectorAll('#toolbar [data-view]').forEach(b => b.onclick = () => setCameraView(b.dataset.view));
+  $('btnFit').onclick = () => fitToObject();
+  $('btnShot').onclick = screenshotPNG;
+  $('btnExport').onclick = exportSTL;
+
+  window.addEventListener('keydown', (e) => {
+    if (e.target.closest('input, select, textarea') || e.ctrlKey || e.metaKey || e.altKey) return;
+    const k = e.key.toLowerCase();
+    const map = { f: () => fitToObject(), 1: () => setCameraView('front'), 2: () => setCameraView('top'), 3: () => setCameraView('right'),
+      4: () => setCameraView('iso'), w: () => setRenderMode('wire'), e: () => setRenderMode('edges'), x: () => setRenderMode('xray'),
+      s: () => setRenderMode('solid'), m: () => startMeasure(!STATE.measuring), o: () => setOrtho(!STATE.ortho),
+      escape: () => startMeasure(false) };
+    if (map[k]) { map[k](); e.preventDefault(); }
+  });
+}
+function safeGet(k) { try { return localStorage.getItem(k); } catch { return null; } }
+function safeSet(k, v) { try { localStorage.setItem(k, v); } catch { /* gizli pencere: tercih kaydedilmez */ } }
+
+// ===================== BAŞLAT =====================
+try {
+  initUI();
+  initScene();
+  initFileInput();
+  initMeasure();
+  animate();
+  window.__viewer = { STATE, openFiles, decodePaintColor, sceneBox }; // test/hata ayıklama için
+} catch (err) {
+  console.error(err);
+  setStatus('Başlatılamadı: ' + err.message + '\n(Tarayıcınız WebGL desteklemiyor olabilir.)', 'err');
+}
+</script>
+<script>
+  // three.js CDN'den yüklenemezse (çevrimdışı/engelli) kullanıcıya bildir
+  setTimeout(() => {
+    if (!window.__viewer) {
+      const s = document.getElementById('status');
+      if (s && !s.textContent) { s.textContent = 'three.js yüklenemedi. İnternet bağlantısını ve cdn.jsdelivr.net erişimini kontrol edin.'; s.className = 'err'; }
+    }
+  }, 8000);
+</script>
+</body>
+</html>
